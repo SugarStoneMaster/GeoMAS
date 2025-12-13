@@ -1,0 +1,67 @@
+# ====================================
+# Dipendenze e Ambienti Virtuali
+# ====================================
+
+# Ambienti virtuali generici (venv, virtualenvwrapper, ecc.)
+.venv
+venv
+env
+/tmp
+/tmp.*
+
+# Ambienti Conda
+.conda
+
+# File di pacchetti binari/installabili
+*.egg-info/
+*.dist-info/
+build/
+dist/
+
+# File generati da Pip
+requirements.txt.bak
+requirements.dev.txt.bak
+
+# ====================================
+# File di Cache e Compilation
+# ====================================
+
+# Bytecode Python (file .pyc e directory __pycache__)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# File di logging e database SQLite temporanei
+*.log
+*.sqlite3
+*.db
+
+# ====================================
+# Testing e Strumenti Vari
+# ====================================
+
+# Pytest e Coverage
+.pytest_cache/
+.coverage
+
+# Strumenti di MyPy (analisi statica)
+.mypy_cache/
+
+# ====================================
+# IDE / Editor Specifici
+# ====================================
+
+# Visual Studio Code (VS Code)
+.vscode/
+
+# PyCharm
+.idea/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+*~
