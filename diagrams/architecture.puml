@@ -1,0 +1,107 @@
+@startuml
+!theme plain
+hide empty members
+skinparam componentStyle rectangle
+skinparam defaultTextAlignment center
+skinparam linetype ortho
+
+title GeoMAS: Hierarchical Neuro-Symbolic Architecture
+
+' --- LAYERS DEFINITION ---
+
+package "1. Presentation Layer (Researcher Interface)" {
+    [Streamlit Dashboard] as UI
+    note right of UI
+        - Scenario Config
+        - Real-time Map Vis (Plotly)
+        - Interactive XAI Query
+    end note
+}
+
+package "2. Cognitive Agent Layer (The 'Brain')" {
+    component "Nation Agent (Cabinet Architecture)" as Agent {
+        portin "Sense"
+        portout "Act"
+
+        ' Nuova Struttura Gerarchica
+        frame "Phase 1: Proposal (Ministers)" as Ministry {
+            [Defense Minister\n(Security Goal)] as MinDef
+            [Economy Minister\n(SciPy Optimizer)] as MinEco
+            [Foreign Minister\n(Trust Analyzer)] as MinFor
+        }
+
+        component "Phase 2: Executive\n(The President)" as Pres
+
+        component "Phase 3: Reaction\n(Public Opinion)" as PubOp
+    }
+
+    cloud "LLM Backend\n(OpenAI / Azure)" as LLM
+}
+
+package "3. Simulation Layer (The 'Body')" {
+    component "Genesis Module\n(Initialization)" as Genesis
+
+    component "Spatial World Engine" as World {
+        [Voronoi Topology\n(Dual Graph)] as Map
+        [Resource State] as Res
+    }
+
+    component "Deterministic Rules Oracle" as Rules {
+        [Topological Checks] as Topo
+        [Constraint Validator] as Valid
+        [Diplomatic Hard-Locks] as Diplo
+    }
+
+    database "Structured Log Repository\n(JSON/SQLite)" as DB
+}
+
+package "4. Explainability Layer (The 'Observer')" {
+    component "XAI Oracle" as XAI
+    component "Counterfactual Engine" as Counter
+}
+
+' --- RELATIONSHIPS ---
+
+' 1. Initialization (Updated with Genesis)
+UI --> Genesis : 1. Config Seed
+Genesis --> World : 2. Cold Start Init\n(History Generation)
+
+' 2. Sense Phase (Abstraction)
+World -up-> "Sense" : 3. Spatial Abstraction
+"Sense" -down-> Ministry : Context Distribution
+
+' 3. Internal Cabinet Workflow (New!)
+MinDef --> Pres : Proposal (JSON)
+MinEco --> Pres : Proposal (JSON)
+MinFor --> Pres : Proposal (JSON)
+
+' President uses LLM to decide
+Pres <-> LLM : 4. Synthesis & Decision
+Pres -down-> "Act" : Generate Envelope
+
+' Public Opinion Check-and-Balance
+"Act" .right.> PubOp : Evaluate Decision
+PubOp --> Rules : Trigger Event (e.g. Strike)\nIf Satisfaction Low
+
+' 4. Act Phase (Diplomatic Envelope)
+"Act" -down-> Rules : 5. Diplomatic Envelope\n{Statement, Intent, Payload}
+
+' 5. Execution & Validation
+Rules -> Rules : 6. Validate Payload\n(Physics/Treaty Check)
+Rules -down-> World : 7a. Execute State Change\n(If Valid)
+Rules -up-> "Sense" : 7b. Error Feedback\n(If Invalid)
+
+' 6. Logging
+World -right-> DB : Store State Delta
+Rules -right-> DB : Store Validation Trace
+Agent -right-> DB : Store Cabinet Debate\n(Ministers vs President)
+
+' 7. Explainability Flow
+UI ..> XAI : Query: "Why action X?"
+XAI --> DB : Retrieve Trace
+XAI --> Counter : Fork Simulation
+Counter --> Rules : Test Counterfactual
+Rules --> Counter : Return Reason
+Counter --> XAI : Verified Explanation
+
+@enduml

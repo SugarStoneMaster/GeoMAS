@@ -1,0 +1,69 @@
+@startuml
+!theme plain
+hide footbox
+autonumber "<b>[0]</b>"
+
+' --- ACTOR DEFINITIONS ---
+box "Simulation Layer (The World)" #fafafa
+    participant ":SpatialWorldEngine" as World
+    participant ":RulesOracle" as Rules
+end box
+
+box "Cognitive Layer (The Agent)" #f4f4f4
+    participant ":CabinetMinisters" as Ministers
+    participant ":President" as Pres
+    participant ":PublicOpinion" as PubOp
+end box
+
+database ":LogRepository" as DB
+
+' --- SEQUENCE START ---
+
+== Phase 1: Sense (Data Ingestion) ==
+
+World -> World : Update Turn & Resources
+World -> Ministers : get_context()\n<color:gray>[Spatial Abstract + Trust Matrix]</color>
+
+== Phase 2: Think (Proposal & Synthesis) ==
+
+group Parallel Reasoning
+    Ministers -> Ministers : <b>Defense:</b> Analyze Graph Risks
+    Ministers -> Ministers : <b>Economy:</b> Run SciPy Optimizer
+    Ministers -> Ministers : <b>Foreign:</b> Check Treaty Table
+end
+
+Ministers -> Pres : submit_proposals(List[JSON])
+Pres -> Pres : <b>LLM Synthesis:</b>\nBalance Welfare vs Warfare
+Pres -> Pres : Create <b>DiplomaticEnvelope</b>\n{PublicText, PrivateIntent, Payload}
+
+Pres -> DB : Log "Cabinet Debate" (Reasoning Trace)
+
+== Phase 3: Reaction (Internal Check) ==
+
+Pres -> PubOp : notify_decision(Envelope)
+PubOp -> PubOp : Evaluate Satisfaction Score
+
+alt Critical Dissatisfaction (e.g. < 15%)
+    PubOp -> Pres : <b>TRIGGER EVENT: General Strike</b>
+    Pres -> Pres : Override Payload -> "Skip Turn"
+    Pres -> DB : Log "Internal Collapse"
+else Stability OK
+    PubOp -> Pres : Approval Granted
+end
+
+== Phase 4: Act & Verify (External Check) ==
+
+Pres -> Rules : <b>validate_envelope(Payload)</b>
+
+alt Invalid Action (Physics/Treaty Violation)
+    Rules --x Pres : Error: "Constraint Violation"
+    Pres -> DB : Log "Invalid Action Attempt"
+else Valid Action
+    Rules -> World : <b>execute_payload()</b>
+    note right: Update Map, Resources,\nor Trust Matrix
+
+    Rules -> DB : Log "State Transition"
+    Rules --> Pres : Success
+end
+
+@enduml
