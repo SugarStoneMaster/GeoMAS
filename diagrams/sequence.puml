@@ -1,69 +1,92 @@
 @startuml
 !theme plain
 hide footbox
-autonumber "<b>[0]</b>"
+autonumber "<b>(0)</b>"
 
-' --- ACTOR DEFINITIONS ---
-box "Simulation Layer (The World)" #fafafa
-    participant ":SpatialWorldEngine" as World
-    participant ":RulesOracle" as Rules
+' --- STILE VISIVO ---
+skinparam sequence {
+    ArrowColor #2C3E50
+    LifeLineBorderColor #2C3E50
+    LifeLineBackgroundColor White
+
+    ParticipantBorderColor #2C3E50
+    ParticipantBackgroundColor White
+    ParticipantFontName Helvetica
+    ParticipantFontSize 14
+    ParticipantFontStyle bold
+
+    BoxFontSize 16
+    BoxFontColor White
+}
+
+' --- ATTORI ---
+
+box "Simulation Layer (The World)" #4A90E2
+    participant "World Engine" as World
+    participant "Translator\n(Interface)" as Sense
+    participant "Rules Oracle\n(The Law)" as Oracle
 end box
 
-box "Cognitive Layer (The Agent)" #f4f4f4
-    participant ":CabinetMinisters" as Ministers
-    participant ":President" as Pres
-    participant ":PublicOpinion" as PubOp
+box "Cognitive Layer (The Brain)" #27AE60
+    participant "Nation Agent\n(Cabinet)" as Agent
 end box
 
-database ":LogRepository" as DB
+box "Data Layer" #95A5A6
+    database "Log Repository" as DB
+end box
 
-' --- SEQUENCE START ---
+' --- INIZIO FLUSSO ---
 
-== Phase 1: Sense (Data Ingestion) ==
+== Phase 1: Sense (Perception) ==
 
-World -> World : Update Turn & Resources
-World -> Ministers : get_context()\n<color:gray>[Spatial Abstract + Trust Matrix]</color>
+World -> Sense : Send Raw Topology & Resources
 
-== Phase 2: Think (Proposal & Synthesis) ==
+activate Sense
+Sense -> Sense : Abstract Spatial Features
+Sense -> Agent : <b>Inject Strategic Context</b>
+note right: Report in linguaggio naturale\n(Minacce, Opportunità, Bilancio)
+deactivate Sense
 
-group Parallel Reasoning
-    Ministers -> Ministers : <b>Defense:</b> Analyze Graph Risks
-    Ministers -> Ministers : <b>Economy:</b> Run SciPy Optimizer
-    Ministers -> Ministers : <b>Foreign:</b> Check Treaty Table
-end
+== Phase 2: Think (Reasoning) ==
 
-Ministers -> Pres : submit_proposals(List[JSON])
-Pres -> Pres : <b>LLM Synthesis:</b>\nBalance Welfare vs Warfare
-Pres -> Pres : Create <b>DiplomaticEnvelope</b>\n{PublicText, PrivateIntent, Payload}
+activate Agent
+Agent -> Agent : <b>Cabinet Deliberation</b>
+note right of Agent
+  Il sistema multi-agente elabora:
+  1. Analisi dei Ministri
+  2. Sintesi del Presidente
+  3. Allocazione Budget
+end note
 
-Pres -> DB : Log "Cabinet Debate" (Reasoning Trace)
+Agent -> Oracle : <b>Submit Diplomatic Envelope</b>
+note right
+  Contiene il <b>Multi-Payload</b>:
+  - Strategia Militare (Lista Prioritaria)
+  - Azioni Economiche
+  - Azioni Diplomatiche
+end note
+deactivate Agent
 
-== Phase 3: Reaction (Internal Check) ==
+== Phase 3: Act (Validation & Execution) ==
 
-Pres -> PubOp : notify_decision(Envelope)
-PubOp -> PubOp : Evaluate Satisfaction Score
+activate Oracle
+Oracle -> Oracle : <b>Validate Constraints</b>
+note left
+  Verifica sequenziale:
+  1. Check Opinione Pubblica (Scioperi)
+  2. Check Costi vs Budget
+  3. Check Fattibilità Fisica
+end note
 
-alt Critical Dissatisfaction (e.g. < 15%)
-    PubOp -> Pres : <b>TRIGGER EVENT: General Strike</b>
-    Pres -> Pres : Override Payload -> "Skip Turn"
-    Pres -> DB : Log "Internal Collapse"
-else Stability OK
-    PubOp -> Pres : Approval Granted
-end
+Oracle -> World : <b>Execute State Changes</b>
+note left: Aggiorna confini, risorse e\nTrust Matrix nel motore fisico
 
-== Phase 4: Act & Verify (External Check) ==
+== Phase 4: Trace (Logging) ==
 
-Pres -> Rules : <b>validate_envelope(Payload)</b>
+Oracle -> DB : <b>Archive Turn Data</b>
+note right: Salva lo snapshot completo\nper l'Explainability e Replay
 
-alt Invalid Action (Physics/Treaty Violation)
-    Rules --x Pres : Error: "Constraint Violation"
-    Pres -> DB : Log "Invalid Action Attempt"
-else Valid Action
-    Rules -> World : <b>execute_payload()</b>
-    note right: Update Map, Resources,\nor Trust Matrix
-
-    Rules -> DB : Log "State Transition"
-    Rules --> Pres : Success
-end
+World -> World : Advance Timeline
+deactivate Oracle
 
 @enduml
