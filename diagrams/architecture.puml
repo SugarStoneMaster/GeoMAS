@@ -3,19 +3,20 @@
 hide empty members
 skinparam componentStyle rectangle
 skinparam linetype ortho
+skinparam defaultTextAlignment center
 
 ' --- DEFINIZIONE LAYERS ---
 
-package "Presentation" {
+package "1. Presentation" {
     component "Dashboard" as Dash
 }
 
-package "Explainability" {
+package "2. Explainability" {
     component "XAI Oracle" as XAI
     component "Counterfactual Engine" as Counter
 }
 
-package "Simulation" {
+package "3. Simulation" {
     component "Genesis\n(Initialization)" as Gen
 
     component "Spatial World Engine" as World {
@@ -32,19 +33,19 @@ package "Simulation" {
     database "Structured Log Repository\n(JSON/SQLite)" as DB
 }
 
-package "Agents" {
+package "4. Agents" {
     portin "Sense"
     portout "Act"
 
     rectangle "Country" {
-        component "Ministers" as Min {
+        component "Ministers (Advisory)" as Min {
             rectangle "Defense"
             rectangle "Economy"
             rectangle "Foreign"
         }
 
-        component "President" as Pres
-        component "Public Opinion" as PubOp
+        component "President (Executive)" as Pres
+        component "Public Opinion (Constraint)" as PubOp
     }
 }
 
@@ -52,38 +53,41 @@ cloud "Azure OpenAI\n(LLM Service)" as LLM
 
 ' --- RELAZIONI ---
 
-' Presentation Flow
+' 1. Presentation Flow
 Dash --> Gen : Config seed
 Dash --> XAI
 
-' Explainability Flow
-XAI --> DB : Retrieve Trace
+' 2. Explainability Flow
+XAI --> DB : Retrieve
 XAI -> Counter : Fork simulation
 Counter --> Rules : Test counterfactual
 
-' Simulation Flow
+' 3. Simulation Flow
 Gen --> World : Init world
-World -> DB : Snapshot Update
+World -> DB : Update state / Saves world snapshot
 Rules -> World : Modify world state
-Rules -> DB : Store validation result
+Rules -> DB : Store validation
 
-' Agent Sense Flow (UPDATED with Episodic Memory)
+' 4. Agent Sense Flow
 World --> "Sense" : Spatial abstraction and resource state
-DB .up.> "Sense" : **Episodic Memory (History)**
-"Sense" --> Min : Context Distribution
+' Nota: Mantengo il link al DB come memoria storica implicita o esplicita
+DB .up.> "Sense" : History / Episodic Memory
+"Sense" --> Min : Context distribution
 
-' Agent Cognitive Flow (LLM Interaction)
+' 5. Agent Cognitive Flow (LLM Interaction)
 Min -> LLM : Generate three proposals
 Min --> Pres : Three proposals
-PubOp -> LLM : Generate internal poll
-PubOp -> Pres : Polling Data
-Pres -> LLM : **Synthesize Multi-Payload Strategy**
 
-' Agent Act Flow
-Pres -> "Act" : Diplomatic Envelope
-"Act" -> Rules : Validate Envelope
+PubOp -> LLM : Generate internal poll (sampling)
+PubOp -> Pres : Polling data / Internal call
 
-' Logging
-"Country" -> DB : Saves worlds snapshot and actions taken
+Pres -> LLM : **Choose strategy for current turn**
+
+' 6. Agent Act Flow
+Pres -> "Act" : Generate diplomatic envelope
+"Act" -> Rules : Validate envelope
+
+' 7. Logging
+"Country" -> DB : Store cabinet debate / History
 
 @enduml
