@@ -50,39 +50,40 @@ package "Agents" {
 
 cloud "Azure OpenAI\n(LLM Service)" as LLM
 
-' --- RELAZIONI (Trascritti dall'immagine) ---
+' --- RELAZIONI ---
 
 ' Presentation Flow
 Dash --> Gen : Config seed
 Dash --> XAI
 
 ' Explainability Flow
-XAI --> DB : Retrieve
+XAI --> DB : Retrieve Trace
 XAI -> Counter : Fork simulation
 Counter --> Rules : Test counterfactual
 
 ' Simulation Flow
 Gen --> World : Init world
-World -> DB : Update state
+World -> DB : Snapshot Update
 Rules -> World : Modify world state
-Rules -> DB : Store validation
+Rules -> DB : Store validation result
 
-' Agent Sense Flow
-World --> "Sense"
-"Sense" --> Min : Context distribution
+' Agent Sense Flow (UPDATED with Episodic Memory)
+World --> "Sense" : Spatial abstraction and resource state
+DB .up.> "Sense" : **Episodic Memory (History)**
+"Sense" --> Min : Context Distribution
 
 ' Agent Cognitive Flow (LLM Interaction)
 Min -> LLM : Generate three proposals
 Min --> Pres : Three proposals
-PubOp -> LLM : Generate internal poll (sampling)
-PubOp -> Pres : Internal call
-Pres -> LLM : Choose strategy for current turn
+PubOp -> LLM : Generate internal poll
+PubOp -> Pres : Polling Data
+Pres -> LLM : **Synthesize Multi-Payload Strategy**
 
 ' Agent Act Flow
-Pres -> "Act" : Generate envelope with strategy
-"Act" -> Rules : Validate envelope
+Pres -> "Act" : Diplomatic Envelope
+"Act" -> Rules : Validate Envelope
 
 ' Logging
-"Country" -> DB : Store cabinet debate
+"Country" -> DB : Saves worlds snapshot and actions taken
 
 @enduml
