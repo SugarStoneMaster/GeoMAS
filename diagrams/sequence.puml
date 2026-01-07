@@ -3,7 +3,7 @@
 hide footbox
 autonumber "<b>(0)</b>"
 
-' --- STILE VISIVO ---
+' --- STILE VISIVO (Preservato dal tuo esempio) ---
 skinparam sequence {
     ArrowColor #2C3E50
     LifeLineBorderColor #2C3E50
@@ -23,7 +23,7 @@ skinparam sequence {
 
 box "Simulation Layer (The World Engine)" #4A90E2
     participant "World State" as World
-    participant "Spatial Translator" as Sense
+    participant "Sense Interface\n(Translator)" as Sense
     participant "Rules Oracle" as Oracle
 end box
 
@@ -37,14 +37,36 @@ end box
 
 ' --- INIZIO FLUSSO ---
 
-== Phase 1: Sense (Perception) ==
+== Phase 1: Sense (Data Fusion) ==
 
-World -> Sense : Send Raw Topology & Resources
+' 1. Qui specifichiamo che arrivano TUTTI i dati grezzi
+World -> Sense : Fetch **Topology**, **Resources** & **Trust Matrix**
+note left
+  Dati grezzi dal DB:
+  1. Voronoi Graph (Geo)
+  2. Economic Stock (Res)
+  3. Reputation Table (Trust)
+end note
 
 activate Sense
-Sense -> Sense : Abstract Spatial Features
+
+' 2. Qui mostriamo la fusione logica
+Sense -> Sense : **Synthesize Intelligence**
+note right
+  Il Translator fonde i dati:
+  - Calcola astrazioni spaziali (Graph Analysis)
+  - Formatta il report economico
+  - Integra lo storico diplomatico
+end note
+
+' 3. Qui l'output è il Context completo
 Sense -> Agent : <b>Inject Strategic Context</b>
-note right: Report in linguaggio naturale\n(Minacce, Opportunità, Bilancio)
+note right
+  Input unificato per l'LLM:
+  * Spatial Features (Minacce/Opportunità)
+  * Economic State (Budget)
+  * Diplomatic Landscape (Trust)
+end note
 deactivate Sense
 
 == Phase 2: Think (Reasoning) ==
@@ -53,17 +75,17 @@ activate Agent
 Agent -> Agent : <b>Cabinet Deliberation</b>
 note right of Agent
   Il sistema multi-agente elabora:
-  1. Analisi dei Ministri e sentiment popolare
-  2. Sintesi del Presidente
-  3. Allocazione Budget
+  1. Ministri (Difesa/Eco/Esteri) propongono
+  2. Opinione Pubblica fornisce polls
+  3. Presidente bilancia il budget condiviso
 end note
 
 Agent -> Oracle : <b>Submit Diplomatic Envelope</b>
 note right
   Contiene il <b>Multi-Payload</b>:
-  - Azione Militare
-  - Azione Economica
-  - Azione Estera
+  - Military Vector (Lista Prioritaria di Mosse)
+  - Azione Economica (Singola)
+  - Azione Estera (Singola)
 end note
 deactivate Agent
 
@@ -72,13 +94,14 @@ deactivate Agent
 activate Oracle
 Oracle -> Oracle : <b>Validate Constraints</b>
 note left
-  Verifica sequenziale:
-  2. Check Costi vs Budget
-  3. Check Fattibilità Fisica
+  Verifica sequenziale rigida:
+  1. Check Opinione Pubblica (Scioperi?)
+  2. Check Budget Totale (Taglio mosse eccessive)
+  3. Check Fattibilità Fisica (Pathfinding)
 end note
 
 Oracle -> World : <b>Execute State Changes</b>
-note left: Aggiorna confini, risorse e\nTrust Matrix nel motore fisico
+note left: Scrive le modifiche valide su:\nConfini, Risorse e Trust Matrix
 
 == Phase 4: Trace (Logging) ==
 
