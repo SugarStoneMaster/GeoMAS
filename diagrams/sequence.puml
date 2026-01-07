@@ -3,18 +3,16 @@
 hide footbox
 autonumber "<b>(0)</b>"
 
-' --- STILE VISIVO (Preservato dal tuo esempio) ---
+' --- STILE VISIVO ---
 skinparam sequence {
     ArrowColor #2C3E50
     LifeLineBorderColor #2C3E50
     LifeLineBackgroundColor White
-
     ParticipantBorderColor #2C3E50
     ParticipantBackgroundColor White
     ParticipantFontName Helvetica
     ParticipantFontSize 14
     ParticipantFontStyle bold
-
     BoxFontSize 16
     BoxFontColor White
 }
@@ -22,50 +20,58 @@ skinparam sequence {
 ' --- ATTORI ---
 
 box "Simulation Layer (The World Engine)" #4A90E2
-    participant "World State" as World
+    participant "World State\n(In-Memory)" as World
     participant "Sense Interface\n(Translator)" as Sense
     participant "Rules Oracle" as Oracle
+end box
+
+box "Data Layer" #95A5A6
+    database "Log Repository\n(Episodic Memory)" as DB
 end box
 
 box "Cognitive Layer (The Brain)" #27AE60
     participant "Nation Agent\n(Cabinet)" as Agent
 end box
 
-box "Data Layer" #95A5A6
-    database "Log Repository" as DB
-end box
 
 ' --- INIZIO FLUSSO ---
 
 == Phase 1: Sense (Data Fusion) ==
 
-' 1. Qui specifichiamo che arrivano TUTTI i dati grezzi
-World -> Sense : Fetch **Topology**, **Resources** & **Trust Matrix**
+' 1. DATI REAL-TIME (Dalla RAM)
+World -> Sense : Fetch **Current State** (RAM)
 note left
-  Dati grezzi dal DB:
-  1. Voronoi Graph (Geo)
-  2. Economic Stock (Res)
-  3. Reputation Table (Trust)
+  Dati vivi (Runtime):
+  - Voronoi Graph (Topology)
+  - Resources & Budget
+  - Current Trust Matrix
 end note
 
 activate Sense
 
-' 2. Qui mostriamo la fusione logica
-Sense -> Sense : **Synthesize Intelligence**
+' 2. DATI STORICI (Dal DB) - NUOVO!
+Sense -> DB : Query **Recent History** (SQL)
 note right
-  Il Translator fonde i dati:
-  - Calcola astrazioni spaziali (Graph Analysis)
-  - Formatta il report economico
-  - Integra lo storico diplomatico
+  Recupera eventi passati:
+  - "Last 5 turns summary"
+  - "Active Grievances"
+  (Context window optimization)
 end note
 
-' 3. Qui l'output è il Context completo
+' 3. FUSIONE
+Sense -> Sense : **Synthesize Intelligence**
+note right
+  Data Fusion:
+  - Integra Topologia (RAM)
+  - con Memoria Storica (DB)
+end note
+
+' 4. INPUT FINALE
 Sense -> Agent : <b>Inject Strategic Context</b>
 note right
-  Input unificato per l'LLM:
-  * Spatial Features (Minacce/Opportunità)
-  * Economic State (Budget)
-  * Diplomatic Landscape (Trust)
+  Report completo per l'LLM:
+  "Sei ricco (RAM) ma isolato diplomaticamente
+  perché hai tradito la Nazione B al turno 4 (DB)."
 end note
 deactivate Sense
 
@@ -75,17 +81,18 @@ activate Agent
 Agent -> Agent : <b>Cabinet Deliberation</b>
 note right of Agent
   Il sistema multi-agente elabora:
-  1. Ministri (Difesa/Eco/Esteri) propongono
+  1. Ministri analizzano il report misto
   2. Opinione Pubblica fornisce polls
-  3. Presidente bilancia il budget condiviso
+  3. Presidente bilancia il budget
+  *(Eventuale query DB specifica qui se serve)*
 end note
 
 Agent -> Oracle : <b>Submit Diplomatic Envelope</b>
 note right
   Contiene il <b>Multi-Payload</b>:
-  - Military Vector (Lista Prioritaria di Mosse)
-  - Azione Economica (Singola)
-  - Azione Estera (Singola)
+  - Military Vector (Priority List)
+  - Azione Economica
+  - Azione Estera
 end note
 deactivate Agent
 
@@ -94,19 +101,19 @@ deactivate Agent
 activate Oracle
 Oracle -> Oracle : <b>Validate Constraints</b>
 note left
-  Verifica sequenziale rigida:
-  1. Check Opinione Pubblica (Scioperi?)
-  2. Check Budget Totale (Taglio mosse eccessive)
-  3. Check Fattibilità Fisica (Pathfinding)
+  Verifica sequenziale:
+  1. Check Opinione Pubblica
+  2. Check Budget Totale
+  3. Check Fattibilità Fisica
 end note
 
 Oracle -> World : <b>Execute State Changes</b>
-note left: Scrive le modifiche valide su:\nConfini, Risorse e Trust Matrix
+note left: Modifica lo stato in RAM:\nConfini, Risorse, Trust
 
 == Phase 4: Trace (Logging) ==
 
 Oracle -> DB : <b>Archive Turn Data</b>
-note right: Salva lo snapshot completo\nper l'Explainability e Replay
+note right: Salva lo snapshot e le decisioni\nper memoria futura ed Explainability
 
 World -> World : Advance Turn
 deactivate Oracle
