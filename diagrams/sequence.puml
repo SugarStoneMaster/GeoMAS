@@ -17,31 +17,28 @@ skinparam sequence {
     BoxFontColor White
 }
 
-' --- ATTORI ---
-
+' --- DEFINIZIONE LAYERS E PARTECIPANTI ---
 box "Simulation Layer (The World Engine)" #4A90E2
-    participant "World State\n(In-Memory)" as World
-    participant "Sense Interface\n(Translator)" as Sense
+    participant "World State" as World
+    participant "Sense Interface" as Sense
     participant "Rules Oracle" as Oracle
 end box
 
 box "Data Layer" #95A5A6
-    database "Log Repository\n(Episodic Memory)" as DB
+    database "Log Repository" as DB
 end box
 
 box "Cognitive Layer (The Brain)" #27AE60
     participant "Nation Agent\n(Cabinet)" as Agent
 end box
 
-
 ' --- INIZIO FLUSSO ---
 
-== Phase 1: Sense (Data Fusion) ==
+== Phase 1: Sense==
 
 ' 1. DATI REAL-TIME (Dalla RAM)
-World -> Sense : Fetch **Current State** (RAM)
+World -> Sense : Fetch **Current State**
 note left
-  Dati vivi (Runtime):
   - Voronoi Graph (Topology)
   - Resources & Budget
   - Current Trust Matrix
@@ -50,9 +47,8 @@ end note
 activate Sense
 
 ' 2. DATI STORICI (Dal DB) - NUOVO!
-Sense -> DB : Query **Recent History** (SQL)
+Sense -> DB : Query **Recent History**
 note right
-  Recupera eventi passati:
   - "Last 5 turns summary"
   - "Active Grievances"
   (Context window optimization)
@@ -60,60 +56,58 @@ end note
 
 ' 3. FUSIONE
 Sense -> Sense : **Synthesize Intelligence**
-note right
-  Data Fusion:
-  - Integra Topologia (RAM)
-  - con Memoria Storica (DB)
-end note
+
 
 ' 4. INPUT FINALE
 Sense -> Agent : <b>Inject Strategic Context</b>
 note right
-  Report completo per l'LLM:
-  "Sei ricco (RAM) ma isolato diplomaticamente
-  perché hai tradito la Nazione B al turno 4 (DB)."
+  Complete report for LLMs
 end note
 deactivate Sense
 
-== Phase 2: Think (Reasoning) ==
+== Phase 2: Think==
 
 activate Agent
 Agent -> Agent : <b>Cabinet Deliberation</b>
 note right of Agent
-  Il sistema multi-agente elabora:
-  1. Ministri analizzano il report misto
-  2. Opinione Pubblica fornisce polls
-  3. Presidente bilancia il budget
-  *(Eventuale query DB specifica qui se serve)*
+  Multi-Agent system computes:
+  1. Each Minister propose action
+  2. Public opinion poll
+  3. President balances actions
 end note
 
 Agent -> Oracle : <b>Submit Diplomatic Envelope</b>
 note right
-  Contiene il <b>Multi-Payload</b>:
-  - Military Vector (Priority List)
-  - Azione Economica
-  - Azione Estera
+  Contains <b>Multi-Payload</b>:
+  - Military Vector of actions (Priority List)
+  - Economic action
+  - Foreign policy action
 end note
 deactivate Agent
 
 == Phase 3: Act (Validation & Execution) ==
 
 activate Oracle
-Oracle -> Oracle : <b>Validate Constraints</b>
-note left
-  Verifica sequenziale:
-  1. Check Opinione Pubblica
-  2. Check Budget Totale
-  3. Check Fattibilità Fisica
+
+' --- VALIDAZIONE SEQUENZIALE LINEARE ---
+Oracle -> Oracle : <b>1. Assess Social Reaction</b>
+note right
+  Calculate impact on satisfaction.
+end note
+
+Oracle -> Oracle : <b>2. Validate Budget & Physics</b>
+note right
+  - Verify if budget allows it
+  - Verify pathfinding & topology
 end note
 
 Oracle -> World : <b>Execute State Changes</b>
-note left: Modifica lo stato in RAM:\nConfini, Risorse, Trust
+note left: Modify world state:\nborders, resources, trust levels
 
-== Phase 4: Trace (Logging) ==
+== Phase 4: Trace==
 
 Oracle -> DB : <b>Archive Turn Data</b>
-note right: Salva lo snapshot e le decisioni\nper memoria futura ed Explainability
+note right: Saves worlds snapshot and actions taken for\nfuture analysis
 
 World -> World : Advance Turn
 deactivate Oracle
