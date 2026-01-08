@@ -13,15 +13,15 @@ Il tuo obiettivo non è creare un gioco, ma una **simulazione scientifica determ
 ## 📂 Context Map (Dove trovare le informazioni)
 
 ### 🏗 Architecture & Design
-*   **System Architecture:** `@docs/architecture.md` (Layers, PlantUML, Flussi dati)
-*   **Simulation Rules:** `@docs/simulation.md` (Voronoi, Math, Determinismo)
-*   **Agent Protocols:** `@docs/agents.md` (Governo, Schemi JSON, LLM Interaction)
-*   **Frontend Guidelines:** `@docs/ui.md` (Streamlit, Caching, Performance)
+*   **System Architecture:** `./architecture.md` (Layers, PlantUML, Flussi dati)
+*   **Simulation Rules:** `./simulation.md` (Voronoi, Math, Determinismo)
+*   **Agent Protocols:** `./agents.md` (Governo, Schemi JSON, LLM Interaction)
+*   **Frontend Guidelines:** `./ui.md` (Streamlit, Caching, Performance)
 
 ### 📅 Planning & Execution
-*   **Visione a Lungo Termine:** `@plans/master_roadmap.md` (Tutte le 6 Fasi)
-*   **⚠️ FOCUS ATTUALE:** `@plans/active_sprint.md` (Task immediati da svolgere ora)
+*   **Visione a Lungo Termine:** `./plans/master_roadmap.md` (Tutte le 6 Fasi)
+*   **⚠️ FOCUS ATTUALE:** `./plans/active_sprint.md` (Task immediati da svolgere ora)
 
 ---
 **Istruzione per l'Agente:**
-Prima di scrivere codice, controlla sempre `@plans/active_sprint.md` per capire il task corrente e carica il modulo di documentazione pertinente (`docs/*`) per avere le regole fresche nel contesto.
+Prima di scrivere codice, controlla sempre `./plans/active_sprint.md` per capire il task corrente e carica il modulo di documentazione pertinente (`./*`) per avere le regole fresche nel contesto.
