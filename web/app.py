@@ -8,14 +8,15 @@ import sys
 import os
 
 # --- PATH FIX ---
+# We are in /web, so project root is one level up
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, "../../"))
+project_root = os.path.abspath(os.path.join(current_dir, "../"))
 if project_root not in sys.path:
     sys.path.append(project_root)
 
 # Import Core Modules
 from geomas.world.map_engine import generate_world
-from geomas.schemas.models import WorldState, TerrainType
+from geomas.schemas.world import WorldState, TerrainType 
 from geomas.world.spatial_translator import SpatialTranslator
 
 st.set_page_config(page_title="GeoMAS Dashboard", layout="wide")

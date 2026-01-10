@@ -1,6 +1,6 @@
 import networkx as nx
 from typing import List, Optional, Set, Dict
-from geomas.schemas.models import WorldState, TerrainType
+from geomas.schemas.world import WorldState, TerrainType # Updated import
 
 class SpatialManager:
     """
@@ -27,8 +27,6 @@ class SpatialManager:
             
             # Add Edges
             for n_id in province.neighbors:
-                # CRITICAL FIX: Only add edge if neighbor is a valid province in the world.
-                # Voronoi adjacency might include infinite regions that were filtered out.
                 if n_id in valid_province_ids:
                     self.graph.add_edge(p_id, n_id)
 

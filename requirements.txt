@@ -7,3 +7,5 @@ streamlit
 networkx
 pytest
 shapely
+instructor
+litellm

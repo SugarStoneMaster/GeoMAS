@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List, Dict, Tuple, Any
-from geomas.schemas.models import WorldState, TerrainType
+from geomas.schemas.world import WorldState, TerrainType # Updated import
 from geomas.world.spatial_manager import SpatialManager
 
 class GenesisEngine:

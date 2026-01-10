@@ -1,5 +1,5 @@
 from typing import Tuple, Optional
-from geomas.schemas.models import WorldState, ResourceBundle
+from geomas.schemas.world import WorldState, ResourceBundle # Updated import
 from geomas.world.spatial_manager import SpatialManager
 
 class ActionValidator:

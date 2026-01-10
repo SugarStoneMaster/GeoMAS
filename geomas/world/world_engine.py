@@ -5,9 +5,9 @@ import collections
 from typing import List, Dict, Tuple, Optional
 from shapely.geometry import Polygon as ShapelyPolygon
 
-from geomas.schemas.world import WorldState, ProvinceState, NationState, TerrainType, ResourceBundle, MinisterialState
+from geomas.schemas.models import WorldState, ProvinceState, NationState, TerrainType, ResourceBundle, MinisterialState
 from geomas.core.genesis import GenesisEngine
-from geomas.world.presets import PRESET_NATIONS 
+from geomas.world.presets import PRESET_NATIONS # NEW IMPORT
 
 # --- PUBLIC API ---
 

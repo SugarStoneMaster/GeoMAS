@@ -1,5 +1,5 @@
 from typing import List, Dict, Tuple
-from geomas.schemas.models import WorldState, TerrainType
+from geomas.schemas.world import WorldState, TerrainType # Updated import
 from geomas.world.spatial_manager import SpatialManager
 
 class SpatialTranslator:
@@ -47,8 +47,6 @@ class SpatialTranslator:
         total_provinces = len(nation.province_ids)
         coastal_provinces = self.spatial.get_coastal_provinces(nation_id)
         
-        # FIX: Hollow Island Logic
-        # An island is defined by having NO land neighbors, not just 100% coast.
         land_neighbors = self.spatial.get_neighboring_nations(nation_id)
         
         if not coastal_provinces:
@@ -72,14 +70,11 @@ class SpatialTranslator:
         descriptions = []
         border_provinces = self.spatial.get_border_provinces(nation_id)
         
-        # Analyze per neighbor
-        neighbor_stats = {} # enemy_id -> {segments: 0, risk_score: 0}
+        neighbor_stats = {} 
         
         for p_id in border_provinces:
             prov = self.world.provinces[p_id]
             
-            # Terrain Modifier (Maginot Line Logic)
-            # Mountain = 0.3 risk, Land/Coastal = 1.0 risk
             risk_modifier = 0.3 if prov.terrain == TerrainType.MOUNTAIN else 1.0
             
             for n_id in prov.neighbors:
@@ -92,14 +87,11 @@ class SpatialTranslator:
                     neighbor_stats[enemy_id]["segments"] += 1
                     neighbor_stats[enemy_id]["risk_score"] += risk_modifier
         
-        # Generate text
         for enemy_id, stats in neighbor_stats.items():
             enemy_name = self.world.nations[enemy_id].name
             segments = stats["segments"]
             risk = stats["risk_score"]
             
-            # Calculate average defensibility
-            # If risk << segments, it means most borders are mountains
             avg_risk = risk / segments if segments > 0 else 1.0
             
             if segments > 5:
