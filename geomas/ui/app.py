@@ -24,22 +24,24 @@ st.title("👑 GeoMAS: World Engine Inspector")
 
 # --- SIDEBAR CONFIG ---
 st.sidebar.header("World Generation Parameters")
-seed = st.sidebar.number_input("Random Seed", value=42, step=1)
+map_seed = st.sidebar.number_input("Map Seed (Geometry)", value=42, step=1)
+history_seed = st.sidebar.number_input("History Seed (Genesis)", value=99, step=1)
+
 n_nations = 10 
 st.sidebar.info(f"Simulation fixed to {n_nations} Preset Nations")
 n_cells = st.sidebar.slider("Map Resolution (Cells)", 500, 3000, 1500)
 
 # --- GENERATION LOGIC ---
 @st.cache_data
-def get_world(seed, n_cells, n_nations):
-    return generate_world(seed=seed, n_cells=n_cells, n_nations=n_nations)
+def get_world(map_seed, history_seed, n_cells, n_nations):
+    return generate_world(seed=map_seed, history_seed=history_seed, n_cells=n_cells, n_nations=n_nations)
 
 if st.sidebar.button("Generate World"):
-    st.session_state["world"] = get_world(seed, n_cells, n_nations)
-    st.success(f"World Generated with Seed {seed}")
+    st.session_state["world"] = get_world(map_seed, history_seed, n_cells, n_nations)
+    st.success(f"World Generated with Map Seed {map_seed} & History Seed {history_seed}")
 
 if "world" not in st.session_state:
-    st.session_state["world"] = get_world(seed, n_cells, n_nations)
+    st.session_state["world"] = get_world(map_seed, history_seed, n_cells, n_nations)
 
 world: WorldState = st.session_state["world"]
 translator = SpatialTranslator(world)
@@ -77,9 +79,8 @@ with col1:
                 if owner:
                     base_color = owner.color
                     
-                    # Darken color for Mountains
                     if province.terrain == TerrainType.MOUNTAIN:
-                        final_color = darken_color(base_color, factor=0.6) # Significantly darker
+                        final_color = darken_color(base_color, factor=0.6) 
                         hatches.append("...") 
                     else:
                         final_color = base_color
@@ -164,3 +165,9 @@ st.subheader("Diplomatic Trust Matrix")
 import pandas as pd
 df_trust = pd.DataFrame(world.trust_matrix)
 st.dataframe(df_trust.style.background_gradient(cmap="RdYlGn", vmin=0, vmax=1))
+
+# --- HISTORY LOG ---
+st.subheader("📜 Genesis History Log")
+with st.expander("View Ancient History (50 Years)"):
+    for event in world.global_events:
+        st.text(event)

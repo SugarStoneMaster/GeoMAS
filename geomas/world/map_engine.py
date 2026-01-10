@@ -6,6 +6,7 @@ from typing import List, Dict, Tuple
 from shapely.geometry import Polygon as ShapelyPolygon
 
 from geomas.schemas.models import WorldState, ProvinceState, NationState, TerrainType, ResourceBundle, MinisterialState
+from geomas.core.genesis import GenesisEngine # NEW IMPORT
 
 # --- STATIC NATION DEFINITIONS (High Contrast Palette) ---
 PRESET_NATIONS = [
@@ -21,13 +22,17 @@ PRESET_NATIONS = [
     {"id": "DRAKON", "name": "🟤 Drakonia", "color": "#9A6324"},             # Brown
 ]
 
-def generate_world(seed: int = 42, n_cells: int = 1500, n_nations: int = 10, relaxation_steps: int = 3) -> WorldState:
+def generate_world(seed: int = 42, history_seed: int = 99, n_cells: int = 1500, n_nations: int = 10, relaxation_steps: int = 3) -> WorldState:
     """
     Generates a deterministic WorldState using Voronoi diagrams and Organic Growth.
     Uses PRESET_NATIONS to ensure persistent identity across runs.
+    
+    Args:
+        seed: Controls map geometry (Voronoi, Continents).
+        history_seed: Controls historical events (Genesis).
     """
     
-    # 1. Deterministic Seeding
+    # 1. Deterministic Seeding (Map)
     rng = np.random.RandomState(seed)
     random.seed(seed) 
 
@@ -119,7 +124,6 @@ def generate_world(seed: int = 42, n_cells: int = 1500, n_nations: int = 10, rel
 
     land_region_indices.sort() 
     
-    # Initial Capital Selection (Random) - Will be refined later based on area
     initial_capitals = random.sample(land_region_indices, n_nations)
     
     political_map = {} 
@@ -151,7 +155,7 @@ def generate_world(seed: int = 42, n_cells: int = 1500, n_nations: int = 10, rel
             id=nation_id,
             name=preset["name"], 
             color=preset["color"],
-            capital_province_id=initial_capitals[i], # Placeholder
+            capital_province_id=initial_capitals[i], 
             province_ids=[], 
             internal_state=MinisterialState()
         )
@@ -225,7 +229,7 @@ def generate_world(seed: int = 42, n_cells: int = 1500, n_nations: int = 10, rel
     # RE-ASSIGN CAPITALS BASED ON AREA
     for nation_id, nation in nations_dict.items():
         max_area = -1.0
-        best_capital = nation.capital_province_id # Fallback
+        best_capital = nation.capital_province_id 
         
         for p_id in nation.province_ids:
             prov = provinces_dict[p_id]
@@ -238,27 +242,10 @@ def generate_world(seed: int = 42, n_cells: int = 1500, n_nations: int = 10, rel
         
         nation.capital_province_id = best_capital
 
-    # 9. Initialize Trust Matrix
+    # 9. Initialize Trust Matrix (Placeholder)
+    # We initialize it empty here, Genesis will fill it.
     trust_matrix = {}
-    nation_ids = list(nations_dict.keys())
     
-    for n_a in nation_ids:
-        trust_matrix[n_a] = {}
-        cap_a = provinces_dict[nations_dict[n_a].capital_province_id].coordinates
-        
-        for n_b in nation_ids:
-            if n_a == n_b:
-                trust_matrix[n_a][n_b] = 1.0
-                continue
-            
-            cap_b = provinces_dict[nations_dict[n_b].capital_province_id].coordinates
-            dist = np.linalg.norm(np.array(cap_a) - np.array(cap_b))
-            
-            trust_val = 0.3 + (dist * 0.4) 
-            trust_val = max(0.1, min(0.9, trust_val))
-            
-            trust_matrix[n_a][n_b] = float(trust_val)
-
     # 10. Assemble World
     world = WorldState(
         turn=1,
@@ -266,5 +253,10 @@ def generate_world(seed: int = 42, n_cells: int = 1500, n_nations: int = 10, rel
         nations=nations_dict,
         trust_matrix=trust_matrix
     )
+    
+    # 11. RUN GENESIS (History Generation)
+    # This populates trust_matrix and global_events
+    genesis = GenesisEngine(world, seed=history_seed)
+    genesis.initialize_history(years=50)
     
     return world
