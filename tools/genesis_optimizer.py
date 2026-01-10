@@ -6,7 +6,7 @@ from scipy.optimize import differential_evolution
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
-from geomas.world.world_engine import generate_world
+from geomas.world.map_engine import generate_world # FIX: Use map_engine
 from geomas.core.genesis import GenesisEngine
 
 # TARGET DISTRIBUTION
@@ -31,16 +31,6 @@ def objective_function(params):
         "alliance_chance": params[7],
         "rivalry_chance": params[8]
     }
-    
-    # Run Simulation (Fast)
-    # We use a fixed map seed but vary history seed slightly to average out noise?
-    # Actually, let's use a fixed seed for stability during optimization step.
-    # We generate the world WITHOUT running genesis inside map_engine first.
-    # Wait, map_engine runs genesis by default. We need to instantiate Genesis manually.
-    
-    # Hack: We generate a world with 0 years history to get the map, then run our own Genesis.
-    # But map_engine doesn't support 0 years arg exposed.
-    # Let's just instantiate GenesisEngine directly on a pre-generated world.
     
     # Generate a base world ONCE (global variable would be faster but let's be safe)
     # For speed, we use a smaller resolution

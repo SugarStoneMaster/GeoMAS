@@ -39,7 +39,7 @@ class NationState(BaseModel):
     internal_state: MinisterialState = Field(default_factory=MinisterialState)
 
 class WorldState(BaseModel):
-    turn: int = 1
+    turn: int = 0 # FIX: Start at 0 (Genesis state)
     provinces: Dict[int, ProvinceState] = Field(default_factory=dict)
     nations: Dict[str, NationState] = Field(default_factory=dict)
     

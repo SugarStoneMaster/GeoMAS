@@ -6,23 +6,21 @@ from typing import Type
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from geomas.world.map_engine import generate_world
+from geomas.core.simulation import SimulationEngine
 from geomas.agents.llm_client import LLMClient
-from geomas.agents.nation_agent import NationAgent
-from geomas.core.rules_engine import ActionValidator
-from geomas.schemas.protocol import ( 
+from geomas.schemas.protocol import (
     CountryEnvelope, GlobalStrategy, PublicIntent, 
     MilitaryIntent, MilitaryIntentType,
     EconomicIntent, EconomicIntentType,
     ForeignIntent, ForeignIntentType,
     DefenseProposal, EconomicProposal, ForeignProposal
 )
-from geomas.schemas.actions import ( # Updated import
+from geomas.schemas.actions import (
     ActionType, MilitaryPayload, EconomicPayload, ForeignPayload, DecisionSource
 )
 
-# --- MOCK CLIENT (Simplified for Integration) ---
-class IntegrationMockLLM(LLMClient):
+# --- MOCK CLIENT ---
+class SimMockLLM(LLMClient):
     def __init__(self): pass
     
     def query_agent(self, system_prompt, user_prompt, response_model, max_retries=3):
@@ -37,7 +35,7 @@ class IntegrationMockLLM(LLMClient):
             return EconomicProposal(
                 intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Grow"),
                 payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE, action_type=ActionType.INVEST_WELFARE),
-                projected_cost=100.0
+                projected_cost=10.0
             )
         elif response_model == ForeignProposal:
             return ForeignProposal(
@@ -54,11 +52,10 @@ class IntegrationMockLLM(LLMClient):
                 public_intent=PublicIntent.PEACEFUL,
                 military_payload=MilitaryPayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
                 military_intent=MilitaryIntent(type=MilitaryIntentType.IDLE, reasoning="Peace"),
-                # Valid Economic Action
                 economic_payload=EconomicPayload(
                     source=DecisionSource.MINISTRY_ADVICE, 
                     action_type=ActionType.INVEST_WELFARE,
-                    parameters={"amount": 50}
+                    parameters={"amount": 10.0}
                 ),
                 economic_intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Welfare"),
                 foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
@@ -66,39 +63,26 @@ class IntegrationMockLLM(LLMClient):
             )
         return response_model()
 
-def test_agent_to_rules_pipeline():
-    """
-    Ensures that the Agent's output (Envelope) contains data 
-    that the Rules Engine can actually validate.
-    """
-    # 1. Setup World
-    world = generate_world(seed=42, n_cells=100, n_nations=2)
-    nation_id = list(world.nations.keys())[0]
+def test_simulation_init():
+    """Test that engine initializes world and agents."""
+    mock_client = SimMockLLM()
+    sim = SimulationEngine(map_seed=42, history_seed=99, llm_client=mock_client)
     
-    # 2. Setup Agent
-    client = IntegrationMockLLM()
-    agent = NationAgent(nation_id, world, client)
+    assert len(sim.world.nations) == 10 # Default
+    assert len(sim.agents) == 10
+    assert sim.world.turn == 0
+
+def test_simulation_step():
+    """Test that a step advances the turn and generates logs."""
+    mock_client = SimMockLLM()
     
-    # 3. Agent Acts
-    envelope = agent.act(turn=1)
+    sim = SimulationEngine(map_seed=42, history_seed=99, llm_client=mock_client)
     
-    # 4. Validate Action
-    validator = ActionValidator(world)
+    initial_turn = sim.world.turn
+    sim.step()
     
-    # Extract Economic Action from Envelope
-    action_type = envelope.economic_payload.action_type
-    params = envelope.economic_payload.parameters
+    assert sim.world.turn == initial_turn + 1
+    assert len(sim.turn_logs) > 0 
     
-    assert action_type == ActionType.INVEST_WELFARE
-    
-    # Check if validator has a method for this (it doesn't yet, but we check budget)
-    # In Phase 3 we will map ActionType -> Validator Method
-    # For now, let's manually check budget using the validator's helper
-    
-    cost = params.get("amount", 0)
-    allowed, reason = validator.can_afford_budget(nation_id, cost)
-    
-    assert allowed, f"Agent proposed unaffordable action: {reason}"
-    
-    # 5. Check Consistency
-    assert envelope.global_strategy == agent.strategy
+    n_id = list(sim.world.nations.keys())[0]
+    assert sim.world.nations[n_id].internal_state.budget < 1000.0

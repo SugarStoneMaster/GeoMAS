@@ -9,6 +9,10 @@ Il tuo obiettivo non è creare un gioco, ma una **simulazione scientifica determ
 2.  **MAI** usare `random` o `np.random` globali. Usa sempre un `rng` locale passato come argomento.
 3.  **MAI** passare dizionari grezzi tra agenti. Usa sempre modelli **Pydantic**.
 4.  **MAI** modificare `core/` senza aver verificato l'impatto sui test esistenti.
+5.  **GESTIONE COMMENTI:**
+    *   **AGGIUNGI** commenti tipo `# FIX: ...` quando correggi un bug per evidenziare la modifica nel diff.
+    *   **RIMUOVI** i vecchi commenti `# FIX: ...` o `# TODO` quando modifichi nuovamente quel file (sono effimeri).
+    *   **MANTIENI SEMPRE** i commenti esplicativi e le docstring che descrivono il funzionamento del codice (sono permanenti).
 
 ## 📂 Context Map (Dove trovare le informazioni)
 

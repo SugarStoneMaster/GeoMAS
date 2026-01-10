@@ -1,6 +1,6 @@
 from typing import List, Optional
-from geomas.schemas.world import WorldState, NationState # Updated import
-from geomas.schemas.protocol import CountryEnvelope, GlobalStrategy, CabinetBriefing # Updated import
+from geomas.schemas.world import WorldState, NationState 
+from geomas.schemas.protocol import CountryEnvelope, GlobalStrategy, CabinetBriefing 
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.ministers import DefenseMinister, EconomicMinister, ForeignMinister
 
@@ -49,6 +49,10 @@ class NationAgent:
 
         # 2. PRESIDENTIAL PHASE
         envelope = self._presidential_decision(turn, briefing)
+        
+        # FIX: Enforce correct sender_id and turn (LLM might hallucinate)
+        envelope.sender_id = self.id
+        envelope.turn = turn
         
         # 3. MEMORIZE
         self.memory.append(f"Turn {turn}: {envelope.public_statement}")

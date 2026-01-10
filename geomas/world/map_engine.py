@@ -58,7 +58,7 @@ class MapGenerator:
         
         # Assemble World
         world = WorldState(
-            turn=1,
+            turn=0, # FIX: Start at 0 (Genesis state)
             provinces=self.provinces_dict,
             nations=self.nations_dict,
             trust_matrix={} # Filled by Genesis
