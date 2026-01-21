@@ -11,9 +11,8 @@ class ActionEngine:
 
     # --- COST CONFIGURATION ---
     COSTS = {
-        ActionType.MOBILIZE_UNIT: 100.0,
-        ActionType.FORTIFY_PROVINCE: 50.0,
-        ActionType.DEPLOY_TROOPS: 20.0,
+        ActionType.CREATE_UNIT: 100.0,
+        ActionType.MOVE_TROOPS: 20.0,
         ActionType.INVEST_WELFARE: 100.0,
         ActionType.SEND_DIPLOMATIC_MESSAGE: 0.0,
         ActionType.IMPOSE_SANCTIONS: 10.0, # Administrative cost

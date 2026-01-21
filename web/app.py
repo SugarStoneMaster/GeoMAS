@@ -4,6 +4,7 @@ from matplotlib.patches import Polygon, Patch
 from matplotlib.collections import PatchCollection
 import matplotlib.colors as mcolors
 import numpy as np
+import pandas as pd # Added pandas
 import sys
 import os
 from typing import Type
@@ -93,7 +94,6 @@ if st.sidebar.button("Initialize / Reset Simulation"):
     sim = SimulationEngine(map_seed=map_seed, history_seed=history_seed, n_cells=n_cells, llm_client=UIMockLLM())
     st.session_state["sim"] = sim
     st.session_state["turn_history"] = [] 
-    # Reset nation selection index
     st.session_state["nation_index"] = 0
     st.success(f"Simulation Initialized with Map Seed {map_seed}!")
     st.rerun() 
@@ -199,19 +199,11 @@ if st.session_state["active_tab"] == "MAP":
             n = world.nations[nation_id]
             return n.name
         
-        # FIX: Manual index management
         nation_ids = list(world.nations.keys())
         
         if "nation_index" not in st.session_state:
             st.session_state["nation_index"] = 0
             
-        def on_nation_change():
-            # This callback is triggered when the user changes the selectbox
-            # We don't need to do anything here because the widget's value will be updated
-            # But we need to sync the index for the next rerun?
-            # Actually, let's just use the key to read the value and find the index.
-            pass
-
         selected_nation_id = st.selectbox(
             "Select Nation", 
             nation_ids,
@@ -220,11 +212,9 @@ if st.session_state["active_tab"] == "MAP":
             key="nation_selector"
         )
         
-        # Update index in session state based on selection
         if selected_nation_id:
             st.session_state["nation_index"] = nation_ids.index(selected_nation_id)
-        
-        if selected_nation_id:
+            
             nation = world.nations[selected_nation_id]
             st.markdown(f"### {nation.name}")
             
@@ -243,6 +233,14 @@ if st.session_state["active_tab"] == "MAP":
             st.markdown("#### 🕵️‍♂️ Spatial Intelligence Report")
             report = translator.generate_intelligence_report(selected_nation_id)
             st.markdown(report)
+            
+    # --- TRUST MATRIX (Restored) ---
+    st.divider()
+    st.subheader("🤝 Diplomatic Trust Matrix")
+    df_trust = pd.DataFrame(world.trust_matrix)
+    # Sort columns and index for consistency
+    df_trust = df_trust.sort_index().sort_index(axis=1)
+    st.dataframe(df_trust.style.background_gradient(cmap="RdYlGn", vmin=0, vmax=1), use_container_width=True)
 
 elif st.session_state["active_tab"] == "LOGS":
     st.subheader("📜 Genesis History (Ancient)")
