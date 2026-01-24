@@ -19,38 +19,27 @@
 
 ---
 
-## ⚙️ FASE 3: Advanced Resource & Economic Model
-**Obiettivo:** Modellare un'economia realistica con risorse, popolazione e scarsità.
+## ✅ FASE 3: Advanced Resource & Economic Model
+**Status:** COMPLETATA
 
-### 3.1 Resource System Refactoring
-- [ ] **Estendere `ProvinceState`** con produzione risorse:
-  - `food_production`, `energy_production`, `materials_production`
-  - `tax_revenue` (per province)
-- [ ] **Estendere `NationState`** con aggregati nazionali:
-  - `total_food`, `total_energy`, `total_materials`, `total_budget`
-  - `food_consumption`, `energy_consumption` (funzione della popolazione)
-  - `materials_consumption` (funzione dell'esercito)
-
-### 3.2 Population & Workforce Model
-- [ ] **Popolazione come risorsa finita:**
-  - Ogni provincia ha `population` (già esiste)
-  - I soldati vengono "presi" dalla popolazione → meno lavoratori
-  - Meno lavoratori = meno produzione di Food/Energy/Materials
-- [ ] **Formule di produzione:**
-  - `production = base_yield * (workers / max_workers)`
-
-### 3.3 Trade Oracle (Deterministic Trade Acceptance)
-- [ ] **Implementare la formula `TradeScore`:**
-  ```
-  TradeScore = (E_val × M_scarcity) - (R_risk × P_projection)
-  ```
-  - `E_val`: Valore economico base (Food=1, Energy=2, Materials=3)
-  - `M_scarcity`: Moltiplicatore scarsità (1.0 → 5.0)
-  - `R_risk`: Rischio relazionale da Trust Matrix
-  - `P_projection`: Impatto su proiezione di forza
-- [ ] **Trade accettato automaticamente se `TradeScore > 0`**
+- [x] Schema Updates (ProvinceState, NationState)
+- [x] World Engine Updates (Territorial Waters, Nukes, Production)
+- [x] Resource Consumption Logic (`economy.py`)
+- [x] Trade Oracle (`trade_oracle.py`)
+- [x] Action System Updates (INVEST_WELFARE, RAISE_WAR_TAX, TRADE_PROPOSAL)
+- [x] Tests (66 test passati)
 
 ---
+
+## 🛠️ FASE 3.5: Heavy Refactoring
+**Obiettivo:** Migliorare modularità, leggibilità e manutenibilità del codebase prima di proseguire.
+
+### Aree principali
+- [ ] Rimozione codice legacy non più utilizzato
+- [ ] Riorganizzazione moduli e package
+- [ ] Pulizia schemi e deprecazioni
+- [ ] Documentazione inline e docstrings
+- [ ] Refactoring incrementale (gestito durante sviluppo)
 
 ## 🪖 FASE 4: Advanced Military System
 **Obiettivo:** Implementare unità militari, movimento, combattimento e nucleare.
