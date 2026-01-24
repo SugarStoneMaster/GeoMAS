@@ -1,93 +1,220 @@
 # 🗺️ GeoMAS Master Roadmap
 
-> **Ultimo Aggiornamento:** Gennaio 2026
-
-## 🌍 FASE 1: The World Engine (Spatial & Physics) ✅
+## 🌍 FASE 1: The World Engine (Spatial & Physics)
 **Obiettivo:** Creare un mondo deterministico procedurale.
-- [x] 1.1 Modelli Pydantic (`schemas/world.py`, `schemas/protocol.py`, `schemas/actions.py`)
-- [x] 1.2 Generazione Mappa Voronoi (`world/map_engine.py` - Lloyd's Relaxation)
-- [x] 1.3 Grafo di Adiacenza NetworkX (`world/spatial_manager.py`)
-- [x] 1.4 Deterministic Rules Oracle Base (`core/rules_engine.py`)
-- [x] 1.5 Genesis Module (`core/genesis.py` - Config GA-optimized)
+- [x] 1.1 Modelli Pydantic (`schemas/world.py`)
+- [x] 1.2 Generazione Mappa Voronoi (`world_engine.py`)
+- [x] 1.3 Grafo di Adiacenza NetworkX (`spatial_manager.py`)
+- [x] 1.4 Deterministic Rules Oracle (Base)
+- [x] 1.5 Genesis Module (Init History)
 
-## 🧠 FASE 2: The Cognitive Layer (Agents) ✅
+---
+
+## 🧠 FASE 2: The Cognitive Layer (Agents)
 **Obiettivo:** Implementare il Governo Neuro-Simbolico.
-- [x] 2.1 Schemi Cognitivi (`GlobalStrategy`, `CountryEnvelope`, `*Intent` enums)
-- [x] 2.2 Struttura Agente Cabinet (`agents/nation_agent.py` + `agents/ministers.py`)
-    - [x] Executive Override via `DecisionSource` enum
-    - [x] Global Strategy fissa per run
-- [x] 2.3 Integrazione LLM (`agents/llm_client.py` - Instructor/LiteLLM)
-- [ ] 2.4 Public Opinion Logic ⚠️ **NON IMPLEMENTATO** (descritto in tesi ma assente)
-
-## 🤝 FASE 3: Actions & Diplomacy ✅ (Parziale)
-**Obiettivo:** Interazione tra agenti.
-- [x] 3.1 Waterfall Logic nel Rules Engine (parziale - solo subset azioni)
-- [ ] 3.2 Registro Azioni completo ⚠️ **PARZIALE**
-    - [x] MOBILIZE_UNIT, FORTIFY_PROVINCE, INVEST_WELFARE, SEND_DIPLOMATIC_MESSAGE
-    - [ ] DEPLOY_TROOPS, TRADE_PROPOSAL, NUCLEAR_OPTION, alleanze, guerre
-- [x] 3.3 Deception Score (`analysis/deception.py`)
+- [x] 2.1 Definizione Schemi Cognitivi (`protocol.py`).
+- [x] 2.2 Struttura Agente (Presidente + Ministri).
+- [x] 2.3 Integrazione LLM (Instructor/LiteLLM).
+- [x] 2.4 Prompt Engineering & Context Injection.
 
 ---
 
-## 🔧 FASE 3.5: Actions Refactoring 🟡 **PLANNED**
-**Obiettivo:** Riorganizzare il sistema azioni con Strategy Pattern.
+## ⚙️ FASE 3: Advanced Resource & Economic Model
+**Obiettivo:** Modellare un'economia realistica con risorse, popolazione e scarsità.
 
-> **Motivazione:** Attualmente le azioni sono un enum monolitico con payload generico (`Dict[str, Any]`). 
-> Ogni nuova azione richiede modifiche a 3+ file. Il refactoring permette azioni self-contained.
+### 3.1 Resource System Refactoring
+- [ ] **Estendere `ProvinceState`** con produzione risorse:
+  - `food_production`, `energy_production`, `materials_production`
+  - `tax_revenue` (per province)
+- [ ] **Estendere `NationState`** con aggregati nazionali:
+  - `total_food`, `total_energy`, `total_materials`, `total_budget`
+  - `food_consumption`, `energy_consumption` (funzione della popolazione)
+  - `materials_consumption` (funzione dell'esercito)
 
-### Struttura Proposta
-```
-geomas/schemas/actions/
-├── __init__.py       # Re-export + backward compat
-├── base.py           # BaseAction ABC, ActionResult
-├── defense.py        # CreateUnit, MoveTroops, FortifyProvince, NuclearOption
-├── economy.py        # InvestWelfare, TradeProposal, ImposeSanctions, etc.
-├── foreign.py        # SendMessage, ProposeAlliance, DeclareWar, etc.
-└── public_opinion.py # GeneralStrike, CivilUnrest, RallyEffect
-```
+### 3.2 Population & Workforce Model
+- [ ] **Popolazione come risorsa finita:**
+  - Ogni provincia ha `population` (già esiste)
+  - I soldati vengono "presi" dalla popolazione → meno lavoratori
+  - Meno lavoratori = meno produzione di Food/Energy/Materials
+- [ ] **Formule di produzione:**
+  - `production = base_yield * (workers / max_workers)`
 
-### Checklist
-- [ ] 3.5.1 Creare `actions/base.py` con `BaseAction` ABC e `ActionResult`
-- [ ] 3.5.2 Creare `actions/defense.py` con azioni militari
-- [ ] 3.5.3 Creare `actions/economy.py` con azioni economiche
-- [ ] 3.5.4 Creare `actions/foreign.py` con azioni diplomatiche
-- [ ] 3.5.5 Creare `actions/public_opinion.py` con eventi (trigger automatici)
-- [ ] 3.5.6 Refactoring `rules_engine.py` per usare `action.execute()`
-- [ ] 3.5.7 Verificare test esistenti (`test_rules_engine.py`, `test_schemas.py`)
-- [ ] 3.5.8 Aggiungere unit test per ogni action class
-
-> 📄 **Piano Dettagliato:** Vedi `implementation_plan.md` negli artifact.
+### 3.3 Trade Oracle (Deterministic Trade Acceptance)
+- [ ] **Implementare la formula `TradeScore`:**
+  ```
+  TradeScore = (E_val × M_scarcity) - (R_risk × P_projection)
+  ```
+  - `E_val`: Valore economico base (Food=1, Energy=2, Materials=3)
+  - `M_scarcity`: Moltiplicatore scarsità (1.0 → 5.0)
+  - `R_risk`: Rischio relazionale da Trust Matrix
+  - `P_projection`: Impatto su proiezione di forza
+- [ ] **Trade accettato automaticamente se `TradeScore > 0`**
 
 ---
 
-## 🔍 FASE 4: Explainability (XAI) 🔴 **TODO**
+## 🪖 FASE 4: Advanced Military System
+**Obiettivo:** Implementare unità militari, movimento, combattimento e nucleare.
+
+### 4.1 Unit Types & Placement
+- [ ] **Definire `UnitType` Enum:** `SOLDIER`, `NAVY`, `AIRCRAFT`
+- [ ] **Estendere `ProvinceState`:**
+  - `soldiers: int`, `aircraft: int`, `navy: int`
+- [ ] **Estendere `NationState`:**
+  - `total_soldiers`, `total_navy`, `total_aircraft`
+  - `nukes: int` (nazionale, non per provincia)
+- [ ] **Vincoli di posizionamento:**
+  - Soldiers/Aircraft: LAND, COASTAL, MOUNTAIN (no OCEAN)
+  - Navy: Solo OCEAN (in acque territoriali)
+  - Soldiers su Navy: max 100 uomini per nave
+
+### 4.2 Territorial Waters
+- [ ] **Logica acque territoriali:**
+  - Province OCEAN adiacenti a province COASTAL owned → owned
+  - Aggiornare `map_engine.py` per assegnare ownership
+  - Navy può stare solo in acque territoriali proprie o alleate
+
+### 4.3 CREATE_UNIT Action
+- [ ] **Checks:**
+  - Possesso provincia
+  - Budget sufficiente
+  - Materials sufficienti
+  - Popolazione sufficiente (per SOLDIER)
+- [ ] **Costi:**
+  - Upfront: Budget + Materials + Energy
+  - Mantenimento: Materials per turno
+  - Conversione popolazione → soldato
+
+### 4.4 MOVE_TROOPS Action
+- [ ] **Tipi di movimento:**
+  - **Via terra:** Path tra province LAND/COASTAL/MOUNTAIN
+  - **Via mare:** Navy trasporta soldati, consuma Energy × distanza
+  - **Via aerea:** Range limitato, consuma Energy × distanza
+- [ ] **Costo:** Energy = tipo_unità × distanza
+- [ ] **Logica destinazione:**
+  - Se B è alleata → Rinforzo
+  - Se B è nemica → Battaglia
+
+### 4.5 Combat Resolution
+- [ ] **Formula danno:**
+  ```
+  Danni = Attacco - (Difesa × MoltiplicatoreTerreno)
+  ```
+  - MOUNTAIN: ×1.5 difesa
+  - COASTAL: ×1.0
+  - LAND: ×1.0
+- [ ] **Forza combinata alleanze** (se alleanza attiva)
+- [ ] **Penalità reputazione** se guerra non dichiarata
+- [ ] **Impatto satisfaction** dopo tot morti
+
+### 4.6 NUCLEAR_OPTION Action
+- [ ] **Nukes a inizio partita:**
+  - 2-3 nazioni con nukes (seed-based), le altre 0
+  - Distribuzione casuale quantità
+- [ ] **Effetti:**
+  - Provincia target: risorse → 0, popolazione → 10%
+  - Trust attaccante → 0 con TUTTI
+  - **Coalition of Survival:** Se Trust(A,B) ≥ 0.50 → alleanza automatica contro aggressore nucleare
+- [ ] **Costo:** 1 nuke consumata
+
+---
+
+## 🤝 FASE 5: Diplomacy & Treaty System
+**Obiettivo:** Implementare trattati, alleanze, guerra e pace.
+
+### 5.1 Relationship States
+- [ ] **Definire `RelationshipStatus` Enum:**
+  - `PEACE`, `WAR`, `ALLIANCE` (difensiva)
+- [ ] **Matrice relazioni** oltre alla Trust Matrix
+
+### 5.2 SEND_DIPLOMATIC_MESSAGE
+- [ ] **Tipi:** Praise, Threat, Insult
+- [ ] **Cooldown:** Non spammabile (1 messaggio per nazione per turno)
+- [ ] **Effetto:** Modifica Trust (delta piccolo)
+- [ ] **Warning:** Messaggi a nemici di alleati danneggiano trust con alleato
+
+### 5.3 PROPOSE_ALLIANCE
+- [ ] **Requisito:** Trust reciproco alto (≥0.75)
+- [ ] **Accettazione automatica** se trust reciproco OK
+- [ ] **Tipo:** Difensivo (mutual defense clause)
+- [ ] **Obbligo:** Entrare in guerra se alleato attaccato → altrimenti BREAK_TREATY
+
+### 5.4 DECLARATION_OF_WAR
+- [ ] **Effetti:**
+  - Status → WAR
+  - Trust → 0 con target
+  - Trust abbassata con alleati del target
+  - Neutra con non-coinvolti
+- [ ] **Bonus:** Riduce penalità reputazione vs attacco a sorpresa
+- [ ] **Malus:** Perde elemento sorpresa, target ha 1 turno per prepararsi
+- [ ] **Casus Belli:** (TODO: definire in futuro)
+
+### 5.5 BREAK_TREATY
+- [ ] **Effetti:**
+  - Cancella alleanza
+  - Crollo Trust con ex-alleato
+  - Penalità reputazione globale
+- [ ] **Permette:** Attacco ex-alleato stesso turno
+
+### 5.6 REQUEST_PEACE
+- [ ] **Condizioni:**
+  - Invasore: deve offrire riparazioni (Budget)
+  - Invaso: può offrire territori
+  - Stallo: nessuna concessione
+- [ ] **Se accettata:**
+  - Status → PEACE
+  - Truppe tornano a province di origine
+- [ ] **Impatto satisfaction** (positivo)
+
+---
+
+## 👥 FASE 6: Public Opinion & Internal Stability
+**Obiettivo:** Popolazione come vincolo realistico al potere del governo.
+
+### 6.1 Satisfaction Dynamics
+- [ ] **INVEST_WELFARE:**
+  - Aumenta satisfaction (scala logaritmica)
+  - Costo: Budget + Food
+- [ ] **RAISE_WAR_TAX:**
+  - Genera Budget massivo
+  - Crollo satisfaction
+  - Prerequisito: satisfaction ≥ 20%
+
+### 6.2 Negative Triggers (Deterministici)
+- [ ] **GENERAL_STRIKE (satisfaction < 30%):**
+  - Province non producono Materials/Energy
+  - Tasse al 50%
+  - Costo movimento truppe ×2
+- [ ] **CIVIL_UNREST (satisfaction < 10%):**
+  - Probabilità diserzione militare ogni turno
+  - Risorse saccheggiate random ogni turno
+  - Solo difesa permessa, no attacco
+
+### 6.3 Positive Triggers
+- [ ] **RALLY_EFFECT (se attaccati/dichiarazione guerra ricevuta):**
+  - Satisfaction non scende per X turni
+  - Dopo X turni: sconto penalità satisfaction
+  - Nuovi soldati non consumano budget
+
+---
+
+## 🔍 FASE 7: Explainability (XAI)
 **Obiettivo:** Tracciabilità e Controfattuali.
-- [ ] 4.1 Structured Logger (Cabinet Debate)
-- [ ] 4.2 Counterfactual Engine (Forking)
-- [ ] 4.3 Query Interface ("Why did you do X?")
-
-> **Nota:** Il modulo `xai/` esiste ma è vuoto.
-
-## 📊 FASE 5: Simulation Loop & Validation ✅ (Base)
-**Obiettivo:** Esecuzione scientifica.
-- [x] 5.1 Main Loop Turn-based (`core/simulation.py`)
-- [ ] 5.2 Metriche di Stabilità e Coerenza
-- [ ] 5.3 Batch Running (Multi-seed)
-
-## 🖥️ FASE 6: Dashboard & Analysis ✅
-**Obiettivo:** Visualizzazione.
-- [x] 6.1 Streamlit Dashboard (`web/app.py`)
-- [x] 6.2 Map Explorer (Voronoi rendering con Matplotlib)
-- [x] 6.3 Trust Matrix Viewer
-- [ ] 6.4 Decision Inspector Log (parziale)
+- [ ] 7.1 Structured Logger (Cabinet Debate)
+- [ ] 7.2 Counterfactual Engine (Forking)
+- [ ] 7.3 Query Interface ("Why did you do X?")
 
 ---
 
-## 📋 Gap Critici Identificati
+## 📊 FASE 8: Simulation Loop & Validation
+**Obiettivo:** Esecuzione scientifica.
+- [ ] 8.1 Batch Running (Multi-seed)
+- [ ] 8.2 Metriche di Stabilità e Coerenza
 
-| Gap | Impatto | Priorità |
-|-----|---------|----------|
-| Public Opinion Agent mancante | Nessun feedback loop interno | Alta |
-| XAI Layer vuoto | Nessuna explainability | **Critica** (Fase 4) |
-| Azioni incomplete in Rules Engine | Simulazione limitata | Media |
-| Deep Genesis (LLM) assente | Solo storia algoritmica | Bassa |
+---
+
+## 🖥️ FASE 9: Dashboard & Analysis
+**Obiettivo:** Visualizzazione.
+- [x] 9.1 Streamlit Dashboard (Base)
+- [ ] 9.2 Visualizzazione avanzata (Frecce movimento, Icone unità)
+- [ ] 9.3 Grafici storici (Trust/Budget nel tempo)
+- [ ] 9.4 Pannello Acque Territoriali
