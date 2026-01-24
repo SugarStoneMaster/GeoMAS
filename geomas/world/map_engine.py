@@ -7,6 +7,7 @@ from shapely.geometry import Polygon as ShapelyPolygon
 
 from geomas.schemas.world import WorldState, ProvinceState, NationState, TerrainType, ResourceBundle, MinisterialState
 from geomas.core.genesis import GenesisEngine
+from geomas.core import economy
 from geomas.world.presets import PRESET_NATIONS 
 
 # --- PUBLIC API ---
@@ -405,67 +406,24 @@ class MapGenerator:
     def _calculate_nation_aggregates(self):
         """
         Calculates aggregate values for each nation from their provinces.
+        Uses economy module functions to avoid duplication.
         """
-        for nation in self.nations_dict.values():
-            total_pop = 0
-            total_soldiers = 0
-            total_aircraft = 0
-            total_navy = 0
-            total_food = 0.0
-            total_energy = 0.0
-            total_materials = 0.0
-            
-            for p_id in nation.province_ids:
-                prov = self.provinces_dict[p_id]
-                total_pop += prov.population
-                total_soldiers += prov.soldiers
-                total_aircraft += prov.aircraft
-                total_navy += prov.navy
-                total_food += prov.food_production
-                total_energy += prov.energy_production
-                total_materials += prov.materials_production
-            
-            # Also count military in territorial waters
-            for p_id in nation.territorial_water_ids:
-                prov = self.provinces_dict.get(p_id)
-                if prov:
-                    total_navy += prov.navy
-            
-            nation.total_population = total_pop
-            nation.total_soldiers = total_soldiers
-            nation.total_aircraft = total_aircraft
-            nation.total_navy = total_navy
-            nation.total_food = total_food
-            nation.total_energy = total_energy
-            nation.total_materials = total_materials
-            
-            # Calculate power projection
-            nation.power_projection = self._calculate_power_projection(nation)
-
-    def _calculate_power_projection(self, nation: NationState) -> float:
-        """
-        Calculates a nation's power projection score.
-        Weighted sum of economic and military strength.
-        """
-        # Weights
-        W_BUDGET = 0.001
-        W_FOOD = 0.01
-        W_ENERGY = 0.02
-        W_MATERIALS = 0.03
-        W_SOLDIERS = 0.1
-        W_AIRCRAFT = 0.5
-        W_NAVY = 0.3
-        W_NUKES = 50.0
-        
-        score = (
-            nation.total_budget * W_BUDGET +
-            nation.total_food * W_FOOD +
-            nation.total_energy * W_ENERGY +
-            nation.total_materials * W_MATERIALS +
-            nation.total_soldiers * W_SOLDIERS +
-            nation.total_aircraft * W_AIRCRAFT +
-            nation.total_navy * W_NAVY +
-            nation.nukes * W_NUKES
+        # Build a temporary WorldState-like object for economy functions
+        temp_world = WorldState(
+            provinces=self.provinces_dict,
+            nations=self.nations_dict
         )
         
-        return round(score, 2)
+        for nation in self.nations_dict.values():
+            aggregates = economy.calculate_nation_aggregates(nation, temp_world)
+            
+            nation.total_population = aggregates["total_population"]
+            nation.total_soldiers = aggregates["total_soldiers"]
+            nation.total_aircraft = aggregates["total_aircraft"]
+            nation.total_navy = aggregates["total_navy"]
+            nation.total_food = aggregates["total_food_production"]
+            nation.total_energy = aggregates["total_energy_production"]
+            nation.total_materials = aggregates["total_materials_production"]
+            
+            # Calculate power projection using economy module
+            nation.power_projection = economy.calculate_power_projection(nation)
