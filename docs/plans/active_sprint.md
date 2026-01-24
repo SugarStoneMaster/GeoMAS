@@ -98,36 +98,29 @@ Funzioni pure implementate:
 
 ---
 
-### 4. Trade Oracle (`geomas/core/trade_oracle.py`)
+### 4. Trade Oracle (`geomas/core/trade_oracle.py`) ✅
 
-#### 4.1 Implementare la Formula
+#### 4.1 Implementare la Formula ✅
 ```python
-def calculate_trade_score(
-    offer: TradeOffer,
-    receiver_nation: NationState,
-    sender_nation: NationState,
-    trust: float
-) -> float:
-    """
-    TradeScore = (E_val × M_scarcity) - (R_risk × P_projection)
-    Trade accettato se TradeScore > 0
-    """
+def calculate_trade_score(offer: TradeOffer, world: WorldState) -> Tuple[float, str]
+    # TradeScore = (E_val × M_scarcity) - (R_risk × P_projection)
+    # Trade accettato se TradeScore > 0
 ```
 
-#### 4.2 Componenti
-- [ ] `E_val`: Base prices (Food=1, Energy=2, Materials=3)
-- [ ] `M_scarcity`: 1.0 se stock OK, 2.0 se <50%, 5.0 se 0
-- [ ] `R_risk`: `(50 - trust) / 10` se trust < 50, else 0
-- [ ] `P_projection`: Alto per Materials/Energy se receiver è forte
+#### 4.2 Componenti ✅
+- [x] `E_val`: Base prices (Food=1, Energy=2, Materials=3)
+- [x] `M_scarcity`: 1.0-5.0 basato su turni di scorta rimanenti
+- [x] `R_risk`: `(50 - trust) / 10` se trust < 50, else 0
+- [x] `P_projection`: Alto per Materials/Energy se receiver è forte
 
-#### 4.3 Creare `TradeOffer` Schema
+#### 4.3 Creare `TradeOffer` Schema ✅
 ```python
 class TradeOffer(BaseModel):
     sender_id: str
     receiver_id: str
-    give: Dict[str, float]  # {"food": 100, "energy": 50}
+    give: Dict[str, float]
     receive: Dict[str, float]
-    duration_turns: int = 1  # 1 = one-off, >1 = subscription
+    duration_turns: int = 1
 ```
 
 ---
