@@ -32,9 +32,12 @@ class BaseMinister:
 
     def _get_resource_summary(self) -> str:
         nation = self.world.nations[self.nation_id]
-        total_food = sum([self.world.provinces[pid].resources.food for pid in nation.province_ids])
-        total_energy = sum([self.world.provinces[pid].resources.energy for pid in nation.province_ids])
-        return f"Budget: {nation.internal_state.budget}, Food: {int(total_food)}, Energy: {int(total_energy)}"
+        return (
+            f"Budget: {nation.total_budget:.0f}, "
+            f"Food: {nation.total_food:.0f}, "
+            f"Energy: {nation.total_energy:.0f}, "
+            f"Materials: {nation.total_materials:.0f}"
+        )
 
 class DefenseMinister(BaseMinister):
     def propose(self, strategy: GlobalStrategy) -> DefenseProposal:

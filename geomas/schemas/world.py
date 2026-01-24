@@ -10,13 +10,6 @@ class TerrainType(str, Enum):
     MOUNTAIN = "MOUNTAIN" # High defense bonus, movement penalty
 
 
-class ResourceBundle(BaseModel):
-    """Static resource yields for a province (base production values)."""
-    energy: float = 0.0
-    materials: float = 0.0
-    food: float = 0.0
-
-
 class ProvinceState(BaseModel):
     """
     Represents a single province (Voronoi cell) in the world.
@@ -30,9 +23,6 @@ class ProvinceState(BaseModel):
     coordinates: Tuple[float, float]  # Centroid (x, y)
     vertices: List[Tuple[float, float]] = Field(default_factory=list)
     neighbors: List[int] = Field(default_factory=list)
-    
-    # --- LEGACY (kept for compatibility, will be deprecated) ---
-    resources: ResourceBundle = Field(default_factory=ResourceBundle)
     
     # --- PRODUCTION (base yields per turn) ---
     food_production: float = 0.0
@@ -56,8 +46,6 @@ class MinisterialState(BaseModel):
     Represents the internal metrics managed by the Cabinet.
     These are nation-level aggregate values.
     """
-    # DEPRECATED: Use NationState.total_budget instead
-    budget: float = 1000.0
     public_satisfaction: float = 0.5  # 0.0 to 1.0
 
 

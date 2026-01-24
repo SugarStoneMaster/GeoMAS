@@ -5,7 +5,7 @@ import collections
 from typing import List, Dict, Tuple, Optional
 from shapely.geometry import Polygon as ShapelyPolygon
 
-from geomas.schemas.world import WorldState, ProvinceState, NationState, TerrainType, ResourceBundle, MinisterialState
+from geomas.schemas.world import WorldState, ProvinceState, NationState, TerrainType, MinisterialState
 from geomas.core.genesis import GenesisEngine
 from geomas.core import economy
 from geomas.world.presets import PRESET_NATIONS 
@@ -236,9 +236,6 @@ class MapGenerator:
                 terrain = TerrainType.MOUNTAIN
             else:
                 terrain = TerrainType.LAND
-                
-            # Resources (legacy bundle)
-            res = self._generate_resources(terrain)
             
             # Population (random based on terrain)
             if terrain == TerrainType.MOUNTAIN:
@@ -266,9 +263,7 @@ class MapGenerator:
                 terrain=terrain,
                 coordinates=(float(self.cell_centroids[r_idx][0]), float(self.cell_centroids[r_idx][1])),
                 vertices=self.cell_vertices[r_idx],
-                resources=res,
                 neighbors=get_neighbors(r_idx),
-                # New fields
                 population=population,
                 workers=workers,
                 soldiers=soldiers,
@@ -291,26 +286,9 @@ class MapGenerator:
                 terrain=TerrainType.OCEAN,
                 coordinates=(float(self.cell_centroids[r_idx][0]), float(self.cell_centroids[r_idx][1])),
                 vertices=self.cell_vertices[r_idx],
-                resources=ResourceBundle(food=self.rng.uniform(10, 30)),
-                neighbors=get_neighbors(r_idx)
+                neighbors=get_neighbors(r_idx),
+                food_production=self.rng.uniform(10, 30)  # Ocean provides some food (fishing)
             )
-
-    def _generate_resources(self, terrain: TerrainType) -> ResourceBundle:
-        """Legacy resource bundle generation."""
-        res = ResourceBundle()
-        if terrain == TerrainType.COASTAL:
-            res.food = self.rng.uniform(50, 100)
-            res.energy = self.rng.uniform(10, 50)
-            res.materials = self.rng.uniform(10, 40)
-        elif terrain == TerrainType.MOUNTAIN:
-            res.food = self.rng.uniform(5, 20)
-            res.energy = self.rng.uniform(0, 20)
-            res.materials = self.rng.uniform(80, 150)
-        else:  # LAND
-            res.food = self.rng.uniform(40, 80)
-            res.energy = self.rng.uniform(30, 80)
-            res.materials = self.rng.uniform(30, 60)
-        return res
 
     def _calculate_production(self, terrain: TerrainType, workers: int) -> Tuple[float, float, float]:
         """Calculate production values based on terrain and workforce."""

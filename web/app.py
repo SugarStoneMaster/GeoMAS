@@ -218,17 +218,15 @@ if st.session_state["active_tab"] == "MAP":
             nation = world.nations[selected_nation_id]
             st.markdown(f"### {nation.name}")
             
-            # Stats
-            total_food = sum([world.provinces[pid].resources.food for pid in nation.province_ids])
-            total_energy = sum([world.provinces[pid].resources.energy for pid in nation.province_ids])
-            
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Budget", f"{nation.internal_state.budget:.0f}")
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Budget", f"{nation.total_budget:.0f}")
             c2.metric("Satisfaction", f"{nation.internal_state.public_satisfaction:.2f}")
-            c3.metric("Readiness", f"{nation.internal_state.military_readiness:.2f}")
+            c3.metric("Population", f"{nation.total_population:,}")
+            c4.metric("Power", f"{nation.power_projection:.1f}")
             
-            st.progress(min(1.0, total_food / 5000), text=f"Food: {int(total_food)}")
-            st.progress(min(1.0, total_energy / 5000), text=f"Energy: {int(total_energy)}")
+            st.progress(min(1.0, nation.total_food / 10000), text=f"Food: {nation.total_food:.0f}")
+            st.progress(min(1.0, nation.total_energy / 5000), text=f"Energy: {nation.total_energy:.0f}")
+            st.progress(min(1.0, nation.total_materials / 5000), text=f"Materials: {nation.total_materials:.0f}")
             
             st.markdown("#### 🕵️‍♂️ Spatial Intelligence Report")
             report = translator.generate_intelligence_report(selected_nation_id)

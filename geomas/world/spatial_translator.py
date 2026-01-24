@@ -142,15 +142,15 @@ class SpatialTranslator:
         vulnerable = {"energy": 0.0, "materials": 0.0, "food": 0.0}
         
         for p_id in nation.province_ids:
-            res = self.world.provinces[p_id].resources
-            totals["energy"] += res.energy
-            totals["materials"] += res.materials
-            totals["food"] += res.food
+            prov = self.world.provinces[p_id]
+            totals["energy"] += prov.energy_production
+            totals["materials"] += prov.materials_production
+            totals["food"] += prov.food_production
             
             if p_id in border_provinces:
-                vulnerable["energy"] += res.energy
-                vulnerable["materials"] += res.materials
-                vulnerable["food"] += res.food
+                vulnerable["energy"] += prov.energy_production
+                vulnerable["materials"] += prov.materials_production
+                vulnerable["food"] += prov.food_production
                 
         alerts = []
         for res_type in ["energy", "materials", "food"]:

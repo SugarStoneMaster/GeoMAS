@@ -1,7 +1,7 @@
 import math
 from typing import Tuple, Optional, List, Dict, Any
 
-from geomas.schemas.world import WorldState, ResourceBundle
+from geomas.schemas.world import WorldState
 from geomas.schemas.actions import ActionType, MilitaryPayload, EconomicPayload, ForeignPayload
 from geomas.world.spatial_manager import SpatialManager
 from geomas.core.trade_oracle import TradeOffer, evaluate_trade
@@ -287,5 +287,3 @@ class ActionEngine:
         nation = self.world.nations.get(nation_id)
         if nation:
             nation.total_budget -= amount
-            # Also sync deprecated internal_state.budget for backward compatibility
-            nation.internal_state.budget = nation.total_budget

@@ -173,10 +173,10 @@ class GenesisEngine:
         nation = self.world.nations[n_id]
         totals = {'energy': 0.0, 'food': 0.0, 'materials': 0.0}
         for p_id in nation.province_ids:
-            res = self.world.provinces[p_id].resources
-            totals['energy'] += res.energy
-            totals['food'] += res.food
-            totals['materials'] += res.materials
+            prov = self.world.provinces[p_id]
+            totals['energy'] += prov.energy_production
+            totals['food'] += prov.food_production
+            totals['materials'] += prov.materials_production
         return totals
 
     def _name(self, n_id: str) -> str:

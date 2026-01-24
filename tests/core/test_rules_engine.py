@@ -7,7 +7,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 
 from geomas.world.map_engine import generate_world
 from geomas.core.rules_engine import ActionEngine
-from geomas.schemas.world import ResourceBundle
 from geomas.schemas.actions import ActionType, MilitaryPayload, MilitaryActionItem, DecisionSource
 from geomas.schemas.protocol import CountryEnvelope, GlobalStrategy, PublicIntent, MilitaryIntent, MilitaryIntentType, EconomicPayload, EconomicIntent, EconomicIntentType, ForeignPayload, ForeignIntent, ForeignIntentType
 
