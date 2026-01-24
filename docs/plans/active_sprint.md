@@ -23,10 +23,12 @@ Rendere il codebase più modulare, pulito e manutenibile prima di procedere con 
 
 ### Aree di Refactoring
 
-#### 1. Rimozione Codice Legacy
-- [ ] Identificare field deprecati (es. `internal_state.budget`)
-- [ ] Rimuovere schemi/funzioni non più usati
-- [ ] Pulire import inutilizzati
+#### 1. Rimozione Codice Legacy ✅
+- [x] Rimosso `ResourceBundle` (sostituito da `*_production` fields)
+- [x] Rimosso `MinisterialState.budget` (sostituito da `NationState.total_budget`)
+- [x] Aggiornato `map_engine.py`, `genesis.py`, `spatial_translator.py`
+- [x] Aggiornato `ministers.py`, `web/app.py`, `rules_engine.py`
+- [x] Aggiornati tutti i test
 
 #### 2. Riorganizzazione Moduli
 - [ ] Valutare struttura package
