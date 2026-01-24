@@ -38,7 +38,8 @@ class ProvinceState(BaseModel):
     food_production: float = 0.0
     energy_production: float = 0.0
     materials_production: float = 0.0
-    tax_revenue: float = 0.0  # Budget generated per turn
+    # Tax revenue = population * tax_rate (calculated at turn start)
+    tax_revenue: float = 0.0
     
     # --- POPULATION ---
     population: int = 0       # Total population in this province
@@ -55,9 +56,9 @@ class MinisterialState(BaseModel):
     Represents the internal metrics managed by the Cabinet.
     These are nation-level aggregate values.
     """
+    # DEPRECATED: Use NationState.total_budget instead
     budget: float = 1000.0
     public_satisfaction: float = 0.5  # 0.0 to 1.0
-    military_readiness: float = 0.5   # 0.0 to 1.0 (might be derived from unit counts)
 
 
 class NationState(BaseModel):
@@ -77,6 +78,10 @@ class NationState(BaseModel):
     # Ocean provinces adjacent to owned coastal provinces (exclusive economic zone)
     territorial_water_ids: List[int] = Field(default_factory=list)
     
+    # --- BUDGET (National Treasury) ---
+    # Initialized randomly at genesis, increased only by province taxes
+    total_budget: float = 0.0
+    
     # --- AGGREGATE RESOURCES (calculated each turn) ---
     total_food: float = 0.0
     total_energy: float = 0.0
@@ -90,6 +95,10 @@ class NationState(BaseModel):
     total_aircraft: int = 0
     total_navy: int = 0
     total_population: int = 0
+    
+    # --- POWER PROJECTION (calculated from resources + military) ---
+    # Formula: weighted sum of budget, resources, and military assets
+    power_projection: float = 0.0
 
 
 class WorldState(BaseModel):

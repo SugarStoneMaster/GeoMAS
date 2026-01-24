@@ -110,7 +110,6 @@ def test_execution_waterfall():
     
     # Setup: Budget = 250 (enough for 2 units at 100 each, not 3)
     world.nations[nation_id].internal_state.budget = 250.0
-    initial_readiness = world.nations[nation_id].internal_state.military_readiness
     
     # Costs: CREATE_UNIT = 100
     # We try 3 actions:
@@ -142,8 +141,6 @@ def test_execution_waterfall():
     
     # Verify State: 2 units created (2 * 100 = 200), remaining 50
     assert world.nations[nation_id].internal_state.budget == 50.0
-    # 2 units created = 2 * 0.05 readiness increase
-    assert world.nations[nation_id].internal_state.military_readiness == pytest.approx(initial_readiness + 0.10)
     
     # Verify Logs: 2 created, 1 skipped
     created_count = sum(1 for l in logs if "Created" in l)

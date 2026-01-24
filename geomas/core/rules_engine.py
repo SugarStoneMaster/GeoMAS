@@ -112,8 +112,8 @@ class ActionEngine:
             # Execute
             if move.action_type == ActionType.CREATE_UNIT:
                 self._deduct_budget(nation_id, cost)
-                self.world.nations[nation_id].internal_state.military_readiness += 0.05
-                self.logs.append(f"[MILITARY] Created unit. Readiness +0.05. Cost: {cost}")
+                # TODO: Add actual unit to province in Phase 4
+                self.logs.append(f"[MILITARY] Created unit. Cost: {cost}")
                 
             # TODO: Add MOVE_TROOPS, NUCLEAR_OPTION in Phase 4
 
