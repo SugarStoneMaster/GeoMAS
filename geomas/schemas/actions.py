@@ -29,6 +29,14 @@ class DecisionSource(str, Enum):
     MINISTRY_ADVICE = "MINISTRY_ADVICE"
     PRESIDENT_OVERRIDE = "PRESIDENT_OVERRIDE"
 
+
+class UnitType(str, Enum):
+    """Military unit types that can be created and deployed."""
+    SOLDIER = "SOLDIER"   # Ground troops, can be on LAND/COASTAL/MOUNTAIN or transported by NAVY
+    NAVY = "NAVY"         # Naval vessels, can only be on OCEAN (territorial waters)
+    AIRCRAFT = "AIRCRAFT" # Air units, can be on LAND/COASTAL/MOUNTAIN, have extended range
+
+
 # --- PAYLOADS ---
 
 class MilitaryActionItem(BaseModel):

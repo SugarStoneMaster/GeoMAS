@@ -108,22 +108,22 @@ def test_execution_waterfall():
     engine = ActionEngine(world)
     nation_id = list(world.nations.keys())[0]
     
-    # Setup: Budget = 150
-    world.nations[nation_id].internal_state.budget = 150.0
+    # Setup: Budget = 250 (enough for 2 units at 100 each, not 3)
+    world.nations[nation_id].internal_state.budget = 250.0
     initial_readiness = world.nations[nation_id].internal_state.military_readiness
     
-    # Costs: MOBILIZE=100, FORTIFY=50
+    # Costs: CREATE_UNIT = 100
     # We try 3 actions:
-    # 1. Mobilize (100) -> OK (Rem: 50)
-    # 2. Fortify (50) -> OK (Rem: 0)
-    # 3. Mobilize (100) -> FAIL (Insufficient)
+    # 1. Create Unit (100) -> OK (Rem: 150)
+    # 2. Create Unit (100) -> OK (Rem: 50)
+    # 3. Create Unit (100) -> FAIL (Insufficient)
     
     payload = MilitaryPayload(
         source=DecisionSource.MINISTRY_ADVICE,
         moves=[
-            MilitaryActionItem(priority=1, action_type=ActionType.MOBILIZE_UNIT),
-            MilitaryActionItem(priority=2, action_type=ActionType.FORTIFY_PROVINCE),
-            MilitaryActionItem(priority=3, action_type=ActionType.MOBILIZE_UNIT)
+            MilitaryActionItem(priority=1, action_type=ActionType.CREATE_UNIT),
+            MilitaryActionItem(priority=2, action_type=ActionType.CREATE_UNIT),
+            MilitaryActionItem(priority=3, action_type=ActionType.CREATE_UNIT)
         ]
     )
     
@@ -140,11 +140,14 @@ def test_execution_waterfall():
     
     logs = engine.execute_envelope(envelope)
     
-    # Verify State
-    assert world.nations[nation_id].internal_state.budget == 0.0
-    assert world.nations[nation_id].internal_state.military_readiness > initial_readiness
+    # Verify State: 2 units created (2 * 100 = 200), remaining 50
+    assert world.nations[nation_id].internal_state.budget == 50.0
+    # 2 units created = 2 * 0.05 readiness increase
+    assert world.nations[nation_id].internal_state.military_readiness == pytest.approx(initial_readiness + 0.10)
     
-    # Verify Logs
-    assert any("Mobilized" in l for l in logs)
-    assert any("Fortified" in l for l in logs)
-    assert any("Skipped" in l for l in logs) # The 3rd action should be skipped
+    # Verify Logs: 2 created, 1 skipped
+    created_count = sum(1 for l in logs if "Created" in l)
+    skipped_count = sum(1 for l in logs if "Skipped" in l)
+    assert created_count == 2
+    assert skipped_count == 1
+

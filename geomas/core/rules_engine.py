@@ -3,6 +3,7 @@ from geomas.schemas.world import WorldState, ResourceBundle
 from geomas.schemas.actions import ActionType, MilitaryPayload, EconomicPayload, ForeignPayload
 from geomas.world.spatial_manager import SpatialManager
 
+
 class ActionEngine:
     """
     The Deterministic Rules Oracle & Executor.
@@ -15,7 +16,6 @@ class ActionEngine:
         ActionType.MOVE_TROOPS: 20.0,
         ActionType.INVEST_WELFARE: 100.0,
         ActionType.SEND_DIPLOMATIC_MESSAGE: 0.0,
-        ActionType.IMPOSE_SANCTIONS: 10.0, # Administrative cost
     }
 
     def __init__(self, world: WorldState):
@@ -110,17 +110,12 @@ class ActionEngine:
                 continue # Skip this move, try next (Waterfall)
             
             # Execute
-            if move.action_type == ActionType.MOBILIZE_UNIT:
+            if move.action_type == ActionType.CREATE_UNIT:
                 self._deduct_budget(nation_id, cost)
                 self.world.nations[nation_id].internal_state.military_readiness += 0.05
-                self.logs.append(f"[MILITARY] Mobilized unit. Readiness +0.05. Cost: {cost}")
+                self.logs.append(f"[MILITARY] Created unit. Readiness +0.05. Cost: {cost}")
                 
-            elif move.action_type == ActionType.FORTIFY_PROVINCE:
-                # Logic to add defense bonus to province
-                self._deduct_budget(nation_id, cost)
-                self.logs.append(f"[MILITARY] Fortified province. Cost: {cost}")
-                
-            # Add other military actions...
+            # TODO: Add MOVE_TROOPS, NUCLEAR_OPTION in Phase 4
 
     def _execute_economic(self, nation_id: str, payload: EconomicPayload):
         if not payload.action_type: return

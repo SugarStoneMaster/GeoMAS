@@ -178,7 +178,7 @@ class TradeOffer(BaseModel):
 
 1. **Determinismo:** Tutte le nuove funzioni devono usare `rng` passato come argomento
 2. **Pydantic:** Ogni nuovo schema deve essere un `BaseModel`
-3. **Backward Compatibility:** I test esistenti devono continuare a passare
+3. **Backward Compatibility:** I test esistenti devono continuare a passare, eventualmente vanno aggiornati in base alle nuove modifiche
 4. **Tech Level:** Rimosso dalla scope (da riprendere in futuro)
 5. **Casus Belli:** Rimandato a fase successiva
 
