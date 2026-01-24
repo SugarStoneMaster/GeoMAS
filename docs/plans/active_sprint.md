@@ -144,19 +144,22 @@ class TradeOffer(BaseModel):
 
 ---
 
-### 6. Tests (`tests/core/`)
+### 6. Tests (`tests/core/`) ✅
 
-#### 6.1 `test_economy.py` (nuovo)
-- [ ] Test produzione risorse
-- [ ] Test consumo popolazione
-- [ ] Test penalità workforce
+#### 6.1 `test_economy.py` ✅ (16 tests)
+- [x] Test consumo (food, energy, materials)
+- [x] Test production penalty workforce
+- [x] Test tax collection
+- [x] Test aggregates
+- [x] Test power projection
+- [x] Test starvation/energy penalty
 
-#### 6.2 `test_trade_oracle.py` (nuovo)
-- [ ] Test E_val calculation
-- [ ] Test M_scarcity multiplier
-- [ ] Test R_risk factor
-- [ ] Test P_projection impact
-- [ ] Test trade acceptance/rejection
+#### 6.2 `test_trade_oracle.py` ✅ (21 tests)
+- [x] Test scarcity multiplier
+- [x] Test relational risk
+- [x] Test power projection impact
+- [x] Test trade score calculation
+- [x] Test trade acceptance/rejection
 
 ---
 
