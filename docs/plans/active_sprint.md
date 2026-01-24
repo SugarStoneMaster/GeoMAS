@@ -125,23 +125,22 @@ class TradeOffer(BaseModel):
 
 ---
 
-### 5. Action System Updates (`geomas/core/rules_engine.py`)
+### 5. Action System Updates (`geomas/core/rules_engine.py`) ✅
 
-#### 5.1 INVEST_WELFARE
-- [ ] Costo: Budget + Food
-- [ ] Effetto: `satisfaction += log(amount) * 0.1` (diminishing returns)
-- [ ] Check: Budget e Food sufficienti
+#### 5.1 INVEST_WELFARE ✅
+- [x] Costo: Budget (amount parametro)
+- [x] Effetto: `satisfaction += log(amount) * 0.02` (diminishing returns)
+- [x] Check: Budget sufficiente
 
-#### 5.2 RAISE_WAR_TAX
-- [ ] Prerequisito: `satisfaction >= 0.20`
-- [ ] Effetto: `budget += tax_boost`, `satisfaction -= 0.15`
-- [ ] Non eseguibile sotto soglia
+#### 5.2 RAISE_WAR_TAX ✅
+- [x] Prerequisito: `satisfaction >= 0.20`
+- [x] Effetto: `budget += population * 0.1`, `satisfaction -= 0.15`
+- [x] Non eseguibile sotto soglia
 
-#### 5.3 TRADE_PROPOSAL
-- [ ] Usa Trade Oracle per accettazione automatica
-- [ ] Se accettato: trasferisci risorse
-- [ ] Costo trasporto: Budget se nazioni non confinanti
-- [ ] Aumenta Trust tra le due nazioni
+#### 5.3 TRADE_PROPOSAL ✅
+- [x] Usa Trade Oracle per accettazione automatica
+- [x] Se accettato: trasferisci risorse
+- [x] Aumenta Trust tra le due nazioni (+0.02)
 
 ---
 

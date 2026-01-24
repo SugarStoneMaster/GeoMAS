@@ -45,8 +45,8 @@ def test_economic_rules():
     engine = ActionEngine(world)
     nation_id = list(world.nations.keys())[0]
     
-    # Set budget
-    world.nations[nation_id].internal_state.budget = 100.0
+    # Set budget (use total_budget)
+    world.nations[nation_id].total_budget = 100.0
     
     # Affordable
     allowed, _ = engine.can_afford_budget(nation_id, 50.0)
@@ -109,7 +109,7 @@ def test_execution_waterfall():
     nation_id = list(world.nations.keys())[0]
     
     # Setup: Budget = 250 (enough for 2 units at 100 each, not 3)
-    world.nations[nation_id].internal_state.budget = 250.0
+    world.nations[nation_id].total_budget = 250.0
     
     # Costs: CREATE_UNIT = 100
     # We try 3 actions:
@@ -140,7 +140,7 @@ def test_execution_waterfall():
     logs = engine.execute_envelope(envelope)
     
     # Verify State: 2 units created (2 * 100 = 200), remaining 50
-    assert world.nations[nation_id].internal_state.budget == 50.0
+    assert world.nations[nation_id].total_budget == 50.0
     
     # Verify Logs: 2 created, 1 skipped
     created_count = sum(1 for l in logs if "Created" in l)
