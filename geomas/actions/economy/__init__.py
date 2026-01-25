@@ -1,7 +1,21 @@
 """
 Economy Actions Package.
 
-Handles economic actions, trade, and financial validation.
+Economic action handlers and trade system.
+
+Modules:
+    - handler: Execution logic for INVEST_WELFARE, RAISE_WAR_TAX, TRADE_PROPOSAL
+    - trade: Trade offer schema and evaluation oracle
+
+Trade System:
+    The Trade Oracle (evaluate_trade) uses a formula to decide if trades are accepted:
+    TradeScore = (E_val × M_scarcity) - (R_risk × P_projection)
+    
+    Where:
+    - E_val: Economic value of offered resources
+    - M_scarcity: How much receiver needs the resources
+    - R_risk: Relational risk based on trust level
+    - P_projection: Power shift from trade
 """
 
 from geomas.actions.economy.trade import (
