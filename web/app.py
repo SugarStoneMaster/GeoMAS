@@ -20,14 +20,14 @@ from geomas.simulation import SimulationEngine
 from geomas.schemas.world import TerrainType 
 from geomas.world.spatial import SpatialTranslator
 from geomas.agents.llm_client import LLMClient
-from geomas.schemas.protocol import (
+from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, PublicIntent, 
     MilitaryPayload, MilitaryIntent, MilitaryIntentType,
     EconomicPayload, EconomicIntent, EconomicIntentType,
     ForeignPayload, ForeignIntent, ForeignIntentType,
     DefenseProposal, EconomicProposal, ForeignProposal
 )
-from geomas.schemas.actions import ActionType, DecisionSource
+from geomas.actions.schemas import ActionType, DecisionSource
 from geomas.analysis.deception import DeceptionAnalyzer
 
 # --- MOCK CLIENT FOR UI ---

@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Optional, Dict, Any, Literal
 from pydantic import BaseModel, Field
-from geomas.schemas.actions import MilitaryPayload, EconomicPayload, ForeignPayload
+from geomas.actions.schemas import MilitaryPayload, EconomicPayload, ForeignPayload
 
 # --- ENUMS ---
 

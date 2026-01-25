@@ -1,7 +1,7 @@
 from typing import Any
 from geomas.agents.llm_client import LLMClient
 from geomas.schemas.world import WorldState, NationState # Updated import
-from geomas.schemas.protocol import DefenseProposal, EconomicProposal, ForeignProposal, GlobalStrategy # Updated import
+from geomas.agents.schemas import DefenseProposal, EconomicProposal, ForeignProposal, GlobalStrategy
 from geomas.world.spatial import SpatialTranslator
 
 class BaseMinister:

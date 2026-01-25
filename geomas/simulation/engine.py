@@ -6,12 +6,12 @@ The Main Loop. Orchestrates the flow of time, agent decisions, and world updates
 
 import random
 from typing import Dict, List
-from geomas.schemas.protocol import CountryEnvelope, GlobalStrategy
+from geomas.agents.schemas import CountryEnvelope, GlobalStrategy
 from geomas.world import generate_world
 from geomas.actions import ActionEngine
 from geomas.agents.nation_agent import NationAgent
 from geomas.agents.llm_client import LLMClient
-from geomas.simulation.phases import run_economy_phase
+from geomas.simulation.phases import run_upkeep_phase
 
 
 class SimulationEngine:
@@ -59,8 +59,8 @@ class SimulationEngine:
         print(f"--- STARTING TURN {current_turn} ---")
         self.turn_logs.append(f"--- TURN {current_turn} ---")
         
-        # 0. ECONOMY PHASE
-        run_economy_phase(self.world, self.turn_logs)
+        # 0. UPKEEP PHASE (resources, consumption, crisis)
+        run_upkeep_phase(self.world, self.turn_logs)
         
         turn_envelopes: List[CountryEnvelope] = []
         

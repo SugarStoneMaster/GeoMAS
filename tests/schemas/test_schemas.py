@@ -6,12 +6,12 @@ from pydantic import ValidationError
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from geomas.schemas.protocol import ( 
+from geomas.agents.schemas import ( 
     DefenseProposal, MilitaryIntent, MilitaryIntentType,
     CountryEnvelope, GlobalStrategy, PublicIntent, EconomicIntent, EconomicPayload, 
     ForeignIntent, ForeignPayload, EconomicIntentType, ForeignIntentType
 )
-from geomas.schemas.actions import MilitaryPayload, DecisionSource # Updated import
+from geomas.actions.schemas import MilitaryPayload, DecisionSource
 
 def test_defense_proposal_validation():
     """Test validation constraints on DefenseProposal."""

@@ -3,7 +3,7 @@ Execution handler for Military actions.
 """
 
 from typing import List, TYPE_CHECKING
-from geomas.schemas.actions import ActionType, MilitaryPayload
+from geomas.actions.schemas import ActionType, MilitaryPayload
 from geomas.actions.validators import ActionValidators
 
 if TYPE_CHECKING:

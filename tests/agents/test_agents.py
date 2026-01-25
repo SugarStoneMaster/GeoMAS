@@ -10,13 +10,13 @@ from geomas.world import generate_world
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.nation_agent import NationAgent
 from geomas.agents.ministers import DefenseMinister
-from geomas.schemas.protocol import ( 
+from geomas.agents.schemas import ( 
     DefenseProposal, MilitaryIntent, MilitaryIntentType,
     CountryEnvelope, GlobalStrategy, PublicIntent, EconomicIntent, EconomicPayload, 
     ForeignIntent, ForeignPayload, EconomicIntentType, ForeignIntentType,
     EconomicProposal, ForeignProposal
 )
-from geomas.schemas.actions import MilitaryPayload, ActionType, DecisionSource # Updated import
+from geomas.actions.schemas import MilitaryPayload, ActionType, DecisionSource
 
 # --- MOCK INFRASTRUCTURE ---
 

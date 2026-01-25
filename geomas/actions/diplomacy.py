@@ -3,7 +3,7 @@ Execution handler for Diplomatic actions.
 """
 
 from typing import TYPE_CHECKING
-from geomas.schemas.actions import ActionType, ForeignPayload
+from geomas.actions.schemas import ActionType, ForeignPayload
 
 if TYPE_CHECKING:
     from geomas.actions.engine import ActionEngine

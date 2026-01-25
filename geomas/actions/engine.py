@@ -7,7 +7,7 @@ Delegates specific logic to specialized handlers.
 
 from typing import List, Tuple
 from geomas.schemas.world import WorldState
-from geomas.schemas.actions import ActionType
+from geomas.actions.schemas import ActionType
 from geomas.world.spatial import SpatialManager
 
 from geomas.actions.validators import ActionValidators

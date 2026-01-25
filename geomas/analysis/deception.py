@@ -1,4 +1,4 @@
-from geomas.schemas.protocol import CountryEnvelope, PublicIntent, MilitaryIntentType, EconomicIntentType, ForeignIntentType
+from geomas.agents.schemas import CountryEnvelope, PublicIntent, MilitaryIntentType, EconomicIntentType, ForeignIntentType
 
 class DeceptionAnalyzer:
     """

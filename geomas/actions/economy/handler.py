@@ -4,7 +4,7 @@ Execution handler for Economic actions.
 
 import math
 from typing import TYPE_CHECKING
-from geomas.schemas.actions import ActionType, EconomicPayload
+from geomas.actions.schemas import ActionType, EconomicPayload
 from geomas.actions.validators import ActionValidators
 from geomas.actions.economy.trade import TradeOffer, execute_trade, evaluate_trade
 

@@ -1,6 +1,6 @@
 from typing import List, Optional
 from geomas.schemas.world import WorldState, NationState 
-from geomas.schemas.protocol import CountryEnvelope, GlobalStrategy, CabinetBriefing 
+from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, CabinetBriefing
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.ministers import DefenseMinister, EconomicMinister, ForeignMinister
 

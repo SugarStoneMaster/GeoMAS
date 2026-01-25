@@ -9,7 +9,7 @@ from geomas.schemas.world import WorldState
 from geomas import calculators as economy
 
 
-def run_economy_phase(world: WorldState, turn_logs: List[str]):
+def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
     """
     Updates economic state for all nations at the start of each turn.
     

@@ -8,14 +8,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 from geomas.simulation import SimulationEngine
 from geomas.agents.llm_client import LLMClient
 from geomas.analysis.deception import DeceptionAnalyzer
-from geomas.schemas.protocol import (
+from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, PublicIntent, 
     MilitaryIntent, MilitaryIntentType,
     EconomicIntent, EconomicIntentType,
     ForeignIntent, ForeignIntentType,
     DefenseProposal, EconomicProposal, ForeignProposal
 )
-from geomas.schemas.actions import (
+from geomas.actions.schemas import (
     ActionType, MilitaryPayload, EconomicPayload, ForeignPayload, DecisionSource
 )
 
