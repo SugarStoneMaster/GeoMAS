@@ -7,7 +7,7 @@ import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
 from geomas.world import generate_world
-from geomas.core.genesis import GenesisEngine
+from geomas.world.genesis import GenesisEngine
 
 def test_genesis_populates_trust():
     """Verify that Genesis modifies the Trust Matrix."""

@@ -10,7 +10,7 @@ import random
 from typing import Optional
 
 from geomas.schemas.world import WorldState
-from geomas.core.genesis import GenesisEngine
+from geomas.world.genesis import GenesisEngine
 from geomas import calculators as economy
 
 from geomas.world.generation.voronoi import generate_voronoi, build_adjacency

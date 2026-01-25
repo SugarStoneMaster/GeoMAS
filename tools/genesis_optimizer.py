@@ -7,7 +7,7 @@ from scipy.optimize import differential_evolution
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
 from geomas.world import generate_world
-from geomas.core.genesis import GenesisEngine
+from geomas.world.genesis import GenesisEngine
 
 # TARGET DISTRIBUTION
 TARGET_HIGH = 0.15  # > 0.8

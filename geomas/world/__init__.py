@@ -22,5 +22,6 @@ The world generation pipeline:
 
 from geomas.world.generation import generate_world, MapGenerator
 from geomas.world.spatial import SpatialManager, SpatialTranslator
+from geomas.world.genesis import GenesisEngine
 
-__all__ = ["generate_world", "MapGenerator", "SpatialManager", "SpatialTranslator"]
+__all__ = ["generate_world", "MapGenerator", "SpatialManager", "SpatialTranslator", "GenesisEngine"]
