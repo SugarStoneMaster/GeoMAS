@@ -5,9 +5,8 @@ import os
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from geomas.world.map_engine import generate_world
-from geomas.world.spatial_manager import SpatialManager
-from geomas.world.spatial_translator import SpatialTranslator
+from geomas.world import generate_world
+from geomas.world.spatial import SpatialManager, SpatialTranslator
 from geomas.schemas.world import WorldState, TerrainType # Updated import
 
 def test_determinism():

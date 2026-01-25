@@ -5,7 +5,7 @@ import os
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from geomas.core.simulation import SimulationEngine
+from geomas.simulation import SimulationEngine
 from geomas.agents.llm_client import LLMClient
 from geomas.analysis.deception import DeceptionAnalyzer
 from geomas.schemas.protocol import (

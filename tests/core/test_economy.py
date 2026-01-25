@@ -8,7 +8,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from geomas.core import economy
+from geomas import calculators as economy
 from geomas.schemas.world import WorldState, NationState, ProvinceState, TerrainType, MinisterialState
 
 

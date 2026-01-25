@@ -5,8 +5,8 @@ import os
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from geomas.world.map_engine import generate_world
-from geomas.world.spatial_translator import SpatialTranslator
+from geomas.world import generate_world
+from geomas.world.spatial import SpatialTranslator
 from geomas.schemas.world import TerrainType # Updated import
 
 def test_hollow_island_detection():

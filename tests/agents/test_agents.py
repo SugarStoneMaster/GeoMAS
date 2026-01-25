@@ -6,7 +6,7 @@ from typing import Type
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from geomas.world.map_engine import generate_world
+from geomas.world import generate_world
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.nation_agent import NationAgent
 from geomas.agents.ministers import DefenseMinister

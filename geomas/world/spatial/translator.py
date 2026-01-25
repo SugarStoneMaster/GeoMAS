@@ -1,6 +1,6 @@
 from typing import List, Dict, Tuple
-from geomas.schemas.world import WorldState, TerrainType # Updated import
-from geomas.world.spatial_manager import SpatialManager
+from geomas.schemas.world import WorldState, TerrainType
+from geomas.world.spatial.manager import SpatialManager
 
 class SpatialTranslator:
     """

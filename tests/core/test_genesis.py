@@ -6,7 +6,7 @@ import numpy as np
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from geomas.world.map_engine import generate_world
+from geomas.world import generate_world
 from geomas.core.genesis import GenesisEngine
 
 def test_genesis_populates_trust():

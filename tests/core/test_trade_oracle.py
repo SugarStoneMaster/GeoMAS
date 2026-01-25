@@ -8,7 +8,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from geomas.core.trade_oracle import (
+from geomas.actions.economy import (
     TradeOffer,
     calculate_scarcity_multiplier,
     calculate_relational_risk,

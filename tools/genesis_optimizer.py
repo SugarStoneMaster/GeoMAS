@@ -6,7 +6,7 @@ from scipy.optimize import differential_evolution
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
-from geomas.world.map_engine import generate_world # FIX: Use map_engine
+from geomas.world import generate_world
 from geomas.core.genesis import GenesisEngine
 
 # TARGET DISTRIBUTION

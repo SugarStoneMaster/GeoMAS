@@ -2,7 +2,7 @@ import pytest
 import sys
 import os
 import json
-from geomas.world.map_engine import generate_world
+from geomas.world import generate_world
 from geomas.schemas.world import WorldState # Updated import
 
 # Add project root to path

@@ -6,7 +6,7 @@ from typing import Type
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from geomas.core.simulation import SimulationEngine
+from geomas.simulation import SimulationEngine
 from geomas.agents.llm_client import LLMClient
 from geomas.schemas.protocol import (
     CountryEnvelope, GlobalStrategy, PublicIntent, 

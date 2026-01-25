@@ -16,9 +16,9 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 
 # Import Core Modules
-from geomas.core.simulation import SimulationEngine
+from geomas.simulation import SimulationEngine
 from geomas.schemas.world import TerrainType 
-from geomas.world.spatial_translator import SpatialTranslator
+from geomas.world.spatial import SpatialTranslator
 from geomas.agents.llm_client import LLMClient
 from geomas.schemas.protocol import (
     CountryEnvelope, GlobalStrategy, PublicIntent, 

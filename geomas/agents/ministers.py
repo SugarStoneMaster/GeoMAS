@@ -2,7 +2,7 @@ from typing import Any
 from geomas.agents.llm_client import LLMClient
 from geomas.schemas.world import WorldState, NationState # Updated import
 from geomas.schemas.protocol import DefenseProposal, EconomicProposal, ForeignProposal, GlobalStrategy # Updated import
-from geomas.world.spatial_translator import SpatialTranslator
+from geomas.world.spatial import SpatialTranslator
 
 class BaseMinister:
     def __init__(self, nation_id: str, world: WorldState, client: LLMClient):

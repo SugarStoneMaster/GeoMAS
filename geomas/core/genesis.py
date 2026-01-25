@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List, Dict, Tuple, Any
 from geomas.schemas.world import WorldState, TerrainType # Updated import
-from geomas.world.spatial_manager import SpatialManager
+from geomas.world.spatial import SpatialManager
 
 class GenesisEngine:
     """

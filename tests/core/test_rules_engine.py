@@ -5,8 +5,8 @@ import os
 # Add project root to path (Two levels up)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from geomas.world.map_engine import generate_world
-from geomas.core.rules_engine import ActionEngine
+from geomas.world import generate_world
+from geomas.actions import ActionEngine
 from geomas.schemas.actions import ActionType, MilitaryPayload, MilitaryActionItem, DecisionSource
 from geomas.schemas.protocol import CountryEnvelope, GlobalStrategy, PublicIntent, MilitaryIntent, MilitaryIntentType, EconomicPayload, EconomicIntent, EconomicIntentType, ForeignPayload, ForeignIntent, ForeignIntentType
 
