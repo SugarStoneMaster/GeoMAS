@@ -31,7 +31,7 @@ def render_map_page(world: WorldState) -> None:
             render_nation_stats(world, selected_nation_id)
     
     with col_map:
-        render_map(world)
+        render_map(world, selected_nation_id)
         # Trust matrix directly under the map
         render_trust_matrix(world)
     

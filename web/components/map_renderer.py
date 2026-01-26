@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import matplotlib.colors as mcolors
+from typing import Optional
 
 from geomas.schemas.world import WorldState, TerrainType
 
@@ -27,6 +28,14 @@ def lighten_color(hex_color: str, factor: float = 0.5) -> str:
     return mcolors.to_hex(lighter_rgb)
 
 
+def desaturate_color(hex_color: str, factor: float = 0.5) -> str:
+    """Desaturate a color by blending with gray."""
+    rgb = mcolors.hex2color(hex_color)
+    gray = sum(rgb) / 3
+    desaturated = [c * factor + gray * (1 - factor) for c in rgb]
+    return mcolors.to_hex(desaturated)
+
+
 def blend_with_ocean(nation_hex: str, ocean_hex: str = "#b0c4de", ratio: float = 0.35) -> str:
     """Blend nation color with ocean color for territorial waters."""
     nation_rgb = mcolors.hex2color(nation_hex)
@@ -35,7 +44,7 @@ def blend_with_ocean(nation_hex: str, ocean_hex: str = "#b0c4de", ratio: float =
     return mcolors.to_hex(blended)
 
 
-def render_map(world: WorldState) -> None:
+def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> None:
     """
     Renders the world map as a matplotlib figure in Streamlit.
     
@@ -45,6 +54,7 @@ def render_map(world: WorldState) -> None:
         - Nation territories in their assigned colors
         - Mountains darkened with dotted pattern
         - Capital provinces marked with gold stars
+        - Selected nation highlighted with bright border
     """
     # Build territorial water ownership lookup
     territorial_owners = {}
@@ -52,16 +62,29 @@ def render_map(world: WorldState) -> None:
         for water_id in nation.territorial_water_ids:
             territorial_owners[water_id] = nation_id
     
+    # Build province ownership for highlighting
+    province_to_nation = {}
+    for p_id, province in world.provinces.items():
+        if province.owner_id:
+            province_to_nation[p_id] = province.owner_id
+        elif p_id in territorial_owners:
+            province_to_nation[p_id] = territorial_owners[p_id]
+    
     fig, ax = plt.subplots(figsize=(10, 8))
     patches = []
     colors = []
     hatches = []
+    edge_colors = []
+    edge_widths = []
     capital_coords = []
     
     for p_id, province in world.provinces.items():
         if province.vertices:
             poly = Polygon(province.vertices)
             patches.append(poly)
+            
+            # Determine if this province belongs to selected nation
+            belongs_to_selected = (province_to_nation.get(p_id) == selected_nation_id) if selected_nation_id else False
             
             if province.terrain == TerrainType.OCEAN:
                 # Check if this ocean cell is territorial water
@@ -71,13 +94,14 @@ def render_map(world: WorldState) -> None:
                     if owner:
                         # Blend nation color with ocean for territorial waters
                         blended = blend_with_ocean(owner.color)
+                        if selected_nation_id and owner_id != selected_nation_id:
+                            blended = desaturate_color(blended, 0.4)
                         colors.append(blended)
-                        hatches.append("//")  # Diagonal stripes for territorial waters
+                        hatches.append("//")
                     else:
                         colors.append("#b0c4de")
                         hatches.append(None)
                 else:
-                    # Regular ocean (international waters)
                     colors.append("#b0c4de")
                     hatches.append(None)
             else:
@@ -90,6 +114,11 @@ def render_map(world: WorldState) -> None:
                     else:
                         final_color = base_color
                         hatches.append(None)
+                    
+                    # Desaturate non-selected nations
+                    if selected_nation_id and province.owner_id != selected_nation_id:
+                        final_color = desaturate_color(final_color, 0.4)
+                    
                     colors.append(final_color)
                     
                     # Mark capital
@@ -98,15 +127,23 @@ def render_map(world: WorldState) -> None:
                 else:
                     colors.append("#808080")
                     hatches.append(None)
+            
+            # Highlight selected nation with bright border
+            if belongs_to_selected:
+                edge_colors.append("#FFD700")  # Gold border
+                edge_widths.append(1.5)
+            else:
+                edge_colors.append("black")
+                edge_widths.append(0.2)
     
     if patches:
-        p = PatchCollection(patches, match_original=True)
-        p.set_facecolor(colors)
-        p.set_edgecolor('black')
-        p.set_linewidth(0.2)
+        # Draw each patch individually to support different edge colors
         for i, patch in enumerate(patches):
+            patch.set_facecolor(colors[i])
+            patch.set_edgecolor(edge_colors[i])
+            patch.set_linewidth(edge_widths[i])
             patch.set_hatch(hatches[i])
-        ax.add_collection(p)
+            ax.add_patch(patch)
     
     # Draw capital stars
     for cx, cy, ccolor in capital_coords:
