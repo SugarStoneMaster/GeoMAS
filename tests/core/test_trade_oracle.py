@@ -17,7 +17,7 @@ from geomas.actions.economy import (
     evaluate_trade,
     BASE_PRICES
 )
-from geomas.schemas.world import WorldState, NationState, ProvinceState, TerrainType, MinisterialState
+from geomas.schemas.world import WorldState, NationState, ProvinceState, TerrainType
 
 
 # --- FIXTURES ---
@@ -38,9 +38,8 @@ def nation_a():
         total_soldiers=500,
         total_aircraft=10,
         total_navy=20,
-        nukes=0,
         power_projection=100.0,
-        internal_state=MinisterialState(budget=1000.0, public_satisfaction=0.5)
+        public_satisfaction=0.5
     )
 
 
@@ -60,9 +59,8 @@ def nation_b():
         total_soldiers=200,
         total_aircraft=5,
         total_navy=10,
-        nukes=0,
         power_projection=50.0,
-        internal_state=MinisterialState(budget=500.0, public_satisfaction=0.5)
+        public_satisfaction=0.5
     )
 
 

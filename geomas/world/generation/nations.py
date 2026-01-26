@@ -9,7 +9,7 @@ import numpy as np
 from typing import Dict, List
 from shapely.geometry import Polygon as ShapelyPolygon
 
-from geomas.schemas.world import NationState, ProvinceState, TerrainType, MinisterialState
+from geomas.schemas.world import NationState, ProvinceState, TerrainType
 from geomas.world.presets import PRESET_NATIONS  # Top-level world package
 
 
@@ -59,7 +59,6 @@ def assign_nations(
             color=preset["color"],
             capital_province_id=initial_capitals[i],
             province_ids=[],
-            internal_state=MinisterialState(),
             total_budget=initial_budget
         )
     

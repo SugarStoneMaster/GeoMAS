@@ -41,30 +41,24 @@ class ProvinceState(BaseModel):
     navy: int = 0             # Naval units (only valid for OCEAN provinces)
 
 
-class MinisterialState(BaseModel):
-    """
-    Represents the internal metrics managed by the Cabinet.
-    These are nation-level aggregate values.
-    """
-    public_satisfaction: float = 0.5  # 0.0 to 1.0
-
-
 class NationState(BaseModel):
     """
     Represents a nation in the simulation.
     
-    Contains identity, territory, internal state, and aggregate resources.
+    Contains identity, territory, resources, military, and satisfaction metrics.
     """
     id: str
     name: str
     color: str  # Hex code or Matplotlib color
     capital_province_id: Optional[int] = None
     province_ids: List[int] = Field(default_factory=list)
-    internal_state: MinisterialState = Field(default_factory=MinisterialState)
     
     # --- TERRITORIAL WATERS ---
     # Ocean provinces adjacent to owned coastal provinces (exclusive economic zone)
     territorial_water_ids: List[int] = Field(default_factory=list)
+    
+    # --- PUBLIC SATISFACTION ---
+    public_satisfaction: float = 0.5  # 0.0 to 1.0
     
     # --- BUDGET (National Treasury) ---
     # Initialized randomly at genesis, increased only by province taxes
@@ -82,7 +76,10 @@ class NationState(BaseModel):
     total_soldiers: int = 0
     total_aircraft: int = 0
     total_navy: int = 0
+    
+    # --- AGGREGATE POPULATION ---
     total_population: int = 0
+    total_workers: int = 0  # Sum of workers across all provinces
     
     # --- POWER PROJECTION (calculated from resources + military) ---
     # Formula: weighted sum of budget, resources, and military assets

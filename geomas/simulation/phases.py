@@ -25,6 +25,7 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
         # 1. Calculate aggregates
         aggregates = economy.calculate_nation_aggregates(nation, world)
         nation.total_population = aggregates["total_population"]
+        nation.total_workers = aggregates["total_workers"]
         nation.total_soldiers = aggregates["total_soldiers"]
         nation.total_aircraft = aggregates["total_aircraft"]
         nation.total_navy = aggregates["total_navy"]

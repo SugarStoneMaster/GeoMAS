@@ -44,13 +44,13 @@ def execute_economic(
         # Diminishing returns: satisfaction += log(amount) * 0.1
         if amount > 0:
             satisfaction_gain = math.log(amount) * 0.02
-            nation.internal_state.public_satisfaction = min(
+            nation.public_satisfaction = min(
                 1.0,
-                nation.internal_state.public_satisfaction + satisfaction_gain
+                nation.public_satisfaction + satisfaction_gain
             )
             engine.logs.append(
                 f"[ECONOMIC] Invested {amount:.0f} in Welfare. "
-                f"Satisfaction +{satisfaction_gain:.3f} (now {nation.internal_state.public_satisfaction:.2f})"
+                f"Satisfaction +{satisfaction_gain:.3f} (now {nation.public_satisfaction:.2f})"
             )
     
     # --- RAISE_WAR_TAX ---
@@ -65,12 +65,12 @@ def execute_economic(
         
         # Apply effects
         nation.total_budget += tax_boost
-        nation.internal_state.public_satisfaction -= WAR_TAX_SATISFACTION_PENALTY
-        nation.internal_state.public_satisfaction = max(0.0, nation.internal_state.public_satisfaction)
+        nation.public_satisfaction -= WAR_TAX_SATISFACTION_PENALTY
+        nation.public_satisfaction = max(0.0, nation.public_satisfaction)
         
         engine.logs.append(
             f"[ECONOMIC] War Tax raised! Budget +{tax_boost:.0f}, "
-            f"Satisfaction -{WAR_TAX_SATISFACTION_PENALTY:.2f} (now {nation.internal_state.public_satisfaction:.2f})"
+            f"Satisfaction -{WAR_TAX_SATISFACTION_PENALTY:.2f} (now {nation.public_satisfaction:.2f})"
         )
     
     # --- TRADE_PROPOSAL ---

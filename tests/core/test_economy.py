@@ -9,7 +9,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
 from geomas import calculators as economy
-from geomas.schemas.world import WorldState, NationState, ProvinceState, TerrainType, MinisterialState
+from geomas.schemas.world import WorldState, NationState, ProvinceState, TerrainType
 
 
 # --- FIXTURES ---
@@ -31,7 +31,7 @@ def sample_nation():
         total_aircraft=10,
         total_navy=20,
         nukes=0,
-        internal_state=MinisterialState(budget=1000.0, public_satisfaction=0.5)
+        public_satisfaction=0.5
     )
 
 

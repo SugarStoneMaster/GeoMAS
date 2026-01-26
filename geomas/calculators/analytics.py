@@ -11,6 +11,7 @@ from geomas.schemas.world import WorldState, NationState
 def calculate_nation_aggregates(nation: NationState, world: WorldState) -> Dict[str, float]:
     """Calculate all aggregate values for a nation from its provinces."""
     total_pop = 0
+    total_workers = 0
     total_soldiers = 0
     total_aircraft = 0
     total_navy = 0
@@ -22,6 +23,7 @@ def calculate_nation_aggregates(nation: NationState, world: WorldState) -> Dict[
         prov = world.provinces.get(p_id)
         if prov:
             total_pop += prov.population
+            total_workers += prov.workers
             total_soldiers += prov.soldiers
             total_aircraft += prov.aircraft
             total_navy += prov.navy
@@ -37,6 +39,7 @@ def calculate_nation_aggregates(nation: NationState, world: WorldState) -> Dict[
     
     return {
         "total_population": total_pop,
+        "total_workers": total_workers,
         "total_soldiers": total_soldiers,
         "total_aircraft": total_aircraft,
         "total_navy": total_navy,

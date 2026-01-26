@@ -30,50 +30,49 @@ st.set_page_config(page_title="GeoMAS Dashboard", layout="wide")
 st.title("👑 GeoMAS: Simulation Dashboard")
 
 
-# --- SIDEBAR: SIMULATION CONTROLS ---
-st.sidebar.header("World Generation Parameters")
+# --- TOP CONTROLS (instead of sidebar) ---
+ctrl_cols = st.columns([1, 1, 1, 1, 1])
 
-map_seed = st.sidebar.number_input("Map Seed (Geometry)", value=42, step=1)
-history_seed = st.sidebar.number_input("History Seed (Genesis)", value=99, step=1)
-n_cells = st.sidebar.slider("Map Resolution (Cells)", 500, 3000, 1500)
-n_nations = 10
-st.sidebar.info(f"Simulation fixed to {n_nations} Preset Nations")
+with ctrl_cols[0]:
+    map_seed = st.number_input("Map Seed", value=42, step=1, key="map_seed")
+
+with ctrl_cols[1]:
+    history_seed = st.number_input("History Seed", value=99, step=1, key="history_seed")
+
+with ctrl_cols[2]:
+    n_cells = st.number_input("Cells", value=1500, min_value=500, max_value=3000, step=100, key="n_cells")
 
 # Initialize session state
 if "sim" not in st.session_state:
     st.session_state["sim"] = None
 
-# Initialize/Reset button
-if st.sidebar.button("Initialize / Reset Simulation"):
-    sim = SimulationEngine(
-        map_seed=map_seed,
-        history_seed=history_seed,
-        n_cells=n_cells,
-        llm_client=UIMockLLM()
-    )
-    st.session_state["sim"] = sim
-    st.session_state["nation_index"] = 0
-    st.success(f"Simulation Initialized with Map Seed {map_seed}!")
-    st.rerun()
+with ctrl_cols[3]:
+    st.markdown("&nbsp;")  # Spacer for alignment
+    if st.button("🔄 Init/Reset", use_container_width=True):
+        sim = SimulationEngine(
+            map_seed=int(map_seed),
+            history_seed=int(history_seed),
+            n_cells=int(n_cells),
+            llm_client=UIMockLLM()
+        )
+        st.session_state["sim"] = sim
+        st.session_state["nation_index"] = 0
+        st.rerun()
 
 sim = st.session_state["sim"]
 
-# Turn control
-if sim:
-    st.sidebar.markdown(f"### Turn: {sim.world.turn}")
-    if st.sidebar.button("▶️ Run Next Turn"):
-        with st.spinner("Agents are thinking..."):
-            sim.step()
-            st.success(f"Turn {sim.world.turn} Complete!")
+with ctrl_cols[4]:
+    if sim:
+        st.markdown(f"**Turn: {sim.world.turn}**")
+        if st.button("▶️ Next Turn", use_container_width=True):
+            with st.spinner("Thinking..."):
+                sim.step()
             st.rerun()
+    else:
+        st.markdown("&nbsp;")
+        st.info("Click Init/Reset")
 
-
-# --- MAIN VIEW ---
-if not sim:
-    st.info("Please initialize the simulation from the sidebar.")
-    st.stop()
-
-world = sim.world
+st.divider()
 
 
 # --- TAB NAVIGATION ---
@@ -92,6 +91,14 @@ if c3.button("🕵️ Deception Analysis", use_container_width=True):
     st.rerun()
 
 st.divider()
+
+
+# --- MAIN VIEW ---
+if not sim:
+    st.info("Initialize the simulation using the controls above.")
+    st.stop()
+
+world = sim.world
 
 
 # --- RENDER ACTIVE PAGE ---

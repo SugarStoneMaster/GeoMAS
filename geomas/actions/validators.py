@@ -83,7 +83,7 @@ class ActionValidators:
         nation = world.nations.get(nation_id)
         if not nation: return False, "Nation not found."
         
-        if nation.internal_state.public_satisfaction >= ActionValidators.MIN_SATISFACTION_FOR_WAR_TAX:
+        if nation.public_satisfaction >= ActionValidators.MIN_SATISFACTION_FOR_WAR_TAX:
             return True, "Satisfaction sufficient for war tax."
         else:
-            return False, f"Satisfaction too low ({nation.internal_state.public_satisfaction:.2f} < {ActionValidators.MIN_SATISFACTION_FOR_WAR_TAX})"
+            return False, f"Satisfaction too low ({nation.public_satisfaction:.2f} < {ActionValidators.MIN_SATISFACTION_FOR_WAR_TAX})"
