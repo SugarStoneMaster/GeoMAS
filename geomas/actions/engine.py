@@ -7,13 +7,17 @@ Delegates specific logic to specialized handlers.
 
 from typing import List, Tuple
 from geomas.schemas.world import WorldState
-from geomas.actions.schemas import ActionType
 from geomas.world.spatial import SpatialManager
 
 from geomas.actions.validators import ActionValidators
-from geomas.actions.military import execute_military_waterfall
-from geomas.actions.economy.handler import execute_economic, WAR_TAX_SATISFACTION_PENALTY, WAR_TAX_BUDGET_BOOST_RATIO
-from geomas.actions.diplomacy import execute_foreign, adjust_trust
+from geomas.actions.defense import DefenseActionType, execute_defense_waterfall
+from geomas.actions.economy import execute_economic, EconomicActionType
+from geomas.actions.foreign import execute_foreign, ForeignActionType
+
+
+# Constants from economy handler
+WAR_TAX_SATISFACTION_PENALTY = 0.15
+WAR_TAX_BUDGET_BOOST_RATIO = 0.10
 
 
 class ActionEngine:
@@ -21,21 +25,12 @@ class ActionEngine:
     The Deterministic Rules Oracle & Executor.
     Validates AND executes actions, modifying the WorldState.
     """
-
-    # --- COST CONFIGURATION ---
-    COSTS = {
-        ActionType.CREATE_UNIT: 100.0,
-        ActionType.MOVE_TROOPS: 20.0,
-        ActionType.INVEST_WELFARE: 100.0,
-        ActionType.SEND_DIPLOMATIC_MESSAGE: 0.0,
-        ActionType.TRADE_PROPOSAL: 10.0,
-        ActionType.RAISE_WAR_TAX: 0.0,
-    }
     
     # Expose constants for external access if needed
     MIN_SATISFACTION_FOR_WAR_TAX = ActionValidators.MIN_SATISFACTION_FOR_WAR_TAX
     WAR_TAX_SATISFACTION_PENALTY = WAR_TAX_SATISFACTION_PENALTY
     WAR_TAX_BUDGET_BOOST_RATIO = WAR_TAX_BUDGET_BOOST_RATIO
+
 
     def __init__(self, world: WorldState):
         self.world = world
@@ -57,9 +52,6 @@ class ActionEngine:
         return ActionValidators.can_raise_war_tax(self.world, nation_id)
 
     def can_trade(self, nation_a_id: str, nation_b_id: str) -> Tuple[bool, str]:
-        # Simple trust check kept here or moved to validators. 
-        # Since it was simple in original, let's keep logic simple or delegate.
-        # Original logic:
         trust = self.world.trust_matrix.get(nation_a_id, {}).get(nation_b_id, 0.5)
         if trust < 0.2: 
             return False, "Relations too hostile for trade."
@@ -75,10 +67,10 @@ class ActionEngine:
         self.logs = []
         sender_id = envelope.sender_id
         
-        # 1. Military (Waterfall)
-        execute_military_waterfall(self, sender_id, envelope.military_payload)
+        # 1. Defense (Waterfall)
+        execute_defense_waterfall(self, sender_id, envelope.defense_payload)
         
-        # 2. Economic
+        # 2. Economy
         execute_economic(self, sender_id, envelope.economic_payload)
         
         # 3. Foreign
@@ -94,4 +86,9 @@ class ActionEngine:
 
     def adjust_trust(self, nation_a: str, nation_b: str, delta: float):
         """Adjust trust between two nations."""
-        adjust_trust(self, nation_a, nation_b, delta)
+        if nation_a not in self.world.trust_matrix:
+            self.world.trust_matrix[nation_a] = {}
+        
+        current = self.world.trust_matrix[nation_a].get(nation_b, 0.5)
+        new_trust = max(0.0, min(1.0, current + delta))
+        self.world.trust_matrix[nation_a][nation_b] = new_trust

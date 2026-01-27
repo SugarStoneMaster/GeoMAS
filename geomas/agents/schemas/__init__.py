@@ -6,7 +6,7 @@ Communication protocol models for agent decision-making.
 Models:
     - GlobalStrategy: High-level nation strategy (EXPANSIONISM, ISOLATIONISM, etc.)
     - PublicIntent: What the nation claims publicly (PEACEFUL, AGGRESSIVE, etc.)
-    - *IntentType: Private intentions per domain (military, economic, foreign)
+    - *IntentType: Private intentions per domain (defense, economic, foreign)
     - *Intent: Intent with reasoning (for explainability)
     - *Proposal: Minister recommendations to the President
     - CabinetBriefing: All minister proposals combined
@@ -19,10 +19,10 @@ and the ActionEngine, containing both public facade and private reality.
 from geomas.agents.schemas.protocol import (
     GlobalStrategy,
     PublicIntent,
-    MilitaryIntentType,
+    DefenseIntentType,
     EconomicIntentType,
     ForeignIntentType,
-    MilitaryIntent,
+    DefenseIntent,
     EconomicIntent,
     ForeignIntent,
     DefenseProposal,
@@ -30,18 +30,20 @@ from geomas.agents.schemas.protocol import (
     ForeignProposal,
     CabinetBriefing,
     CountryEnvelope,
-    MilitaryPayload,
-    EconomicPayload,
-    ForeignPayload
 )
+
+# Re-export payloads from domain packages for convenience
+from geomas.actions.defense import DefensePayload
+from geomas.actions.economy import EconomicPayload
+from geomas.actions.foreign import ForeignPayload
 
 __all__ = [
     "GlobalStrategy",
     "PublicIntent",
-    "MilitaryIntentType",
+    "DefenseIntentType",
     "EconomicIntentType",
     "ForeignIntentType",
-    "MilitaryIntent",
+    "DefenseIntent",
     "EconomicIntent",
     "ForeignIntent",
     "DefenseProposal",
@@ -49,7 +51,8 @@ __all__ = [
     "ForeignProposal",
     "CabinetBriefing",
     "CountryEnvelope",
-    "MilitaryPayload",
+    "DefensePayload",
     "EconomicPayload",
     "ForeignPayload"
 ]
+

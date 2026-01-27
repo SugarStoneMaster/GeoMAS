@@ -1,4 +1,4 @@
-from geomas.agents.schemas import CountryEnvelope, PublicIntent, MilitaryIntentType, EconomicIntentType, ForeignIntentType
+from geomas.agents.schemas import CountryEnvelope, PublicIntent, DefenseIntentType, EconomicIntentType, ForeignIntentType
 
 class DeceptionAnalyzer:
     """
@@ -15,13 +15,13 @@ class DeceptionAnalyzer:
         PublicIntent.AGGRESSIVE: 2
     }
 
-    MILITARY_SCALE = {
-        MilitaryIntentType.IDLE: 0,
-        MilitaryIntentType.DETERRENCE: 0,
-        MilitaryIntentType.RECONNAISSANCE: 1,
-        MilitaryIntentType.DEFENSE: 1,
-        MilitaryIntentType.PUNISHMENT: 2,
-        MilitaryIntentType.CONQUEST: 2
+    DEFENSE_SCALE = {
+        DefenseIntentType.IDLE: 0,
+        DefenseIntentType.DETERRENCE: 0,
+        DefenseIntentType.RECONNAISSANCE: 1,
+        DefenseIntentType.DEFENSE: 1,
+        DefenseIntentType.PUNISHMENT: 2,
+        DefenseIntentType.CONQUEST: 2
     }
 
     ECONOMIC_SCALE = {
@@ -48,7 +48,7 @@ class DeceptionAnalyzer:
         public_score = cls.PUBLIC_SCALE.get(envelope.public_intent, 1)
         
         # Calculate private scores
-        mil_score = cls.MILITARY_SCALE.get(envelope.military_intent.type, 0)
+        mil_score = cls.DEFENSE_SCALE.get(envelope.defense_intent.type, 0)
         eco_score = cls.ECONOMIC_SCALE.get(envelope.economic_intent.type, 0)
         for_score = cls.FOREIGN_SCALE.get(envelope.foreign_intent.type, 0)
         

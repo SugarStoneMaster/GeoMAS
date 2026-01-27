@@ -4,6 +4,7 @@ Economy Actions Package.
 Economic action handlers and trade system.
 
 Modules:
+    - schemas: EconomicActionType, EconomicPayload, DecisionSource
     - handler: Execution logic for INVEST_WELFARE, RAISE_WAR_TAX, TRADE_PROPOSAL
     - trade: Trade offer schema and evaluation oracle
 
@@ -18,9 +19,16 @@ Trade System:
     - P_projection: Power shift from trade
 """
 
+from geomas.actions.economy.schemas import (
+    EconomicActionType,
+    EconomicPayload,
+    DecisionSource
+)
+from geomas.actions.economy.handler import execute_economic
 from geomas.actions.economy.trade import (
     TradeOffer, 
     evaluate_trade,
+    execute_trade,
     calculate_trade_score,
     calculate_scarcity_multiplier,
     calculate_relational_risk,
@@ -29,8 +37,13 @@ from geomas.actions.economy.trade import (
 )
 
 __all__ = [
+    "EconomicActionType",
+    "EconomicPayload",
+    "DecisionSource",
+    "execute_economic",
     "TradeOffer", 
     "evaluate_trade",
+    "execute_trade",
     "calculate_trade_score",
     "calculate_scarcity_multiplier",
     "calculate_relational_risk",

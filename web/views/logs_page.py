@@ -43,9 +43,9 @@ def render_logs_page(world: WorldState, history: List[List[CountryEnvelope]]) ->
                 
                 c1, c2, c3 = st.columns(3)
                 with c1:
-                    st.markdown("**⚔️ Military**")
-                    st.json(envelope.military_payload.model_dump())
-                    st.caption(f"Intent: {envelope.military_intent.type.value}")
+                    st.markdown("**⚔️ Defense**")
+                    st.json(envelope.defense_payload.model_dump())
+                    st.caption(f"Intent: {envelope.defense_intent.type.value}")
                 with c2:
                     st.markdown("**💰 Economic**")
                     st.json(envelope.economic_payload.model_dump())

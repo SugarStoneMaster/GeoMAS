@@ -1,65 +1,69 @@
-# 🏃 Active Sprint: Phase 3.5 (Refactoring)
+# 🏃 Active Sprint: Phase 4 (Advanced Military System)
 
-**Obiettivo:** Migliorare modularità, leggibilità e manutenibilità del codebase.
-
----
-
-## ✅ Completed (Phase 3)
-- [x] Schema Updates (ProvinceState, NationState, UnitType)
-- [x] World Engine Updates (Territorial Waters, Nukes, Production)
-- [x] Resource Consumption Logic (`economy.py`)
-- [x] Trade Oracle (`trade_oracle.py`)
-- [x] Action System Updates (INVEST_WELFARE, RAISE_WAR_TAX, TRADE_PROPOSAL)
-- [x] Tests (66 test passati)
+**Obiettivo:** Implementare unità militari, movimento e combattimento.
 
 ---
 
-## 📝 Sprint Backlog: Refactoring
+## ✅ Completed (Phase 3.6 - UI Refactoring)
+- [x] Refactoring `web/app.py` in moduli (components/, views/)
+- [x] Layout 3-colonne (Stats | Map | Intel)
+- [x] Controlli spostati in alto (no sidebar)
+- [x] Trust Matrix sotto la mappa
+- [x] Visualizzazione acque territoriali
+- [x] Highlight nazione selezionata
+- [x] 71 test passati
+
+---
+
+## 📝 Sprint Backlog: Military System
 
 ### 🎯 Sprint Goal
-Rendere il codebase più modulare, pulito e manutenibile prima di procedere con Phase 4.
+Implementare il sistema militare base: creazione unità, movimento truppe, e combattimento.
 
 ---
 
-### Aree di Refactoring
+### Task Breakdown
 
-#### 1. Rimozione Codice Legacy ✅
-- [x] Rimosso `ResourceBundle` (sostituito da `*_production` fields)
-- [x] Rimosso `MinisterialState.budget` (sostituito da `NationState.total_budget`)
-- [x] Aggiornato `map_engine.py`, `genesis.py`, `spatial_translator.py`
-- [x] Aggiornato `ministers.py`, `web/app.py`, `rules_engine.py`
-- [x] Aggiornati tutti i test
+#### 1. Unit Types & Constraints
+- [x] Creare `UnitType` Enum in `schemas/world.py`
+- [x] Definire costi unitari (budget, materials, energy, pop)
+- [x] Vincoli posizionamento per terreno
 
-#### 2. Riorganizzazione Moduli ✅
-- [x] `map_engine.py` → `geomas/world/` (generation/, spatial/)
-- [x] `rules_engine.py` + `trade_oracle.py` → `geomas/actions/`
-- [x] `economy.py` → `geomas/calculators/`
-- [x] `simulation.py` → `geomas/simulation/`
-- [x] Rinominato `economy_phase` → `upkeep_phase`
-- [x] Schema co-location: `actions/schemas/`, `agents/schemas/`
+#### 2. CREATE_UNIT Action
+- [ ] Aggiungere `ActionType.CREATE_UNIT`
+- [ ] Implementare validazione (budget, materials, pop)
+- [ ] Handler che deduce risorse e crea unità
+- [ ] Test CREATE_UNIT
 
-#### 3. Pulizia Schemi ✅
-- [x] Verificato: nessun field duplicato
-- [x] Verificato: nessun campo `resources` legacy rimasto
-- [x] Struttura finale:
-  - `geomas/schemas/world.py` (core: WorldState, NationState, Province)
-  - `geomas/actions/schemas/` (ActionType, Payloads)
-  - `geomas/agents/schemas/` (Protocol, Intents, Envelope)
+#### 3. MOVE_TROOPS Action
+- [ ] Aggiungere `ActionType.MOVE_TROOPS`
+- [ ] Pathfinding via terra (grafo adiacenza)
+- [ ] Movimento via mare (Navy transport)
+- [ ] Costo energy per movimento
+- [ ] Test MOVE_TROOPS
 
-#### 4. Documentazione ✅
-- [x] Docstrings per tutti i package __init__.py (15 packages)
-- [x] README.md creato con overview del progetto
+#### 4. Combat Resolution
+- [ ] Definire formula combattimento
+- [ ] Moltiplicatori terreno (MOUNTAIN difesa ×1.5)
+- [ ] Perdite e conquista provincia
+- [ ] Impatto Trust e Satisfaction
+- [ ] Test Combat
 
-#### 5. Test Updates ✅
-- [x] Tutti i 66 test passano dopo refactoring
+#### 5. NUCLEAR_OPTION (Base)
+- [ ] Validazione (possiede nukes)
+- [ ] Effetti devastanti
+- [ ] Reazione diplomatica globale
+- [ ] Test Nuclear
 
 ---
 
 ## 📌 Note
 
-> **Phase 3.5 Completata!** Refactoring completo con modularità, documentazione e test coverage.
+> **Focus:** Iniziare da CREATE_UNIT e MOVE_TROOPS, che sono prerequisiti per tutto il resto.
 
 ---
 
-## 🚧 Next Phase
-- Phase 4: Advanced Military System
+## 🚧 Dependencies
+- Trust Matrix (già implementata)
+- Territorial Waters (già implementata)
+- Power Projection (già implementata)

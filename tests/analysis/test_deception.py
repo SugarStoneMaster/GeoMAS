@@ -8,20 +8,20 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 from geomas.analysis.deception import DeceptionAnalyzer
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, PublicIntent, 
-    MilitaryIntent, MilitaryIntentType,
+    DefenseIntent, DefenseIntentType,
     EconomicIntent, EconomicIntentType,
     ForeignIntent, ForeignIntentType
 )
-from geomas.actions.schemas import (
-    MilitaryPayload, EconomicPayload, ForeignPayload, DecisionSource
-)
+from geomas.actions.defense import DefensePayload, DecisionSource
+from geomas.actions.economy import EconomicPayload
+from geomas.actions.foreign import ForeignPayload
 
-def create_envelope(public: PublicIntent, mil: MilitaryIntentType, eco: EconomicIntentType, foreign: ForeignIntentType):
+def create_envelope(public: PublicIntent, mil: DefenseIntentType, eco: EconomicIntentType, foreign: ForeignIntentType):
     return CountryEnvelope(
         turn=1, sender_id="TEST", global_strategy=GlobalStrategy.COALITION_BUILDER,
         public_statement="...", public_intent=public,
-        military_payload=MilitaryPayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
-        military_intent=MilitaryIntent(type=mil, reasoning=""),
+        defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+        defense_intent=DefenseIntent(type=mil, reasoning=""),
         economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
         economic_intent=EconomicIntent(type=eco, reasoning=""),
         foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
@@ -31,25 +31,25 @@ def create_envelope(public: PublicIntent, mil: MilitaryIntentType, eco: Economic
 def test_honesty():
     """Test perfect alignment."""
     # Peace / Idle
-    env = create_envelope(PublicIntent.PEACEFUL, MilitaryIntentType.IDLE, EconomicIntentType.IDLE, ForeignIntentType.COOPERATION)
+    env = create_envelope(PublicIntent.PEACEFUL, DefenseIntentType.IDLE, EconomicIntentType.IDLE, ForeignIntentType.COOPERATION)
     score = DeceptionAnalyzer.calculate_score(env)
     assert score == 0.0
     
     # Aggressive / Conquest
-    env = create_envelope(PublicIntent.AGGRESSIVE, MilitaryIntentType.CONQUEST, EconomicIntentType.IDLE, ForeignIntentType.IDLE)
+    env = create_envelope(PublicIntent.AGGRESSIVE, DefenseIntentType.CONQUEST, EconomicIntentType.IDLE, ForeignIntentType.IDLE)
     score = DeceptionAnalyzer.calculate_score(env)
     assert score == 0.0
 
 def test_bluff():
     """Test appearing aggressive but doing nothing."""
-    env = create_envelope(PublicIntent.AGGRESSIVE, MilitaryIntentType.IDLE, EconomicIntentType.IDLE, ForeignIntentType.IDLE)
+    env = create_envelope(PublicIntent.AGGRESSIVE, DefenseIntentType.IDLE, EconomicIntentType.IDLE, ForeignIntentType.IDLE)
     score = DeceptionAnalyzer.calculate_score(env)
     # Public=2, Private=0 -> Diff=2 -> Score=1.0
     assert score == 1.0
 
 def test_lie():
     """Test appearing peaceful but attacking."""
-    env = create_envelope(PublicIntent.PEACEFUL, MilitaryIntentType.CONQUEST, EconomicIntentType.IDLE, ForeignIntentType.IDLE)
+    env = create_envelope(PublicIntent.PEACEFUL, DefenseIntentType.CONQUEST, EconomicIntentType.IDLE, ForeignIntentType.IDLE)
     score = DeceptionAnalyzer.calculate_score(env)
     # Public=0, Private=2 -> Diff=2 -> Score=1.0
     assert score == 1.0
@@ -57,6 +57,6 @@ def test_lie():
 def test_partial_deception():
     """Test slight misalignment."""
     # Public=DEFENSIVE (1), Private=IDLE (0) -> Diff=1 -> Score=0.5
-    env = create_envelope(PublicIntent.DEFENSIVE, MilitaryIntentType.IDLE, EconomicIntentType.IDLE, ForeignIntentType.IDLE)
+    env = create_envelope(PublicIntent.DEFENSIVE, DefenseIntentType.IDLE, EconomicIntentType.IDLE, ForeignIntentType.IDLE)
     score = DeceptionAnalyzer.calculate_score(env)
     assert score == 0.5

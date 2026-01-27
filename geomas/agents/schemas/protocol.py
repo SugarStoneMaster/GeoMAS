@@ -1,7 +1,9 @@
 from enum import Enum
 from typing import List, Optional, Dict, Any, Literal
 from pydantic import BaseModel, Field
-from geomas.actions.schemas import MilitaryPayload, EconomicPayload, ForeignPayload
+from geomas.actions.defense import DefensePayload
+from geomas.actions.economy import EconomicPayload
+from geomas.actions.foreign import ForeignPayload
 
 # --- ENUMS ---
 
@@ -20,7 +22,8 @@ class PublicIntent(str, Enum):
     DEFENSIVE = "DEFENSIVE"
     AGGRESSIVE = "AGGRESSIVE"
 
-class MilitaryIntentType(str, Enum):
+class DefenseIntentType(str, Enum):
+    """Defense/military strategic intent types."""
     DETERRENCE = "DETERRENCE"
     CONQUEST = "CONQUEST"
     DEFENSE = "DEFENSE"
@@ -44,9 +47,10 @@ class ForeignIntentType(str, Enum):
 
 # --- INTENT OBJECTS (For XAI) ---
 
-class MilitaryIntent(BaseModel):
-    type: MilitaryIntentType
-    reasoning: str = Field(..., description="Explanation of the military strategy.")
+class DefenseIntent(BaseModel):
+    """Defense/military strategic intent."""
+    type: DefenseIntentType
+    reasoning: str = Field(..., description="Explanation of the defense strategy.")
 
 class EconomicIntent(BaseModel):
     type: EconomicIntentType
@@ -59,8 +63,8 @@ class ForeignIntent(BaseModel):
 # --- INTERMEDIATE PROPOSALS (Minister to President) ---
 
 class DefenseProposal(BaseModel):
-    intent: MilitaryIntent
-    payload: MilitaryPayload
+    intent: DefenseIntent
+    payload: DefensePayload
     urgency: int = Field(..., ge=1, le=10, description="1=Routine, 10=Existential Threat")
 
 class EconomicProposal(BaseModel):
@@ -93,11 +97,12 @@ class CountryEnvelope(BaseModel):
     public_intent: PublicIntent
 
     # Private Layer (The Reality)
-    military_payload: MilitaryPayload
-    military_intent: MilitaryIntent
+    defense_payload: DefensePayload
+    defense_intent: DefenseIntent
 
     economic_payload: EconomicPayload
     economic_intent: EconomicIntent
 
     foreign_payload: ForeignPayload 
     foreign_intent: ForeignIntent   
+   

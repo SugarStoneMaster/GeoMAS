@@ -10,14 +10,14 @@ from geomas.simulation import SimulationEngine
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, PublicIntent, 
-    MilitaryIntent, MilitaryIntentType,
+    DefenseIntent, DefenseIntentType,
     EconomicIntent, EconomicIntentType,
     ForeignIntent, ForeignIntentType,
     DefenseProposal, EconomicProposal, ForeignProposal
 )
-from geomas.actions.schemas import (
-    ActionType, MilitaryPayload, EconomicPayload, ForeignPayload, DecisionSource
-)
+from geomas.actions.defense import DefensePayload, DecisionSource
+from geomas.actions.economy import EconomicPayload, EconomicActionType
+from geomas.actions.foreign import ForeignPayload, ForeignActionType
 
 # --- MOCK CLIENT ---
 class SimMockLLM(LLMClient):
@@ -27,20 +27,20 @@ class SimMockLLM(LLMClient):
         # Return valid dummy objects
         if response_model == DefenseProposal:
             return DefenseProposal(
-                intent=MilitaryIntent(type=MilitaryIntentType.IDLE, reasoning="Peace"),
-                payload=MilitaryPayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+                intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Peace"),
+                payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
                 urgency=1
             )
         elif response_model == EconomicProposal:
             return EconomicProposal(
                 intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Grow"),
-                payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE, action_type=ActionType.INVEST_WELFARE),
+                payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE, action_type=EconomicActionType.INVEST_WELFARE),
                 projected_cost=10.0
             )
         elif response_model == ForeignProposal:
             return ForeignProposal(
                 intent=ForeignIntent(type=ForeignIntentType.COOPERATION, reasoning="Coop"),
-                payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE, action_type=ActionType.SEND_DIPLOMATIC_MESSAGE),
+                payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE, action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE),
                 target_trust_impact=0.1
             )
         elif response_model == CountryEnvelope:
@@ -50,11 +50,11 @@ class SimMockLLM(LLMClient):
                 global_strategy=GlobalStrategy.COALITION_BUILDER,
                 public_statement="We seek peace.",
                 public_intent=PublicIntent.PEACEFUL,
-                military_payload=MilitaryPayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
-                military_intent=MilitaryIntent(type=MilitaryIntentType.IDLE, reasoning="Peace"),
+                defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+                defense_intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Peace"),
                 economic_payload=EconomicPayload(
                     source=DecisionSource.MINISTRY_ADVICE, 
-                    action_type=ActionType.INVEST_WELFARE,
+                    action_type=EconomicActionType.INVEST_WELFARE,
                     parameters={"amount": 10.0}
                 ),
                 economic_intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Welfare"),
@@ -87,4 +87,3 @@ def test_simulation_step():
     # Check that economy phase ran (logs should contain ECONOMY entries)
     economy_logs = [l for l in sim.turn_logs if "[ECONOMY]" in l]
     assert len(economy_logs) > 0, "Economy phase should run and generate logs"
-

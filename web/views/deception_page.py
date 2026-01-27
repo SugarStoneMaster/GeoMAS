@@ -44,4 +44,4 @@ def render_deception_page(world: WorldState, history: List[List[CountryEnvelope]
         col1, col2, col3 = st.columns([2, 1, 3])
         col1.markdown(f"**{nation.name}**")
         col2.markdown(f"{color} **{score:.2f}**")
-        col3.caption(f"Public: {envelope.public_intent.value} | Military: {envelope.military_intent.type.value}")
+        col3.caption(f"Public: {envelope.public_intent.value} | Defense: {envelope.defense_intent.type.value}")

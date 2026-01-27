@@ -7,19 +7,21 @@ from pydantic import ValidationError
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
 from geomas.agents.schemas import ( 
-    DefenseProposal, MilitaryIntent, MilitaryIntentType,
-    CountryEnvelope, GlobalStrategy, PublicIntent, EconomicIntent, EconomicPayload, 
-    ForeignIntent, ForeignPayload, EconomicIntentType, ForeignIntentType
+    DefenseProposal, DefenseIntent, DefenseIntentType,
+    CountryEnvelope, GlobalStrategy, PublicIntent, EconomicIntent,
+    ForeignIntent, EconomicIntentType, ForeignIntentType
 )
-from geomas.actions.schemas import MilitaryPayload, DecisionSource
+from geomas.actions.defense import DefensePayload, DecisionSource
+from geomas.actions.economy import EconomicPayload
+from geomas.actions.foreign import ForeignPayload
 
 def test_defense_proposal_validation():
     """Test validation constraints on DefenseProposal."""
     
     # Valid
     prop = DefenseProposal(
-        intent=MilitaryIntent(type=MilitaryIntentType.DEFENSE, reasoning="Valid"),
-        payload=MilitaryPayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+        intent=DefenseIntent(type=DefenseIntentType.DEFENSE, reasoning="Valid"),
+        payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
         urgency=5
     )
     assert prop.urgency == 5
@@ -27,8 +29,8 @@ def test_defense_proposal_validation():
     # Invalid Urgency (Too high)
     with pytest.raises(ValidationError):
         DefenseProposal(
-            intent=MilitaryIntent(type=MilitaryIntentType.DEFENSE, reasoning="Valid"),
-            payload=MilitaryPayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+            intent=DefenseIntent(type=DefenseIntentType.DEFENSE, reasoning="Valid"),
+            payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
             urgency=11 # Max is 10
         )
 
@@ -43,8 +45,8 @@ def test_envelope_structure():
             global_strategy=GlobalStrategy.COALITION_BUILDER,
             # Missing public_statement
             public_intent=PublicIntent.PEACEFUL,
-            military_payload=MilitaryPayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
-            military_intent=MilitaryIntent(type=MilitaryIntentType.IDLE, reasoning="Mock"),
+            defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+            defense_intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Mock"),
             economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
             economic_intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning="Mock"),
             foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),

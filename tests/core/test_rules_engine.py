@@ -7,8 +7,15 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 
 from geomas.world import generate_world
 from geomas.actions import ActionEngine
-from geomas.actions.schemas import ActionType, MilitaryPayload, MilitaryActionItem, DecisionSource
-from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, PublicIntent, MilitaryIntent, MilitaryIntentType, EconomicPayload, EconomicIntent, EconomicIntentType, ForeignPayload, ForeignIntent, ForeignIntentType
+from geomas.actions.defense import DefensePayload, DefenseActionItem, DefenseActionType, DecisionSource
+from geomas.actions.economy import EconomicPayload
+from geomas.actions.foreign import ForeignPayload
+from geomas.agents.schemas import (
+    CountryEnvelope, GlobalStrategy, PublicIntent, 
+    DefenseIntent, DefenseIntentType, 
+    EconomicIntent, EconomicIntentType, 
+    ForeignIntent, ForeignIntentType
+)
 
 def test_movement_rules():
     """Test topological movement constraints."""
@@ -102,26 +109,38 @@ def test_attack_rules():
         assert allowed
 
 def test_execution_waterfall():
-    """Test that military actions are executed in priority order until budget runs out."""
+    """Test that defense actions are executed in priority order with proper resource validation."""
     world = generate_world(seed=42, n_cells=50, n_nations=1)
     engine = ActionEngine(world)
     nation_id = list(world.nations.keys())[0]
     
-    # Setup: Budget = 250 (enough for 2 units at 100 each, not 3)
-    world.nations[nation_id].total_budget = 250.0
+    # Setup: Limited resources to test affordability
+    # SOLDIER costs: 5 budget, 2 materials, 0 energy, 1 population
+    # We set up to afford 2 units but not 3
+    world.nations[nation_id].total_budget = 12.0  # Enough for 2 (10) but not 3 (15)
+    world.nations[nation_id].total_materials = 10.0  # Enough for all
+    world.nations[nation_id].total_energy = 10.0
+    world.nations[nation_id].total_workers = 10  # Enough for all
     
-    # Costs: CREATE_UNIT = 100
-    # We try 3 actions:
-    # 1. Create Unit (100) -> OK (Rem: 150)
-    # 2. Create Unit (100) -> OK (Rem: 50)
-    # 3. Create Unit (100) -> FAIL (Insufficient)
-    
-    payload = MilitaryPayload(
+    # Create 3 CREATE_UNIT actions with explicit unit_type
+    payload = DefensePayload(
         source=DecisionSource.MINISTRY_ADVICE,
         moves=[
-            MilitaryActionItem(priority=1, action_type=ActionType.CREATE_UNIT),
-            MilitaryActionItem(priority=2, action_type=ActionType.CREATE_UNIT),
-            MilitaryActionItem(priority=3, action_type=ActionType.CREATE_UNIT)
+            DefenseActionItem(
+                priority=1, 
+                action_type=DefenseActionType.CREATE_UNIT,
+                parameters={"unit_type": "SOLDIER", "quantity": 1}
+            ),
+            DefenseActionItem(
+                priority=2, 
+                action_type=DefenseActionType.CREATE_UNIT,
+                parameters={"unit_type": "SOLDIER", "quantity": 1}
+            ),
+            DefenseActionItem(
+                priority=3, 
+                action_type=DefenseActionType.CREATE_UNIT,
+                parameters={"unit_type": "SOLDIER", "quantity": 1}
+            )
         ]
     )
     
@@ -129,7 +148,7 @@ def test_execution_waterfall():
     envelope = CountryEnvelope(
         turn=1, sender_id=nation_id, global_strategy=GlobalStrategy.TOTAL_EXPANSIONISM,
         public_statement="", public_intent=PublicIntent.AGGRESSIVE,
-        military_payload=payload, military_intent=MilitaryIntent(type=MilitaryIntentType.CONQUEST, reasoning=""),
+        defense_payload=payload, defense_intent=DefenseIntent(type=DefenseIntentType.CONQUEST, reasoning=""),
         economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
         economic_intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning=""),
         foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
@@ -138,12 +157,14 @@ def test_execution_waterfall():
     
     logs = engine.execute_envelope(envelope)
     
-    # Verify State: 2 units created (2 * 100 = 200), remaining 50
-    assert world.nations[nation_id].total_budget == 50.0
+    # Verify State: 2 units created (2 * 5 = 10), remaining 2 budget
+    assert world.nations[nation_id].total_budget == 2.0
+    # Materials: 10 - (2 * 2) = 6
+    assert world.nations[nation_id].total_materials == 6.0
     
-    # Verify Logs: 2 created, 1 skipped
+    # Verify Logs: 2 created, 1 failed
     created_count = sum(1 for l in logs if "Created" in l)
-    skipped_count = sum(1 for l in logs if "Skipped" in l)
+    failed_count = sum(1 for l in logs if "failed" in l)
     assert created_count == 2
-    assert skipped_count == 1
+    assert failed_count == 1
 
