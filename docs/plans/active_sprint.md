@@ -30,10 +30,10 @@ Implementare il sistema militare base: creazione unità, movimento truppe, e com
 - [x] Vincoli posizionamento per terreno
 
 #### 2. CREATE_UNIT Action
-- [ ] Aggiungere `ActionType.CREATE_UNIT`
-- [ ] Implementare validazione (budget, materials, pop)
-- [ ] Handler che deduce risorse e crea unità
-- [ ] Test CREATE_UNIT
+- [x] Aggiungere `ActionType.CREATE_UNIT`
+- [x] Implementare validazione (budget, materials, pop)
+- [x] Handler che deduce risorse e crea unità
+- [x] Test CREATE_UNIT
 
 #### 3. MOVE_TROOPS Action
 - [ ] Aggiungere `ActionType.MOVE_TROOPS`

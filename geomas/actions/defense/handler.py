@@ -11,6 +11,7 @@ from geomas.actions.defense.schemas import (
     UnitType,
     UNIT_COSTS,
     can_afford_unit,
+    can_place_unit,
 )
 
 if TYPE_CHECKING:
@@ -58,21 +59,54 @@ def _execute_create_unit(
     Execute CREATE_UNIT action.
     
     Parameters:
-        - unit_type: UnitType enum value
+        - unit_type: UnitType enum value (SOLDIER, NAVY, AIRCRAFT)
         - quantity: Number of units to create
-        - province_id: Target province for placement
+        - province_id: Target province for placement (required)
     """
-    nation = engine.world.nations[nation_id]
+    world = engine.world
+    nation = world.nations[nation_id]
     
     # Parse parameters
     unit_type_str = parameters.get("unit_type", "SOLDIER")
     quantity = parameters.get("quantity", 1)
     province_id = parameters.get("province_id")
     
+    # Validate unit type
     try:
         unit_type = UnitType(unit_type_str)
     except ValueError:
         engine.logs.append(f"[DEFENSE] Invalid unit type: {unit_type_str}")
+        return
+    
+    # Validate province specified
+    if province_id is None:
+        # Default to capital if not specified
+        province_id = nation.capital_province_id
+        if province_id is None:
+            engine.logs.append(f"[DEFENSE] No province specified and no capital found")
+            return
+    
+    # Validate province exists and is owned
+    province = world.provinces.get(province_id)
+    if not province:
+        engine.logs.append(f"[DEFENSE] Province {province_id} does not exist")
+        return
+    
+    # For NAVY, check territorial waters; for others, check owned land
+    if unit_type == UnitType.NAVY:
+        if province_id not in nation.territorial_water_ids:
+            engine.logs.append(f"[DEFENSE] Province {province_id} is not in territorial waters")
+            return
+    else:
+        if province.owner_id != nation_id:
+            engine.logs.append(f"[DEFENSE] Province {province_id} not owned by {nation_id}")
+            return
+    
+    # Validate terrain constraint
+    if not can_place_unit(unit_type, province.terrain):
+        engine.logs.append(
+            f"[DEFENSE] Cannot place {unit_type.value} on {province.terrain.value} terrain"
+        )
         return
     
     # Get costs
@@ -96,14 +130,26 @@ def _execute_create_unit(
         engine.logs.append(f"[DEFENSE] CREATE_UNIT failed: {reason}")
         return
     
-    # Deduct resources
+    # --- EXECUTE: Deduct resources ---
     nation.total_budget -= total_budget
     nation.total_materials -= total_materials
     nation.total_energy -= total_energy
+    nation.total_workers -= total_pop  # Workers become soldiers
     
-    # TODO: Add units to province (Phase 4 complete implementation)
+    # --- EXECUTE: Add units to province ---
+    if unit_type == UnitType.SOLDIER:
+        province.soldiers += quantity
+        nation.total_soldiers += quantity
+    elif unit_type == UnitType.NAVY:
+        province.navy += quantity
+        nation.total_navy += quantity
+    elif unit_type == UnitType.AIRCRAFT:
+        province.aircraft += quantity
+        nation.total_aircraft += quantity
+    
     engine.logs.append(
-        f"[DEFENSE] Created {quantity}x {unit_type.value}. "
+        f"[DEFENSE] Created {quantity}x {unit_type.value} in province {province_id}. "
         f"Cost: {total_budget:.1f} budget, {total_materials:.1f} materials"
     )
+
 
