@@ -14,6 +14,8 @@ from geomas.actions.defense.schemas import (
     UNIT_MAINTENANCE,
     UNIT_TERRAIN_CONSTRAINTS,
     TERRAIN_DEFENSE_MULTIPLIER,
+    MOVEMENT_ENERGY_COST,
+    MOVEMENT_RANGE,
     can_place_unit,
     can_afford_unit,
     get_terrain_defense_bonus,
@@ -30,10 +32,10 @@ __all__ = [
     "UNIT_MAINTENANCE",
     "UNIT_TERRAIN_CONSTRAINTS",
     "TERRAIN_DEFENSE_MULTIPLIER",
+    "MOVEMENT_ENERGY_COST",
+    "MOVEMENT_RANGE",
     "can_place_unit",
     "can_afford_unit",
     "get_terrain_defense_bonus",
     "execute_defense_waterfall",
 ]
-
-

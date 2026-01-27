@@ -88,6 +88,20 @@ TERRAIN_DEFENSE_MULTIPLIER: dict[TerrainType, float] = {
 }
 
 
+# --- MOVEMENT COSTS (per unit per province traversed) ---
+MOVEMENT_ENERGY_COST: dict[UnitType, float] = {
+    UnitType.SOLDIER: 0.1,    # Infantry: low energy just for logistics
+    UnitType.NAVY: 1.0,       # Ships consume fuel
+    UnitType.AIRCRAFT: 2.0,   # Aircraft consume most fuel
+}
+
+# Movement range (max provinces per turn)
+MOVEMENT_RANGE: dict[UnitType, int] = {
+    UnitType.SOLDIER: 2,      # Infantry moves slowly
+    UnitType.NAVY: 4,         # Ships have good range
+    UnitType.AIRCRAFT: 6,     # Aircraft have best range
+}
+
 
 class DefenseActionItem(BaseModel):
     """A single defense action in the waterfall priority queue."""

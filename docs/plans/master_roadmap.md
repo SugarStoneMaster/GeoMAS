@@ -78,6 +78,12 @@
 - [ ] **Formula danno** con moltiplicatore terreno
 - [ ] **Forza combinata alleanze**
 - [ ] **Penalità reputazione** se guerra non dichiarata
+- [ ] **Naval Landing (sbarco anfibio unificato):**
+  1. Nave → acqua territoriale nemica
+  2. Navi nemiche? → duello nave vs navi → sbarca su costa random
+  3. No navi, unità su costa? → duello nave vs difensori → sbarca lì
+  4. Nessuno? → sbarco automatico su costa random
+  5. Sempre: nave distrutta, soldati = population nave
 
 ### 4.5 NUCLEAR_OPTION Action
 - [ ] **Distribuzione iniziale nukes** (seed-based)
