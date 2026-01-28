@@ -251,29 +251,141 @@ def _execute_move_troops(
         return
     
     # Check destination is valid for unit type (must be owned or passable for reinforcement)
-    is_enemy_territory = _is_enemy_territory(world, nation_id, to_province_id, unit_type)
+    is_enemy = _is_enemy_territory(world, nation_id, to_province_id, unit_type)
     
-    if is_enemy_territory:
-        # Moving into enemy territory triggers combat (handled in Combat Resolution)
-        engine.logs.append(
-            f"[DEFENSE] MOVE_TROOPS: {unit_type.value} advancing to enemy territory {to_province_id}. "
-            f"Combat will be resolved."
+    # --- EXECUTE: Deduct energy first ---
+    nation.total_energy -= total_energy_cost
+    
+    # Remove units from source
+    _remove_units_from_province(from_province, unit_type, quantity)
+    
+    if is_enemy:
+        # Combat resolution
+        from geomas.actions.defense.combat import (
+            resolve_land_combat,
+            execute_naval_landing,
+            _conquer_province,
         )
-        # For now, just position troops at the border (last friendly province before enemy)
-        # TODO: Connect to Combat Resolution in task 4
+        import random
+        rng = random.Random(engine.world.turn + hash(nation_id))
+        
+        if unit_type == UnitType.NAVY:
+            # Naval landing logic
+            result = execute_naval_landing(
+                world=world,
+                attacker_nation_id=nation_id,
+                attacker_navy=quantity,
+                target_water_province_id=to_province_id,
+                rng=rng
+            )
+            
+            # Update attacker navy count
+            nation.total_navy -= quantity
+            
+            engine.logs.append(f"[COMBAT] {result.log_message}")
+            
+            if result.attacker_wins:
+                engine.logs.append(
+                    f"[COMBAT] Naval landing successful at province {result.landing_province_id}"
+                )
+            else:
+                engine.logs.append(f"[COMBAT] Naval assault failed - all ships lost")
+        
+        elif unit_type == UnitType.SOLDIER:
+            # Land combat
+            result = resolve_land_combat(
+                attacker_soldiers=quantity,
+                defender_province=to_province,
+                rng=rng
+            )
+            
+            engine.logs.append(f"[COMBAT] {result.log_message}")
+            
+            if result.attacker_wins:
+                # Conquer the province
+                old_owner = to_province.owner_id
+                _conquer_province(world, nation_id, to_province)
+                
+                # Place attacking soldiers in conquered province
+                to_province.soldiers = quantity
+                nation.total_soldiers += quantity  # They were removed but now added back
+                
+                engine.logs.append(
+                    f"[COMBAT] Province {to_province_id} conquered by {nation_id}"
+                )
+                
+                # Trust impact: combat causes trust decrease
+                if old_owner:
+                    engine.adjust_trust(nation_id, old_owner, -0.2)
+                    engine.adjust_trust(old_owner, nation_id, -0.2)
+                    engine.logs.append(f"[DIPLOMACY] Trust between {nation_id} and {old_owner} decreased")
+            else:
+                # Attacker loses all soldiers
+                nation.total_soldiers -= quantity
+                engine.logs.append(
+                    f"[COMBAT] Attack failed - {quantity} soldiers lost"
+                )
+                
+                # Trust impact even on failed attack
+                defender_id = to_province.owner_id
+                if defender_id:
+                    engine.adjust_trust(nation_id, defender_id, -0.2)
+                    engine.adjust_trust(defender_id, nation_id, -0.2)
+        
+        elif unit_type == UnitType.AIRCRAFT:
+            # Air strike: combat but no conquest
+            from geomas.actions.defense.combat import resolve_air_strike
+            
+            defender_id = to_province.owner_id
+            
+            result = resolve_air_strike(
+                attacker_aircraft=quantity,
+                defender_province=to_province,
+                rng=rng
+            )
+            
+            engine.logs.append(f"[COMBAT] {result.log_message}")
+            
+            if result.attacker_wins:
+                # Aircraft wins: kill all defenders and return to base
+                defender_nation = world.nations.get(defender_id)
+                if defender_nation:
+                    defender_nation.total_soldiers -= to_province.soldiers
+                    defender_nation.total_aircraft -= to_province.aircraft
+                
+                to_province.soldiers = 0
+                to_province.aircraft = 0
+                
+                # Return aircraft to source
+                _add_units_to_province(from_province, unit_type, quantity)
+                engine.logs.append(
+                    f"[COMBAT] Air strike successful! {quantity} aircraft return to base"
+                )
+            else:
+                # Aircraft destroyed
+                nation.total_aircraft -= quantity
+                engine.logs.append(
+                    f"[COMBAT] Air strike failed - {quantity} aircraft shot down"
+                )
+            
+            # Trust impact
+            if defender_id:
+                engine.adjust_trust(nation_id, defender_id, -0.2)
+                engine.adjust_trust(defender_id, nation_id, -0.2)
+        
+        return
     
-    # Validate destination terrain for unit type
+    # Friendly territory - validate destination terrain
     if not can_place_unit(unit_type, to_province.terrain):
+        # Refund - return units to source
+        _add_units_to_province(from_province, unit_type, quantity)
+        nation.total_energy += total_energy_cost  # Refund energy
         engine.logs.append(
             f"[DEFENSE] MOVE_TROOPS: Cannot move {unit_type.value} to {to_province.terrain.value} terrain"
         )
         return
     
-    # --- EXECUTE: Deduct energy ---
-    nation.total_energy -= total_energy_cost
-    
-    # --- EXECUTE: Move units ---
-    _remove_units_from_province(from_province, unit_type, quantity)
+    # --- EXECUTE: Move units to friendly territory ---
     _add_units_to_province(to_province, unit_type, quantity)
     
     engine.logs.append(

@@ -43,11 +43,11 @@ Implementare il sistema militare base: creazione unità, movimento truppe, e com
 - [x] Test MOVE_TROOPS
 
 #### 4. Combat Resolution
-- [ ] Definire formula combattimento
-- [ ] Moltiplicatori terreno (MOUNTAIN difesa ×1.5)
-- [ ] Perdite e conquista provincia
-- [ ] Impatto Trust e Satisfaction
-- [ ] **Naval Landing (sbarco anfibio unificato):**
+- [x] Definire formula combattimento
+- [x] Moltiplicatori terreno (MOUNTAIN difesa ×1.5)
+- [x] Perdite e conquista provincia
+- [x] Impatto Trust e Satisfaction
+- [x] **Naval Landing (sbarco anfibio unificato):**
   1. Nave entra in cella acqua territoriale nemica
   2. Se ci sono navi nemiche → duello nave vs navi
      - Vince → distrugge navi + sbarca soldati in costa adiacente random
@@ -55,7 +55,7 @@ Implementare il sistema militare base: creazione unità, movimento truppe, e com
      - Vince → sbarca soldati su quella costa
   4. Se NO navi e NO unità → sbarco automatico su costa adiacente random
   5. In tutti i casi: nave distrutta, soldati = population della nave
-- [ ] Test Combat
+- [x] Test Combat
 
 #### 5. NUCLEAR_OPTION (Base)
 - [ ] Validazione (possiede nukes)
