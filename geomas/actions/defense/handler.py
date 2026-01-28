@@ -48,8 +48,7 @@ def execute_defense_waterfall(
             _execute_move_troops(engine, nation_id, move.parameters)
             
         elif move.action_type == DefenseActionType.NUCLEAR_OPTION:
-            # TODO: Implement in Phase 4
-            engine.logs.append(f"[DEFENSE] NUCLEAR_OPTION not yet implemented")
+            _execute_nuclear_option(engine, nation_id, move.parameters)
 
 
 def _execute_create_unit(
@@ -505,3 +504,105 @@ def _is_enemy_territory(world, nation_id: str, province_id: int, unit_type: Unit
     
     # For land units, enemy = owned by someone else
     return province.owner_id is not None and province.owner_id != nation_id
+
+
+def _execute_nuclear_option(
+    engine: 'ActionEngine',
+    nation_id: str,
+    parameters: dict
+) -> None:
+    """
+    Execute a nuclear strike on a target province.
+    
+    Effects:
+    - All military units in target → 0
+    - Population × 0.1 (90% death)
+    - Production × 0.2 (80% destroyed)
+    - Trust with victim → 0
+    - Trust with ALL other nations -= 0.8
+    """
+    world = engine.world
+    nation = world.nations.get(nation_id)
+    
+    if not nation:
+        engine.logs.append(f"[NUCLEAR] Nation {nation_id} not found")
+        return
+    
+    # Parse parameters
+    target_province_id = parameters.get("target_province_id")
+    quantity = parameters.get("quantity", 1)
+    
+    if target_province_id is None:
+        engine.logs.append("[NUCLEAR] Missing target_province_id")
+        return
+    
+    # Validate: has nukes
+    if nation.nukes < quantity:
+        engine.logs.append(
+            f"[NUCLEAR] Insufficient nukes. Have {nation.nukes}, need {quantity}"
+        )
+        return
+    
+    # Validate: target exists
+    target_province = world.provinces.get(target_province_id)
+    if not target_province:
+        engine.logs.append(f"[NUCLEAR] Target province {target_province_id} not found")
+        return
+    
+    # Validate: not own territory
+    if target_province.owner_id == nation_id:
+        engine.logs.append("[NUCLEAR] Cannot nuke own territory")
+        return
+    
+    victim_id = target_province.owner_id
+    
+    # --- EXECUTE ---
+    
+    # Consume nuke
+    nation.nukes -= quantity
+    
+    # Store pre-strike values for logging
+    pre_soldiers = target_province.soldiers
+    pre_aircraft = target_province.aircraft
+    pre_navy = target_province.navy
+    pre_pop = target_province.population
+    
+    # Update victim nation totals
+    if victim_id:
+        victim_nation = world.nations.get(victim_id)
+        if victim_nation:
+            victim_nation.total_soldiers -= target_province.soldiers
+            victim_nation.total_aircraft -= target_province.aircraft
+            victim_nation.total_navy -= target_province.navy
+    
+    # Devastating effects on province
+    target_province.soldiers = 0
+    target_province.navy = 0
+    target_province.aircraft = 0
+    target_province.population = int(target_province.population * 0.1)
+    target_province.workers = int(target_province.workers * 0.1)
+    target_province.food_production *= 0.2
+    target_province.materials_production *= 0.2
+    target_province.energy_production *= 0.2
+    
+    engine.logs.append(
+        f"[NUCLEAR] ☢️ {nation_id} nukes province {target_province_id}! "
+        f"Casualties: {pre_soldiers} soldiers, {pre_aircraft} aircraft, {pre_navy} navy. "
+        f"Population: {pre_pop} → {target_province.population}"
+    )
+    
+    # --- DIPLOMATIC FALLOUT ---
+    
+    # Trust with victim → 0
+    if victim_id:
+        engine.world.trust_matrix.setdefault(nation_id, {})[victim_id] = 0.0
+        engine.world.trust_matrix.setdefault(victim_id, {})[nation_id] = 0.0
+        engine.logs.append(f"[DIPLOMACY] Trust between {nation_id} and {victim_id} → 0")
+    
+    # ALL other nations: trust -= 0.8 toward attacker
+    for other_nation_id in world.nations:
+        if other_nation_id != nation_id and other_nation_id != victim_id:
+            engine.adjust_trust(other_nation_id, nation_id, -0.8)
+            engine.logs.append(
+                f"[DIPLOMACY] {other_nation_id}'s trust toward {nation_id} decreased by 0.8"
+            )

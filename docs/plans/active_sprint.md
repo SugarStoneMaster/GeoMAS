@@ -58,10 +58,10 @@ Implementare il sistema militare base: creazione unità, movimento truppe, e com
 - [x] Test Combat
 
 #### 5. NUCLEAR_OPTION (Base)
-- [ ] Validazione (possiede nukes)
-- [ ] Effetti devastanti
-- [ ] Reazione diplomatica globale
-- [ ] Test Nuclear
+- [x] Validazione (possiede nukes)
+- [x] Effetti devastanti
+- [x] Reazione diplomatica globale
+- [x] Test Nuclear
 
 ---
 
