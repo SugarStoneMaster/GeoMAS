@@ -4,19 +4,24 @@ Analysis Package.
 Tools for analyzing agent behavior and simulation outcomes.
 
 Modules:
-    - deception: DeceptionAnalyzer for measuring alignment between
-      public statements and private intentions.
-
-The DeceptionAnalyzer calculates a score from 0.0 (honest) to 1.0 (deceptive)
-based on the gap between what an agent says publicly and what it intends privately.
+    - deception: DeceptionAnalyzer for measuring deception scores
+    - coherence: CoherenceAnalyzer for measuring strategy alignment
+    - tracker: BehaviorTracker for logging behavior history
 
 Example:
-    from geomas.analysis.deception import DeceptionAnalyzer
+    from geomas.analysis import DeceptionAnalyzer, CoherenceAnalyzer
     
-    score = DeceptionAnalyzer.calculate_score(envelope)
-    # 0.0 = perfect alignment, 1.0 = maximum deception
+    deception = DeceptionAnalyzer.calculate_score(envelope)
+    coherence = CoherenceAnalyzer.calculate_score(strategy, ...)
 """
 
 from geomas.analysis.deception import DeceptionAnalyzer
+from geomas.analysis.coherence import CoherenceAnalyzer
+from geomas.analysis.tracker import BehaviorRecord, BehaviorTracker
 
-__all__ = ["DeceptionAnalyzer"]
+__all__ = [
+    "DeceptionAnalyzer",
+    "CoherenceAnalyzer",
+    "BehaviorRecord",
+    "BehaviorTracker",
+]

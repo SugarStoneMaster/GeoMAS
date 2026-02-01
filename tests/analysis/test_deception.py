@@ -7,12 +7,9 @@ Also tests DeceptionTracker and CoherenceAnalyzer.
 
 import pytest
 from conftest import create_test_envelope
-from geomas.analysis.deception import (
-    DeceptionAnalyzer, 
-    DeceptionTracker, 
-    CoherenceAnalyzer,
-    DeceptionRecord
-)
+from geomas.analysis.deception import DeceptionAnalyzer
+from geomas.analysis.tracker import BehaviorTracker, BehaviorRecord
+from geomas.analysis.coherence import CoherenceAnalyzer
 from geomas.agents.schemas import (
     DefenseIntentType, 
     EconomicIntentType, 
@@ -158,12 +155,12 @@ class TestDetailedDeception:
         assert result["total"] == pytest.approx((result["defense"] + 0 + 0) / 3, rel=0.01)
 
 
-class TestDeceptionTracker:
-    """Tests for DeceptionTracker logging and history."""
+class TestBehaviorTracker:
+    """Tests for BehaviorTracker logging and history."""
     
     def test_log_turn_creates_record(self):
-        """log_turn creates and returns a DeceptionRecord."""
-        tracker = DeceptionTracker()
+        """log_turn creates and returns a BehaviorRecord."""
+        tracker = BehaviorTracker()
         envelope = create_test_envelope(
             "nation_1",
             defense_public_intent=DefenseIntentType.IDLE,
@@ -172,14 +169,14 @@ class TestDeceptionTracker:
         
         record = tracker.log_turn(envelope)
         
-        assert isinstance(record, DeceptionRecord)
+        assert isinstance(record, BehaviorRecord)
         assert record.nation_id == "nation_1"
         assert record.turn == 1
         assert record.total_deception == 0.0  # All honest
         
     def test_get_nation_history(self):
         """History accumulates across turns."""
-        tracker = DeceptionTracker()
+        tracker = BehaviorTracker()
         
         # Log multiple turns
         for turn in range(1, 4):
@@ -197,7 +194,7 @@ class TestDeceptionTracker:
         
     def test_get_turn_summary(self):
         """Turn summary returns all nations for a turn."""
-        tracker = DeceptionTracker()
+        tracker = BehaviorTracker()
         
         # Log same turn for two nations
         for nation_id in ["nation_1", "nation_2"]:
@@ -215,7 +212,7 @@ class TestDeceptionTracker:
         
     def test_get_nation_average(self):
         """Average scores are calculated correctly."""
-        tracker = DeceptionTracker()
+        tracker = BehaviorTracker()
         
         # Turn 1: Honest
         env1 = create_test_envelope(
@@ -255,7 +252,7 @@ class TestDeceptionTracker:
         
     def test_most_deceptive_nations(self):
         """Ranking of most deceptive nations works."""
-        tracker = DeceptionTracker()
+        tracker = BehaviorTracker()
         
         # Nation 1: Honest
         env1 = create_test_envelope(
@@ -334,9 +331,9 @@ class TestCoherenceAnalyzer:
         # 2 out of 3 matches
         assert score == pytest.approx(2/3, rel=0.01)
         
-    def test_coherence_in_deception_record(self):
+    def test_coherence_in_behavior_record(self):
         """Tracker includes coherence in records."""
-        tracker = DeceptionTracker()
+        tracker = BehaviorTracker()
         
         # COALITION_BUILDER with perfectly coherent intents
         envelope = create_test_envelope(
@@ -349,4 +346,5 @@ class TestCoherenceAnalyzer:
         
         record = tracker.log_turn(envelope)
         assert record.coherence_score == 1.0
+
 
