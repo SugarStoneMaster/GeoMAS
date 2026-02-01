@@ -17,6 +17,7 @@ if project_root not in sys.path:
 
 def create_test_envelope(
     nation_id: str,
+    turn: int = 1,
     defense_payload=None,
     economic_payload=None,
     foreign_payload=None,
@@ -44,7 +45,7 @@ def create_test_envelope(
     from geomas.actions.common import DecisionSource
     
     return CountryEnvelope(
-        turn=1,
+        turn=turn,
         sender_id=nation_id,
         global_strategy=global_strategy or GlobalStrategy.ARMED_ISOLATIONISM,
         public_statement=public_statement,

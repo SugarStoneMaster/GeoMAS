@@ -37,23 +37,25 @@
 - [x] Implementare `calculate_score(envelope) -> float`
 - [x] Implementare `calculate_detailed_score(envelope) -> dict`
 
-### 4. Deception Tracker
-- [ ] Creare `DeceptionRecord` dataclass
-- [ ] Creare `DeceptionTracker` class con:
-  - `log_turn(envelope, executed_actions)`
+### 4. Deception Tracker ✅
+- [x] Creare `DeceptionRecord` dataclass
+- [x] Creare `DeceptionTracker` class con:
+  - `log_turn(envelope)` → DeceptionRecord
   - `get_nation_history(nation_id)`
   - `get_turn_summary(turn)`
+  - `get_nation_average(nation_id)`
+  - `get_most_deceptive_nations(limit)`
 
 ### 5. Tests ✅
 - [x] Test protocol con nuovi campi
 - [x] Test deception matrix scores
-- [ ] Test tracker accumulation
-- [ ] Test coherence scores
+- [x] Test tracker accumulation
+- [x] Test coherence scores
 
-### 6. Strategic Coherence (`geomas/analysis/deception.py`)
-- [ ] Definire `EXPECTED_INTENTS[GlobalStrategy] -> List[IntentType]` per dominio
-- [ ] Implementare `calculate_coherence_score(strategy, private_intents)`
-- [ ] Coherence = quanto private intents matchano la GlobalStrategy
+### 6. Strategic Coherence (`geomas/analysis/deception.py`) ✅
+- [x] Definire `EXPECTED_INTENTS[GlobalStrategy] -> (defense, economic, foreign)`
+- [x] Implementare `CoherenceAnalyzer.calculate_score(strategy, private_intents)`
+- [x] Coherence = quanto private intents matchano la GlobalStrategy
 
 ---
 
