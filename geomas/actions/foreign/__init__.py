@@ -10,7 +10,12 @@ from geomas.actions.foreign.schemas import (
     DiplomaticMessageType,
     MESSAGE_TRUST_IMPACT,
 )
-from geomas.actions.foreign.handler import execute_foreign
+from geomas.actions.foreign.handler import (
+    execute_foreign,
+    respond_to_proposal,
+    clear_expired_proposals,
+    MESSAGE_COOLDOWN_TURNS,
+)
 
 __all__ = [
     "ForeignActionType",
@@ -18,4 +23,7 @@ __all__ = [
     "DiplomaticMessageType",
     "MESSAGE_TRUST_IMPACT",
     "execute_foreign",
+    "respond_to_proposal",
+    "clear_expired_proposals",
+    "MESSAGE_COOLDOWN_TURNS",
 ]

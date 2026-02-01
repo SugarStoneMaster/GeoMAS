@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Any
 from pydantic import BaseModel, Field
 from enum import Enum
 
@@ -91,6 +91,16 @@ class NationState(BaseModel):
     # --- POWER PROJECTION (calculated from resources + military) ---
     # Formula: weighted sum of budget, resources, and military assets
     power_projection: float = 0.0
+    
+    # --- DIPLOMACY ---
+    # Pending proposals received from other nations (alliance/peace requests)
+    # Format: [{"type": "ALLIANCE"|"PEACE", "from": nation_id, "turn": int}, ...]
+    pending_proposals: List[Dict[str, Any]] = Field(default_factory=list)
+    
+    # Message cooldown: tracks last turn a message was sent to each nation
+    # message_cooldown[target_id] = last_turn_sent
+    # Must wait MESSAGE_COOLDOWN_TURNS before sending another to same target
+    message_cooldown: Dict[str, int] = Field(default_factory=dict)
 
 
 class WorldState(BaseModel):

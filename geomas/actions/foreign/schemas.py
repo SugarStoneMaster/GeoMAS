@@ -18,6 +18,8 @@ class ForeignActionType(str, Enum):
     FORMAL_DECLARATION_OF_WAR = "FORMAL_DECLARATION_OF_WAR"
     BREAK_TREATY = "BREAK_TREATY"
     REQUEST_PEACE = "REQUEST_PEACE"
+    ACCEPT_PROPOSAL = "ACCEPT_PROPOSAL"   # Accept pending alliance/peace
+    REJECT_PROPOSAL = "REJECT_PROPOSAL"   # Reject pending alliance/peace
 
 
 class DiplomaticMessageType(str, Enum):

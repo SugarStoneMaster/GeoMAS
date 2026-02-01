@@ -17,6 +17,10 @@ if TYPE_CHECKING:
     from geomas.actions.engine import ActionEngine
 
 
+# Anti-spam: minimum turns between messages to same nation
+MESSAGE_COOLDOWN_TURNS = 5
+
+
 def execute_foreign(
     engine: 'ActionEngine',
     nation_id: str, 
@@ -25,7 +29,7 @@ def execute_foreign(
     """
     Execute a foreign affairs action.
     
-    Note: Only ONE foreign action per turn (not waterfall).
+    Note: Only ONE foreign action per turn.
     """
     if not payload.action_type:
         return
@@ -57,6 +61,14 @@ def execute_foreign(
     
     elif payload.action_type == ForeignActionType.PROPOSE_ALLIANCE:
         _execute_propose_alliance(engine, nation_id, target_id)
+    
+    elif payload.action_type == ForeignActionType.ACCEPT_PROPOSAL:
+        proposal_type = payload.parameters.get("proposal_type", "ALLIANCE")
+        respond_to_proposal(engine, nation_id, target_id, proposal_type, accept=True)
+    
+    elif payload.action_type == ForeignActionType.REJECT_PROPOSAL:
+        proposal_type = payload.parameters.get("proposal_type", "ALLIANCE")
+        respond_to_proposal(engine, nation_id, target_id, proposal_type, accept=False)
 
 
 def _execute_send_message(
@@ -65,7 +77,20 @@ def _execute_send_message(
     target_id: str,
     parameters: dict
 ) -> None:
-    """Send a diplomatic message with trust impact."""
+    """Send a diplomatic message with trust impact (with cooldown)."""
+    world = engine.world
+    sender = world.nations[sender_id]
+    current_turn = world.turn
+    
+    # Check cooldown
+    last_msg_turn = sender.message_cooldown.get(target_id, -999)
+    if current_turn - last_msg_turn < MESSAGE_COOLDOWN_TURNS:
+        turns_left = MESSAGE_COOLDOWN_TURNS - (current_turn - last_msg_turn)
+        engine.logs.append(
+            f"[FOREIGN] Cannot message {target_id}: cooldown active ({turns_left} turns left)"
+        )
+        return
+    
     msg_type_str = parameters.get("message_type", "PRAISE")
     
     try:
@@ -80,6 +105,9 @@ def _execute_send_message(
     engine.adjust_trust(sender_id, target_id, trust_delta)
     if msg_type == DiplomaticMessageType.PRAISE:
         engine.adjust_trust(target_id, sender_id, trust_delta)
+    
+    # Set cooldown
+    sender.message_cooldown[target_id] = current_turn
     
     engine.logs.append(
         f"[FOREIGN] {sender_id} sends {msg_type.value} to {target_id}. Trust impact: {trust_delta:+.1f}"
@@ -151,9 +179,7 @@ def _execute_request_peace(
 ) -> None:
     """
     Request peace with a nation at war.
-    
-    Note: For now, this is auto-accepted. 
-    In a full implementation, this would be a pending proposal.
+    Creates a pending proposal that target must accept/reject next turn.
     """
     world = engine.world
     
@@ -163,12 +189,16 @@ def _execute_request_peace(
         engine.logs.append(f"[FOREIGN] Not at war with {target_id}, no peace needed")
         return
     
-    # Auto-accept peace for now (simplified)
-    world.relationship_matrix[requester_id][target_id] = "PEACE"
-    world.relationship_matrix[target_id][requester_id] = "PEACE"
+    # Add pending proposal to target nation
+    target_nation = world.nations[target_id]
+    target_nation.pending_proposals.append({
+        "type": "PEACE",
+        "from": requester_id,
+        "turn": world.turn
+    })
     
     engine.logs.append(
-        f"[FOREIGN] 🕊️ Peace treaty signed between {requester_id} and {target_id}"
+        f"[FOREIGN] 🕊️ {requester_id} requests peace with {target_id}. Awaiting response."
     )
 
 
@@ -179,9 +209,8 @@ def _execute_propose_alliance(
 ) -> None:
     """
     Propose alliance with target nation.
-    
     Requires minimum trust > 0.6.
-    Note: For now, auto-accepted if trust is high enough.
+    Creates a pending proposal that target must accept/reject next turn.
     """
     world = engine.world
     
@@ -199,18 +228,88 @@ def _execute_propose_alliance(
     trust = world.trust_matrix.get(proposer_id, {}).get(target_id, 0.5)
     if trust < 0.6:
         engine.logs.append(
-            f"[FOREIGN] Alliance rejected: trust with {target_id} too low ({trust:.2f} < 0.6)"
+            f"[FOREIGN] Alliance proposal rejected: trust too low ({trust:.2f} < 0.6)"
         )
         return
     
-    # Auto-accept (simplified)
-    world.relationship_matrix[proposer_id][target_id] = "ALLIANCE"
-    world.relationship_matrix[target_id][proposer_id] = "ALLIANCE"
-    
-    # Trust boost from alliance
-    engine.adjust_trust(proposer_id, target_id, 0.1)
-    engine.adjust_trust(target_id, proposer_id, 0.1)
+    # Add pending proposal to target nation
+    target_nation = world.nations[target_id]
+    target_nation.pending_proposals.append({
+        "type": "ALLIANCE",
+        "from": proposer_id,
+        "turn": world.turn
+    })
     
     engine.logs.append(
-        f"[FOREIGN] 🤝 ALLIANCE formed between {proposer_id} and {target_id}!"
+        f"[FOREIGN] 🤝 {proposer_id} proposes alliance to {target_id}. Awaiting response."
     )
+
+
+# --- RESPONSE ACTIONS ---
+
+def respond_to_proposal(
+    engine: 'ActionEngine',
+    nation_id: str,
+    proposer_id: str,
+    proposal_type: str,
+    accept: bool
+) -> None:
+    """
+    Respond to a pending proposal (ACCEPT or REJECT).
+    Called when processing ACCEPT_PROPOSAL or REJECT_PROPOSAL actions.
+    """
+    world = engine.world
+    nation = world.nations[nation_id]
+    
+    # Find and remove the proposal
+    proposal_found = None
+    for i, prop in enumerate(nation.pending_proposals):
+        if prop["from"] == proposer_id and prop["type"] == proposal_type:
+            proposal_found = nation.pending_proposals.pop(i)
+            break
+    
+    if not proposal_found:
+        engine.logs.append(
+            f"[FOREIGN] No pending {proposal_type} proposal from {proposer_id}"
+        )
+        return
+    
+    # Check if proposal expired (only valid for 1 turn)
+    if world.turn - proposal_found["turn"] > 1:
+        engine.logs.append(
+            f"[FOREIGN] {proposal_type} proposal from {proposer_id} has expired"
+        )
+        return
+    
+    if not accept:
+        engine.logs.append(
+            f"[FOREIGN] {nation_id} REJECTS {proposal_type} proposal from {proposer_id}"
+        )
+        return
+    
+    # Accept the proposal
+    if proposal_type == "PEACE":
+        world.relationship_matrix[nation_id][proposer_id] = "PEACE"
+        world.relationship_matrix[proposer_id][nation_id] = "PEACE"
+        engine.logs.append(
+            f"[FOREIGN] 🕊️ Peace treaty signed between {nation_id} and {proposer_id}"
+        )
+    
+    elif proposal_type == "ALLIANCE":
+        world.relationship_matrix[nation_id][proposer_id] = "ALLIANCE"
+        world.relationship_matrix[proposer_id][nation_id] = "ALLIANCE"
+        engine.adjust_trust(nation_id, proposer_id, 0.1)
+        engine.adjust_trust(proposer_id, nation_id, 0.1)
+        engine.logs.append(
+            f"[FOREIGN] 🤝 ALLIANCE formed between {nation_id} and {proposer_id}!"
+        )
+
+
+def clear_expired_proposals(world: 'WorldState') -> None:
+    """Clear all proposals older than 1 turn. Call at start of each turn."""
+    current_turn = world.turn
+    for nation in world.nations.values():
+        nation.pending_proposals = [
+            p for p in nation.pending_proposals 
+            if current_turn - p["turn"] <= 1
+        ]
