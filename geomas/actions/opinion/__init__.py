@@ -12,6 +12,8 @@ from geomas.actions.opinion.handler import (
     execute_opinion,
     apply_satisfaction_deltas,
     check_triggers,
+    get_production_multiplier,
+    get_province_production_multiplier,
 )
 from geomas.actions.opinion.traits import generate_cultural_traits
 
@@ -22,4 +24,6 @@ __all__ = [
     "apply_satisfaction_deltas",
     "check_triggers",
     "generate_cultural_traits",
+    "get_production_multiplier",
+    "get_province_production_multiplier",
 ]

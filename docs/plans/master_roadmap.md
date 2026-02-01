@@ -123,8 +123,13 @@
 - [ ] **RAISE_WAR_TAX**: satisfaction penalty
 
 ### 6.4 Automatic Triggers
-- [ ] **GENERAL_STRIKE**: sat < 20 → production -50%
-- [ ] **CIVIL_UNREST**: sat < 10 → province 0 output (termina a >50)
+- [x] **GENERAL_STRIKE**: sat < 20 → production -50%
+- [x] **CIVIL_UNREST**: sat < 10 → 50% province revolt (termina a >50)
+
+### 6.5 Population LLM Agent (TODO)
+- [ ] System prompt template con demographics + cultural traits (seed)
+- [ ] Input: eventi turno, decisioni governo
+- [ ] Output: multiplier_increase, multiplier_decrease (0.1-2.0)
 
 ---
 

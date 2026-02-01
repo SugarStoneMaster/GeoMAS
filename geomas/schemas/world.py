@@ -46,6 +46,9 @@ class ProvinceState(BaseModel):
     soldiers: int = 0         # Ground troops stationed here
     aircraft: int = 0         # Air units stationed here
     navy: int = 0             # Naval units (only valid for OCEAN provinces)
+    
+    # --- CIVIL STATUS ---
+    in_revolt: bool = False   # True if province is in civil unrest (no production)
 
 
 class NationState(BaseModel):
