@@ -595,14 +595,14 @@ def _execute_nuclear_option(
     
     # Trust with victim → 0
     if victim_id:
-        engine.world.trust_matrix.setdefault(nation_id, {})[victim_id] = 0.0
-        engine.world.trust_matrix.setdefault(victim_id, {})[nation_id] = 0.0
+        engine.world.trust_matrix.setdefault(nation_id, {})[victim_id] = 0
+        engine.world.trust_matrix.setdefault(victim_id, {})[nation_id] = 0
         engine.logs.append(f"[DIPLOMACY] Trust between {nation_id} and {victim_id} → 0")
     
-    # ALL other nations: trust -= 0.8 toward attacker
+    # ALL other nations: trust -= 80 toward attacker (high penalty)
     for other_nation_id in world.nations:
         if other_nation_id != nation_id and other_nation_id != victim_id:
-            engine.adjust_trust(other_nation_id, nation_id, -0.8)
+            engine.adjust_trust(other_nation_id, nation_id, -80)
             engine.logs.append(
                 f"[DIPLOMACY] {other_nation_id}'s trust toward {nation_id} decreased by 0.8"
             )

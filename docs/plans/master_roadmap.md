@@ -104,32 +104,34 @@
 
 ---
 
-## 👥 FASE 6: Public Opinion & Internal Stability
+## 👥 FASE 6: Public Opinion & Internal Stability ✅
 **Obiettivo:** Popolazione come vincolo al potere tramite LLM Agent.
 
-### 6.1 Schema & Package
-- [ ] Migrare `public_satisfaction`: 0.0-1.0 → 0-100
-- [ ] Creare package `geomas/actions/opinion/`
-- [ ] Campi: `multiplier_increase`, `multiplier_decrease`, `cultural_traits`
+### 6.1 Schema & Package ✅
+- [x] Migrare `public_satisfaction`: 0.0-1.0 → 0-100
+- [x] Creare package `geomas/actions/opinion/`
+- [x] Campi: `multiplier_increase`, `multiplier_decrease`, `cultural_traits`, `civil_unrest_active`
+- [x] Campo `in_revolt: bool` in ProvinceState
 
-### 6.2 Population LLM Agent
-- [ ] System prompt con demographics e tratti culturali (seed)
-- [ ] Output: 2 multipliers (0.1-2.0) per increase/decrease
-- [ ] Formula: `new_sat = base + (delta * multiplier)`
+### 6.2 Satisfaction Dynamics ✅
+- [x] Base deltas: WAR -3, PEACE +1, deficit -2, surplus +1
+- [x] Formula: `positive * mult_inc + negative * mult_dec`
+- [x] **INVEST_WELFARE**: logaritmico `10 * log(1 + amount/100)`
+- [x] **RAISE_WAR_TAX**: -15 satisfaction
 
-### 6.3 Satisfaction Dynamics
-- [ ] Base deltas: WAR -3, PEACE +1, deficit -2, surplus +1
-- [ ] **INVEST_WELFARE**: logaritmico (non abusabile)
-- [ ] **RAISE_WAR_TAX**: satisfaction penalty
-
-### 6.4 Automatic Triggers
+### 6.3 Automatic Triggers ✅
 - [x] **GENERAL_STRIKE**: sat < 20 → production -50%
-- [x] **CIVIL_UNREST**: sat < 10 → 50% province revolt (termina a >50)
+- [x] **CIVIL_UNREST**: sat < 10 → 50% province revolt
+- [x] Recovery: sat > 50 → provinces restored
+
+### 6.4 Tests ✅
+- [x] 18 test specifici per opinion system
 
 ### 6.5 Population LLM Agent (TODO)
 - [ ] System prompt template con demographics + cultural traits (seed)
 - [ ] Input: eventi turno, decisioni governo
 - [ ] Output: multiplier_increase, multiplier_decrease (0.1-2.0)
+- [ ] Vedi: `geomas/agents/opinion.py`
 
 ---
 

@@ -54,6 +54,7 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> N
         - Nation territories in their assigned colors
         - Mountains darkened with dotted pattern
         - Capital provinces marked with gold stars
+        - Provinces in revolt marked with red X
         - Selected nation highlighted with bright border
     """
     # Build territorial water ownership lookup
@@ -77,6 +78,7 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> N
     edge_colors = []
     edge_widths = []
     capital_coords = []
+    revolt_coords = []  # Track provinces in civil unrest
     
     for p_id, province in world.provinces.items():
         if province.vertices:
@@ -124,6 +126,10 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> N
                     # Mark capital
                     if owner.capital_province_id == p_id:
                         capital_coords.append((province.coordinates[0], province.coordinates[1], "gold"))
+                    
+                    # Mark provinces in revolt
+                    if province.in_revolt:
+                        revolt_coords.append((province.coordinates[0], province.coordinates[1]))
                 else:
                     colors.append("#808080")
                     hatches.append(None)
@@ -149,6 +155,10 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> N
     for cx, cy, ccolor in capital_coords:
         ax.scatter(cx, cy, s=120, c=ccolor, marker='*', edgecolors='black', zorder=10)
     
+    # Draw revolt markers (red X) on provinces in civil unrest
+    for rx, ry in revolt_coords:
+        ax.scatter(rx, ry, s=80, c='red', marker='X', edgecolors='darkred', linewidths=1, zorder=11)
+    
     ax.set_xlim(-0.1, 1.1)
     ax.set_ylim(-0.1, 1.1)
     ax.set_aspect('equal')
@@ -156,3 +166,4 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> N
     
     st.pyplot(fig)
     plt.close(fig)
+

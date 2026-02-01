@@ -133,8 +133,8 @@ def _execute_declare_war(
     world.relationship_matrix.setdefault(target_id, {})[aggressor_id] = "WAR"
     
     # Trust → 0 between the two
-    world.trust_matrix.setdefault(aggressor_id, {})[target_id] = 0.0
-    world.trust_matrix.setdefault(target_id, {})[aggressor_id] = 0.0
+    world.trust_matrix.setdefault(aggressor_id, {})[target_id] = 0
+    world.trust_matrix.setdefault(target_id, {})[aggressor_id] = 0
     
     engine.logs.append(
         f"[FOREIGN] ⚔️ {aggressor_id} DECLARES WAR on {target_id}!"
@@ -164,8 +164,8 @@ def _execute_break_treaty(
     world.relationship_matrix[breaker_id][target_id] = "PEACE"
     world.relationship_matrix[target_id][breaker_id] = "PEACE"
     
-    # Trust penalty for the one who breaks (-0.5)
-    engine.adjust_trust(target_id, breaker_id, -0.5)
+    # Trust penalty for the one who breaks (-50 on 0-100 scale)
+    engine.adjust_trust(target_id, breaker_id, -50)
     
     engine.logs.append(
         f"[FOREIGN] 💔 {breaker_id} BREAKS alliance with {target_id}. Trust penalty applied."
@@ -224,11 +224,11 @@ def _execute_propose_alliance(
         engine.logs.append(f"[FOREIGN] Cannot propose alliance while at war with {target_id}")
         return
     
-    # Check trust threshold
-    trust = world.trust_matrix.get(proposer_id, {}).get(target_id, 0.5)
-    if trust < 0.6:
+    # Check trust threshold (60 on 0-100 scale)
+    trust = world.trust_matrix.get(proposer_id, {}).get(target_id, 50)
+    if trust < 60:
         engine.logs.append(
-            f"[FOREIGN] Alliance proposal rejected: trust too low ({trust:.2f} < 0.6)"
+            f"[FOREIGN] Alliance proposal rejected: trust too low ({trust:.0f} < 60)"
         )
         return
     

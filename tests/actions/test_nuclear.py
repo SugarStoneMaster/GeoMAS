@@ -137,12 +137,12 @@ class TestNuclearEffects:
         world.nations[attacker_id].nukes = 10
         target_province = world.nations[victim_id].province_ids[0]
         
-        # Set initial trust
+        # Set initial trust (0-100 scale)
         for n_id in nation_ids:
             world.trust_matrix.setdefault(n_id, {})
             for other_id in nation_ids:
                 if n_id != other_id:
-                    world.trust_matrix[n_id][other_id] = 0.9
+                    world.trust_matrix[n_id][other_id] = 90
         
         payload = DefensePayload(
             source=DecisionSource.MINISTRY_ADVICE,
@@ -157,12 +157,12 @@ class TestNuclearEffects:
         engine.execute_envelope(envelope)
         
         # Trust with victim → 0
-        assert world.trust_matrix[attacker_id][victim_id] == 0.0
-        assert world.trust_matrix[victim_id][attacker_id] == 0.0
+        assert world.trust_matrix[attacker_id][victim_id] == 0
+        assert world.trust_matrix[victim_id][attacker_id] == 0
         
-        # Other nations' trust toward attacker decreased by 0.8
-        assert world.trust_matrix[observer_1][attacker_id] == pytest.approx(0.1, abs=0.01)
-        assert world.trust_matrix[observer_2][attacker_id] == pytest.approx(0.1, abs=0.01)
+        # Other nations' trust toward attacker decreased by 80 (90 - 80 = 10)
+        assert world.trust_matrix[observer_1][attacker_id] == pytest.approx(10, abs=1)
+        assert world.trust_matrix[observer_2][attacker_id] == pytest.approx(10, abs=1)
 
 
 def _create_envelope(nation_id: str, defense_payload: DefensePayload) -> CountryEnvelope:

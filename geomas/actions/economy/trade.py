@@ -91,8 +91,8 @@ def calculate_trade_score(offer: TradeOffer, world: WorldState) -> Tuple[float, 
     if not receiver or not sender:
         return -999.0, "Invalid nation IDs"
     
-    # Get trust level
-    trust = world.trust_matrix.get(offer.receiver_id, {}).get(offer.sender_id, 0.5)
+    # Get trust level (0-100 scale)
+    trust = world.trust_matrix.get(offer.receiver_id, {}).get(offer.sender_id, 50)
     
     # Get consumption rates for scarcity calculation
     receiver_consumption = get_nation_consumption(receiver)

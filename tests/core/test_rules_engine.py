@@ -71,13 +71,13 @@ def test_diplomatic_rules():
     n_a = list(world.nations.keys())[0]
     n_b = list(world.nations.keys())[1]
     
-    # Case 1: High Trust
-    world.trust_matrix[n_a][n_b] = 0.8
+    # Case 1: High Trust (0-100 scale)
+    world.trust_matrix[n_a][n_b] = 80
     allowed, _ = engine.can_trade(n_a, n_b)
     assert allowed
     
-    # Case 2: Low Trust (War)
-    world.trust_matrix[n_a][n_b] = 0.1
+    # Case 2: Low Trust (< 20 = hostile, trade blocked)
+    world.trust_matrix[n_a][n_b] = 10
     allowed, reason = engine.can_trade(n_a, n_b)
     assert not allowed
     assert "hostile" in reason

@@ -52,8 +52,8 @@ class ActionEngine:
         return ActionValidators.can_raise_war_tax(self.world, nation_id)
 
     def can_trade(self, nation_a_id: str, nation_b_id: str) -> Tuple[bool, str]:
-        trust = self.world.trust_matrix.get(nation_a_id, {}).get(nation_b_id, 0.5)
-        if trust < 0.2: 
+        trust = self.world.trust_matrix.get(nation_a_id, {}).get(nation_b_id, 50)
+        if trust < 20:  # 0-100 scale: 20 = hostile
             return False, "Relations too hostile for trade."
         return True, "Trade possible."
 
@@ -85,10 +85,10 @@ class ActionEngine:
             nation.total_budget -= amount
 
     def adjust_trust(self, nation_a: str, nation_b: str, delta: float):
-        """Adjust trust between two nations."""
+        """Adjust trust between two nations (0-100 scale)."""
         if nation_a not in self.world.trust_matrix:
             self.world.trust_matrix[nation_a] = {}
         
-        current = self.world.trust_matrix[nation_a].get(nation_b, 0.5)
-        new_trust = max(0.0, min(1.0, current + delta))
+        current = self.world.trust_matrix[nation_a].get(nation_b, 50)
+        new_trust = max(0, min(100, current + delta))
         self.world.trust_matrix[nation_a][nation_b] = new_trust

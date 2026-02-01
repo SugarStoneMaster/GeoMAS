@@ -112,7 +112,7 @@ class TestDeclarationOfWar:
         
         assert world.relationship_matrix[aggressor_id][target_id] == "WAR"
         assert world.relationship_matrix[target_id][aggressor_id] == "WAR"
-        assert world.trust_matrix[aggressor_id][target_id] == 0.0
+        assert world.trust_matrix[aggressor_id][target_id] == 0  # 0-100 scale
 
 
 class TestProposeAlliance:
@@ -126,8 +126,8 @@ class TestProposeAlliance:
         proposer_id = list(world.nations.keys())[0]
         target_id = list(world.nations.keys())[1]
         
-        # Set trust too low
-        world.trust_matrix[proposer_id][target_id] = 0.4
+        # Set trust too low (< 60 required)
+        world.trust_matrix[proposer_id][target_id] = 40
         
         payload = ForeignPayload(
             source=DecisionSource.MINISTRY_ADVICE,
@@ -148,8 +148,8 @@ class TestProposeAlliance:
         proposer_id = list(world.nations.keys())[0]
         target_id = list(world.nations.keys())[1]
         
-        # Set trust high
-        world.trust_matrix[proposer_id][target_id] = 0.8
+        # Set trust high (>= 60 required)
+        world.trust_matrix[proposer_id][target_id] = 80
         
         # Step 1: Propose alliance (creates pending)
         propose_payload = ForeignPayload(
@@ -252,7 +252,7 @@ class TestProposalExpiry:
         
         proposer_id = list(world.nations.keys())[0]
         target_id = list(world.nations.keys())[1]
-        world.trust_matrix[proposer_id][target_id] = 0.8
+        world.trust_matrix[proposer_id][target_id] = 80  # High trust for proposal
         
         # Create proposal at turn 5
         world.turn = 5

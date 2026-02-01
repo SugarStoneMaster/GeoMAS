@@ -49,9 +49,9 @@ class GenesisEngine:
                 self.world.relationship_matrix[n_a] = {}
             for n_b in nation_ids:
                 if n_a == n_b:
-                    self.world.trust_matrix[n_a][n_b] = 1.0
+                    self.world.trust_matrix[n_a][n_b] = 100  # Self-trust
                 else:
-                    self.world.trust_matrix[n_a][n_b] = 0.5
+                    self.world.trust_matrix[n_a][n_b] = 50  # Neutral
                     # Default relationship: PEACE with everyone
                     self.world.relationship_matrix[n_a][n_b] = "PEACE"
 
@@ -83,29 +83,33 @@ class GenesisEngine:
 
     def _apply_trust_decay(self, n_a: str, n_b: str):
         current = self.world.trust_matrix[n_a][n_b]
-        rate = self.config["decay_rate"]
-        if current > 0.5:
+        rate = self.config["decay_rate"] * 100  # Scale to 0-100
+        if current > 50:
             self._update_trust(n_a, n_b, -rate) 
-        elif current < 0.5:
+        elif current < 50:
             self._update_trust(n_a, n_b, +rate) 
 
     def _check_diplomatic_shifts(self, n_a: str, n_b: str, year: int):
         current = self.world.trust_matrix[n_a][n_b]
         pair_key = tuple(sorted((n_a, n_b)))
         
-        if current > self.config["alliance_threshold"] and pair_key not in self.alliances:
+        # Scale thresholds to 0-100
+        alliance_thresh = self.config["alliance_threshold"] * 100
+        rivalry_thresh = self.config["rivalry_threshold"] * 100
+        
+        if current > alliance_thresh and pair_key not in self.alliances:
             if self.rng.rand() < self.config["alliance_chance"]:
                 self.alliances[pair_key] = True
-                self._update_trust(n_a, n_b, 0.20)
+                self._update_trust(n_a, n_b, 20)  # +20 trust
                 self._log_event(year, f"Formal ALLIANCE signed between {self._name(n_a)} and {self._name(n_b)}.", "ALLIANCE")
         
-        if current < 0.4 and pair_key in self.alliances:
+        if current < 40 and pair_key in self.alliances:
             del self.alliances[pair_key]
             self._log_event(year, f"Alliance BROKEN between {self._name(n_a)} and {self._name(n_b)}.", "BETRAYAL")
 
-        if current < self.config["rivalry_threshold"]:
+        if current < rivalry_thresh:
              if self.rng.rand() < self.config["rivalry_chance"]:
-                 self._update_trust(n_a, n_b, -0.10)
+                 self._update_trust(n_a, n_b, -10)  # -10 trust
 
     def _process_interaction(self, n_a: str, n_b: str, year: int):
         is_neighbor = n_b in self.spatial.get_neighboring_nations(n_a)
@@ -134,13 +138,13 @@ class GenesisEngine:
             friction_prob -= (mountain_ratio * 0.08) 
         
         current_trust = self.world.trust_matrix[n_a][n_b]
-        if current_trust < 0.4:
+        if current_trust < 40:
             friction_prob += 0.10 
-        elif current_trust > 0.8:
+        elif current_trust > 80:
             friction_prob -= 0.10 
         
         if self.rng.rand() < friction_prob:
-            self._update_trust(n_a, n_b, -self.config["conflict_penalty"]) 
+            self._update_trust(n_a, n_b, -self.config["conflict_penalty"] * 100)  # Scale penalty
             self._log_event(year, f"Border skirmish between {self._name(n_a)} and {self._name(n_b)}.", "CONFLICT")
 
     def _handle_trade_dynamics(self, n_a: str, n_b: str, year: int):
@@ -152,7 +156,7 @@ class GenesisEngine:
         if abs(res_a['food'] - res_b['food']) > 800: complementarity += 0.05
             
         current_trust = self.world.trust_matrix[n_a][n_b]
-        if current_trust > 0.4: complementarity += 0.02
+        if current_trust > 40: complementarity += 0.02
         else: complementarity -= 0.10 
             
         total_a = sum(res_a.values())
@@ -160,16 +164,17 @@ class GenesisEngine:
         if abs(total_a - total_b) > 2000:
             complementarity -= 0.05
             if self.rng.rand() < 0.05:
-                self._update_trust(n_a, n_b, -self.config["resource_envy_penalty"])
+                self._update_trust(n_a, n_b, -self.config["resource_envy_penalty"] * 100)
 
         if self.rng.rand() < complementarity:
-            self._update_trust(n_a, n_b, self.config["trade_bonus"]) 
+            self._update_trust(n_a, n_b, self.config["trade_bonus"] * 100)  # Scale bonus
             if self.rng.rand() < 0.2: 
                 self._log_event(year, f"Trade agreement signed between {self._name(n_a)} and {self._name(n_b)}.", "TRADE")
 
     def _update_trust(self, n_a: str, n_b: str, delta: float):
+        """Update trust between nations (0-100 scale)."""
         val = self.world.trust_matrix[n_a][n_b] + delta
-        val = max(0.0, min(1.0, val)) 
+        val = max(0, min(100, val))  # Clamp 0-100
         self.world.trust_matrix[n_a][n_b] = val
         self.world.trust_matrix[n_b][n_a] = val
 

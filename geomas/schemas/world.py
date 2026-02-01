@@ -123,7 +123,7 @@ class WorldState(BaseModel):
     provinces: Dict[int, ProvinceState] = Field(default_factory=dict)
     nations: Dict[str, NationState] = Field(default_factory=dict)
     
-    # Trust Matrix: trust_matrix[NationA][NationB] = 0.5 (A trusts B)
+    # Trust Matrix: trust_matrix[NationA][NationB] = 50 (A trusts B, scale 0-100)
     trust_matrix: Dict[str, Dict[str, float]] = Field(default_factory=dict)
     
     # Relationship Matrix: relationship_matrix[A][B] = RelationshipState.WAR
