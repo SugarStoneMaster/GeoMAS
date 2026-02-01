@@ -1,3 +1,9 @@
+"""
+Tests for Rules Engine.
+
+Validates movement, economic, and diplomatic rules.
+"""
+
 import pytest
 import sys
 import os
@@ -5,17 +11,14 @@ import os
 # Add project root to path (Two levels up)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
+from conftest import create_test_envelope
 from geomas.world import generate_world
 from geomas.actions import ActionEngine
 from geomas.actions.defense import DefensePayload, DefenseActionItem, DefenseActionType, DecisionSource
 from geomas.actions.economy import EconomicPayload
 from geomas.actions.foreign import ForeignPayload
-from geomas.agents.schemas import (
-    CountryEnvelope, GlobalStrategy, PublicIntent, 
-    DefenseIntent, DefenseIntentType, 
-    EconomicIntent, EconomicIntentType, 
-    ForeignIntent, ForeignIntentType
-)
+from geomas.agents.schemas import DefenseIntentType
+
 
 def test_movement_rules():
     """Test topological movement constraints."""
@@ -45,6 +48,7 @@ def test_movement_rules():
     assert not allowed
     assert "foreign" in reason or "ATTACK" in reason
 
+
 def test_economic_rules():
     """Test budget constraints."""
     world = generate_world(seed=42, n_cells=50, n_nations=1)
@@ -62,6 +66,7 @@ def test_economic_rules():
     allowed, reason = engine.can_afford_budget(nation_id, 150.0)
     assert not allowed
     assert "Insufficient" in reason
+
 
 def test_diplomatic_rules():
     """Test trade constraints based on trust."""
@@ -81,6 +86,7 @@ def test_diplomatic_rules():
     allowed, reason = engine.can_trade(n_a, n_b)
     assert not allowed
     assert "hostile" in reason
+
 
 def test_attack_rules():
     """Test adjacency requirements for attacks."""
@@ -107,6 +113,7 @@ def test_attack_rules():
     if target_id:
         allowed, _ = engine.can_attack(n_a, target_id)
         assert allowed
+
 
 def test_execution_waterfall():
     """Test that defense actions are executed in priority order with proper resource validation."""
@@ -144,15 +151,12 @@ def test_execution_waterfall():
         ]
     )
     
-    # Mock Envelope
-    envelope = CountryEnvelope(
-        turn=1, sender_id=nation_id, global_strategy=GlobalStrategy.TOTAL_EXPANSIONISM,
-        public_statement="", public_intent=PublicIntent.AGGRESSIVE,
-        defense_payload=payload, defense_intent=DefenseIntent(type=DefenseIntentType.CONQUEST, reasoning=""),
-        economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
-        economic_intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning=""),
-        foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
-        foreign_intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="")
+    # Mock Envelope using conftest helper
+    envelope = create_test_envelope(
+        nation_id,
+        defense_payload=payload,
+        defense_public_intent=DefenseIntentType.CONQUEST,
+        defense_private_intent=DefenseIntentType.CONQUEST,
     )
     
     logs = engine.execute_envelope(envelope)
@@ -167,4 +171,3 @@ def test_execution_waterfall():
     failed_count = sum(1 for l in logs if "failed" in l)
     assert created_count == 2
     assert failed_count == 1
-

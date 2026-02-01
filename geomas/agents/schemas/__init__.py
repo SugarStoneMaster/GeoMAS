@@ -5,20 +5,21 @@ Communication protocol models for agent decision-making.
 
 Models:
     - GlobalStrategy: High-level nation strategy (EXPANSIONISM, ISOLATIONISM, etc.)
-    - PublicIntent: What the nation claims publicly (PEACEFUL, AGGRESSIVE, etc.)
-    - *IntentType: Private intentions per domain (defense, economic, foreign)
-    - *Intent: Intent with reasoning (for explainability)
+    - *IntentType: Intent types per domain (defense, economic, foreign)
+    - *Intent: Intent with reasoning (for minister proposals)
     - *Proposal: Minister recommendations to the President
     - CabinetBriefing: All minister proposals combined
     - CountryEnvelope: Final output from NationAgent containing all layers
 
 The CountryEnvelope is the key data structure exchanged between agents
-and the ActionEngine, containing both public facade and private reality.
+and the ActionEngine. It contains:
+    - Public layer: statement + public intents (visible to all)
+    - Private layer: private intents + reasoning (hidden, for XAI)
+    - Action layer: payloads (ground truth)
 """
 
 from geomas.agents.schemas.protocol import (
     GlobalStrategy,
-    PublicIntent,
     DefenseIntentType,
     EconomicIntentType,
     ForeignIntentType,
@@ -39,7 +40,6 @@ from geomas.actions.foreign import ForeignPayload
 
 __all__ = [
     "GlobalStrategy",
-    "PublicIntent",
     "DefenseIntentType",
     "EconomicIntentType",
     "ForeignIntentType",
@@ -55,4 +55,3 @@ __all__ = [
     "EconomicPayload",
     "ForeignPayload"
 ]
-

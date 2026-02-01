@@ -9,6 +9,7 @@ Validates troop movement including:
 """
 
 import pytest
+from conftest import create_test_envelope
 from geomas.world import generate_world
 from geomas.actions.engine import ActionEngine
 from geomas.actions.defense import (
@@ -20,12 +21,6 @@ from geomas.actions.defense import (
     MOVEMENT_RANGE,
 )
 from geomas.actions.common import DecisionSource
-from geomas.agents.schemas import (
-    CountryEnvelope, GlobalStrategy, PublicIntent,
-    DefenseIntent, DefenseIntentType,
-    EconomicIntent, EconomicIntentType, EconomicPayload,
-    ForeignIntent, ForeignIntentType, ForeignPayload,
-)
 from geomas.schemas.world import TerrainType
 
 
@@ -47,7 +42,7 @@ class TestMoveTroopsValidation:
             )]
         )
         
-        envelope = _create_envelope(nation_id, payload)
+        envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
         assert any("Must specify" in log for log in logs)
@@ -90,7 +85,7 @@ class TestMoveTroopsValidation:
             )]
         )
         
-        envelope = _create_envelope(nation_id, payload)
+        envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
         assert any("Not enough" in log for log in logs)
@@ -132,7 +127,7 @@ class TestMoveTroopsValidation:
             )]
         )
         
-        envelope = _create_envelope(nation_id, payload)
+        envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
         assert any("Insufficient energy" in log for log in logs)
@@ -190,7 +185,7 @@ class TestMoveTroopsExecution:
             )]
         )
         
-        envelope = _create_envelope(nation_id, payload)
+        envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
         # Verify units moved
@@ -244,7 +239,7 @@ class TestMoveTroopsExecution:
             )]
         )
         
-        envelope = _create_envelope(nation_id, payload)
+        envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
         # Verify aircraft moved
@@ -254,18 +249,3 @@ class TestMoveTroopsExecution:
         assert any("Moved 2x AIRCRAFT" in log for log in logs)
 
 
-def _create_envelope(nation_id: str, defense_payload: DefensePayload) -> CountryEnvelope:
-    """Helper to create a minimal CountryEnvelope for testing."""
-    return CountryEnvelope(
-        turn=1,
-        sender_id=nation_id,
-        global_strategy=GlobalStrategy.ARMED_ISOLATIONISM,
-        public_statement="Test",
-        public_intent=PublicIntent.NEUTRAL,
-        defense_payload=defense_payload,
-        defense_intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Test"),
-        economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
-        economic_intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning="Test"),
-        foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
-        foreign_intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="Test"),
-    )

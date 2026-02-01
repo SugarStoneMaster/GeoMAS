@@ -1,3 +1,9 @@
+"""
+Tests for Schema Validation.
+
+Validates Pydantic models and constraints.
+"""
+
 import pytest
 import sys
 import os
@@ -8,12 +14,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 
 from geomas.agents.schemas import ( 
     DefenseProposal, DefenseIntent, DefenseIntentType,
-    CountryEnvelope, GlobalStrategy, PublicIntent, EconomicIntent,
+    CountryEnvelope, GlobalStrategy, EconomicIntent,
     ForeignIntent, EconomicIntentType, ForeignIntentType
 )
 from geomas.actions.defense import DefensePayload, DecisionSource
 from geomas.actions.economy import EconomicPayload
 from geomas.actions.foreign import ForeignPayload
+
 
 def test_defense_proposal_validation():
     """Test validation constraints on DefenseProposal."""
@@ -34,6 +41,7 @@ def test_defense_proposal_validation():
             urgency=11 # Max is 10
         )
 
+
 def test_envelope_structure():
     """Test that CountryEnvelope requires all fields."""
     
@@ -43,12 +51,47 @@ def test_envelope_structure():
             turn=1,
             sender_id="TEST",
             global_strategy=GlobalStrategy.COALITION_BUILDER,
-            # Missing public_statement
-            public_intent=PublicIntent.PEACEFUL,
+            # Missing public_statement -> should fail
             defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
-            defense_intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Mock"),
+            defense_public_intent=DefenseIntentType.IDLE,
+            defense_private_intent=DefenseIntentType.IDLE,
+            defense_private_reasoning="Test",
             economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
-            economic_intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning="Mock"),
+            economic_public_intent=EconomicIntentType.IDLE,
+            economic_private_intent=EconomicIntentType.IDLE,
+            economic_private_reasoning="Test",
             foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
-            foreign_intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="Mock")
+            foreign_public_intent=ForeignIntentType.IDLE,
+            foreign_private_intent=ForeignIntentType.IDLE,
+            foreign_private_reasoning="Test"
         )
+
+
+def test_envelope_valid():
+    """Test valid CountryEnvelope creation."""
+    
+    envelope = CountryEnvelope(
+        turn=1,
+        sender_id="TEST",
+        global_strategy=GlobalStrategy.COALITION_BUILDER,
+        public_statement="[DEFENSE] Peaceful. [ECONOMY] Growing. [FOREIGN] Cooperative.",
+        # Defense
+        defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+        defense_public_intent=DefenseIntentType.DEFENSE,
+        defense_private_intent=DefenseIntentType.IDLE,
+        defense_private_reasoning="Maintaining peace.",
+        # Economic
+        economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
+        economic_public_intent=EconomicIntentType.GROWTH,
+        economic_private_intent=EconomicIntentType.GROWTH,
+        economic_private_reasoning="Investing in welfare.",
+        # Foreign
+        foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
+        foreign_public_intent=ForeignIntentType.COOPERATION,
+        foreign_private_intent=ForeignIntentType.COOPERATION,
+        foreign_private_reasoning="Seeking alliances."
+    )
+    
+    assert envelope.sender_id == "TEST"
+    assert envelope.defense_public_intent == DefenseIntentType.DEFENSE
+    assert envelope.defense_private_intent == DefenseIntentType.IDLE

@@ -1,42 +1,65 @@
-# 🚀 Sprint: Fase 6 - Public Opinion & Internal Stability
+# 🚀 Sprint: Fase 7.5 - Deception Detection Framework
 
-**Status:** In Progress - 142 test passano
-**Obiettivo:** Popolazione come vincolo al potere tramite LLM Agent
+**Status:** In Progress
+**Obiettivo:** Misurare deception tra dichiarazioni pubbliche e intenzioni private
 
 ---
 
 ## 📋 Task Breakdown
 
-#### 1. Schema Migration ✅
-- [x] Migrare `public_satisfaction` da 0.0-1.0 a 0-100
-- [x] Nuovi campi NationState: `multiplier_increase`, `multiplier_decrease`, `cultural_traits`, `civil_unrest_active`
+### 1. Protocol Refactor (`geomas/agents/schemas/protocol.py`) ✅
+- [x] Aggiungere per Defense:
+  - `defense_public_intent: DefenseIntentType`
+  - `defense_private_intent: DefenseIntentType`
+  - `defense_private_reasoning: str`
+- [x] Aggiungere per Economic:
+  - `economic_public_intent: EconomicIntentType`
+  - `economic_private_intent: EconomicIntentType`
+  - `economic_private_reasoning: str`
+- [x] Aggiungere per Foreign:
+  - `foreign_public_intent: ForeignIntentType`
+  - `foreign_private_intent: ForeignIntentType`
+  - `foreign_private_reasoning: str`
+- [x] Mantenere `GlobalStrategy` e `public_statement`
+- [x] Rimuovere campi obsoleti (`PublicIntent` enum, vecchi Intent objects)
 
-#### 2. Opinion Package ✅
-- [x] `geomas/actions/opinion/` creato
-- [x] `schemas.py`: OpinionPayload, OpinionTrigger, costanti
-- [x] `handler.py`: execute_opinion, apply_satisfaction_deltas, check_triggers
-- [x] `traits.py`: generazione tratti culturali (seed-based)
-- [ ] Population Agent system prompt template
+### 2. Intent Enums Audit ✅
+- [x] Review `DefenseIntentType`: DETERRENCE, CONQUEST, DEFENSE, RECONNAISSANCE, PUNISHMENT, IDLE
+- [x] Review `EconomicIntentType`: GROWTH, SABOTAGE, SUPPORT, SURVIVAL, IDLE
+- [x] Review `ForeignIntentType`: COOPERATION, COERCION, DECEPTION, APPEASEMENT, IDLE
+- [x] Aggiunto commenti esplicativi per ogni valore
 
-#### 3. Satisfaction Dynamics ✅
-- [x] Base deltas: WAR -3, PEACE +1, deficit -2, surplus +1
-- [x] Formula con moltiplicatori (increase/decrease)
+### 3. Deception Matrix (`geomas/analysis/deception.py`) ✅
+- [x] Definire `DEFENSE_DECEPTION_MATRIX[private][public] -> float`
+- [x] Definire `ECONOMIC_DECEPTION_MATRIX[private][public] -> float`
+- [x] Definire `FOREIGN_DECEPTION_MATRIX[private][public] -> float`
+- [x] Implementare `calculate_domain_deception(private, public, domain)`
+- [x] Implementare `calculate_score(envelope) -> float`
+- [x] Implementare `calculate_detailed_score(envelope) -> dict`
 
-#### 4. Economic Actions ✅
-- [x] **INVEST_WELFARE**: `gain = 10 * log(1 + amount / 100)` (logaritmico)
-- [x] **RAISE_WAR_TAX**: -15 satisfaction
+### 4. Deception Tracker
+- [ ] Creare `DeceptionRecord` dataclass
+- [ ] Creare `DeceptionTracker` class con:
+  - `log_turn(envelope, executed_actions)`
+  - `get_nation_history(nation_id)`
+  - `get_turn_summary(turn)`
 
-#### 5. Automatic Triggers ✅
-- [x] **GENERAL_STRIKE**: sat < 20 → production 50%
-- [x] **CIVIL_UNREST**: sat < 10 → province 0 output
-- [x] Recovery: sat > 50 termina unrest
+### 5. Tests ✅
+- [x] Test protocol con nuovi campi
+- [x] Test deception matrix scores
+- [ ] Test tracker accumulation
+- [ ] Test coherence scores
 
-#### 6. Population LLM Agent 🔄
-- [ ] System prompt template con demographics/traits
-- [ ] Input: eventi turno, decisioni governo
-- [ ] Output: multiplier_increase, multiplier_decrease (0.1-2.0)
+### 6. Strategic Coherence (`geomas/analysis/deception.py`)
+- [ ] Definire `EXPECTED_INTENTS[GlobalStrategy] -> List[IntentType]` per dominio
+- [ ] Implementare `calculate_coherence_score(strategy, private_intents)`
+- [ ] Coherence = quanto private intents matchano la GlobalStrategy
 
 ---
 
-## 📌 Remaining
-Solo LLM agent prompt template da completare.
+## 📌 Notes
+- `public_statement` è un singolo messaggio con sezioni per ogni dominio
+- Altri agenti vedono solo: `public_statement` + azioni eseguite
+- `private_intent` e `private_reasoning` sono nascosti
+- Il calcolo deception è deterministico (matrice predefinita)
+- Coherence misura strategia vs azioni, indipendente da deception

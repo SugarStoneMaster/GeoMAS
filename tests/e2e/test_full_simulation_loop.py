@@ -1,3 +1,9 @@
+"""
+End-to-End Tests for Full Simulation Loop.
+
+Validates the complete pipeline from init to deception analysis.
+"""
+
 import pytest
 import sys
 import os
@@ -9,7 +15,7 @@ from geomas.simulation import SimulationEngine
 from geomas.agents.llm_client import LLMClient
 from geomas.analysis.deception import DeceptionAnalyzer
 from geomas.agents.schemas import (
-    CountryEnvelope, GlobalStrategy, PublicIntent, 
+    CountryEnvelope, GlobalStrategy, 
     DefenseIntent, DefenseIntentType,
     EconomicIntent, EconomicIntentType,
     ForeignIntent, ForeignIntentType,
@@ -18,6 +24,7 @@ from geomas.agents.schemas import (
 from geomas.actions.defense import DefensePayload, DecisionSource
 from geomas.actions.economy import EconomicPayload, EconomicActionType
 from geomas.actions.foreign import ForeignPayload, ForeignActionType
+
 
 # --- MOCK CLIENT ---
 class E2EMockLLM(LLMClient):
@@ -48,20 +55,29 @@ class E2EMockLLM(LLMClient):
                 turn=1,
                 sender_id="TEST", # Will be overwritten by NationAgent
                 global_strategy=GlobalStrategy.COALITION_BUILDER,
-                public_statement="We seek peace.",
-                public_intent=PublicIntent.PEACEFUL,
+                public_statement="[DEFENSE] Peaceful. [ECONOMY] Growing. [FOREIGN] Cooperative.",
+                # Defense - honest
                 defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
-                defense_intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Peace"),
+                defense_public_intent=DefenseIntentType.IDLE,
+                defense_private_intent=DefenseIntentType.IDLE,
+                defense_private_reasoning="Peace is best.",
+                # Economic - honest
                 economic_payload=EconomicPayload(
                     source=DecisionSource.MINISTRY_ADVICE, 
                     action_type=EconomicActionType.INVEST_WELFARE,
                     parameters={"amount": 10.0}
                 ),
-                economic_intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Welfare"),
+                economic_public_intent=EconomicIntentType.GROWTH,
+                economic_private_intent=EconomicIntentType.GROWTH,
+                economic_private_reasoning="Welfare investment.",
+                # Foreign - honest
                 foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
-                foreign_intent=ForeignIntent(type=ForeignIntentType.COOPERATION, reasoning="Coop")
+                foreign_public_intent=ForeignIntentType.COOPERATION,
+                foreign_private_intent=ForeignIntentType.COOPERATION,
+                foreign_private_reasoning="Coop is best."
             )
         return response_model()
+
 
 def test_full_simulation_step():
     """
@@ -104,4 +120,4 @@ def test_full_simulation_step():
     # 5. Check Deception Analysis (Manual check on mock data)
     env = mock_client.query_agent("", "", CountryEnvelope)
     score = DeceptionAnalyzer.calculate_score(env)
-    assert score == 0.0  # Peaceful/Idle -> Honest
+    assert score == 0.0  # All intents match -> Honest

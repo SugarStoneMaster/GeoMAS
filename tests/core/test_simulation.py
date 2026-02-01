@@ -1,3 +1,9 @@
+"""
+Tests for SimulationEngine.
+
+Validates simulation step execution and agent interactions.
+"""
+
 import pytest
 import sys
 import os
@@ -9,7 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 from geomas.simulation import SimulationEngine
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.schemas import (
-    CountryEnvelope, GlobalStrategy, PublicIntent, 
+    CountryEnvelope, GlobalStrategy, 
     DefenseIntent, DefenseIntentType,
     EconomicIntent, EconomicIntentType,
     ForeignIntent, ForeignIntentType,
@@ -18,6 +24,7 @@ from geomas.agents.schemas import (
 from geomas.actions.defense import DefensePayload, DecisionSource
 from geomas.actions.economy import EconomicPayload, EconomicActionType
 from geomas.actions.foreign import ForeignPayload, ForeignActionType
+
 
 # --- MOCK CLIENT ---
 class SimMockLLM(LLMClient):
@@ -48,20 +55,29 @@ class SimMockLLM(LLMClient):
                 turn=1,
                 sender_id="TEST",
                 global_strategy=GlobalStrategy.COALITION_BUILDER,
-                public_statement="We seek peace.",
-                public_intent=PublicIntent.PEACEFUL,
+                public_statement="[DEFENSE] Peaceful. [ECONOMY] Growing. [FOREIGN] Cooperative.",
+                # Defense
                 defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
-                defense_intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Peace"),
+                defense_public_intent=DefenseIntentType.DEFENSE,
+                defense_private_intent=DefenseIntentType.IDLE,
+                defense_private_reasoning="Peace is best.",
+                # Economic
                 economic_payload=EconomicPayload(
                     source=DecisionSource.MINISTRY_ADVICE, 
                     action_type=EconomicActionType.INVEST_WELFARE,
                     parameters={"amount": 10.0}
                 ),
-                economic_intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Welfare"),
+                economic_public_intent=EconomicIntentType.GROWTH,
+                economic_private_intent=EconomicIntentType.GROWTH,
+                economic_private_reasoning="Welfare investment.",
+                # Foreign
                 foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
-                foreign_intent=ForeignIntent(type=ForeignIntentType.COOPERATION, reasoning="Coop")
+                foreign_public_intent=ForeignIntentType.COOPERATION,
+                foreign_private_intent=ForeignIntentType.COOPERATION,
+                foreign_private_reasoning="Maintain good relations."
             )
         return response_model()
+
 
 def test_simulation_init():
     """Test that engine initializes world and agents."""
@@ -71,6 +87,7 @@ def test_simulation_init():
     assert len(sim.world.nations) == 10 # Default
     assert len(sim.agents) == 10
     assert sim.world.turn == 0
+
 
 def test_simulation_step():
     """Test that a step advances the turn and generates logs."""

@@ -1,3 +1,9 @@
+"""
+Tests for Agent System.
+
+Validates LLM agent interactions and NationAgent flow.
+"""
+
 import pytest
 import sys
 import os
@@ -12,13 +18,14 @@ from geomas.agents.nation_agent import NationAgent
 from geomas.agents.ministers import DefenseMinister
 from geomas.agents.schemas import ( 
     DefenseProposal, DefenseIntent, DefenseIntentType,
-    CountryEnvelope, GlobalStrategy, PublicIntent, EconomicIntent,
+    CountryEnvelope, GlobalStrategy, EconomicIntent,
     ForeignIntent, EconomicIntentType, ForeignIntentType,
     EconomicProposal, ForeignProposal
 )
 from geomas.actions.defense import DefensePayload, DecisionSource
 from geomas.actions.economy import EconomicPayload
 from geomas.actions.foreign import ForeignPayload
+
 
 # --- MOCK INFRASTRUCTURE ---
 
@@ -53,14 +60,22 @@ class MockLLMClient(LLMClient):
                 turn=1,
                 sender_id="TEST",
                 global_strategy=GlobalStrategy.COALITION_BUILDER,
-                public_statement="Mock Statement",
-                public_intent=PublicIntent.PEACEFUL,
+                public_statement="[DEFENSE] Peaceful. [ECONOMY] Growing. [FOREIGN] Cooperative.",
+                # Defense
                 defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
-                defense_intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Mock"),
+                defense_public_intent=DefenseIntentType.DEFENSE,
+                defense_private_intent=DefenseIntentType.IDLE,
+                defense_private_reasoning="Mock defense reasoning",
+                # Economic
                 economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
-                economic_intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning="Mock"),
+                economic_public_intent=EconomicIntentType.GROWTH,
+                economic_private_intent=EconomicIntentType.IDLE,
+                economic_private_reasoning="Mock economic reasoning",
+                # Foreign
                 foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
-                foreign_intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="Mock")
+                foreign_public_intent=ForeignIntentType.COOPERATION,
+                foreign_private_intent=ForeignIntentType.IDLE,
+                foreign_private_reasoning="Mock foreign reasoning"
             )
         
         # Fallback for unexpected models
@@ -68,6 +83,7 @@ class MockLLMClient(LLMClient):
             return response_model()
         except:
             raise ValueError(f"MockLLMClient cannot handle {response_model}")
+
 
 # --- TESTS ---
 
@@ -77,6 +93,7 @@ def test_mock_llm_client_defense():
     result = mock.query_agent("", "", DefenseProposal)
     assert isinstance(result, DefenseProposal)
     assert result.intent.type == DefenseIntentType.DEFENSE
+
 
 def test_defense_minister_proposal():
     """DefenseMinister generates a proposal using the mock LLM."""
@@ -90,6 +107,7 @@ def test_defense_minister_proposal():
     assert isinstance(proposal, DefenseProposal)
     assert proposal.intent is not None
     assert proposal.urgency >= 1 and proposal.urgency <= 10
+
 
 def test_nation_agent_flow():
     """Test the full perceive-propose-decide loop."""
@@ -108,6 +126,7 @@ def test_nation_agent_flow():
     assert envelope.turn == 1
     assert envelope.global_strategy in GlobalStrategy
     assert envelope.public_statement != ""
+
 
 def test_envelope_payloads_valid():
     """The produced envelope's payloads should be valid."""

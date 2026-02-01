@@ -10,6 +10,7 @@ Validates combat system including:
 
 import pytest
 import random
+from conftest import create_test_envelope
 from geomas.world import generate_world
 from geomas.actions.engine import ActionEngine
 from geomas.actions.defense import (
@@ -27,12 +28,6 @@ from geomas.actions.defense.combat import (
     CombatResult,
 )
 from geomas.actions.common import DecisionSource
-from geomas.agents.schemas import (
-    CountryEnvelope, GlobalStrategy, PublicIntent,
-    DefenseIntent, DefenseIntentType,
-    EconomicIntent, EconomicIntentType, EconomicPayload,
-    ForeignIntent, ForeignIntentType, ForeignPayload,
-)
 from geomas.schemas.world import TerrainType
 
 
@@ -194,7 +189,7 @@ class TestIntegratedCombat:
             )]
         )
         
-        envelope = _create_envelope(nation_id, payload)
+        envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
         # Check province was conquered
@@ -203,18 +198,3 @@ class TestIntegratedCombat:
         assert any("conquered" in log.lower() for log in logs)
 
 
-def _create_envelope(nation_id: str, defense_payload: DefensePayload) -> CountryEnvelope:
-    """Helper to create a minimal CountryEnvelope for testing."""
-    return CountryEnvelope(
-        turn=1,
-        sender_id=nation_id,
-        global_strategy=GlobalStrategy.ARMED_ISOLATIONISM,
-        public_statement="Test",
-        public_intent=PublicIntent.NEUTRAL,
-        defense_payload=defense_payload,
-        defense_intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Test"),
-        economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
-        economic_intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning="Test"),
-        foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
-        foreign_intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="Test"),
-    )

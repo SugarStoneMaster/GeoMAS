@@ -8,6 +8,7 @@ Validates nuclear strike including:
 """
 
 import pytest
+from conftest import create_test_envelope
 from geomas.world import generate_world
 from geomas.actions.engine import ActionEngine
 from geomas.actions.defense import (
@@ -16,12 +17,6 @@ from geomas.actions.defense import (
     DefenseActionItem,
 )
 from geomas.actions.common import DecisionSource
-from geomas.agents.schemas import (
-    CountryEnvelope, GlobalStrategy, PublicIntent,
-    DefenseIntent, DefenseIntentType,
-    EconomicIntent, EconomicIntentType, EconomicPayload,
-    ForeignIntent, ForeignIntentType, ForeignPayload,
-)
 
 
 class TestNuclearValidation:
@@ -50,7 +45,7 @@ class TestNuclearValidation:
             )]
         )
         
-        envelope = _create_envelope(nation_id, payload)
+        envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
         assert any("Insufficient nukes" in log for log in logs)
@@ -76,7 +71,7 @@ class TestNuclearValidation:
             )]
         )
         
-        envelope = _create_envelope(nation_id, payload)
+        envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
         assert any("Cannot nuke own territory" in log for log in logs)
@@ -114,7 +109,7 @@ class TestNuclearEffects:
             )]
         )
         
-        envelope = _create_envelope(nation_id, payload)
+        envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
         # Verify devastation
@@ -153,7 +148,7 @@ class TestNuclearEffects:
             )]
         )
         
-        envelope = _create_envelope(attacker_id, payload)
+        envelope = create_test_envelope(attacker_id, defense_payload=payload)
         engine.execute_envelope(envelope)
         
         # Trust with victim → 0
@@ -164,19 +159,3 @@ class TestNuclearEffects:
         assert world.trust_matrix[observer_1][attacker_id] == pytest.approx(10, abs=1)
         assert world.trust_matrix[observer_2][attacker_id] == pytest.approx(10, abs=1)
 
-
-def _create_envelope(nation_id: str, defense_payload: DefensePayload) -> CountryEnvelope:
-    """Helper to create a minimal CountryEnvelope for testing."""
-    return CountryEnvelope(
-        turn=1,
-        sender_id=nation_id,
-        global_strategy=GlobalStrategy.ARMED_ISOLATIONISM,
-        public_statement="Test",
-        public_intent=PublicIntent.NEUTRAL,
-        defense_payload=defense_payload,
-        defense_intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Test"),
-        economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
-        economic_intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning="Test"),
-        foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
-        foreign_intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="Test"),
-    )

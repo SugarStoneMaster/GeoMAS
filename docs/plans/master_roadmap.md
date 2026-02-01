@@ -143,6 +143,43 @@
 
 ---
 
+## 🎭 FASE 7.5: Deception Detection Framework
+**Obiettivo:** Misurare la deception tra dichiarazioni pubbliche e intenzioni private.
+
+### 7.5.1 Protocol Refactor
+- [ ] Aggiungere `public_intent` e `private_intent` per ogni dominio (3+3)
+- [ ] Aggiungere `private_reasoning` per ogni dominio (XAI)
+- [ ] Mantenere `GlobalStrategy` per orientamento strategico
+- [ ] `public_statement` unico con sezioni defense/economy/foreign
+
+### 7.5.2 Intent Enums Review
+- [ ] Verificare `DefenseIntentType` sia completo
+- [ ] Verificare `EconomicIntentType` sia completo
+- [ ] Verificare `ForeignIntentType` sia completo
+
+### 7.5.3 Deception Calculator
+- [ ] Creare matrice deception per ogni dominio: `score(private, public)`
+- [ ] Implementare `calculate_deception_score()` in `geomas/analysis/deception.py`
+- [ ] Aggregare score per turno e per nazione
+
+### 7.5.4 Deception Tracker
+- [ ] Struttura `DeceptionRecord` per logging
+- [ ] Tracciare per ogni turno: intents, actions, scores
+- [ ] Statistiche aggregate: media, max, trend
+
+### 7.5.5 Strategic Coherence
+- [ ] Mapping `EXPECTED_INTENTS[GlobalStrategy] -> intents tipici`
+- [ ] Implementare `calculate_coherence_score(strategy, private_intents)`
+- [ ] Due metriche indipendenti: Deception + Coherence
+
+### 7.5.6 Dashboard Integration
+- [ ] Visualizzare deception score per nazione
+- [ ] Visualizzare coherence score per nazione
+- [ ] Timeline nel tempo
+- [ ] Dettaglio per dominio
+
+---
+
 ## 📊 FASE 8: Simulation Loop & Validation
 **Obiettivo:** Esecuzione scientifica.
 - [ ] 8.1 Batch Running (Multi-seed)
