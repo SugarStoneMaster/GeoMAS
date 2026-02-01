@@ -13,7 +13,7 @@ def render_trust_matrix(world: WorldState) -> None:
     """
     Renders the trust matrix as a color-coded dataframe.
     
-    Green = high trust, Red = low trust.
+    Scale: 0-100 (Green = high trust, Red = low trust).
     """
     st.subheader("🤝 Diplomatic Trust Matrix")
     
@@ -21,7 +21,11 @@ def render_trust_matrix(world: WorldState) -> None:
     # Sort for consistency
     df_trust = df_trust.sort_index().sort_index(axis=1)
     
+    # Convert to integer for cleaner display
+    df_trust = df_trust.astype(int)
+    
     st.dataframe(
-        df_trust.style.background_gradient(cmap="RdYlGn", vmin=0, vmax=1),
+        df_trust.style.background_gradient(cmap="RdYlGn", vmin=0, vmax=100),
         use_container_width=True
     )
+

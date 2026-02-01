@@ -103,9 +103,9 @@ def execute_economic(
             # Execute trade: transfer resources
             execute_trade(engine.world, offer)
             
-            # Boost trust slightly
-            engine.adjust_trust(nation_id, target_id, 0.02)
-            engine.adjust_trust(target_id, nation_id, 0.02)
+            # Boost trust slightly (0-100 scale)
+            engine.adjust_trust(nation_id, target_id, 2)
+            engine.adjust_trust(target_id, nation_id, 2)
             
             engine.logs.append(f"[TRADE] {nation_id} -> {target_id}: {explanation}")
         else:

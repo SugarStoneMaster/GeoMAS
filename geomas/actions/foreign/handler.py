@@ -298,8 +298,8 @@ def respond_to_proposal(
     elif proposal_type == "ALLIANCE":
         world.relationship_matrix[nation_id][proposer_id] = "ALLIANCE"
         world.relationship_matrix[proposer_id][nation_id] = "ALLIANCE"
-        engine.adjust_trust(nation_id, proposer_id, 0.1)
-        engine.adjust_trust(proposer_id, nation_id, 0.1)
+        engine.adjust_trust(nation_id, proposer_id, 10)  # 0-100 scale
+        engine.adjust_trust(proposer_id, nation_id, 10)
         engine.logs.append(
             f"[FOREIGN] 🤝 ALLIANCE formed between {nation_id} and {proposer_id}!"
         )

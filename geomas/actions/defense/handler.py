@@ -315,8 +315,8 @@ def _execute_move_troops(
                 
                 # Trust impact: combat causes trust decrease
                 if old_owner:
-                    engine.adjust_trust(nation_id, old_owner, -0.2)
-                    engine.adjust_trust(old_owner, nation_id, -0.2)
+                    engine.adjust_trust(nation_id, old_owner, -20)  # 0-100 scale
+                    engine.adjust_trust(old_owner, nation_id, -20)
                     engine.logs.append(f"[DIPLOMACY] Trust between {nation_id} and {old_owner} decreased")
             else:
                 # Attacker loses all soldiers
@@ -328,8 +328,8 @@ def _execute_move_troops(
                 # Trust impact even on failed attack
                 defender_id = to_province.owner_id
                 if defender_id:
-                    engine.adjust_trust(nation_id, defender_id, -0.2)
-                    engine.adjust_trust(defender_id, nation_id, -0.2)
+                    engine.adjust_trust(nation_id, defender_id, -20)
+                    engine.adjust_trust(defender_id, nation_id, -20)
         
         elif unit_type == UnitType.AIRCRAFT:
             # Air strike: combat but no conquest
@@ -369,8 +369,8 @@ def _execute_move_troops(
             
             # Trust impact
             if defender_id:
-                engine.adjust_trust(nation_id, defender_id, -0.2)
-                engine.adjust_trust(defender_id, nation_id, -0.2)
+                engine.adjust_trust(nation_id, defender_id, -20)
+                engine.adjust_trust(defender_id, nation_id, -20)
         
         return
     
