@@ -58,27 +58,27 @@
 **Obiettivo:** Implementare unità militari, movimento, combattimento e nucleare.
 
 ### 4.1 Unit Types & Placement
-- [ ] **Definire `UnitType` Enum:** `SOLDIER`, `NAVY`, `AIRCRAFT`
-- [ ] **Vincoli di posizionamento:**
+- [x] **Definire `UnitType` Enum:** `SOLDIER`, `NAVY`, `AIRCRAFT`
+- [x] **Vincoli di posizionamento:**
   - Soldiers/Aircraft: LAND, COASTAL, MOUNTAIN (no OCEAN)
   - Navy: Solo OCEAN (in acque territoriali)
   - Soldiers su Navy: max 100 uomini per nave
 
 ### 4.2 CREATE_UNIT Action
-- [ ] **Checks:** Possesso provincia, Budget, Materials, Popolazione
-- [ ] **Costi:** Upfront + Mantenimento
-- [ ] **Conversione popolazione → soldato**
+- [x] **Checks:** Possesso provincia, Budget, Materials, Popolazione
+- [x] **Costi:** Upfront + Mantenimento
+- [x] **Conversione popolazione → soldato**
 
 ### 4.3 MOVE_TROOPS Action
-- [ ] **Via terra/mare/aerea**
-- [ ] **Costo Energy**
-- [ ] **Logica destinazione:** Rinforzo vs Battaglia
+- [x] **Via terra/mare/aerea**
+- [x] **Costo Energy**
+- [x] **Logica destinazione:** Rinforzo vs Battaglia
 
 ### 4.4 Combat Resolution
-- [ ] **Formula danno** con moltiplicatore terreno
-- [ ] **Forza combinata alleanze**
-- [ ] **Penalità reputazione** se guerra non dichiarata
-- [ ] **Naval Landing (sbarco anfibio unificato):**
+- [x] **Formula danno** con moltiplicatore terreno
+- [x] **Forza combinata alleanze**
+- [x] **Penalità reputazione** se guerra non dichiarata
+- [x] **Naval Landing (sbarco anfibio unificato):**
   1. Nave → acqua territoriale nemica
   2. Navi nemiche? → duello nave vs navi → sbarca su costa random
   3. No navi, unità su costa? → duello nave vs difensori → sbarca lì
@@ -86,21 +86,21 @@
   5. Sempre: nave distrutta, soldati = population nave
 
 ### 4.5 NUCLEAR_OPTION Action
-- [ ] **Distribuzione iniziale nukes** (seed-based)
-- [ ] **Effetti devastanti** (risorse → 0, Trust → 0)
-- [ ] **Coalition of Survival**
+- [x] **Distribuzione iniziale nukes** (seed-based)
+- [x] **Effetti devastanti** (risorse → 0, Trust → 0)
+- [x] **Diplomatic Fallout** (trust -0.8 per tutti)
 
 ---
 
 ## 🤝 FASE 5: Diplomacy & Treaty System
 **Obiettivo:** Trattati, alleanze, guerra e pace.
 
-- [ ] 5.1 Relationship States (PEACE, WAR, ALLIANCE)
-- [ ] 5.2 SEND_DIPLOMATIC_MESSAGE (Praise, Threat, Insult)
-- [ ] 5.3 PROPOSE_ALLIANCE
-- [ ] 5.4 DECLARATION_OF_WAR
-- [ ] 5.5 BREAK_TREATY
-- [ ] 5.6 REQUEST_PEACE
+- [x] 5.1 Relationship States (PEACE, WAR, ALLIANCE)
+- [x] 5.2 SEND_DIPLOMATIC_MESSAGE (Praise, Threat, Insult)
+- [x] 5.3 PROPOSE_ALLIANCE
+- [x] 5.4 DECLARATION_OF_WAR
+- [x] 5.5 BREAK_TREATY
+- [x] 5.6 REQUEST_PEACE
 
 ---
 

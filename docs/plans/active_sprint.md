@@ -1,77 +1,58 @@
-# 🏃 Active Sprint: Phase 4 (Advanced Military System)
+# 🚀 Sprint: Fase 5 - Diplomacy & Treaty System
 
-**Obiettivo:** Implementare unità militari, movimento e combattimento.
-
----
-
-## ✅ Completed (Phase 3.6 - UI Refactoring)
-- [x] Refactoring `web/app.py` in moduli (components/, views/)
-- [x] Layout 3-colonne (Stats | Map | Intel)
-- [x] Controlli spostati in alto (no sidebar)
-- [x] Trust Matrix sotto la mappa
-- [x] Visualizzazione acque territoriali
-- [x] Highlight nazione selezionata
-- [x] 71 test passati
+**Durata prevista:** ~2-3 sessioni
+**Obiettivo:** Trattati, alleanze, guerra e pace
 
 ---
 
-## 📝 Sprint Backlog: Military System
+## 📋 Task Breakdown
 
-### 🎯 Sprint Goal
-Implementare il sistema militare base: creazione unità, movimento truppe, e combattimento.
+#### 1. Relationship States
+- [x] Definire `RelationshipState` enum: `PEACE`, `WAR`, `ALLIANCE`
+- [x] Aggiungere `relationship_matrix` a `WorldState`
+- [x] Default: PEACE tra tutte le nazioni
+- [x] Test relationships
 
----
+#### 2. SEND_DIPLOMATIC_MESSAGE Action
+- [x] Definire `DiplomaticMessageType`: `PRAISE`, `THREAT`, `INSULT`
+- [x] Impatti trust:
+  - PRAISE: trust +0.1
+  - THREAT: trust -0.3
+  - INSULT: trust -0.1
+- [x] Log pubblico (vedere nel turno successivo)
+- [x] Test messages
 
-### Task Breakdown
+#### 3. PROPOSE_ALLIANCE Action
+- [x] Validazione: trust minimo (>0.6)
+- [x] Pendente fino a risposta (auto-accept per ora)
+- [x] Se accettata: relationship → ALLIANCE
+- [x] Bonus: mutual defense
+- [x] Test alliance
 
-#### 1. Unit Types & Constraints
-- [x] Creare `UnitType` Enum in `schemas/world.py`
-- [x] Definire costi unitari (budget, materials, energy, pop)
-- [x] Vincoli posizionamento per terreno
+#### 4. DECLARATION_OF_WAR Action
+- [x] Effetti: relationship → WAR
+- [x] Trust → 0 tra i due
+- [x] Notifica a tutti (log pubblico)
+- [x] Test war declaration
 
-#### 2. CREATE_UNIT Action
-- [x] Aggiungere `ActionType.CREATE_UNIT`
-- [x] Implementare validazione (budget, materials, pop)
-- [x] Handler che deduce risorse e crea unità
-- [x] Test CREATE_UNIT
+#### 5. BREAK_TREATY Action
+- [x] Rompere alleanza: relationship → PEACE
+- [x] Trust penalty: -0.5 per chi rompe
+- [x] Test break treaty
 
-#### 3. MOVE_TROOPS Action
-- [x] Aggiungere `ActionType.MOVE_TROOPS`
-- [x] Pathfinding via terra (grafo adiacenza)
-- [x] Movimento via mare (Navy transport)
-- [x] Costo energy per movimento
-- [x] Test MOVE_TROOPS
-
-#### 4. Combat Resolution
-- [x] Definire formula combattimento
-- [x] Moltiplicatori terreno (MOUNTAIN difesa ×1.5)
-- [x] Perdite e conquista provincia
-- [x] Impatto Trust e Satisfaction
-- [x] **Naval Landing (sbarco anfibio unificato):**
-  1. Nave entra in cella acqua territoriale nemica
-  2. Se ci sono navi nemiche → duello nave vs navi
-     - Vince → distrugge navi + sbarca soldati in costa adiacente random
-  3. Se NO navi ma ci sono unità su costa adiacente → duello nave vs difensori
-     - Vince → sbarca soldati su quella costa
-  4. Se NO navi e NO unità → sbarco automatico su costa adiacente random
-  5. In tutti i casi: nave distrutta, soldati = population della nave
-- [x] Test Combat
-
-#### 5. NUCLEAR_OPTION (Base)
-- [x] Validazione (possiede nukes)
-- [x] Effetti devastanti
-- [x] Reazione diplomatica globale
-- [x] Test Nuclear
+#### 6. REQUEST_PEACE Action
+- [x] Solo se in WAR
+- [x] Se accettata: relationship → PEACE (auto-accept per ora)
+- [x] Test peace request
 
 ---
 
 ## 📌 Note
 
-> **Focus:** Iniziare da CREATE_UNIT e MOVE_TROOPS, che sono prerequisiti per tutto il resto.
+> **Focus:** Iniziare con Relationship States e DiplomaticMessage, poi le actions più complesse.
 
 ---
 
 ## 🚧 Dependencies
 - Trust Matrix (già implementata)
-- Territorial Waters (già implementata)
-- Power Projection (già implementata)
+- Action Engine + Payload system (già implementato)

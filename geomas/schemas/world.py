@@ -10,6 +10,13 @@ class TerrainType(str, Enum):
     MOUNTAIN = "MOUNTAIN" # High defense bonus, movement penalty
 
 
+class RelationshipState(str, Enum):
+    """Diplomatic relationship state between two nations."""
+    PEACE = "PEACE"       # Default, can trade normally
+    WAR = "WAR"           # Cannot trade, combat enabled
+    ALLIANCE = "ALLIANCE" # Mutual defense, preferred trade
+
+
 class ProvinceState(BaseModel):
     """
     Represents a single province (Voronoi cell) in the world.
@@ -98,6 +105,9 @@ class WorldState(BaseModel):
     
     # Trust Matrix: trust_matrix[NationA][NationB] = 0.5 (A trusts B)
     trust_matrix: Dict[str, Dict[str, float]] = Field(default_factory=dict)
+    
+    # Relationship Matrix: relationship_matrix[A][B] = RelationshipState.WAR
+    relationship_matrix: Dict[str, Dict[str, str]] = Field(default_factory=dict)
     
     # Global Event Log for the current simulation run
     global_events: List[str] = Field(default_factory=list)

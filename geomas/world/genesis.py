@@ -45,11 +45,15 @@ class GenesisEngine:
         for n_a in nation_ids:
             if n_a not in self.world.trust_matrix:
                 self.world.trust_matrix[n_a] = {}
+            if n_a not in self.world.relationship_matrix:
+                self.world.relationship_matrix[n_a] = {}
             for n_b in nation_ids:
                 if n_a == n_b:
                     self.world.trust_matrix[n_a][n_b] = 1.0
                 else:
                     self.world.trust_matrix[n_a][n_b] = 0.5
+                    # Default relationship: PEACE with everyone
+                    self.world.relationship_matrix[n_a][n_b] = "PEACE"
 
         for year in range(1, years + 1):
             self._simulate_year(year)

@@ -20,10 +20,24 @@ class ForeignActionType(str, Enum):
     REQUEST_PEACE = "REQUEST_PEACE"
 
 
+class DiplomaticMessageType(str, Enum):
+    """Types of diplomatic messages with different trust impacts."""
+    PRAISE = "PRAISE"    # Positive message, increases trust
+    THREAT = "THREAT"    # Strong warning, decreases trust significantly
+    INSULT = "INSULT"    # Mild disrespect, decreases trust slightly
+
+
+# Trust impact per message type
+MESSAGE_TRUST_IMPACT: dict[DiplomaticMessageType, float] = {
+    DiplomaticMessageType.PRAISE: +0.1,
+    DiplomaticMessageType.THREAT: -0.3,   # Stronger than insult
+    DiplomaticMessageType.INSULT: -0.1,
+}
+
+
 class ForeignPayload(BaseModel):
     """Payload for Foreign Minister actions."""
     source: DecisionSource
     action_type: Optional[ForeignActionType] = None
     target_nation_id: Optional[str] = None
     parameters: Dict[str, Any] = Field(default_factory=dict)
-

@@ -7,13 +7,15 @@ Handles diplomatic actions: alliances, treaties, war declarations, peace.
 from geomas.actions.foreign.schemas import (
     ForeignActionType,
     ForeignPayload,
-    DecisionSource
+    DiplomaticMessageType,
+    MESSAGE_TRUST_IMPACT,
 )
 from geomas.actions.foreign.handler import execute_foreign
 
 __all__ = [
     "ForeignActionType",
     "ForeignPayload",
-    "DecisionSource",
-    "execute_foreign"
+    "DiplomaticMessageType",
+    "MESSAGE_TRUST_IMPACT",
+    "execute_foreign",
 ]
