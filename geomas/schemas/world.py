@@ -64,8 +64,15 @@ class NationState(BaseModel):
     # Ocean provinces adjacent to owned coastal provinces (exclusive economic zone)
     territorial_water_ids: List[int] = Field(default_factory=list)
     
-    # --- PUBLIC SATISFACTION ---
-    public_satisfaction: float = 0.5  # 0.0 to 1.0
+    # --- PUBLIC SATISFACTION (0-100) ---
+    public_satisfaction: float = 50.0  # 0 to 100
+    
+    # --- POPULATION OPINION (LLM-driven multipliers) ---
+    # Multipliers range 0.1 to 2.0, applied to satisfaction changes
+    population_multiplier_increase: float = 1.0  # Applied when satisfaction goes up
+    population_multiplier_decrease: float = 1.0  # Applied when satisfaction goes down
+    cultural_traits: List[str] = Field(default_factory=list)  # Seed-generated traits
+    civil_unrest_active: bool = False  # True when satisfaction < 10, ends at > 50
     
     # --- BUDGET (National Treasury) ---
     # Initialized randomly at genesis, increased only by province taxes

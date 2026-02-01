@@ -13,8 +13,8 @@ import networkx as nx
 class ActionValidators:
     """Namespace for validation logic to keep it organized."""
     
-    # Constants
-    MIN_SATISFACTION_FOR_WAR_TAX = 0.20
+    # Constants (satisfaction is 0-100)
+    MIN_SATISFACTION_FOR_WAR_TAX = 20
 
     @staticmethod
     def can_move_troops(

@@ -12,8 +12,12 @@ if TYPE_CHECKING:
     from geomas.actions.engine import ActionEngine
 
 
-WAR_TAX_SATISFACTION_PENALTY = 0.15
+# Satisfaction scale: 0-100
+WAR_TAX_SATISFACTION_PENALTY = 15  # -15 satisfaction
 WAR_TAX_BUDGET_BOOST_RATIO = 0.10
+
+# INVEST_WELFARE logarithmic formula constants
+WELFARE_LOG_CONSTANT = 100  # Divisor for diminishing returns
 
 
 def execute_economic(
@@ -42,16 +46,16 @@ def execute_economic(
         # Deduct budget
         engine.deduct_budget(nation_id, amount)
         
-        # Diminishing returns: satisfaction += log(amount) * 0.1
+        # Logarithmic diminishing returns: gain = K * log(1 + amount / C)
         if amount > 0:
-            satisfaction_gain = math.log(amount) * 0.02
+            satisfaction_gain = 10 * math.log(1 + amount / WELFARE_LOG_CONSTANT)
             nation.public_satisfaction = min(
-                1.0,
+                100,
                 nation.public_satisfaction + satisfaction_gain
             )
             engine.logs.append(
                 f"[ECONOMY] Invested {amount:.0f} in Welfare. "
-                f"Satisfaction +{satisfaction_gain:.3f} (now {nation.public_satisfaction:.2f})"
+                f"Satisfaction +{satisfaction_gain:.1f} (now {nation.public_satisfaction:.0f})"
             )
     
     # --- RAISE_WAR_TAX ---
@@ -67,11 +71,11 @@ def execute_economic(
         # Apply effects
         nation.total_budget += tax_boost
         nation.public_satisfaction -= WAR_TAX_SATISFACTION_PENALTY
-        nation.public_satisfaction = max(0.0, nation.public_satisfaction)
+        nation.public_satisfaction = max(0, nation.public_satisfaction)
         
         engine.logs.append(
             f"[ECONOMY] War Tax raised! Budget +{tax_boost:.0f}, "
-            f"Satisfaction -{WAR_TAX_SATISFACTION_PENALTY:.2f} (now {nation.public_satisfaction:.2f})"
+            f"Satisfaction -{WAR_TAX_SATISFACTION_PENALTY} (now {nation.public_satisfaction:.0f})"
         )
     
     # --- TRADE_PROPOSAL ---

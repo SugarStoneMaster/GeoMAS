@@ -105,11 +105,26 @@
 ---
 
 ## 👥 FASE 6: Public Opinion & Internal Stability
-**Obiettivo:** Popolazione come vincolo al potere.
+**Obiettivo:** Popolazione come vincolo al potere tramite LLM Agent.
 
-- [ ] 6.1 Satisfaction Dynamics (INVEST_WELFARE, RAISE_WAR_TAX)
-- [ ] 6.2 Negative Triggers (GENERAL_STRIKE, CIVIL_UNREST)
-- [ ] 6.3 Positive Triggers (RALLY_EFFECT)
+### 6.1 Schema & Package
+- [ ] Migrare `public_satisfaction`: 0.0-1.0 → 0-100
+- [ ] Creare package `geomas/actions/opinion/`
+- [ ] Campi: `multiplier_increase`, `multiplier_decrease`, `cultural_traits`
+
+### 6.2 Population LLM Agent
+- [ ] System prompt con demographics e tratti culturali (seed)
+- [ ] Output: 2 multipliers (0.1-2.0) per increase/decrease
+- [ ] Formula: `new_sat = base + (delta * multiplier)`
+
+### 6.3 Satisfaction Dynamics
+- [ ] Base deltas: WAR -3, PEACE +1, deficit -2, surplus +1
+- [ ] **INVEST_WELFARE**: logaritmico (non abusabile)
+- [ ] **RAISE_WAR_TAX**: satisfaction penalty
+
+### 6.4 Automatic Triggers
+- [ ] **GENERAL_STRIKE**: sat < 20 → production -50%
+- [ ] **CIVIL_UNREST**: sat < 10 → province 0 output (termina a >50)
 
 ---
 

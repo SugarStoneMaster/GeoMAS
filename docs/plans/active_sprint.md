@@ -1,58 +1,42 @@
-# 🚀 Sprint: Fase 5 - Diplomacy & Treaty System
+# 🚀 Sprint: Fase 6 - Public Opinion & Internal Stability
 
-**Durata prevista:** ~2-3 sessioni
-**Obiettivo:** Trattati, alleanze, guerra e pace
+**Status:** In Progress - 142 test passano
+**Obiettivo:** Popolazione come vincolo al potere tramite LLM Agent
 
 ---
 
 ## 📋 Task Breakdown
 
-#### 1. Relationship States
-- [x] Definire `RelationshipState` enum: `PEACE`, `WAR`, `ALLIANCE`
-- [x] Aggiungere `relationship_matrix` a `WorldState`
-- [x] Default: PEACE tra tutte le nazioni
-- [x] Test relationships
+#### 1. Schema Migration ✅
+- [x] Migrare `public_satisfaction` da 0.0-1.0 a 0-100
+- [x] Nuovi campi NationState: `multiplier_increase`, `multiplier_decrease`, `cultural_traits`, `civil_unrest_active`
 
-#### 2. SEND_DIPLOMATIC_MESSAGE Action
-- [x] Definire `DiplomaticMessageType`: `PRAISE`, `THREAT`, `INSULT`
-- [x] Impatti trust:
-  - PRAISE: trust +0.1
-  - THREAT: trust -0.3
-  - INSULT: trust -0.1
-- [x] Log pubblico (vedere nel turno successivo)
-- [x] Test messages
+#### 2. Opinion Package ✅
+- [x] `geomas/actions/opinion/` creato
+- [x] `schemas.py`: OpinionPayload, OpinionTrigger, costanti
+- [x] `handler.py`: execute_opinion, apply_satisfaction_deltas, check_triggers
+- [x] `traits.py`: generazione tratti culturali (seed-based)
+- [ ] Population Agent system prompt template
 
-#### 3. PROPOSE_ALLIANCE Action
-- [x] Validazione: trust minimo (>0.6)
-- [x] Pendente fino a risposta (auto-accept per ora)
-- [x] Se accettata: relationship → ALLIANCE
-- [x] Bonus: mutual defense
-- [x] Test alliance
+#### 3. Satisfaction Dynamics ✅
+- [x] Base deltas: WAR -3, PEACE +1, deficit -2, surplus +1
+- [x] Formula con moltiplicatori (increase/decrease)
 
-#### 4. DECLARATION_OF_WAR Action
-- [x] Effetti: relationship → WAR
-- [x] Trust → 0 tra i due
-- [x] Notifica a tutti (log pubblico)
-- [x] Test war declaration
+#### 4. Economic Actions ✅
+- [x] **INVEST_WELFARE**: `gain = 10 * log(1 + amount / 100)` (logaritmico)
+- [x] **RAISE_WAR_TAX**: -15 satisfaction
 
-#### 5. BREAK_TREATY Action
-- [x] Rompere alleanza: relationship → PEACE
-- [x] Trust penalty: -0.5 per chi rompe
-- [x] Test break treaty
+#### 5. Automatic Triggers ✅
+- [x] **GENERAL_STRIKE**: sat < 20 → production 50%
+- [x] **CIVIL_UNREST**: sat < 10 → province 0 output
+- [x] Recovery: sat > 50 termina unrest
 
-#### 6. REQUEST_PEACE Action
-- [x] Solo se in WAR
-- [x] Se accettata: relationship → PEACE (auto-accept per ora)
-- [x] Test peace request
+#### 6. Population LLM Agent 🔄
+- [ ] System prompt template con demographics/traits
+- [ ] Input: eventi turno, decisioni governo
+- [ ] Output: multiplier_increase, multiplier_decrease (0.1-2.0)
 
 ---
 
-## 📌 Note
-
-> **Focus:** Iniziare con Relationship States e DiplomaticMessage, poi le actions più complesse.
-
----
-
-## 🚧 Dependencies
-- Trust Matrix (già implementata)
-- Action Engine + Payload system (già implementato)
+## 📌 Remaining
+Solo LLM agent prompt template da completare.

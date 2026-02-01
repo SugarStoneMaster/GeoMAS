@@ -31,7 +31,7 @@ def render_nation_stats(world: WorldState, nation_id: str) -> None:
     
     # Overview metrics
     st.metric("💰 Budget", format_number(nation.total_budget))
-    st.metric("😊 Satisfaction", f"{nation.public_satisfaction:.0%}")
+    st.metric("😊 Satisfaction", f"{nation.public_satisfaction:.0f}/100")
     st.metric("⚡ Power", format_number(nation.power_projection, 1))
     
     st.markdown("---")

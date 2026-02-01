@@ -31,7 +31,7 @@ def sample_nation():
         total_aircraft=10,
         total_navy=20,
         nukes=0,
-        public_satisfaction=0.5
+        public_satisfaction=50
     )
 
 

@@ -39,7 +39,7 @@ def nation_a():
         total_aircraft=10,
         total_navy=20,
         power_projection=100.0,
-        public_satisfaction=0.5
+        public_satisfaction=50
     )
 
 
@@ -60,7 +60,7 @@ def nation_b():
         total_aircraft=5,
         total_navy=10,
         power_projection=50.0,
-        public_satisfaction=0.5
+        public_satisfaction=50
     )
 
 
