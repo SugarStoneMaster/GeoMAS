@@ -57,7 +57,7 @@ def assign_nations(
             id=nation_id,
             name=preset["name"],
             color=preset["color"],
-            capital_province_id=initial_capitals[i],
+            capital_province_id=int(initial_capitals[i]),
             province_ids=[],
             total_budget=initial_budget
         )
@@ -91,7 +91,7 @@ def assign_provinces_to_nations(
                 closest_nation_id = nation_id
         
         political_map[region_idx] = closest_nation_id
-        nations_dict[closest_nation_id].province_ids.append(region_idx)
+        nations_dict[closest_nation_id].province_ids.append(int(region_idx))
     
     return political_map
 
@@ -114,7 +114,7 @@ def refine_capitals(
                     max_area = area
                     best_capital = p_id
         
-        nation.capital_province_id = best_capital
+        nation.capital_province_id = int(best_capital)
 
 
 def assign_territorial_waters(
@@ -137,7 +137,7 @@ def assign_territorial_waters(
         if len(adjacent_nations) == 1:
             owner_id = list(adjacent_nations)[0]
             ocean_prov.owner_id = owner_id
-            nations_dict[owner_id].territorial_water_ids.append(r_idx)
+            nations_dict[owner_id].territorial_water_ids.append(int(r_idx))
 
 
 def distribute_nukes(

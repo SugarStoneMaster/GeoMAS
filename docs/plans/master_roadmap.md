@@ -143,40 +143,73 @@
 
 ---
 
-## 🎭 FASE 7.5: Deception Detection Framework
+## 🎭 FASE 7.5: Deception Detection Framework ✅
 **Obiettivo:** Misurare la deception tra dichiarazioni pubbliche e intenzioni private.
 
-### 7.5.1 Protocol Refactor
-- [ ] Aggiungere `public_intent` e `private_intent` per ogni dominio (3+3)
-- [ ] Aggiungere `private_reasoning` per ogni dominio (XAI)
-- [ ] Mantenere `GlobalStrategy` per orientamento strategico
-- [ ] `public_statement` unico con sezioni defense/economy/foreign
+### 7.5.1 Protocol Refactor ✅
+- [x] Aggiungere `public_intent` e `private_intent` per ogni dominio (3+3)
+- [x] Aggiungere `private_reasoning` per ogni dominio (XAI)
+- [x] Mantenere `GlobalStrategy` per orientamento strategico
+- [x] `public_statement` unico con sezioni defense/economy/foreign
 
-### 7.5.2 Intent Enums Review
-- [ ] Verificare `DefenseIntentType` sia completo
-- [ ] Verificare `EconomicIntentType` sia completo
-- [ ] Verificare `ForeignIntentType` sia completo
+### 7.5.2 Intent Enums Review ✅
+- [x] Verificare `DefenseIntentType` sia completo
+- [x] Verificare `EconomicIntentType` sia completo
+- [x] Verificare `ForeignIntentType` sia completo
 
-### 7.5.3 Deception Calculator
-- [ ] Creare matrice deception per ogni dominio: `score(private, public)`
-- [ ] Implementare `calculate_deception_score()` in `geomas/analysis/deception.py`
-- [ ] Aggregare score per turno e per nazione
+### 7.5.3 Deception Calculator ✅
+- [x] Creare matrice deception per ogni dominio: `score(private, public)`
+- [x] Implementare `DeceptionAnalyzer` in `geomas/analysis/deception.py`
+- [x] Aggregare score per turno e per nazione
 
-### 7.5.4 Deception Tracker
-- [ ] Struttura `DeceptionRecord` per logging
-- [ ] Tracciare per ogni turno: intents, actions, scores
-- [ ] Statistiche aggregate: media, max, trend
+### 7.5.4 Behavior Tracker ✅
+- [x] Struttura `BehaviorRecord` per logging
+- [x] Tracciare per ogni turno: intents, actions, scores
+- [x] Statistiche aggregate: media, max, trend
 
-### 7.5.5 Strategic Coherence
-- [ ] Mapping `EXPECTED_INTENTS[GlobalStrategy] -> intents tipici`
-- [ ] Implementare `calculate_coherence_score(strategy, private_intents)`
-- [ ] Due metriche indipendenti: Deception + Coherence
+### 7.5.5 Strategic Coherence ✅
+- [x] Mapping `EXPECTED_INTENTS[GlobalStrategy] -> intents tipici`
+- [x] Implementare `CoherenceAnalyzer.calculate_score(strategy, private_intents)`
+- [x] Due metriche indipendenti: Deception + Coherence
 
 ### 7.5.6 Dashboard Integration
 - [ ] Visualizzare deception score per nazione
 - [ ] Visualizzare coherence score per nazione
 - [ ] Timeline nel tempo
 - [ ] Dettaglio per dominio
+
+---
+
+## 💾 FASE 7.6: Persistence Layer & XAI Database
+**Obiettivo:** Salvare stato simulazione per analisi post-hoc e explainability.
+
+### 7.6.1 Database Design
+- [ ] Scegliere tipo database (SQLite/DuckDB/Parquet)
+- [ ] Definire schema tabelle/collections
+- [ ] Gestione sessioni di simulazione
+
+### 7.6.2 World State Snapshots
+- [ ] Salvare `WorldState` completo per ogni turno
+- [ ] Snapshot nazioni (budget, risorse, province, unità)
+- [ ] Snapshot province (owner, population, production)
+- [ ] Snapshot relazioni (trust, treaties, wars)
+
+### 7.6.3 Agent Decision Logs
+- [ ] Salvare tutti i `CountryEnvelope` per turno
+- [ ] Salvare public/private intents
+- [ ] Salvare reasoning chains
+- [ ] Collegare azioni eseguite a decisioni
+
+### 7.6.4 Behavior Metrics
+- [ ] Persistere `BehaviorRecord` per ogni turno
+- [ ] Deception scores storici
+- [ ] Coherence scores storici
+
+### 7.6.5 Query Interface
+- [ ] Query: "Stato mondo al turno X"
+- [ ] Query: "Decisioni nazione Y nel turno Z"
+- [ ] Query: "Evoluzione metrica nel tempo"
+- [ ] Export CSV/JSON per analisi esterna
 
 ---
 
