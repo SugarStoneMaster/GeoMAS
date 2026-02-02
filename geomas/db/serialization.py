@@ -117,3 +117,119 @@ def serialize_world_snapshot(world) -> Dict[str, str]:
         'trust_matrix_json': serialize_trust_matrix(world.trust_matrix),
         'relationship_matrix_json': serialize_relationship_matrix(world.relationship_matrix)
     }
+
+
+# --- DESERIALIZATION ---
+
+def deserialize_provinces(json_data) -> Dict[int, Any]:
+    """
+    Deserialize provinces JSON back to dict of ProvinceState.
+    
+    Args:
+        json_data: JSON string or parsed list of province dicts
+        
+    Returns:
+        Dict of province_id -> ProvinceState
+    """
+    from geomas.schemas.world import ProvinceState
+    
+    if isinstance(json_data, str):
+        data = json.loads(json_data)
+    else:
+        data = json_data
+    
+    provinces = {}
+    for p_dict in data:
+        province = ProvinceState(**p_dict)
+        provinces[province.id] = province
+    
+    return provinces
+
+
+def deserialize_nations(json_data) -> Dict[str, Any]:
+    """
+    Deserialize nations JSON back to dict of NationState.
+    
+    Args:
+        json_data: JSON string or parsed list of nation dicts
+        
+    Returns:
+        Dict of nation_id -> NationState
+    """
+    from geomas.schemas.world import NationState
+    
+    if isinstance(json_data, str):
+        data = json.loads(json_data)
+    else:
+        data = json_data
+    
+    nations = {}
+    for n_dict in data:
+        nation = NationState(**n_dict)
+        nations[nation.id] = nation
+    
+    return nations
+
+
+def deserialize_trust_matrix(json_data) -> Dict[str, Dict[str, float]]:
+    """
+    Deserialize trust matrix JSON.
+    
+    Args:
+        json_data: JSON string or parsed dict
+        
+    Returns:
+        Trust matrix dict
+    """
+    if isinstance(json_data, str):
+        return json.loads(json_data)
+    return json_data
+
+
+def deserialize_relationship_matrix(json_data) -> Dict[str, Dict[str, str]]:
+    """
+    Deserialize relationship matrix JSON.
+    
+    Args:
+        json_data: JSON string or parsed dict
+        
+    Returns:
+        Relationship matrix dict (values are RelationshipState string values)
+    """
+    if isinstance(json_data, str):
+        return json.loads(json_data)
+    return json_data
+
+
+def deserialize_world_snapshot(
+    provinces_json,
+    nations_json,
+    trust_matrix_json,
+    relationship_matrix_json,
+    turn: int = 0,
+    global_events: List[str] = None
+):
+    """
+    Reconstruct a WorldState from DB snapshot data.
+    
+    Args:
+        provinces_json: Provinces JSON data
+        nations_json: Nations JSON data
+        trust_matrix_json: Trust matrix JSON data
+        relationship_matrix_json: Relationship matrix JSON data
+        turn: Turn number
+        global_events: Optional list of global events
+        
+    Returns:
+        Reconstructed WorldState instance
+    """
+    from geomas.schemas.world import WorldState
+    
+    return WorldState(
+        turn=turn,
+        provinces=deserialize_provinces(provinces_json),
+        nations=deserialize_nations(nations_json),
+        trust_matrix=deserialize_trust_matrix(trust_matrix_json),
+        relationship_matrix=deserialize_relationship_matrix(relationship_matrix_json),
+        global_events=global_events or []
+    )

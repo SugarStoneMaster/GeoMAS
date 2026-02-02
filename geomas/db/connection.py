@@ -310,6 +310,32 @@ class SimulationDB:
             "total_turns": result[5]
         }
     
+    def load_world_at_turn(self, turn: int, global_events: list = None):
+        """
+        Load and reconstruct WorldState for a specific turn.
+        
+        Args:
+            turn: Turn number to load
+            global_events: Optional global events list (not stored per-snapshot)
+            
+        Returns:
+            Reconstructed WorldState or None if turn not found
+        """
+        from geomas.db.serialization import deserialize_world_snapshot
+        
+        snapshot = self.load_snapshot(turn)
+        if snapshot is None:
+            return None
+        
+        return deserialize_world_snapshot(
+            provinces_json=snapshot["provinces_json"],
+            nations_json=snapshot["nations_json"],
+            trust_matrix_json=snapshot["trust_matrix"],
+            relationship_matrix_json=snapshot["relationship_matrix"],
+            turn=turn,
+            global_events=global_events or []
+        )
+    
     def export_behaviors_csv(self, path: str) -> None:
         """Export behaviors table to CSV."""
         self.conn.execute(f"""

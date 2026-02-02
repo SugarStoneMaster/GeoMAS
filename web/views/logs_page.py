@@ -38,19 +38,24 @@ def render_logs_page(world: WorldState, history: List[List[CountryEnvelope]]) ->
             nation_name = world.nations[envelope.sender_id].name
             
             with st.expander(f"{nation_name}: {envelope.public_statement}"):
-                st.markdown(f"**Public Intent:** {envelope.public_intent.value}")
                 st.markdown(f"**Global Strategy:** {envelope.global_strategy.value}")
                 
                 c1, c2, c3 = st.columns(3)
                 with c1:
                     st.markdown("**⚔️ Defense**")
-                    st.json(envelope.defense_payload.model_dump())
-                    st.caption(f"Intent: {envelope.defense_intent.type.value}")
+                    st.caption(f"Public: {envelope.defense_public_intent.value}")
+                    st.caption(f"Private: {envelope.defense_private_intent.value}")
+                    if envelope.defense_payload:
+                        st.json(envelope.defense_payload.model_dump())
                 with c2:
                     st.markdown("**💰 Economic**")
-                    st.json(envelope.economic_payload.model_dump())
-                    st.caption(f"Intent: {envelope.economic_intent.type.value}")
+                    st.caption(f"Public: {envelope.economic_public_intent.value}")
+                    st.caption(f"Private: {envelope.economic_private_intent.value}")
+                    if envelope.economic_payload:
+                        st.json(envelope.economic_payload.model_dump())
                 with c3:
                     st.markdown("**🤝 Foreign**")
-                    st.json(envelope.foreign_payload.model_dump())
-                    st.caption(f"Intent: {envelope.foreign_intent.type.value}")
+                    st.caption(f"Public: {envelope.foreign_public_intent.value}")
+                    st.caption(f"Private: {envelope.foreign_private_intent.value}")
+                    if envelope.foreign_payload:
+                        st.json(envelope.foreign_payload.model_dump())

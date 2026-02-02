@@ -235,3 +235,50 @@ class TestIntegration:
         # Verify counts match
         assert len(provinces) == len(original_world.provinces)
         assert len(nations) == len(original_world.nations)
+    
+    def test_load_world_at_turn(self, db_with_world):
+        """WorldState can be fully reconstructed from DB."""
+        db, original_world = db_with_world
+        
+        loaded_world = db.load_world_at_turn(0)
+        
+        assert loaded_world is not None
+        assert loaded_world.turn == 0
+        assert len(loaded_world.provinces) == len(original_world.provinces)
+        assert len(loaded_world.nations) == len(original_world.nations)
+        
+        # Verify a province was correctly reconstructed
+        original_province = list(original_world.provinces.values())[0]
+        loaded_province = loaded_world.provinces[original_province.id]
+        assert loaded_province.terrain == original_province.terrain
+        assert loaded_province.population == original_province.population
+
+
+class TestEngineIntegration:
+    """Tests for SimulationEngine DB integration."""
+    
+    def test_engine_with_db_creates_initial_snapshot(self):
+        """SimulationEngine saves turn 0 snapshot on init."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            db_path = os.path.join(tmpdir, "sim.duckdb")
+            
+            # Create engine with DB
+            from geomas.simulation import SimulationEngine
+            engine = SimulationEngine(
+                map_seed=42,
+                history_seed=99,
+                n_cells=50,
+                db_path=db_path
+            )
+            
+            # Verify turn 0 was saved
+            snapshot = engine.db.load_snapshot(0)
+            assert snapshot is not None
+            
+            # Verify world can be loaded
+            world = engine.db.load_world_at_turn(0)
+            assert world is not None
+            assert world.turn == 0
+            
+            engine.close()
+

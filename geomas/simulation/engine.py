@@ -5,21 +5,47 @@ The Main Loop. Orchestrates the flow of time, agent decisions, and world updates
 """
 
 import random
-from typing import Dict, List
+from typing import Dict, List, Optional
 from geomas.agents.schemas import CountryEnvelope, GlobalStrategy
 from geomas.world import generate_world
 from geomas.actions import ActionEngine
 from geomas.agents.nation_agent import NationAgent
 from geomas.agents.llm_client import LLMClient
 from geomas.simulation.phases import run_upkeep_phase
+from geomas.db import SimulationDB
+from geomas.db.serialization import serialize_world_snapshot, serialize_envelope
+from geomas.analysis import DeceptionAnalyzer, CoherenceAnalyzer
 
 
 class SimulationEngine:
     """
     The Main Loop. Orchestrates the flow of time, agent decisions, and world updates.
+    
+    Optional persistence via DuckDB when db_path is provided.
     """
 
-    def __init__(self, map_seed: int = 42, history_seed: int = 99, n_cells: int = 1500, llm_client: LLMClient = None):
+    def __init__(
+        self, 
+        map_seed: int = 42, 
+        history_seed: int = 99, 
+        n_cells: int = 1500, 
+        llm_client: LLMClient = None,
+        db_path: Optional[str] = None
+    ):
+        """
+        Initialize the simulation engine.
+        
+        Args:
+            map_seed: Seed for world map generation
+            history_seed: Seed for historical events
+            n_cells: Number of provinces
+            llm_client: Optional LLM client for agent decisions
+            db_path: Optional path to DuckDB file for persistence
+        """
+        self.map_seed = map_seed
+        self.history_seed = history_seed
+        self.n_cells = n_cells
+        
         # 1. Initialize World
         self.world = generate_world(seed=map_seed, history_seed=history_seed, n_cells=n_cells)
         
@@ -36,7 +62,28 @@ class SimulationEngine:
         self.turn_logs: List[str] = []
         # Store full envelopes for rich history visualization
         # List of turns, where each turn is a list of envelopes
-        self.history: List[List[CountryEnvelope]] = [] 
+        self.history: List[List[CountryEnvelope]] = []
+        
+        # 4. Initialize Database (optional)
+        self.db: Optional[SimulationDB] = None
+        if db_path:
+            self._init_db(db_path)
+
+    def _init_db(self, db_path: str) -> None:
+        """Initialize database and save initial snapshot (turn 0)."""
+        self.db = SimulationDB(db_path)
+        self.db.initialize(
+            genesis_seed=self.map_seed,
+            simulation_seed=self.history_seed,
+            n_cells=self.n_cells
+        )
+        
+        # Save initial world state (turn 0)
+        snapshot = serialize_world_snapshot(self.world)
+        self.db.save_snapshot(
+            turn=0,
+            **snapshot
+        )
 
     def _init_agents(self):
         """Creates a NationAgent for each nation in the world."""
@@ -48,6 +95,44 @@ class SimulationEngine:
                 world=self.world,
                 llm_client=self.client,
                 global_strategy=strategy
+            )
+
+    def _persist_turn(self, turn: int, envelopes: List[CountryEnvelope]) -> None:
+        """Persist turn data to database."""
+        if self.db is None:
+            return
+        
+        # Save world snapshot
+        snapshot = serialize_world_snapshot(self.world)
+        self.db.save_snapshot(turn=turn, **snapshot)
+        
+        # Save envelopes and behavior metrics
+        for envelope in envelopes:
+            # Save envelope
+            self.db.save_envelope(
+                turn=turn,
+                nation_id=envelope.sender_id,
+                envelope_json=serialize_envelope(envelope)
+            )
+            
+            # Calculate and save behavior metrics
+            detailed = DeceptionAnalyzer.calculate_detailed_score(envelope)
+            coherence = CoherenceAnalyzer.calculate_score(
+                envelope.global_strategy,
+                envelope.defense_private_intent,
+                envelope.economic_private_intent,
+                envelope.foreign_private_intent
+            )
+            
+            self.db.save_behavior(
+                turn=turn,
+                nation_id=envelope.sender_id,
+                deception_total=detailed["total"],
+                deception_defense=detailed["defense"],
+                deception_economic=detailed["economic"],
+                deception_foreign=detailed["foreign"],
+                coherence_score=coherence,
+                global_strategy=envelope.global_strategy.value
             )
 
     def step(self):
@@ -82,6 +167,9 @@ class SimulationEngine:
         for envelope in turn_envelopes:
             logs = self.engine.execute_envelope(envelope)
             self.turn_logs.extend(logs)
+        
+        # 3. PERSIST PHASE (Database)
+        self._persist_turn(current_turn, turn_envelopes)
             
         print(f"--- TURN {current_turn} COMPLETE ---")
 
@@ -89,3 +177,16 @@ class SimulationEngine:
         """Runs the simulation for N steps."""
         for _ in range(steps):
             self.step()
+    
+    def close(self):
+        """Close database connection if open."""
+        if self.db:
+            self.db.close()
+    
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit."""
+        self.close()

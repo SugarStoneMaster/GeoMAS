@@ -31,7 +31,8 @@ def render_deception_page(world: WorldState, history: List[List[CountryEnvelope]
     
     for envelope in latest_envelopes:
         nation = world.nations[envelope.sender_id]
-        score = DeceptionAnalyzer.calculate_score(envelope)
+        detailed = DeceptionAnalyzer.calculate_detailed_score(envelope)
+        score = detailed["total"]
         
         # Color code based on score
         if score < 0.3:
@@ -44,4 +45,10 @@ def render_deception_page(world: WorldState, history: List[List[CountryEnvelope]
         col1, col2, col3 = st.columns([2, 1, 3])
         col1.markdown(f"**{nation.name}**")
         col2.markdown(f"{color} **{score:.2f}**")
-        col3.caption(f"Public: {envelope.public_intent.value} | Defense: {envelope.defense_intent.type.value}")
+        
+        # Show per-domain breakdown
+        col3.caption(
+            f"Defense: {detailed['defense']:.2f} | "
+            f"Economic: {detailed['economic']:.2f} | "
+            f"Foreign: {detailed['foreign']:.2f}"
+        )

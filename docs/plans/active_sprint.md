@@ -142,15 +142,16 @@ CREATE TABLE behaviors (
 
 ## 🔜 Prossimi Step
 
-### 6. Deserialization (JSON → Pydantic)
-- [ ] `deserialize_provinces(json) -> Dict[int, ProvinceState]`
-- [ ] `deserialize_nations(json) -> Dict[str, NationState]`
-- [ ] `load_world_at_turn(turn) -> WorldState`
+### 6. Deserialization (JSON → Pydantic) ✅
+- [x] `deserialize_provinces(json) -> Dict[int, ProvinceState]`
+- [x] `deserialize_nations(json) -> Dict[str, NationState]`
+- [x] `load_world_at_turn(turn) -> WorldState`
 
-### 7. SimulationEngine Integration
-- [ ] Aggiungere parametro `db_path: Optional[str]` a SimulationEngine
-- [ ] Hook in `step()` → auto-persist dopo ogni turno
-- [ ] Salvare snapshot iniziale (turno 0)
+### 7. SimulationEngine Integration ✅
+- [x] Aggiungere parametro `db_path: Optional[str]` a SimulationEngine
+- [x] Hook in `step()` → auto-persist dopo ogni turno
+- [x] Salvare snapshot iniziale (turno 0)
+- [x] Save envelopes e behavior metrics per turno
 
 ### 8. In-Memory Cache
 - [ ] Cache ultimi N turni per context LLM
