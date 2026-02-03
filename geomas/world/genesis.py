@@ -1,12 +1,22 @@
+"""
+Genesis Engine.
+
+Simulates 'Ancient History' deterministically to populate the Trust Matrix
+and provide context before the LLM agents take over.
+"""
+
 import numpy as np
-from typing import List, Dict, Tuple, Any
-from geomas.schemas.world import WorldState, TerrainType # Updated import
+from typing import List, Dict, Tuple, Optional, Any
+from geomas.schemas.world import WorldState, TerrainType
 from geomas.world.spatial import SpatialManager
+
 
 class GenesisEngine:
     """
     Simulates 'Ancient History' deterministically to populate the Trust Matrix
     and provide context before the LLM agents take over.
+    
+    Optionally persists events to GenesisDB for reuse.
     """
 
     # OPTIMIZED CONFIGURATION (Genetic Algorithm Result)
@@ -24,17 +34,41 @@ class GenesisEngine:
         "rivalry_chance": 0.1111
     }
 
-    def __init__(self, world: WorldState, seed: int = 42, config: Dict[str, float] = None):
+    def __init__(
+        self, 
+        world: WorldState, 
+        seed: int = 42, 
+        config: Dict[str, float] = None,
+        db_path: Optional[str] = None
+    ):
+        """
+        Initialize GenesisEngine.
+        
+        Args:
+            world: WorldState to populate
+            seed: RNG seed for deterministic history
+            config: Optional config overrides
+            db_path: Optional path to GenesisDB file for persistence
+        """
         self.world = world
         self.spatial = SpatialManager(world)
+        self.seed = seed
         self.rng = np.random.RandomState(seed)
         self.history_log: List[str] = []
         self.alliances: Dict[Tuple[str, str], bool] = {}
+        
+        # Structured events for DB storage
+        self._events: List[Dict[str, Any]] = []
+        self._event_counter = 0
         
         # Load config or defaults
         self.config = self.DEFAULT_CONFIG.copy()
         if config:
             self.config.update(config)
+        
+        # Optional database persistence
+        self.db = None
+        self.db_path = db_path
 
     def initialize_history(self, years: int = 50):
         """Runs a fast-forward simulation of N years."""
@@ -59,7 +93,39 @@ class GenesisEngine:
             self._simulate_year(year)
 
         self.world.global_events = self.history_log
+        
+        # Persist to DB if path provided
+        if self.db_path:
+            self._persist_to_db(years)
+        
         print(f"Genesis Complete. Generated {len(self.history_log)} historical events.")
+
+    def _persist_to_db(self, years: int) -> None:
+        """Save genesis data to database."""
+        from geomas.db import GenesisDB
+        
+        self.db = GenesisDB(self.db_path)
+        self.db.initialize(
+            seed=self.seed,
+            years=years,
+            n_nations=len(self.world.nations),
+            config=self.config
+        )
+        
+        # Convert events to tuple format for batch insert
+        event_tuples = [
+            (e["id"], e["year"], e["tag"], e["description"], e["nation_a"], e["nation_b"])
+            for e in self._events
+        ]
+        self.db.save_events_batch(event_tuples)
+        
+        # Save final trust matrix
+        self.db.save_trust_matrix(self.world.trust_matrix)
+        
+        # Save active alliances
+        self.db.save_alliances(self.alliances)
+        
+        print(f"Genesis persisted to {self.db_path}")
 
     def _simulate_year(self, year: int):
         nation_ids = list(self.world.nations.keys())
@@ -101,11 +167,21 @@ class GenesisEngine:
             if self.rng.rand() < self.config["alliance_chance"]:
                 self.alliances[pair_key] = True
                 self._update_trust(n_a, n_b, 20)  # +20 trust
-                self._log_event(year, f"Formal ALLIANCE signed between {self._name(n_a)} and {self._name(n_b)}.", "ALLIANCE")
+                self._log_event(
+                    year, 
+                    f"Formal ALLIANCE signed between {self._name(n_a)} and {self._name(n_b)}.", 
+                    "ALLIANCE",
+                    n_a, n_b
+                )
         
         if current < 40 and pair_key in self.alliances:
             del self.alliances[pair_key]
-            self._log_event(year, f"Alliance BROKEN between {self._name(n_a)} and {self._name(n_b)}.", "BETRAYAL")
+            self._log_event(
+                year, 
+                f"Alliance BROKEN between {self._name(n_a)} and {self._name(n_b)}.", 
+                "BETRAYAL",
+                n_a, n_b
+            )
 
         if current < rivalry_thresh:
              if self.rng.rand() < self.config["rivalry_chance"]:
@@ -145,7 +221,12 @@ class GenesisEngine:
         
         if self.rng.rand() < friction_prob:
             self._update_trust(n_a, n_b, -self.config["conflict_penalty"] * 100)  # Scale penalty
-            self._log_event(year, f"Border skirmish between {self._name(n_a)} and {self._name(n_b)}.", "CONFLICT")
+            self._log_event(
+                year, 
+                f"Border skirmish between {self._name(n_a)} and {self._name(n_b)}.", 
+                "CONFLICT",
+                n_a, n_b
+            )
 
     def _handle_trade_dynamics(self, n_a: str, n_b: str, year: int):
         res_a = self._get_total_resources(n_a)
@@ -169,7 +250,12 @@ class GenesisEngine:
         if self.rng.rand() < complementarity:
             self._update_trust(n_a, n_b, self.config["trade_bonus"] * 100)  # Scale bonus
             if self.rng.rand() < 0.2: 
-                self._log_event(year, f"Trade agreement signed between {self._name(n_a)} and {self._name(n_b)}.", "TRADE")
+                self._log_event(
+                    year, 
+                    f"Trade agreement signed between {self._name(n_a)} and {self._name(n_b)}.", 
+                    "TRADE",
+                    n_a, n_b
+                )
 
     def _update_trust(self, n_a: str, n_b: str, delta: float):
         """Update trust between nations (0-100 scale)."""
@@ -191,5 +277,17 @@ class GenesisEngine:
     def _name(self, n_id: str) -> str:
         return self.world.nations[n_id].name
 
-    def _log_event(self, year: int, text: str, tag: str):
+    def _log_event(self, year: int, text: str, tag: str, nation_a: str = None, nation_b: str = None):
+        """Log event to history and store structured data for DB."""
         self.history_log.append(f"[Year {year}] [{tag}] {text}")
+        
+        # Store structured event for DB persistence
+        self._event_counter += 1
+        self._events.append({
+            "id": self._event_counter,
+            "year": year,
+            "tag": tag,
+            "description": text,
+            "nation_a": nation_a,
+            "nation_b": nation_b
+        })
