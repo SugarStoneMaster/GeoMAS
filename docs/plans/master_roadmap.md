@@ -182,34 +182,34 @@
 
 ## 💾 FASE 7.6: Persistence Layer & XAI Database
 **Obiettivo:** Salvare stato simulazione per analisi post-hoc e explainability.
+**Status:** ✅ Database Layer Complete, Context Management In Progress
 
-### 7.6.1 Database Design
-- [ ] Scegliere tipo database (SQLite/DuckDB/Parquet)
-- [ ] Definire schema tabelle/collections
-- [ ] Gestione sessioni di simulazione
+### 7.6.1 Database Design ✅
+- [x] DuckDB file-based OLAP database
+- [x] Schema: simulations, snapshots, envelopes, behaviors
+- [x] Package `geomas/db/` con SimulationDB class
 
-### 7.6.2 World State Snapshots
-- [ ] Salvare `WorldState` completo per ogni turno
-- [ ] Snapshot nazioni (budget, risorse, province, unità)
-- [ ] Snapshot province (owner, population, production)
-- [ ] Snapshot relazioni (trust, treaties, wars)
+### 7.6.2 World State Snapshots ✅
+- [x] Salvare `WorldState` completo per ogni turno
+- [x] Serializzazione/deserializzazione con gestione numpy types
+- [x] `load_world_at_turn()` per ricostruire stato
 
-### 7.6.3 Agent Decision Logs
-- [ ] Salvare tutti i `CountryEnvelope` per turno
-- [ ] Salvare public/private intents
-- [ ] Salvare reasoning chains
-- [ ] Collegare azioni eseguite a decisioni
+### 7.6.3 Agent Decision Logs ✅
+- [x] Salvare tutti i `CountryEnvelope` per turno
+- [x] Auto-persist in SimulationEngine.step()
 
-### 7.6.4 Behavior Metrics
-- [ ] Persistere `BehaviorRecord` per ogni turno
-- [ ] Deception scores storici
-- [ ] Coherence scores storici
+### 7.6.4 Behavior Metrics ✅
+- [x] Persistere deception/coherence scores per turno
+- [x] Query interface con DataFrame output
 
-### 7.6.5 Query Interface
-- [ ] Query: "Stato mondo al turno X"
-- [ ] Query: "Decisioni nazione Y nel turno Z"
-- [ ] Query: "Evoluzione metrica nel tempo"
-- [ ] Export CSV/JSON per analisi esterna
+### 7.6.5 Context Management System (In Progress)
+- [ ] Package `geomas/memory/` con ContextManager
+- [ ] RelationshipSummary: pre-computed summaries per relazione
+- [ ] NotableEvent: eventi significativi filtrati
+- [ ] MyAction: cronologia azioni proprie (ego-centric)
+- [ ] Token budget management (~5000 max)
+- [ ] Pruning strategy per history overflow
+- [ ] Integration con NationAgent prompts
 
 ---
 

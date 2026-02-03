@@ -5,167 +5,253 @@
 
 ---
 
-## 🎯 Requisiti
+## ✅ Completato
 
-### Funzionali
-1. Salvare lo stato completo del mondo ad ogni turno
-2. Salvare tutte le decisioni degli agenti (envelopes)
-3. Salvare metriche comportamentali (deception, coherence)
-4. Query temporali: "cosa è successo al turno X?"
-5. Export per analisi esterna
+### 1. Database Layer (DuckDB) ✅
+- [x] Package `geomas/db/` con `SimulationDB`, serialization helpers
+- [x] Schema: simulations, snapshots, envelopes, behaviors
+- [x] Serializzazione/deserializzazione WorldState, Envelopes
+- [x] Query interface: `load_world_at_turn()`, `get_behavior_timeline()`
+- [x] SimulationEngine integration: auto-persist ogni turno
+- [x] 16 test passati
 
-### Non-Funzionali
-1. **Determinismo**: A parità di seed, dati identici
-2. **Performance**: Non rallentare la simulazione (~10ms/turno max)
-3. **Semplicità**: No dipendenze server esterni
-4. **Portabilità**: File-based, copiabile
-5. **Analisi**: Supporto query analitiche
+### 2. In-Memory Cache ✅
+- [x] `TurnCache` class in `geomas/db/cache.py`
+- [x] Caching ultimi N turni (default 20)
+- [x] O(1) access via `_turn_index` dict
+- [x] Deep copy WorldState per evitare mutation
+- [x] Auto-eviction oldest turns when at capacity
+- [x] Integrato in `SimulationEngine` con `cache_size` parameter
+- [x] Cache access methods: `get_cached_world()`, `get_cached_envelopes()`, etc.
+- [x] 10 test passati (193 totali)
 
----
-
-## ✅ Decisione: DuckDB
-
-**Database scelto:** DuckDB (file-based OLAP)
-
-**Motivazioni:**
-- Ottimizzato per query analitiche (XAI, Jupyter)
-- SQL standard
-- Compressione ZSTD nativa
-- Zero config (un file)
-- Pandas/Polars integration
-
-**Dimensioni stimate:**
-- ~70 KB per turno (senza genesis events)
-- 100 turni = ~7 MB (non compresso)
-- Con compressione: ~2-3 MB
+### 3. Genesis DB ✅
+- [x] `GenesisDB` class in `geomas/db/genesis.py`
+- [x] Schema: genesis_meta, events, initial_trust, alliances
+- [x] `save_events_batch()` per bulk insert
+- [x] Query: `get_events_for_nation()`, `get_events_by_tag()`
+- [x] `GenesisEngine` integration con `db_path` parameter
+- [x] Auto-persist eventi, trust matrix, e alliances
+- [x] 9 test passati (202 totali)
 
 ---
 
-## 📊 Schema Finale
+## 🔜 In Corso: Context Management System
 
-### File: `data/genesis_{seed}.duckdb` (separato)
-```sql
--- Eventi storici generati dal Genesis module
-CREATE TABLE genesis_events (
-    year INT,
-    event_type VARCHAR,
-    nations JSON,
-    description VARCHAR
-);
+### Problema
+Gli agenti LLM necessitano di context appropriato per decidere. Sfide:
+1. **Token limit**: Max ~5000 token totali (system + user prompt)
+2. **Relevance**: Includere info pertinenti senza sapere a priori con chi interagiranno
+3. **History growth**: La storia cresce ma il budget token è fisso
+4. **Ego-centric view**: Ogni nazione ha visione parziale del mondo
 
--- Snapshot mondo post-genesis (turno 0)
-CREATE TABLE initial_state (
-    world_json JSON
-);
+### Decisione: Hybrid B+E (Relationship Summaries + Event Memory)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ TOKEN BUDGET (5000 max)                                 │
+├─────────────────────────────────────────────────────────┤
+│ SYSTEM PROMPT (statico)             ~800 token          │
+│ ├── Personalità nazione                                 │
+│ ├── GlobalStrategy                                      │
+│ └── Regole output                                       │
+├─────────────────────────────────────────────────────────┤
+│ USER PROMPT (dinamico)              ~4200 token         │
+│ ├── Current State (NationState)      ~300 token         │
+│ ├── Relationship Summaries           ~1500 token        │
+│ ├── Notable Events                   ~1000 token        │
+│ ├── My Recent Actions                ~800 token         │
+│ └── Instructions/Buffer              ~600 token         │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### File: `data/simulation_{id}.duckdb`
-```sql
--- Metadata simulazione
-CREATE TABLE simulation (
-    id UUID PRIMARY KEY,
-    genesis_seed INT,
-    simulation_seed INT,
-    n_cells INT,
-    created_at TIMESTAMP,
-    completed_at TIMESTAMP,
-    total_turns INT
-);
+---
 
--- Snapshot mondo per turno (provinces + nations + trust + relations)
-CREATE TABLE snapshots (
-    turn INT PRIMARY KEY,
-    provinces_json JSON,
-    nations_json JSON,
-    trust_matrix JSON,
-    relationship_matrix JSON
-);
+## 📊 Schema Context Management
 
--- Decisioni agenti (CountryEnvelope)
-CREATE TABLE envelopes (
-    turn INT,
-    nation_id VARCHAR,
-    envelope_json JSON,
-    PRIMARY KEY (turn, nation_id)
-);
+### RelationshipSummary (Opzione B)
+Summary compatto di ogni relazione bilaterale. Pre-calcolato, aggiornato dopo ogni turno.
 
--- Metriche comportamentali (colonne flat per query veloci)
-CREATE TABLE behaviors (
-    turn INT,
-    nation_id VARCHAR,
-    deception_total FLOAT,
-    deception_defense FLOAT,
-    deception_economic FLOAT,
-    deception_foreign FLOAT,
-    coherence_score FLOAT,
-    global_strategy VARCHAR,
-    PRIMARY KEY (turn, nation_id)
-);
+```python
+class RelationshipSummary:
+    other_nation_id: str
+    other_nation_name: str
+    
+    # Stato corrente (dal world state)
+    relationship: RelationshipState  # WAR, PEACE, ALLIANCE
+    trust: float  # 0-100
+    trust_trend: str  # "↑" rising, "↓" falling, "→" stable
+    
+    # Ultima interazione
+    last_interaction_turn: Optional[int]
+    last_interaction_summary: Optional[str]  # "They proposed alliance"
+    
+    # Eventi notevoli (max 2-3, più recenti)
+    notable_events: List[str]  # ["T5: broke treaty", "T10: attacked us"]
+    
+    def to_prompt_line(self) -> str:
+        """~30-50 token per relazione."""
+        ...
+```
+
+**Budget**: ~150 token × 10 nazioni = ~1500 token
+
+### NotableEvent (Opzione E)
+Eventi significativi globali o che coinvolgono la nazione.
+
+```python
+class NotableEvent:
+    turn: int
+    event_type: EventType  # WAR_DECLARED, ALLIANCE_FORMED, ATTACK, TRADE_DEAL, CRISIS
+    actors: List[str]  # Nazioni coinvolte
+    summary: str  # "Valdoria attacked Aquilonia"
+    relevance_to: Optional[str]  # None = globale, altrimenti nazione specifica
+    
+    def to_prompt_line(self) -> str:
+        """~20 token per evento."""
+        return f"Turn {self.turn}: {self.summary}"
+```
+
+**Budget**: ~20 token × 50 eventi = ~1000 token
+
+### MyAction (Azioni proprie passate)
+Ego-centric: ogni nazione vede solo le proprie azioni.
+
+```python
+class MyAction:
+    turn: int
+    domain: str  # "Defense", "Economy", "Foreign"
+    action_summary: str  # "Attacked Province 7 of Valdoria"
+    outcome: Optional[str]  # "Captured", "Failed", "Accepted"
+    
+    def to_prompt_line(self) -> str:
+        """~25 token per azione."""
+        ...
+```
+
+**Budget**: ~25 token × 30 azioni = ~750 token
+
+---
+
+## 📈 Token Scaling Over Time
+
+| Turno | Token Usati | Note |
+|-------|-------------|------|
+| 1 | ~1500 | Minimal history |
+| 10 | ~2500 | Relationships forming |
+| 30 | ~4000 | Rich history |
+| 50+ | ~4500 | Capped, oldest pruned |
+
+### Pruning Strategy
+Quando budget superato:
+1. **Eventi**: Mantieni ultimi 30 + eventi critici (war/alliance)
+2. **Azioni**: Mantieni ultime 10 per dominio
+3. **Relationship Notable**: Mantieni ultimi 2 per relazione
+
+---
+
+## 🏗️ Architettura ContextManager
+
+```python
+class ContextManager:
+    """Gestisce memoria e genera context per ogni agente."""
+    
+    def __init__(self, db: SimulationDB, max_user_tokens: int = 4200):
+        self.db = db
+        self.max_user_tokens = max_user_tokens
+        
+        # Memory stores (pre-computed, aggiornati dopo ogni turno)
+        self.relationship_summaries: Dict[str, Dict[str, RelationshipSummary]] = {}
+        self.global_events: List[NotableEvent] = []
+        self.nation_actions: Dict[str, List[MyAction]] = {}
+    
+    def update_after_turn(
+        self, 
+        turn: int, 
+        envelopes: List[CountryEnvelope], 
+        world: WorldState
+    ) -> None:
+        """Aggiorna tutte le memorie dopo un turno."""
+        self._update_relationships(world)
+        self._extract_events(turn, envelopes)
+        self._log_actions(turn, envelopes)
+        self._prune_if_needed()
+    
+    def build_context_for(self, nation_id: str, world: WorldState) -> str:
+        """Genera user prompt context per una nazione."""
+        sections = [
+            self._build_current_state(nation_id, world),
+            self._build_relationships(nation_id),
+            self._build_events(nation_id),
+            self._build_my_actions(nation_id),
+        ]
+        return "\n\n".join(sections)
 ```
 
 ---
 
 ## 📋 Task Breakdown
 
-### 1. Package Setup ✅
-- [x] Creare `geomas/db/__init__.py`
-- [x] Installare `duckdb` dependency
-- [x] Creare `geomas/db/connection.py` (SimulationDB class)
+### 8. Context Management Package
+- [ ] Creare `geomas/memory/__init__.py`
+- [ ] Creare `geomas/memory/schemas.py` (RelationshipSummary, NotableEvent, MyAction)
+- [ ] Creare `geomas/memory/context_manager.py` (ContextManager class)
 
-### 2. Serialization Helpers ✅
-- [x] `serialize_world_snapshot()` (senza numpy issues)
-- [x] `serialize_envelope()`
-- [x] `convert_numpy()` per conversione ricorsiva
-- [x] Gestione Enum → string
+### 9. Memory Update Logic
+- [ ] `_update_relationships()` - calcola trust trend, aggiorna summaries
+- [ ] `_extract_events()` - identifica eventi notevoli da envelopes
+- [ ] `_log_actions()` - registra azioni eseguite
+- [ ] `_prune_if_needed()` - rispetta budget token
 
-### 3. SimulationDB Class ✅
-- [x] `initialize()` - crea tabelle + metadata
-- [x] `save_snapshot()` - salva world state
-- [x] `save_envelope()` - salva decisioni agenti
-- [x] `save_behavior()` - salva metriche
-- [x] `load_snapshot()` - carica world state
-- [x] `load_envelopes()` - carica decisioni
-- [x] `load_behaviors()` - carica metriche
+### 10. Context Building
+- [ ] `_build_current_state()` - NationState → prompt section
+- [ ] `_build_relationships()` - RelationshipSummary → prompt section
+- [ ] `_build_events()` - filtra eventi rilevanti per nazione
+- [ ] `_build_my_actions()` - formatta azioni passate
 
-### 4. Query Interface ✅
-- [x] `get_behavior_timeline(nation_id) -> DataFrame`
-- [x] `get_simulation_info() -> dict`
-- [x] `export_behaviors_csv(path)`
+### 11. Integration
+- [ ] Hook ContextManager in SimulationEngine
+- [ ] Modificare NationAgent per usare ContextManager
+- [ ] Token counting e validation
 
-### 5. Tests ✅
-- [x] Test roundtrip serialization (14 test passati)
-- [x] Test save/load simulation
-- [x] Test query interface
-- [x] Test context manager
+### 12. Tests
+- [ ] Test RelationshipSummary generation
+- [ ] Test event extraction
+- [ ] Test pruning logic
+- [ ] Test token budget compliance
 
 ---
 
-## 🔜 Prossimi Step
+## 📌 Formato Prompt Atteso
 
-### 6. Deserialization (JSON → Pydantic) ✅
-- [x] `deserialize_provinces(json) -> Dict[int, ProvinceState]`
-- [x] `deserialize_nations(json) -> Dict[str, NationState]`
-- [x] `load_world_at_turn(turn) -> WorldState`
+```
+== YOUR CURRENT STATE ==
+Budget: 1,500 | Soldiers: 5,000 | Aircraft: 200 | Navy: 50
+Provinces: 8 land, 3 territorial waters
+Resources: Food +10/turn, Energy +5/turn, Materials +8/turn
+Nuclear: 2 warheads | Satisfaction: 65%
 
-### 7. SimulationEngine Integration ✅
-- [x] Aggiungere parametro `db_path: Optional[str]` a SimulationEngine
-- [x] Hook in `step()` → auto-persist dopo ogni turno
-- [x] Salvare snapshot iniziale (turno 0)
-- [x] Save envelopes e behavior metrics per turno
+== YOUR RELATIONSHIPS ==
+- Zephyria: ALLIANCE, Trust 85 (rising). Last: trade deal T20. History: T5: formed alliance
+- Valdoria: WAR, Trust 12 (falling). Last: they attacked T24. History: T15: broke peace treaty
+- Meridian: PEACE, Trust 55 (stable). Last: no recent contact. History: -
 
-### 8. In-Memory Cache
-- [ ] Cache ultimi N turni per context LLM
-- [ ] Evitare query DB durante simulazione
+== RECENT WORLD EVENTS ==
+Turn 24: Valdoria attacked Aquilonia's northern border
+Turn 23: Meridian facing food crisis
+Turn 22: Zephyria and Meridian signed trade agreement
 
-### 9. Genesis DB (Opzionale)
-- [ ] Separare eventi storici in DB dedicato
-- [ ] Riutilizzo genesis tra simulazioni
+== YOUR RECENT ACTIONS ==
+Turn 24 [Defense]: Reinforced Province 12 with 500 soldiers
+Turn 23 [Economy]: Proposed trade deal with Meridian → Accepted
+Turn 22 [Defense]: Attacked Valdoria's Province 7 → Captured
+```
 
 ---
 
 ## 📌 Notes
-- Genesis DB opzionale, può essere riusato tra simulazioni
-- JSON per dati complessi, colonne flat per metriche
-- In-memory cache per context LLM (ultimi 10-20 turni)
-- File DB in `data/` directory
-- Package rinominato da `persistence` a `db`
+- System prompt statico (~800 token) contiene personalità + GlobalStrategy
+- User prompt dinamico (~4200 token) generato da ContextManager
+- Token budget cresce da ~1500 (turno 1) a ~4500 (turno 50+)
+- Pruning automatico mantiene budget sotto limite
+- Ispirato a WarAgent: Board + Stick + Past Actions pattern
