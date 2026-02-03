@@ -258,11 +258,11 @@ class GenesisEngine:
                 )
 
     def _update_trust(self, n_a: str, n_b: str, delta: float):
-        """Update trust between nations (0-100 scale)."""
+        """Update trust from n_a towards n_b (asymmetric, 0-100 scale)."""
         val = self.world.trust_matrix[n_a][n_b] + delta
         val = max(0, min(100, val))  # Clamp 0-100
         self.world.trust_matrix[n_a][n_b] = val
-        self.world.trust_matrix[n_b][n_a] = val
+        # Note: Trust is intentionally asymmetric - A trusting B doesn't mean B trusts A
 
     def _get_total_resources(self, n_id: str) -> Dict[str, float]:
         nation = self.world.nations[n_id]
