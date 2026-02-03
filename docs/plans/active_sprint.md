@@ -1,45 +1,56 @@
-# 🚀 Sprint: Fase 7.6 - Persistence Layer & XAI Database
+# 🚀 Sprint: Fase 7.6 - Persistence & Context
 
-**Status:** In Progress
-**Obiettivo:** Salvare stato simulazione per analisi post-hoc e explainability
+**Status:** In Progress | **Test:** 202 passati
 
 ---
 
 ## ✅ Completato
 
-### 1. Database Layer (DuckDB) ✅
-- [x] Package `geomas/db/` con `SimulationDB`, serialization helpers
-- [x] Schema: simulations, snapshots, envelopes, behaviors
-- [x] Serializzazione/deserializzazione WorldState, Envelopes
-- [x] Query interface: `load_world_at_turn()`, `get_behavior_timeline()`
-- [x] SimulationEngine integration: auto-persist ogni turno
-- [x] 16 test passati
-
-### 2. In-Memory Cache ✅
-- [x] `TurnCache` class in `geomas/db/cache.py`
-- [x] Caching ultimi N turni (default 20)
-- [x] O(1) access via `_turn_index` dict
-- [x] Deep copy WorldState per evitare mutation
-- [x] Auto-eviction oldest turns when at capacity
-- [x] Integrato in `SimulationEngine` con `cache_size` parameter
-- [x] Cache access methods: `get_cached_world()`, `get_cached_envelopes()`, etc.
-- [x] 10 test passati (193 totali)
-
-### 3. Genesis DB ✅
-- [x] `GenesisDB` class in `geomas/db/genesis.py`
-- [x] Schema: genesis_meta, events, initial_trust, alliances
-- [x] `save_events_batch()` per bulk insert
-- [x] Query: `get_events_for_nation()`, `get_events_by_tag()`
-- [x] `GenesisEngine` integration con `db_path` parameter
-- [x] Auto-persist eventi, trust matrix, e alliances
-- [x] 9 test passati (202 totali)
+| Component | Files | Note |
+|-----------|-------|------|
+| **SimulationDB** | `geomas/db/connection.py` | DuckDB persistence, snapshots, envelopes, behaviors |
+| **TurnCache** | `geomas/db/cache.py` | In-memory cache ultimi N turni (O(1) access) |
+| **GenesisDB** | `geomas/db/genesis.py` | DB separato per eventi storici, riutilizzabile |
 
 ---
 
-## 🔜 In Corso: Context Management System
+## 🔜 In Corso: Nation Profile Generator
+
+### Problema Attuale
+`SpatialTranslator` genera solo report strategico/militare. Mancano:
+- Identità nazione (nome, personalità)
+- Contesto storico (eventi Genesis)
+- Stato relazioni (trust + eventi recenti per vicino)
+- Posizione economica (surplus/deficit)
+
+### Task
+- [ ] Creare `NationProfileGenerator` in `geomas/agents/context/`
+- [ ] Nation Identity (nome, archetype, GlobalStrategy)
+- [ ] Historical Context (eventi Genesis rilevanti)
+- [ ] Relationship Summary per ogni vicino
+- [ ] Economic Position (risorse, budget)
+- [ ] Integrare con `SpatialTranslator` esistente
+- [ ] Test
+
+---
+
+## 🔜 TODO: Military Translator
 
 ### Problema
-Gli agenti LLM necessitano di context appropriato per decidere. Sfide:
+`SpatialTranslator` dà info geografiche statiche, ma l'LLM ha bisogno di capire lo stato militare dinamico per prendere decisioni di difesa/attacco.
+
+### Task
+- [ ] `MilitaryTranslator` in `geomas/agents/context/`
+- [ ] Posizioni truppe proprie per provincia
+- [ ] Forze nemiche stimate ai confini
+- [ ] Rapporti di forza vs ogni vicino
+- [ ] Opzioni militari (province attaccabili, punti deboli)
+- [ ] Minacce imminenti (concentrazioni nemiche)
+- [ ] Test
+
+## 📝 Backlog: Context Management System
+
+### Problema
 1. **Token limit**: Max ~5000 token totali (system + user prompt)
 2. **Relevance**: Includere info pertinenti senza sapere a priori con chi interagiranno
 3. **History growth**: La storia cresce ma il budget token è fisso
