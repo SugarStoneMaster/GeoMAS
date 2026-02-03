@@ -12,7 +12,7 @@ from geomas.actions import ActionEngine
 from geomas.agents.nation_agent import NationAgent
 from geomas.agents.llm_client import LLMClient
 from geomas.simulation.phases import run_upkeep_phase
-from geomas.db import SimulationDB
+from geomas.db import SimulationDB, TurnCache
 from geomas.db.serialization import serialize_world_snapshot, serialize_envelope
 from geomas.analysis import DeceptionAnalyzer, CoherenceAnalyzer
 
@@ -21,7 +21,9 @@ class SimulationEngine:
     """
     The Main Loop. Orchestrates the flow of time, agent decisions, and world updates.
     
-    Optional persistence via DuckDB when db_path is provided.
+    Features:
+    - Optional persistence via DuckDB when db_path is provided
+    - In-memory cache of recent turns for fast context access
     """
 
     def __init__(
@@ -30,7 +32,8 @@ class SimulationEngine:
         history_seed: int = 99, 
         n_cells: int = 1500, 
         llm_client: LLMClient = None,
-        db_path: Optional[str] = None
+        db_path: Optional[str] = None,
+        cache_size: int = 20
     ):
         """
         Initialize the simulation engine.
@@ -41,6 +44,7 @@ class SimulationEngine:
             n_cells: Number of provinces
             llm_client: Optional LLM client for agent decisions
             db_path: Optional path to DuckDB file for persistence
+            cache_size: Number of recent turns to keep in memory (default 20)
         """
         self.map_seed = map_seed
         self.history_seed = history_seed
@@ -64,7 +68,10 @@ class SimulationEngine:
         # List of turns, where each turn is a list of envelopes
         self.history: List[List[CountryEnvelope]] = []
         
-        # 4. Initialize Database (optional)
+        # 4. Initialize In-Memory Cache
+        self.cache = TurnCache(max_turns=cache_size)
+        
+        # 5. Initialize Database (optional)
         self.db: Optional[SimulationDB] = None
         if db_path:
             self._init_db(db_path)
@@ -84,6 +91,14 @@ class SimulationEngine:
             turn=0,
             **snapshot
         )
+        
+        # Also cache turn 0
+        self.cache.add_turn(
+            turn=0,
+            world_state=self.world,
+            envelopes=[],
+            behaviors={}
+        )
 
     def _init_agents(self):
         """Creates a NationAgent for each nation in the world."""
@@ -96,6 +111,33 @@ class SimulationEngine:
                 llm_client=self.client,
                 global_strategy=strategy
             )
+
+    def _calculate_behaviors(
+        self, 
+        envelopes: List[CountryEnvelope]
+    ) -> Dict[str, Dict[str, float]]:
+        """Calculate behavior metrics for all envelopes."""
+        behaviors = {}
+        
+        for envelope in envelopes:
+            detailed = DeceptionAnalyzer.calculate_detailed_score(envelope)
+            coherence = CoherenceAnalyzer.calculate_score(
+                envelope.global_strategy,
+                envelope.defense_private_intent,
+                envelope.economic_private_intent,
+                envelope.foreign_private_intent
+            )
+            
+            behaviors[envelope.sender_id] = {
+                "deception_total": detailed["total"],
+                "deception_defense": detailed["defense"],
+                "deception_economic": detailed["economic"],
+                "deception_foreign": detailed["foreign"],
+                "coherence_score": coherence,
+                "global_strategy": envelope.global_strategy.value
+            }
+        
+        return behaviors
 
     def _persist_turn(self, turn: int, envelopes: List[CountryEnvelope]) -> None:
         """Persist turn data to database."""
@@ -135,6 +177,16 @@ class SimulationEngine:
                 global_strategy=envelope.global_strategy.value
             )
 
+    def _cache_turn(self, turn: int, envelopes: List[CountryEnvelope]) -> None:
+        """Add turn data to in-memory cache."""
+        behaviors = self._calculate_behaviors(envelopes)
+        self.cache.add_turn(
+            turn=turn,
+            world_state=self.world,
+            envelopes=envelopes,
+            behaviors=behaviors
+        )
+
     def step(self):
         """Executes one full turn of the simulation."""
         # Increment Turn FIRST
@@ -168,7 +220,10 @@ class SimulationEngine:
             logs = self.engine.execute_envelope(envelope)
             self.turn_logs.extend(logs)
         
-        # 3. PERSIST PHASE (Database)
+        # 3. CACHE PHASE (In-Memory)
+        self._cache_turn(current_turn, turn_envelopes)
+        
+        # 4. PERSIST PHASE (Database)
         self._persist_turn(current_turn, turn_envelopes)
             
         print(f"--- TURN {current_turn} COMPLETE ---")
@@ -177,6 +232,28 @@ class SimulationEngine:
         """Runs the simulation for N steps."""
         for _ in range(steps):
             self.step()
+    
+    # --- CACHE ACCESS METHODS ---
+    
+    def get_cached_world(self, turn: int):
+        """Get WorldState from cache (fast, no DB query)."""
+        return self.cache.get_world_at_turn(turn)
+    
+    def get_cached_envelopes(self, turn: int) -> List[CountryEnvelope]:
+        """Get envelopes from cache (fast, no DB query)."""
+        return self.cache.get_envelopes_at_turn(turn)
+    
+    def get_nation_envelope_history(
+        self, 
+        nation_id: str, 
+        n_turns: Optional[int] = None
+    ) -> List[CountryEnvelope]:
+        """Get recent envelopes for a nation from cache."""
+        return self.cache.get_envelopes_for_nation(nation_id, n_turns)
+    
+    def get_nation_behavior_history(self, nation_id: str) -> List[Dict]:
+        """Get behavior metrics history for a nation from cache."""
+        return self.cache.get_behaviors_for_nation(nation_id)
     
     def close(self):
         """Close database connection if open."""
