@@ -76,6 +76,8 @@ class NationProfileGenerator:
         self.world = world
         self.genesis_db = genesis_db
         self.spatial_translator = SpatialTranslator(world)
+        # Reuse SpatialManager from translator to avoid duplication
+        self.spatial = self.spatial_translator.spatial
     
     def generate_profile(
         self, 
@@ -181,7 +183,8 @@ Your history has shaped current relationships:
 
     def _generate_relationship_summary(self, nation_id: str) -> str:
         """Generate relationship summary with all neighbors."""
-        neighbors = self._get_neighbor_nations(nation_id)
+        # Use SpatialManager to avoid duplicating neighbor-finding logic
+        neighbors = self.spatial.get_neighboring_nations(nation_id)
         
         if not neighbors:
             return """## 🤝 RELATIONSHIPS
@@ -257,24 +260,6 @@ Your current standing with neighbors:
 You control {len(nation.province_ids)} provinces with a population base of {self._get_total_population(nation):,}."""
 
     # --- Helper Methods ---
-    
-    def _get_neighbor_nations(self, nation_id: str) -> List[str]:
-        """Get list of neighboring nation IDs."""
-        nation = self.world.nations.get(nation_id)
-        if not nation:
-            return []
-        
-        neighbors = set()
-        for p_id in nation.province_ids:
-            prov = self.world.provinces.get(p_id)
-            if prov:
-                for n_id in prov.neighbors:
-                    neighbor_prov = self.world.provinces.get(n_id)
-                    if neighbor_prov and neighbor_prov.owner_id:
-                        if neighbor_prov.owner_id != nation_id:
-                            neighbors.add(neighbor_prov.owner_id)
-        
-        return list(neighbors)
     
     def _get_trust(self, nation_a: str, nation_b: str) -> float:
         """Get trust level from A towards B."""
