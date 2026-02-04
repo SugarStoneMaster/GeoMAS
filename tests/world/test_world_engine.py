@@ -6,7 +6,8 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
 from geomas.world import generate_world
-from geomas.world.spatial import SpatialManager, SpatialTranslator
+from geomas.world.spatial import SpatialManager
+from geomas.agents.context import SpatialTranslator
 from geomas.schemas.world import WorldState, TerrainType # Updated import
 
 def test_determinism():

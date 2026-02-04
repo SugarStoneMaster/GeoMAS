@@ -5,7 +5,7 @@ Handles all aspects of the simulated world map:
 
 Subpackages:
     - generation/: Procedural world creation (Voronoi, geography, nations)
-    - spatial/: Spatial analysis and AI intelligence generation
+    - spatial/: Spatial analysis (graph operations, pathfinding)
 
 Main Functions:
     - generate_world(seed, history_seed, n_cells, n_nations): Creates a complete
@@ -18,10 +18,12 @@ The world generation pipeline:
     4. Province initialization (population, resources, military)
     5. Territorial waters calculation
     6. Genesis historical simulation
+
+Note: SpatialTranslator has been moved to geomas.agents.context
 """
 
 from geomas.world.generation import generate_world, MapGenerator
-from geomas.world.spatial import SpatialManager, SpatialTranslator
+from geomas.world.spatial import SpatialManager
 from geomas.world.genesis import GenesisEngine
 
-__all__ = ["generate_world", "MapGenerator", "SpatialManager", "SpatialTranslator", "GenesisEngine"]
+__all__ = ["generate_world", "MapGenerator", "SpatialManager", "GenesisEngine"]

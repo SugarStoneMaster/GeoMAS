@@ -1,6 +1,6 @@
 # 🚀 Sprint: Fase 7.6 - Persistence & Context
 
-**Status:** In Progress | **Test:** 202 passati
+**Status:** In Progress | **Test:** 211 passati
 
 ---
 
@@ -11,26 +11,8 @@
 | **SimulationDB** | `geomas/db/connection.py` | DuckDB persistence, snapshots, envelopes, behaviors |
 | **TurnCache** | `geomas/db/cache.py` | In-memory cache ultimi N turni (O(1) access) |
 | **GenesisDB** | `geomas/db/genesis.py` | DB separato per eventi storici, riutilizzabile |
-
----
-
-## 🔜 In Corso: Nation Profile Generator
-
-### Problema Attuale
-`SpatialTranslator` genera solo report strategico/militare. Mancano:
-- Identità nazione (nome, personalità)
-- Contesto storico (eventi Genesis)
-- Stato relazioni (trust + eventi recenti per vicino)
-- Posizione economica (surplus/deficit)
-
-### Task
-- [ ] Creare `NationProfileGenerator` in `geomas/agents/context/`
-- [ ] Nation Identity (nome, archetype, GlobalStrategy)
-- [ ] Historical Context (eventi Genesis rilevanti)
-- [ ] Relationship Summary per ogni vicino
-- [ ] Economic Position (risorse, budget)
-- [ ] Integrare con `SpatialTranslator` esistente
-- [ ] Test
+| **SpatialTranslator** | `geomas/agents/context/spatial.py` | Moved from world/spatial/ |
+| **NationProfileGenerator** | `geomas/agents/context/profile.py` | Identity, history, relationships, economy |
 
 ---
 

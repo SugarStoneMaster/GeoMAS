@@ -7,7 +7,7 @@ Layout: Stats (left) | Map + Trust Matrix (center) | Intel Report (right)
 
 import streamlit as st
 from geomas.schemas.world import WorldState
-from geomas.world.spatial import SpatialTranslator
+from geomas.agents.context import SpatialTranslator
 
 from web.components.map_renderer import render_map
 from web.components.nation_panel import render_nation_stats

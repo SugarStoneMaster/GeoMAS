@@ -1,6 +1,14 @@
+"""
+Spatial Translator.
+
+The Bridge between Geometry (Voronoi/NetworkX) and Cognition (LLM).
+Translates topological features into natural language strategic intelligence.
+"""
+
 from typing import List, Dict, Tuple
 from geomas.schemas.world import WorldState, TerrainType
 from geomas.world.spatial.manager import SpatialManager
+
 
 class SpatialTranslator:
     """

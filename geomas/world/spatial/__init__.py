@@ -1,19 +1,15 @@
 """
 Spatial Analysis Package.
 
-Tools for spatial reasoning and intelligence generation.
+Tools for spatial reasoning.
 
 Classes:
     - SpatialManager: Graph-based operations (adjacency, pathfinding, 
       reachability analysis for military movement validation)
-    - SpatialTranslator: Converts map state into natural language
-      intelligence briefs for AI agents
 
-The SpatialTranslator enables LLM agents to "see" the map by translating
-numerical data into strategic descriptions (borders, threats, resources).
+Note: SpatialTranslator has been moved to geomas.agents.context.spatial
 """
 
 from geomas.world.spatial.manager import SpatialManager
-from geomas.world.spatial.translator import SpatialTranslator
 
-__all__ = ["SpatialManager", "SpatialTranslator"]
+__all__ = ["SpatialManager"]
