@@ -1,6 +1,6 @@
 # 🚀 Sprint: Fase 7.6 - Persistence & Context
 
-**Status:** In Progress | **Test:** 220 passati
+**Status:** In Progress | **Test:** 242 passati
 
 ---
 
@@ -14,6 +14,7 @@
 | **SpatialTranslator** | `geomas/agents/context/spatial.py` | v2: territorial waters, comparative power, encirclement |
 | **NationProfileGenerator** | `geomas/agents/context/profile.py` | Identity, history, relationships, economy |
 | **MilitaryTranslator** | `geomas/agents/context/military.py` | Force overview, deployment, border defense, threats, options |
+| **Prompt Architecture** | `geomas/agents/context/system/`, `input/` | 5 system prompts + 5 input builders |
 
 ---
 

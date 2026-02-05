@@ -1,8 +1,12 @@
 """
 Context Package for LLM Agents.
 
-Provides translators and generators that convert world state into natural language
-suitable for LLM agent consumption.
+Provides translators, generators, and prompt builders that convert world state
+into natural language suitable for LLM agent consumption.
+
+Subpackages:
+    - system/: Static system prompts for each agent type
+    - input/: Dynamic input builders for each agent type
 
 Modules:
     - spatial: Geographic/strategic intelligence (SpatialTranslator)
@@ -10,24 +14,54 @@ Modules:
     - military: Dynamic military state (MilitaryTranslator)
 
 Usage:
-    from geomas.agents.context import SpatialTranslator, NationProfileGenerator, MilitaryTranslator
+    # System prompts (static)
+    from geomas.agents.context.system import PresidentSystemPrompt
     
-    translator = SpatialTranslator(world)
-    report = translator.generate_intelligence_report(nation_id)
+    # Input builders (dynamic)
+    from geomas.agents.context.input import DefenseInputBuilder
     
-    profile_gen = NationProfileGenerator(world, genesis_db)
-    profile = profile_gen.generate_profile(nation_id, strategy)
-    
-    military = MilitaryTranslator(world)
-    mil_report = military.generate_military_report(nation_id)
+    # Translators (utilities)
+    from geomas.agents.context import MilitaryTranslator
 """
 
 from geomas.agents.context.spatial import SpatialTranslator
 from geomas.agents.context.profile import NationProfileGenerator
 from geomas.agents.context.military import MilitaryTranslator
 
+# System prompts
+from geomas.agents.context.system import (
+    PresidentSystemPrompt,
+    DefenseSystemPrompt,
+    EconomySystemPrompt,
+    ForeignSystemPrompt,
+    OpinionSystemPrompt,
+)
+
+# Input builders
+from geomas.agents.context.input import (
+    PresidentInputBuilder,
+    DefenseInputBuilder,
+    EconomyInputBuilder,
+    ForeignInputBuilder,
+    OpinionInputBuilder,
+)
+
 __all__ = [
+    # Translators
     "SpatialTranslator",
     "NationProfileGenerator",
     "MilitaryTranslator",
+    # System prompts
+    "PresidentSystemPrompt",
+    "DefenseSystemPrompt",
+    "EconomySystemPrompt",
+    "ForeignSystemPrompt",
+    "OpinionSystemPrompt",
+    # Input builders
+    "PresidentInputBuilder",
+    "DefenseInputBuilder",
+    "EconomyInputBuilder",
+    "ForeignInputBuilder",
+    "OpinionInputBuilder",
 ]
+
