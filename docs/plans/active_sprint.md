@@ -1,6 +1,6 @@
 # 🚀 Sprint: Fase 7.6 - Persistence & Context
 
-**Status:** In Progress | **Test:** 257 passati
+**Status:** In Progress | **Test:** 283 passati
 
 ---
 
@@ -16,31 +16,45 @@
 | **NationProfileGenerator** | `geomas/agents/context/profile.py` | Identity, history, economy |
 | **Prompt Architecture** | `geomas/agents/context/system/`, `input/` | 5 system + 5 input builders |
 | **ContextManager** | `geomas/agents/context/memory/` | Schemas + memory management |
+| **TokenCounter** | `geomas/agents/context/tokens.py` | tiktoken-based, budget validation |
 
 ### Task Completati
 
-- [x] Context Management Package (`schemas.py`, `context_manager.py`)
-- [x] Memory Update Logic (`_update_relationships`, `_extract_events`, `_log_actions`, `_prune_if_needed`)
-- [x] Context Output (`get_relationships_for`, `get_events_for`, `get_actions_for`)
-- [x] Tests (15 test per memory, 22 per prompts)
+- [x] Context Management Package
+- [x] Memory Update Logic
+- [x] Context Output methods
+- [x] Token Counter (tiktoken)
+- [x] Prompt Budget Tests (19 test)
+- [x] Realistic Budget Tests (7 test con ContextManager popolato)
+
+### Token Budget Results
+
+**Stress Test (20 nations, 25 events, 30 actions):**
+
+| Component | Tokens |
+|-----------|:------:|
+| System | 500 |
+| Base input | 400 |
+| Relationships (19) | 646 |
+| Events (25) | 425 |
+| Actions (30) | 540 |
+| **TOTAL** | **2511 (50%)** |
+
+Budget confirmed safe for simulations up to 20 nations.
 
 ---
 
-## 🔜 TODO: Integration
+## 📋 Backlog: Integration
 
-### 11. SimulationEngine Integration
+### 13. SimulationEngine Integration
 - [ ] Hook ContextManager in `SimulationEngine.__init__`
 - [ ] Chiamare `context_manager.update_after_turn()` dopo ogni turno
 - [ ] Chiamare `context_manager.initialize_from_world()` all'inizio
 
-### 12. Agent Integration
+### 14. Agent Integration
 - [ ] Modificare `NationAgent` per usare system prompts
 - [ ] Modificare `NationAgent` per usare input builders
 - [ ] Passare context da ContextManager agli InputBuilders
-
-### 13. Token Counting (Optional)
-- [ ] Implementare token counter (tiktoken o approximation)
-- [ ] Validare budget compliance
 
 ---
 

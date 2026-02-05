@@ -59,6 +59,13 @@ from geomas.agents.context.memory import (
     EventType,
 )
 
+# Token counting
+from geomas.agents.context.tokens import (
+    TokenCounter,
+    count_tokens,
+    validate_prompt_budget,
+)
+
 __all__ = [
     # Translators
     "SpatialTranslator",
@@ -82,6 +89,11 @@ __all__ = [
     "NotableEvent",
     "MyAction",
     "EventType",
+    # Token counting
+    "TokenCounter",
+    "count_tokens",
+    "validate_prompt_budget",
 ]
+
 
 
