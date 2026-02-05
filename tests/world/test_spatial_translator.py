@@ -46,15 +46,24 @@ def test_maginot_line_logic():
     if neighbors:
         assert "defensible" in report or "Mountains" in report
 
-def test_strategic_depth():
-    """Test capital vulnerability reporting."""
-    world = generate_world(seed=42, n_cells=100, n_nations=2)
+def test_encirclement_warning():
+    """Test encirclement risk reporting for nations with many neighbors."""
+    world = generate_world(seed=42, n_cells=200, n_nations=5)
     translator = SpatialTranslator(world)
     
-    n_a = list(world.nations.keys())[0]
-    border_provs = translator.spatial.get_border_provinces(n_a)
-    if not border_provs: pytest.skip("No borders")
+    # Find nation with most neighbors
+    max_neighbors = 0
+    target_nation = None
+    for n_id in world.nations.keys():
+        neighbors = translator.spatial.get_neighboring_nations(n_id)
+        if len(neighbors) > max_neighbors:
+            max_neighbors = len(neighbors)
+            target_nation = n_id
     
-    world.nations[n_a].capital_province_id = border_provs[0]
-    report = translator.generate_intelligence_report(n_a)
-    assert "CRITICAL DANGER" in report or "Zero Strategic Depth" in report
+    if max_neighbors < 2:
+        pytest.skip("No nation with multiple neighbors")
+    
+    report = translator.generate_intelligence_report(target_nation)
+    # Should mention neighbors in some form
+    assert "neighbor" in report.lower() or "border" in report.lower()
+

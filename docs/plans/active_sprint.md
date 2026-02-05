@@ -11,7 +11,7 @@
 | **SimulationDB** | `geomas/db/connection.py` | DuckDB persistence, snapshots, envelopes, behaviors |
 | **TurnCache** | `geomas/db/cache.py` | In-memory cache ultimi N turni (O(1) access) |
 | **GenesisDB** | `geomas/db/genesis.py` | DB separato per eventi storici, riutilizzabile |
-| **SpatialTranslator** | `geomas/agents/context/spatial.py` | Moved from world/spatial/ |
+| **SpatialTranslator** | `geomas/agents/context/spatial.py` | v2: territorial waters, comparative power, encirclement |
 | **NationProfileGenerator** | `geomas/agents/context/profile.py` | Identity, history, relationships, economy |
 
 ---

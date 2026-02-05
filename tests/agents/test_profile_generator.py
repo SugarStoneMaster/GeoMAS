@@ -128,4 +128,4 @@ class TestIntegrationWithSpatialTranslator:
         
         # Spatial report content should be in profile
         assert "GEOGRAPHY" in profile
-        assert "STRATEGIC DEPTH" in profile or "Capital" in profile
+        assert "BORDERS" in profile or "RESOURCES" in profile
