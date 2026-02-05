@@ -1,0 +1,136 @@
+"""
+Memory Schemas.
+
+Pydantic models for agent memory:
+- RelationshipSummary: Compact bilateral relationship for ~50 tokens per relation
+- NotableEvent: World events for ~20 tokens each
+- MyAction: Past actions for ~25 tokens each
+"""
+
+from enum import Enum
+from typing import Optional, List
+from pydantic import BaseModel, Field
+
+
+class EventType(str, Enum):
+    """Types of notable events."""
+    WAR_DECLARED = "WAR_DECLARED"
+    PEACE_SIGNED = "PEACE_SIGNED"
+    ALLIANCE_FORMED = "ALLIANCE_FORMED"
+    ALLIANCE_BROKEN = "ALLIANCE_BROKEN"
+    ATTACK = "ATTACK"
+    TERRITORY_LOST = "TERRITORY_LOST"
+    TERRITORY_GAINED = "TERRITORY_GAINED"
+    TRADE_DEAL = "TRADE_DEAL"
+    ECONOMIC_CRISIS = "ECONOMIC_CRISIS"
+    CIVIL_UNREST = "CIVIL_UNREST"
+    NUCLEAR_STRIKE = "NUCLEAR_STRIKE"
+
+
+class RelationshipSummary(BaseModel):
+    """
+    Compact summary of bilateral relationship.
+    
+    Pre-computed and updated after each turn.
+    Target: ~30-50 tokens per relationship when rendered.
+    """
+    other_nation_id: str
+    other_nation_name: str
+    
+    # Current state (from world state)
+    relationship: str = "PEACE"  # WAR, PEACE, ALLIANCE
+    trust: float = 50.0  # 0-100
+    trust_trend: str = "→"  # ↑ rising, ↓ falling, → stable
+    
+    # Last interaction
+    last_interaction_turn: Optional[int] = None
+    last_interaction_summary: Optional[str] = None  # "They proposed alliance"
+    
+    # Notable events in this relationship (max 3, most recent)
+    notable_events: List[str] = Field(default_factory=list)  # ["T5: broke treaty"]
+    
+    def to_prompt_line(self) -> str:
+        """
+        Render as compact prompt line (~30-50 tokens).
+        
+        Example:
+        "Valdoria: WAR, Trust 15 (falling). Last: attacked us T24. History: T15: broke treaty"
+        """
+        parts = [f"{self.other_nation_name}: {self.relationship}, Trust {self.trust:.0f}"]
+        
+        # Trust trend
+        if self.trust_trend == "↑":
+            parts[0] += " (rising)"
+        elif self.trust_trend == "↓":
+            parts[0] += " (falling)"
+        
+        # Last interaction
+        if self.last_interaction_turn is not None and self.last_interaction_summary:
+            parts.append(f"Last: {self.last_interaction_summary} T{self.last_interaction_turn}")
+        
+        # Notable events (max 2 for brevity)
+        if self.notable_events:
+            history = "; ".join(self.notable_events[-2:])
+            parts.append(f"History: {history}")
+        
+        return ". ".join(parts)
+
+
+class NotableEvent(BaseModel):
+    """
+    Significant world event.
+    
+    Can be global or nation-specific.
+    Target: ~20 tokens when rendered.
+    """
+    turn: int
+    event_type: EventType
+    actors: List[str] = Field(default_factory=list)  # Nation IDs involved
+    summary: str  # "Valdoria attacked Aquilonia's northern border"
+    relevance_to: Optional[str] = None  # None = global, else specific nation
+    
+    def to_prompt_line(self) -> str:
+        """
+        Render as compact prompt line (~20 tokens).
+        
+        Example: "Turn 24: Valdoria attacked Aquilonia's northern border"
+        """
+        return f"Turn {self.turn}: {self.summary}"
+    
+    def is_critical(self) -> bool:
+        """Check if this is a critical event (never pruned)."""
+        critical_types = {
+            EventType.WAR_DECLARED,
+            EventType.PEACE_SIGNED,
+            EventType.ALLIANCE_FORMED,
+            EventType.ALLIANCE_BROKEN,
+            EventType.NUCLEAR_STRIKE,
+            EventType.TERRITORY_LOST,
+            EventType.TERRITORY_GAINED,
+        }
+        return self.event_type in critical_types
+
+
+class MyAction(BaseModel):
+    """
+    Past action taken by a nation (ego-centric).
+    
+    Each nation only sees their own actions.
+    Target: ~25 tokens when rendered.
+    """
+    turn: int
+    domain: str  # "Defense", "Economy", "Foreign"
+    action_type: str  # "ATTACK", "INVEST_IN_WELFARE", "PROPOSE_ALLIANCE"
+    action_summary: str  # "Attacked Province 7 of Valdoria"
+    outcome: Optional[str] = None  # "Captured", "Failed", "Accepted", "Rejected"
+    
+    def to_prompt_line(self) -> str:
+        """
+        Render as compact prompt line (~25 tokens).
+        
+        Example: "Turn 24 [Defense]: Attacked Valdoria's Province 7 → Captured"
+        """
+        line = f"Turn {self.turn} [{self.domain}]: {self.action_summary}"
+        if self.outcome:
+            line += f" → {self.outcome}"
+        return line
