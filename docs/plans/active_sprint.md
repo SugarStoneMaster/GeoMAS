@@ -1,6 +1,6 @@
 # 🚀 Sprint: Fase 7.6 - Persistence & Context
 
-**Status:** In Progress | **Test:** 211 passati
+**Status:** In Progress | **Test:** 220 passati
 
 ---
 
@@ -13,22 +13,9 @@
 | **GenesisDB** | `geomas/db/genesis.py` | DB separato per eventi storici, riutilizzabile |
 | **SpatialTranslator** | `geomas/agents/context/spatial.py` | v2: territorial waters, comparative power, encirclement |
 | **NationProfileGenerator** | `geomas/agents/context/profile.py` | Identity, history, relationships, economy |
+| **MilitaryTranslator** | `geomas/agents/context/military.py` | Force overview, deployment, border defense, threats, options |
 
 ---
-
-## 🔜 TODO: Military Translator
-
-### Problema
-`SpatialTranslator` dà info geografiche statiche, ma l'LLM ha bisogno di capire lo stato militare dinamico per prendere decisioni di difesa/attacco.
-
-### Task
-- [ ] `MilitaryTranslator` in `geomas/agents/context/`
-- [ ] Posizioni truppe proprie per provincia
-- [ ] Forze nemiche stimate ai confini
-- [ ] Rapporti di forza vs ogni vicino
-- [ ] Opzioni militari (province attaccabili, punti deboli)
-- [ ] Minacce imminenti (concentrazioni nemiche)
-- [ ] Test
 
 ## 📝 Backlog: Context Management System
 
