@@ -1,8 +1,12 @@
 import os
 import instructor
+import litellm
 from litellm import completion
 from pydantic import BaseModel
 from typing import Type, TypeVar, List, Dict, Any
+
+# Drop unsupported params for models like GPT-5 that don't support temperature
+litellm.drop_params = True
 
 T = TypeVar("T", bound=BaseModel)
 
