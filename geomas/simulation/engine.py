@@ -15,6 +15,7 @@ from geomas.simulation.phases import run_upkeep_phase
 from geomas.db import SimulationDB, TurnCache
 from geomas.db.serialization import serialize_world_snapshot, serialize_envelope
 from geomas.analysis import DeceptionAnalyzer, CoherenceAnalyzer
+from geomas.agents.context.memory import ContextManager
 
 
 class SimulationEngine:
@@ -56,10 +57,16 @@ class SimulationEngine:
         # 2. Initialize Engine
         self.engine = ActionEngine(self.world)
         
-        # 3. Initialize Agents
+        # 3. Initialize In-Memory Cache
+        self.cache = TurnCache(max_turns=cache_size)
+        
+        # 4. Initialize Context Manager (for LLM agent memory)
+        self.context_manager = ContextManager()
+        self.context_manager.initialize_from_world(self.world)
+        
+        # 5. Initialize Agents (needs context_manager)
         self.agents: Dict[str, NationAgent] = {}
         self.client = llm_client or LLMClient() 
-        
         self._init_agents()
         
         # Simulation State
@@ -68,10 +75,7 @@ class SimulationEngine:
         # List of turns, where each turn is a list of envelopes
         self.history: List[List[CountryEnvelope]] = []
         
-        # 4. Initialize In-Memory Cache
-        self.cache = TurnCache(max_turns=cache_size)
-        
-        # 5. Initialize Database (optional)
+        # 6. Initialize Database (optional)
         self.db: Optional[SimulationDB] = None
         if db_path:
             self._init_db(db_path)
@@ -109,7 +113,8 @@ class SimulationEngine:
                 nation_id=nation_id,
                 world=self.world,
                 llm_client=self.client,
-                global_strategy=strategy
+                global_strategy=strategy,
+                context_manager=self.context_manager
             )
 
     def _calculate_behaviors(
@@ -223,7 +228,10 @@ class SimulationEngine:
         # 3. CACHE PHASE (In-Memory)
         self._cache_turn(current_turn, turn_envelopes)
         
-        # 4. PERSIST PHASE (Database)
+        # 4. CONTEXT PHASE (Update agent memory)
+        self.context_manager.update_after_turn(current_turn, turn_envelopes, self.world)
+        
+        # 5. PERSIST PHASE (Database)
         self._persist_turn(current_turn, turn_envelopes)
             
         print(f"--- TURN {current_turn} COMPLETE ---")

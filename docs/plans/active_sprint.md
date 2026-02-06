@@ -1,6 +1,6 @@
 # 🚀 Sprint: Fase 7.6 - Persistence & Context
 
-**Status:** In Progress | **Test:** 283 passati
+**Status:** In Progress | **Test:** 290 passati
 
 ---
 
@@ -44,17 +44,23 @@ Budget confirmed safe for simulations up to 20 nations.
 
 ---
 
-## 📋 Backlog: Integration
+## ✅ Integration Complete
 
-### 13. SimulationEngine Integration
-- [ ] Hook ContextManager in `SimulationEngine.__init__`
-- [ ] Chiamare `context_manager.update_after_turn()` dopo ogni turno
-- [ ] Chiamare `context_manager.initialize_from_world()` all'inizio
+### 13. SimulationEngine Integration ✅
+- [x] Hook ContextManager in `SimulationEngine.__init__`
+- [x] Chiamare `context_manager.update_after_turn()` dopo ogni turno
+- [x] Chiamare `context_manager.initialize_from_world()` all'inizio
 
-### 14. Agent Integration
-- [ ] Modificare `NationAgent` per usare system prompts
-- [ ] Modificare `NationAgent` per usare input builders
-- [ ] Passare context da ContextManager agli InputBuilders
+### 14. Agent Integration ✅
+- [x] Modificare `NationAgent` per usare system prompts
+- [x] Modificare `NationAgent` per usare input builders
+- [x] Passare context da ContextManager agli InputBuilders
+
+### 15. Minister Integration ✅
+- [x] DefenseMinister usa `DefenseSystemPrompt` + `DefenseInputBuilder`
+- [x] EconomicMinister usa `EconomySystemPrompt` + `EconomyInputBuilder`
+- [x] ForeignMinister usa `ForeignSystemPrompt` + `ForeignInputBuilder`
+- [x] Tutti i ministri ricevono ContextManager per memoria
 
 ---
 

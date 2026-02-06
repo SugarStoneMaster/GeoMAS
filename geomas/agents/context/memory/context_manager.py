@@ -161,15 +161,17 @@ class ContextManager:
     ) -> None:
         """Extract notable events from turn envelopes."""
         for envelope in envelopes:
-            nation_id = envelope.nation_id
+            nation_id = envelope.sender_id
             
-            for behavior in envelope.behaviors:
-                event = self._behavior_to_event(turn, nation_id, behavior, world)
-                if event:
-                    self.global_events.append(event)
-                    
-                    # Also add to relevant relationship summaries
-                    self._add_event_to_relationships(turn, nation_id, event)
+            # Extract events from payloads
+            for payload in [envelope.defense_payload, envelope.economic_payload, envelope.foreign_payload]:
+                if payload is None:
+                    continue
+                for action in getattr(payload, 'actions', []):
+                    event = self._behavior_to_event(turn, nation_id, action, world)
+                    if event:
+                        self.global_events.append(event)
+                        self._add_event_to_relationships(turn, nation_id, event)
     
     def _behavior_to_event(
         self, 
@@ -276,15 +278,19 @@ class ContextManager:
     def _log_actions(self, turn: int, envelopes: List[Any]) -> None:
         """Log actions from envelopes to nation action history."""
         for envelope in envelopes:
-            nation_id = envelope.nation_id
+            nation_id = envelope.sender_id
             
             if nation_id not in self.nation_actions:
                 self.nation_actions[nation_id] = []
             
-            for behavior in envelope.behaviors:
-                action = self._behavior_to_action(turn, behavior)
-                if action:
-                    self.nation_actions[nation_id].append(action)
+            # Extract actions from payloads
+            for payload in [envelope.defense_payload, envelope.economic_payload, envelope.foreign_payload]:
+                if payload is None:
+                    continue
+                for action_item in getattr(payload, 'actions', []):
+                    action = self._behavior_to_action(turn, action_item)
+                    if action:
+                        self.nation_actions[nation_id].append(action)
     
     def _behavior_to_action(self, turn: int, behavior: Any) -> Optional[MyAction]:
         """Convert behavior to MyAction record."""
