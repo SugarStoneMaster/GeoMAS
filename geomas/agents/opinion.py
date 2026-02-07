@@ -16,6 +16,10 @@ if TYPE_CHECKING:
     from geomas.schemas.world import NationState, WorldState
 
 
+from geomas.agents.context.system.opinion import OpinionSystemPrompt
+from geomas.agents.context.input.opinion import OpinionInputBuilder
+
+
 class OpinionResponse(BaseModel):
     """Structured response from the Opinion agent."""
     multiplier_increase: float = Field(
@@ -53,12 +57,14 @@ class OpinionAgent:
         nation_id: str,
         nation_name: str,
         cultural_traits: List[str],
-        llm_client: Optional['LLMClient'] = None
+        llm_client: Optional['LLMClient'] = None,
+        world: Optional['WorldState'] = None
     ):
         self.nation_id = nation_id
         self.nation_name = nation_name
         self.cultural_traits = cultural_traits
         self.llm_client = llm_client
+        self.world = world
     
     def react(
         self,
@@ -87,11 +93,25 @@ class OpinionAgent:
                 events, government_actions, current_satisfaction, at_war
             )
         
-        # Build prompt
-        system_prompt = self._build_system_prompt()
-        input_prompt = self._build_input_prompt(
-            events, government_actions, current_satisfaction, at_war, turn
-        )
+        # Build prompt using new architecture if world is available
+        if self.world:
+            system_prompt = OpinionSystemPrompt.generate(
+                nation_name=self.nation_name,
+                cultural_traits=self.cultural_traits
+            )
+            input_builder = OpinionInputBuilder(self.world)
+            input_prompt = input_builder.build(
+                nation_id=self.nation_id,
+                turn=turn,
+                recent_events=events,
+                government_actions=government_actions
+            )
+        else:
+            # Fallback to internal builders
+            system_prompt = self._build_system_prompt()
+            input_prompt = self._build_input_prompt(
+                events, government_actions, current_satisfaction, at_war, turn
+            )
         
         # Query LLM
         response = self.llm_client.query_agent(
@@ -103,10 +123,10 @@ class OpinionAgent:
         return response
     
     def _build_system_prompt(self) -> str:
-        """Build the system prompt for the Opinion agent."""
+        """Build the system prompt for the Opinion agent (Fallback)."""
         traits_text = ", ".join(self.cultural_traits) if self.cultural_traits else "Balanced outlook"
         
-        return f"""You are the **voice of the people of {self.nation_name}**.
+        return f"""You are the **Public Opinion of {self.nation_name}**.
 
 ## Cultural Traits
 Your population is characterized by: **{traits_text}**

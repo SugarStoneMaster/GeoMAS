@@ -117,7 +117,7 @@ class TestTokenObservability(unittest.TestCase):
             # Role names as defined in prompts (e.g. "Defense Minister", "President", "voice of the people")
             self.assertIn('Defense Minister', found_roles)
             self.assertIn('President', found_roles)
-            self.assertTrue(any("voice" in role.lower() for role in found_roles))
+            self.assertIn('Public Opinion', found_roles)
             
             for row in rows:
                 self.assertEqual(row['turn'], '1')

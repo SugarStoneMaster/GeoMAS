@@ -133,7 +133,8 @@ class SimulationEngine:
                 nation_id=nation_id,
                 nation_name=nation.name,
                 cultural_traits=traits,
-                llm_client=self.client
+                llm_client=self.client,
+                world=self.world
             )
 
     def _calculate_behaviors(

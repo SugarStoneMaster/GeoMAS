@@ -44,7 +44,7 @@ These traits influence how strongly you react to different events:
             traits_text = """## Cultural Identity
 Your people have a balanced cultural outlook, reacting proportionally to events."""
 
-        return f"""You are the **voice of the people of {nation_name}**.
+        return f"""You are the **Public Opinion of {nation_name}**.
 
 You represent how the population reacts to their government's actions and world events.
 You do NOT make decisions - you reflect public sentiment.
