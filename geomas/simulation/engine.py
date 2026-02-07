@@ -219,29 +219,36 @@ class SimulationEngine:
         print(f"--- STARTING TURN {current_turn} ---")
         self.turn_logs.append(f"--- TURN {current_turn} ---")
         
+        # Local RNG for turn determinism (shuffle order)
+        turn_rng = random.Random(self.history_seed + current_turn)
+        
         # 0. UPKEEP PHASE (resources, consumption, crisis)
         run_upkeep_phase(self.world, self.turn_logs)
         
-        turn_envelopes: List[CountryEnvelope] = []
+        # 1. & 2. COMBINED SEQUENTIAL PHASE (Decision + Execution per Nation)
+        # Shuffle nation IDs to ensure fairness in turn order
+        nation_ids = list(self.agents.keys())
+        turn_rng.shuffle(nation_ids)
         
-        # 1. AGENT PHASE (Decision)
-        for agent_id, agent in self.agents.items():
-            print(f"Agent {agent_id} is thinking...")
+        turn_envelopes: List[CountryEnvelope] = []
+        for nation_id in nation_ids:
+            agent = self.agents[nation_id]
+            print(f"Agent {nation_id} is thinking and acting...")
             try:
+                # 1. Decision: Agent perceives the CURRENT world state
                 envelope = agent.act(current_turn)
                 turn_envelopes.append(envelope)
+                
+                # 2. Execution: Physical world changes are applied IMMEDIATELY
+                # Subsequent agents in the same turn will "see" these changes in their world view
+                logs = self.engine.execute_envelope(envelope)
+                self.turn_logs.extend(logs)
             except Exception as e:
-                print(f"Error agent {agent_id}: {e}")
+                print(f"Error processing agent {nation_id}: {e}")
+                self.turn_logs.append(f"[SYSTEM] Critical error processing {nation_id}: {e}")
         
         # Store envelopes in history
         self.history.append(turn_envelopes)
-        
-        # 2. EXECUTION PHASE (Action)
-        random.shuffle(turn_envelopes)
-        
-        for envelope in turn_envelopes:
-            logs = self.engine.execute_envelope(envelope)
-            self.turn_logs.extend(logs)
         
         # 3. CACHE PHASE (In-Memory)
         self._cache_turn(current_turn, turn_envelopes)
