@@ -35,7 +35,7 @@ class TestNationProfileGenerator:
         
         assert "NATION IDENTITY" in profile
         assert world.nations[nation_id].name in profile
-        assert "Coalition Builder" in profile
+        assert "COALITION_BUILDER" in profile  # Enum value format
     
     def test_generate_profile_contains_geography(self, world):
         """Profile includes geographic intelligence."""

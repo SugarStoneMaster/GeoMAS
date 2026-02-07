@@ -12,6 +12,7 @@ from typing import Dict, List, Optional, Any
 from geomas.schemas.world import WorldState, NationState
 from geomas.agents.schemas import GlobalStrategy
 from geomas.agents.context.spatial import SpatialTranslator
+from geomas.agents.context.system.strategies import get_strategy_description
 
 
 class NationProfileGenerator:
@@ -30,40 +31,6 @@ class NationProfileGenerator:
             strategy=GlobalStrategy.COALITION_BUILDER
         )
     """
-    
-    # Nation archetype descriptions based on GlobalStrategy
-    ARCHETYPE_DESCRIPTIONS = {
-        GlobalStrategy.ARMED_ISOLATIONISM: (
-            "You are a **defensive isolationist**. You prioritize self-sufficiency and "
-            "military deterrence. You distrust foreign entanglements and prefer to stay "
-            "out of international affairs unless directly threatened."
-        ),
-        GlobalStrategy.COALITION_BUILDER: (
-            "You are a **diplomatic coalition builder**. You seek allies and believe in "
-            "collective security. You value relationships and prefer negotiation over "
-            "confrontation. You invest in maintaining trust with neighbors."
-        ),
-        GlobalStrategy.TOTAL_EXPANSIONISM: (
-            "You are an **expansionist power**. You seek to grow your territory and "
-            "influence. You view weaker neighbors as opportunities and stronger ones as "
-            "rivals to be eventually overcome. You prioritize military strength above all."
-        ),
-        GlobalStrategy.MERCANTILE_HEGEMONY: (
-            "You are a **mercantile hegemon**. You believe wealth is power. You seek to "
-            "dominate trade, control resources, and use economic leverage to achieve goals. "
-            "Military action is a last resort; economic pressure is preferred."
-        ),
-        GlobalStrategy.DOMESTIC_RECOVERY: (
-            "You focus on **domestic recovery**. Internal stability and growth are your "
-            "priorities. You avoid foreign adventures and seek to build your economy and "
-            "population before engaging internationally."
-        ),
-        GlobalStrategy.SCORCHED_EARTH: (
-            "You follow a **scorched earth** doctrine. If you cannot have it, neither can "
-            "your enemies. You are willing to sacrifice resources and territory to deny "
-            "them to opponents. You are unpredictable and dangerous."
-        ),
-    }
     
     def __init__(self, world: WorldState, genesis_db: Optional[Any] = None):
         """
@@ -130,18 +97,15 @@ class NationProfileGenerator:
     
     def _generate_identity(self, nation: NationState, strategy: GlobalStrategy) -> str:
         """Generate nation identity section."""
-        archetype_desc = self.ARCHETYPE_DESCRIPTIONS.get(
-            strategy, 
-            "You follow a balanced approach to international relations."
-        )
+        strategy_desc = get_strategy_description(strategy)
         
         return f"""## 🏛️ NATION IDENTITY
 
 **You are {nation.name}.**
 
-{archetype_desc}
+Your strategic doctrine is **{strategy.value}**: {strategy_desc}.
 
-Your strategic priority is: **{strategy.value.replace('_', ' ').title()}**"""
+Your decisions should align with this overarching national strategy."""
 
     def _generate_historical_context(self, nation_id: str, max_events: int) -> str:
         """Generate historical context from genesis events."""

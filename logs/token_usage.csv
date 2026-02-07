@@ -1,51 +1,51 @@
 timestamp,turn,nation_id,role,model,input_tokens,output_tokens,total_tokens,reasoning_tokens
-1770488156.166821,1,🟣 Valkyria,Defense Minister,mock-model,10,25,35,5
-1770488156.167074,1,🟣 Valkyria,Economy Minister,mock-model,10,25,35,5
-1770488156.167765,1,🟣 Valkyria,Foreign Minister,mock-model,10,25,35,5
-1770488156.168015,1,🟣 Valkyria,President,mock-model,10,25,35,5
-1770488156.168598,1,🔴 Republic of Agria,Defense Minister,mock-model,10,25,35,5
-1770488156.168807,1,🔴 Republic of Agria,Economy Minister,mock-model,10,25,35,5
-1770488156.169078,1,🔴 Republic of Agria,Foreign Minister,mock-model,10,25,35,5
-1770488156.169287,1,🔴 Republic of Agria,President,mock-model,10,25,35,5
-1770488156.169848,1,🟠 Sylvania,Defense Minister,mock-model,10,25,35,5
-1770488156.1700501,1,🟠 Sylvania,Economy Minister,mock-model,10,25,35,5
-1770488156.1703181,1,🟠 Sylvania,Foreign Minister,mock-model,10,25,35,5
-1770488156.1705222,1,🟠 Sylvania,President,mock-model,10,25,35,5
-1770488156.1710851,1,🟤 Drakonia,Defense Minister,mock-model,10,25,35,5
-1770488156.171288,1,🟤 Drakonia,Economy Minister,mock-model,10,25,35,5
-1770488156.171548,1,🟤 Drakonia,Foreign Minister,mock-model,10,25,35,5
-1770488156.171764,1,🟤 Drakonia,President,mock-model,10,25,35,5
-1770488156.17235,1,🟡 Zentora Empire,Defense Minister,mock-model,10,25,35,5
-1770488156.172556,1,🟡 Zentora Empire,Economy Minister,mock-model,10,25,35,5
-1770488156.17279,1,🟡 Zentora Empire,Foreign Minister,mock-model,10,25,35,5
-1770488156.1729972,1,🟡 Zentora Empire,President,mock-model,10,25,35,5
-1770488156.1735601,1,🔵 Union of Krell,Defense Minister,mock-model,10,25,35,5
-1770488156.173758,1,🔵 Union of Krell,Economy Minister,mock-model,10,25,35,5
-1770488156.1740959,1,🔵 Union of Krell,Foreign Minister,mock-model,10,25,35,5
-1770488156.17435,1,🔵 Union of Krell,President,mock-model,10,25,35,5
-1770488156.175274,1,⚫ Nordland,Defense Minister,mock-model,10,25,35,5
-1770488156.1755352,1,⚫ Nordland,Economy Minister,mock-model,10,25,35,5
-1770488156.1758258,1,⚫ Nordland,Foreign Minister,mock-model,10,25,35,5
-1770488156.176042,1,⚫ Nordland,President,mock-model,10,25,35,5
-1770488156.176636,1,🌸 Equatoria,Defense Minister,mock-model,10,25,35,5
-1770488156.176842,1,🌸 Equatoria,Economy Minister,mock-model,10,25,35,5
-1770488156.177103,1,🌸 Equatoria,Foreign Minister,mock-model,10,25,35,5
-1770488156.177303,1,🌸 Equatoria,President,mock-model,10,25,35,5
-1770488156.177863,1,🧊 Meridia,Defense Minister,mock-model,10,25,35,5
-1770488156.178062,1,🧊 Meridia,Economy Minister,mock-model,10,25,35,5
-1770488156.178318,1,🧊 Meridia,Foreign Minister,mock-model,10,25,35,5
-1770488156.17852,1,🧊 Meridia,President,mock-model,10,25,35,5
-1770488156.179081,1,🟢 Osterland Federation,Defense Minister,mock-model,10,25,35,5
-1770488156.179281,1,🟢 Osterland Federation,Economy Minister,mock-model,10,25,35,5
-1770488156.179521,1,🟢 Osterland Federation,Foreign Minister,mock-model,10,25,35,5
-1770488156.179723,1,🟢 Osterland Federation,President,mock-model,10,25,35,5
-1770488156.182028,1,🔴 Republic of Agria,Public Opinion,mock-model,10,25,35,5
-1770488156.182278,1,🔵 Union of Krell,Public Opinion,mock-model,10,25,35,5
-1770488156.1824698,1,🟢 Osterland Federation,Public Opinion,mock-model,10,25,35,5
-1770488156.182702,1,🟡 Zentora Empire,Public Opinion,mock-model,10,25,35,5
-1770488156.182903,1,🟣 Valkyria,Public Opinion,mock-model,10,25,35,5
-1770488156.183415,1,🟠 Sylvania,Public Opinion,mock-model,10,25,35,5
-1770488156.183603,1,⚫ Nordland,Public Opinion,mock-model,10,25,35,5
-1770488156.183841,1,🧊 Meridia,Public Opinion,mock-model,10,25,35,5
-1770488156.1840289,1,🌸 Equatoria,Public Opinion,mock-model,10,25,35,5
-1770488156.184258,1,🟤 Drakonia,Public Opinion,mock-model,10,25,35,5
+1770489045.336241,1,🟣 Valkyria,Defense Minister,mock-model,10,25,35,5
+1770489045.336496,1,🟣 Valkyria,Economy Minister,mock-model,10,25,35,5
+1770489045.336788,1,🟣 Valkyria,Foreign Minister,mock-model,10,25,35,5
+1770489045.337018,1,🟣 Valkyria,President,mock-model,10,25,35,5
+1770489045.337579,1,🔴 Republic of Agria,Defense Minister,mock-model,10,25,35,5
+1770489045.3377979,1,🔴 Republic of Agria,Economy Minister,mock-model,10,25,35,5
+1770489045.338498,1,🔴 Republic of Agria,Foreign Minister,mock-model,10,25,35,5
+1770489045.33871,1,🔴 Republic of Agria,President,mock-model,10,25,35,5
+1770489045.339273,1,🟠 Sylvania,Defense Minister,mock-model,10,25,35,5
+1770489045.339474,1,🟠 Sylvania,Economy Minister,mock-model,10,25,35,5
+1770489045.3397381,1,🟠 Sylvania,Foreign Minister,mock-model,10,25,35,5
+1770489045.339939,1,🟠 Sylvania,President,mock-model,10,25,35,5
+1770489045.340488,1,🟤 Drakonia,Defense Minister,mock-model,10,25,35,5
+1770489045.340694,1,🟤 Drakonia,Economy Minister,mock-model,10,25,35,5
+1770489045.340957,1,🟤 Drakonia,Foreign Minister,mock-model,10,25,35,5
+1770489045.3411572,1,🟤 Drakonia,President,mock-model,10,25,35,5
+1770489045.341738,1,🟡 Zentora Empire,Defense Minister,mock-model,10,25,35,5
+1770489045.341943,1,🟡 Zentora Empire,Economy Minister,mock-model,10,25,35,5
+1770489045.3421981,1,🟡 Zentora Empire,Foreign Minister,mock-model,10,25,35,5
+1770489045.342405,1,🟡 Zentora Empire,President,mock-model,10,25,35,5
+1770489045.3429859,1,🔵 Union of Krell,Defense Minister,mock-model,10,25,35,5
+1770489045.3431969,1,🔵 Union of Krell,Economy Minister,mock-model,10,25,35,5
+1770489045.343455,1,🔵 Union of Krell,Foreign Minister,mock-model,10,25,35,5
+1770489045.343662,1,🔵 Union of Krell,President,mock-model,10,25,35,5
+1770489045.3442078,1,⚫ Nordland,Defense Minister,mock-model,10,25,35,5
+1770489045.3444118,1,⚫ Nordland,Economy Minister,mock-model,10,25,35,5
+1770489045.344675,1,⚫ Nordland,Foreign Minister,mock-model,10,25,35,5
+1770489045.344877,1,⚫ Nordland,President,mock-model,10,25,35,5
+1770489045.345744,1,🌸 Equatoria,Defense Minister,mock-model,10,25,35,5
+1770489045.345998,1,🌸 Equatoria,Economy Minister,mock-model,10,25,35,5
+1770489045.346307,1,🌸 Equatoria,Foreign Minister,mock-model,10,25,35,5
+1770489045.3465312,1,🌸 Equatoria,President,mock-model,10,25,35,5
+1770489045.3471391,1,🧊 Meridia,Defense Minister,mock-model,10,25,35,5
+1770489045.347344,1,🧊 Meridia,Economy Minister,mock-model,10,25,35,5
+1770489045.347606,1,🧊 Meridia,Foreign Minister,mock-model,10,25,35,5
+1770489045.347808,1,🧊 Meridia,President,mock-model,10,25,35,5
+1770489045.348361,1,🟢 Osterland Federation,Defense Minister,mock-model,10,25,35,5
+1770489045.348572,1,🟢 Osterland Federation,Economy Minister,mock-model,10,25,35,5
+1770489045.3488262,1,🟢 Osterland Federation,Foreign Minister,mock-model,10,25,35,5
+1770489045.349022,1,🟢 Osterland Federation,President,mock-model,10,25,35,5
+1770489045.3513,1,🔴 Republic of Agria,Public Opinion,mock-model,10,25,35,5
+1770489045.3515708,1,🔵 Union of Krell,Public Opinion,mock-model,10,25,35,5
+1770489045.351878,1,🟢 Osterland Federation,Public Opinion,mock-model,10,25,35,5
+1770489045.352224,1,🟡 Zentora Empire,Public Opinion,mock-model,10,25,35,5
+1770489045.35252,1,🟣 Valkyria,Public Opinion,mock-model,10,25,35,5
+1770489045.352746,1,🟠 Sylvania,Public Opinion,mock-model,10,25,35,5
+1770489045.353008,1,⚫ Nordland,Public Opinion,mock-model,10,25,35,5
+1770489045.353206,1,🧊 Meridia,Public Opinion,mock-model,10,25,35,5
+1770489045.35345,1,🌸 Equatoria,Public Opinion,mock-model,10,25,35,5
+1770489045.353639,1,🟤 Drakonia,Public Opinion,mock-model,10,25,35,5
