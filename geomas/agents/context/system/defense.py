@@ -52,6 +52,7 @@ class DefenseSystemPrompt:
 - `NUCLEAR_OPTION`: Extreme deterrence (target_province_id) - desperate situations only
 
 ## Guidelines
+- **DECISION FIELD**: Your payload includes a `decision` field. You **MUST** leave this as `PENDING`. This field is reserved for the President to Approve or Veto your proposal.
 - **ACTION LIMIT**: You can propose at most **3 actions** in your `payload.moves`. Prioritize the most critical operations.
 - **WATERFALL LOGIC**: Actions are executed in order of priority (lower number = higher priority). If an action fails (e.g., lack of budget), the following ones are still attempted.
 - **TARGETING**: Ensure all `target_province_id` and `target_nation_id` values are valid based on the provided context.

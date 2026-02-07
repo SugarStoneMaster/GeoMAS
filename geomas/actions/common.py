@@ -10,8 +10,9 @@ from enum import Enum
 class Decision(str, Enum):
     """Decision outcome for actions.
     
-    Tracks whether a proposal was APPROVED (from Ministry)
-    or VETOED (by President).
+    Tracks whether a proposal is still PENDING, 
+    was APPROVED (By president), or VETOED (by President).
     """
+    PENDING = "PENDING"
     APPROVE = "APPROVE"
     VETO = "VETO"

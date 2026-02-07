@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import List, Optional, Dict, Any, Literal
 from pydantic import BaseModel, Field
-from geomas.actions.defense import DefensePayload
 from geomas.actions.common import Decision
 from geomas.actions.defense import DefensePayload
 from geomas.actions.economy import EconomicPayload
@@ -75,13 +74,11 @@ class DefenseProposal(BaseModel):
     payload: DefensePayload
     urgency: int = Field(..., ge=1, le=10, description="1=Routine, 10=Existential Threat")
 
-
 class EconomicProposal(BaseModel):
     """Economy minister's proposal to the president."""
     intent: EconomicIntent
     payload: EconomicPayload
     projected_cost: float
-
 
 class ForeignProposal(BaseModel):
     """Foreign minister's proposal to the president."""

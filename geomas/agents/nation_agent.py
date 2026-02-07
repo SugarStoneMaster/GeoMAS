@@ -133,21 +133,21 @@ class NationAgent:
         # Defense
         if decree.defense.action == Decision.APPROVE:
             def_payload = briefing.defense.payload
-            if hasattr(def_payload, 'decision'): def_payload.decision = Decision.APPROVE
+            def_payload.decision = Decision.APPROVE
         else: # VETO -> IDLE action
             def_payload = DefensePayload(decision=Decision.VETO, moves=[])
 
         # Economy
         if decree.economy.action == Decision.APPROVE:
             eco_payload = briefing.economy.payload
-            if hasattr(eco_payload, 'decision'): eco_payload.decision = Decision.APPROVE
+            eco_payload.decision = Decision.APPROVE
         else: # VETO -> No action
             eco_payload = EconomicPayload(decision=Decision.VETO, action_type=None)
 
         # Foreign
         if decree.foreign.action == Decision.APPROVE:
             for_payload = briefing.foreign.payload
-            if hasattr(for_payload, 'decision'): for_payload.decision = Decision.APPROVE
+            for_payload.decision = Decision.APPROVE
         else: # VETO -> No action
             for_payload = ForeignPayload(decision=Decision.VETO, action_type=None)
 

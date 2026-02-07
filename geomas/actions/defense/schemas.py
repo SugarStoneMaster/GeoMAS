@@ -114,7 +114,10 @@ class DefenseActionItem(BaseModel):
 
 class DefensePayload(BaseModel):
     """Payload for Defense Minister actions."""
-    decision: Decision
+    decision: Decision = Field(
+        default=Decision.PENDING,
+        description="FOR PRESIDENT ONLY. Ministers MUST leave as PENDING."
+    )
     moves: List[DefenseActionItem] = Field(
         default_factory=list, 
         max_length=3,

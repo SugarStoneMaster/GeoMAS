@@ -39,7 +39,10 @@ MESSAGE_TRUST_IMPACT: dict[DiplomaticMessageType, float] = {
 
 class ForeignPayload(BaseModel):
     """Payload for Foreign Minister actions."""
-    decision: Decision
+    decision: Decision = Field(
+        default=Decision.PENDING,
+        description="FOR PRESIDENT ONLY. Ministers MUST leave as PENDING."
+    )
     action_type: Optional[ForeignActionType] = None
     target_nation_id: Optional[str] = None
     parameters: Dict[str, Any] = Field(default_factory=dict)

@@ -160,7 +160,12 @@ def render_foreign_minister():
                 
                 with r_col2:
                     st.markdown("### Payload (Action)")
-                    st.write(f"**Decision:** `{response.payload.decision.value}`")
+                    
+                    decision_val = response.payload.decision.value
+                    if decision_val == "PENDING":
+                        st.warning(f"**Decision:** `{decision_val}` (Minister Proposal)")
+                    else:
+                        st.write(f"**Decision:** `{decision_val}`")
                     
                     if response.payload.action_type:
                         st.write(f"**Action:** `{response.payload.action_type.value}`")

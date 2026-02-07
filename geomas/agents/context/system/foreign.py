@@ -74,6 +74,7 @@ class ForeignSystemPrompt:
 - **1 ACTION per turn** - choose the most impactful
 
 ## Guidelines
+- **DECISION FIELD**: Your payload includes a `decision` field. You **MUST** leave this as `PENDING`. This field is reserved for the President to Approve or Veto your proposal.
 - **ACTION SELECTION**: You MUST choose exactly one action from the list above.
 - **TARGET IDENTIFICATION**: For actions like `PROPOSE_ALLIANCE`, `WAR`, `PEACE`, `MESSAGE`, etc., you **MUST** provide the `target_nation_id`. Check the available nations in your context for valid IDs.
 - **PENDING PROPOSALS**: Responding to offers (ACCEPT/REJECT) also requires the `target_nation_id` of the proposer.

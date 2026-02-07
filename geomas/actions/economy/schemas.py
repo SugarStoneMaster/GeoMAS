@@ -20,7 +20,10 @@ class EconomicActionType(str, Enum):
 
 class EconomicPayload(BaseModel):
     """Payload for Economy Minister actions."""
-    decision: Decision
+    decision: Decision = Field(
+        default=Decision.PENDING,
+        description="FOR PRESIDENT ONLY. Ministers MUST leave as PENDING."
+    )
     action_type: Optional[EconomicActionType] = None
     target_nation_id: Optional[str] = None
     parameters: Dict[str, Any] = Field(default_factory=dict)
