@@ -6,7 +6,12 @@ Orchestrates the Cabinet (Ministers) and the President.
 """
 from typing import List, Optional
 from geomas.schemas.world import WorldState, NationState 
-from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, CabinetBriefing
+from geomas.agents.schemas import (
+    CountryEnvelope, GlobalStrategy, CabinetBriefing, 
+    PresidentialDecree, DecreeAction,
+    DefenseProposal, EconomicProposal, ForeignProposal
+)
+from geomas.actions.common import DecisionSource
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.ministers import DefenseMinister, EconomicMinister, ForeignMinister
 from geomas.agents.context.system import PresidentSystemPrompt
@@ -48,7 +53,7 @@ class NationAgent:
         2. President Decides (Override or Accept)
         """
         
-        # 1. CABINET PHASE (Parallelizable)
+        # 1. CABINET PHASE
         def_prop = self.defense_minister.propose(self.strategy)
         eco_prop = self.economy_minister.propose(self.strategy)
         for_prop = self.foreign_minister.propose(self.strategy)
@@ -60,41 +65,36 @@ class NationAgent:
         )
 
         # 2. PRESIDENTIAL PHASE
-        envelope = self._presidential_decision(turn, briefing)
+        decree = self._presidential_decision(turn, briefing)
         
-        # FIX: Enforce correct sender_id and turn (LLM might hallucinate)
-        envelope.sender_id = self.id
-        envelope.turn = turn
+        # 3. ENFORCE DECREE (Construct Envelope)
+        envelope = self._construct_envelope_from_decree(turn, decree, briefing)
         
-        # 3. MEMORIZE
+        # 4. MEMORIZE
         self.memory.append(f"Turn {turn}: {envelope.public_statement}")
         
         return envelope
 
-    def _presidential_decision(self, turn: int, briefing: CabinetBriefing) -> CountryEnvelope:
+    def _presidential_decision(self, turn: int, briefing: CabinetBriefing) -> PresidentialDecree:
         """
-        The President reviews the briefing and issues the final envelope.
-        Uses new prompt architecture with ContextManager memory.
+        The President reviews the briefing and issues a Decree.
         """
         nation = self.world.nations[self.id]
         
-        # Get cultural traits from nation
-        cultural_traits = getattr(nation, 'cultural_traits', None)
-        
-        # Generate system prompt using new architecture
+        # Generate system prompt
         system_prompt = PresidentSystemPrompt.generate(
             nation_name=nation.name,
             strategy=self.strategy,
-            cultural_traits=cultural_traits
+            cultural_traits=getattr(nation, 'cultural_traits', None)
         )
         
-        # Build input context using new architecture
+        # Build input context
         input_builder = PresidentInputBuilder(self.world)
         
-        # Get minister summaries for President
-        defense_summary = self._summarize_proposal(briefing.defense, "defense")
-        economy_summary = self._summarize_proposal(briefing.economy, "economy")
-        foreign_summary = self._summarize_proposal(briefing.foreign, "foreign")
+        # Get detailed minister summaries
+        defense_summary = self._summarize_defense(briefing.defense)
+        economy_summary = self._summarize_economy(briefing.economy)
+        foreign_summary = self._summarize_foreign(briefing.foreign)
         
         user_prompt = input_builder.build(
             nation_id=self.id,
@@ -103,42 +103,122 @@ class NationAgent:
             foreign_summary=foreign_summary
         )
         
-        # Add memory context if ContextManager is available
+        # Add memory context
         if self.context_manager:
             relationships = self.context_manager.get_relationships_for(self.id)
             events = self.context_manager.get_events_for(self.id, max_events=10)
             actions = self.context_manager.get_actions_for(self.id, max_actions=10)
             
             if relationships:
-                user_prompt += "\n\n== RELATIONSHIP HISTORY ==\n"
-                user_prompt += "\n".join(f"- {r}" for r in relationships[:5])
-            
+                user_prompt += "\n\n== RELATIONSHIP HISTORY ==\n" + "\n".join(f"- {r}" for r in relationships[:5])
             if events:
-                user_prompt += "\n\n== RECENT WORLD EVENTS ==\n"
-                user_prompt += "\n".join(events[:5])
-            
+                user_prompt += "\n\n== RECENT WORLD EVENTS ==\n" + "\n".join(events[:5])
             if actions:
-                user_prompt += "\n\n== YOUR RECENT DECISIONS ==\n"
-                user_prompt += "\n".join(actions[:5])
+                user_prompt += "\n\n== YOUR RECENT DECISIONS ==\n" + "\n".join(actions[:5])
         
-        return self.client.query_agent(system_prompt, user_prompt, CountryEnvelope)
-    
-    def _summarize_proposal(self, proposal, domain: str) -> str:
-        """Create a brief summary of a minister's proposal for the President."""
-        if proposal is None:
-            return f"No {domain} proposal."
+        # Call LLM expecting PresidentialDecree
+        return self.client.query_agent(system_prompt, user_prompt, PresidentialDecree)
+
+    def _construct_envelope_from_decree(self, turn: int, decree: PresidentialDecree, briefing: CabinetBriefing) -> CountryEnvelope:
+        """Apply Approve/Override logic to build final envelope."""
         
-        intent = getattr(proposal, 'intent', None)
-        reasoning = intent.reasoning if intent and hasattr(intent, 'reasoning') else "No reasoning"
+        # Defense
+        if decree.defense.action == DecreeAction.APPROVE:
+            def_payload = briefing.defense.payload
+            # Ensure source is correct (though it might be set by minister)
+            if hasattr(def_payload, 'source'): def_payload.source = DecisionSource.MINISTRY_ADVICE
+        else:
+            def_payload = decree.defense.new_payload
+            if hasattr(def_payload, 'source'): def_payload.source = DecisionSource.PRESIDENT_OVERRIDE
+
+        # Economy
+        if decree.economy.action == DecreeAction.APPROVE:
+            eco_payload = briefing.economy.payload
+            if hasattr(eco_payload, 'source'): eco_payload.source = DecisionSource.MINISTRY_ADVICE
+        else:
+            eco_payload = decree.economy.new_payload
+            if hasattr(eco_payload, 'source'): eco_payload.source = DecisionSource.PRESIDENT_OVERRIDE
+
+        # Foreign
+        if decree.foreign.action == DecreeAction.APPROVE:
+            for_payload = briefing.foreign.payload
+            if hasattr(for_payload, 'source'): for_payload.source = DecisionSource.MINISTRY_ADVICE
+        else:
+            for_payload = decree.foreign.new_payload
+            if hasattr(for_payload, 'source'): for_payload.source = DecisionSource.PRESIDENT_OVERRIDE
+
+        return CountryEnvelope(
+            turn=turn,
+            sender_id=self.id,
+            global_strategy=self.strategy, # Strategy is fixed, decree metadata is for reference
+            public_statement=decree.public_statement,
+            
+            defense_payload=def_payload,
+            defense_public_intent=decree.defense_public_intent,
+            defense_private_intent=decree.defense_private_intent,
+            defense_private_reasoning=decree.defense_private_reasoning,
+            
+            economic_payload=eco_payload,
+            economic_public_intent=decree.economic_public_intent,
+            economic_private_intent=decree.economic_private_intent,
+            economic_private_reasoning=decree.economic_private_reasoning,
+            
+            foreign_payload=for_payload,
+            foreign_public_intent=decree.foreign_public_intent,
+            foreign_private_intent=decree.foreign_private_intent,
+            foreign_private_reasoning=decree.foreign_private_reasoning
+        )
+
+    def _summarize_defense(self, proposal: DefenseProposal) -> str:
+        """Format defense proposal for President."""
+        intent = proposal.intent
+        payload = proposal.payload
+        summary = f"**Intent:** {intent.type.value} - {intent.reasoning}\n**Urgency:** {proposal.urgency}/10\n**Actions:**"
         
-        if domain == "defense":
-            urgency = getattr(proposal, 'urgency', "NORMAL")
-            return f"Urgency: {urgency}. {reasoning[:100]}"
-        elif domain == "economy":
-            cost = getattr(proposal, 'projected_cost', 0)
-            return f"Cost: {cost}. {reasoning[:100]}"
-        elif domain == "foreign":
-            impact = getattr(proposal, 'target_trust_impact', 0)
-            return f"Trust Impact: {impact:+.0f}. {reasoning[:100]}"
+        # Count action types from the generic 'moves' list
+        move_count = 0
+        recruit_count = 0
+        nuke_count = 0
         
-        return reasoning[:150]
+        # Note: DefensePayload uses 'moves' list for ALL actions (Waterfall Logic)
+        if hasattr(payload, 'moves') and payload.moves:
+            for action in payload.moves:
+                # Check action type string loosely to handle Enum or str
+                a_type = str(action.action_type).upper()
+                if "MOVE" in a_type:
+                    move_count += 1
+                elif "CREATE" in a_type or "RECRUIT" in a_type:
+                    recruit_count += 1
+                elif "NUKE" in a_type or "NUCLEAR" in a_type:
+                    nuke_count += 1
+        
+        actions = []
+        if move_count > 0: actions.append(f"Move/Attack with {move_count} units")
+        if recruit_count > 0: actions.append(f"Recruit {recruit_count} units")
+        if nuke_count > 0: actions.append(f"LAUNCH {nuke_count} NUKES")
+        
+        if not actions: return summary + " None"
+        return summary + " " + ", ".join(actions)
+
+    def _summarize_economy(self, proposal: EconomicProposal) -> str:
+        """Format economic proposal for President."""
+        intent = proposal.intent
+        payload = proposal.payload
+        summary = f"**Intent:** {intent.type.value} - {intent.reasoning}\n**Cost:** {proposal.projected_cost:.1f}\n**Action:**"
+        
+        if payload.action_type:
+            details = str(payload.parameters) if payload.parameters else ""
+            return f"{summary} {payload.action_type.value} {details}"
+        return f"{summary} None"
+
+    def _summarize_foreign(self, proposal: ForeignProposal) -> str:
+        """Format foreign proposal for President."""
+        intent = proposal.intent
+        payload = proposal.payload
+        summary = f"**Intent:** {intent.type.value} - {intent.reasoning}\n**Trust Impact:** {proposal.target_trust_impact:+.0f}\n**Action:**"
+        
+        if payload.action_type:
+            target = f" (Target: {payload.target_nation_id})" if payload.target_nation_id else ""
+            details = str(payload.parameters) if payload.parameters else ""
+            return f"{summary} {payload.action_type.value}{target} {details}"
+        return f"{summary} None"

@@ -31,6 +31,11 @@ from geomas.agents.schemas.protocol import (
     ForeignProposal,
     CabinetBriefing,
     CountryEnvelope,
+    PresidentialDecree,
+    DecreeAction,
+    DefenseDecree,
+    EconomicDecree,
+    ForeignDecree,
 )
 
 # Re-export payloads from domain packages for convenience
@@ -51,6 +56,11 @@ __all__ = [
     "ForeignProposal",
     "CabinetBriefing",
     "CountryEnvelope",
+    "PresidentialDecree",
+    "DecreeAction",
+    "DefenseDecree",
+    "EconomicDecree",
+    "ForeignDecree",
     "DefensePayload",
     "EconomicPayload",
     "ForeignPayload"

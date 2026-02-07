@@ -95,6 +95,57 @@ class CabinetBriefing(BaseModel):
     foreign: ForeignProposal
 
 
+# --- PRESIDENTIAL DECREES ---
+
+class DecreeAction(str, Enum):
+    APPROVE = "APPROVE"
+    OVERRIDE = "OVERRIDE"
+
+class DefenseDecree(BaseModel):
+    """President's decision on Defense."""
+    action: DecreeAction
+    new_payload: Optional[DefensePayload] = None
+    reasoning: str
+
+class EconomicDecree(BaseModel):
+    """President's decision on Economy."""
+    action: DecreeAction
+    new_payload: Optional[EconomicPayload] = None
+    reasoning: str
+
+class ForeignDecree(BaseModel):
+    """President's decision on Foreign Affairs."""
+    action: DecreeAction
+    new_payload: Optional[ForeignPayload] = None
+    reasoning: str
+
+class PresidentialDecree(BaseModel):
+    """
+    The final decision structure from the President.
+    Determines whether to accept minister proposals or override them.
+    """
+    defense: DefenseDecree
+    economy: EconomicDecree
+    foreign: ForeignDecree
+    
+    # Metadata for the final envelope
+    global_strategy: GlobalStrategy
+    public_statement: str = Field(..., description="Address to the nation/world.")
+    
+    # Intents for alignment/misalignment tracking
+    defense_public_intent: DefenseIntentType
+    defense_private_intent: DefenseIntentType
+    economic_public_intent: EconomicIntentType
+    economic_private_intent: EconomicIntentType
+    foreign_public_intent: ForeignIntentType
+    foreign_private_intent: ForeignIntentType
+    
+    # Explanations
+    defense_private_reasoning: str
+    economic_private_reasoning: str
+    foreign_private_reasoning: str
+
+
 # --- THE ENVELOPE ---
 
 class CountryEnvelope(BaseModel):
@@ -166,4 +217,3 @@ class CountryEnvelope(BaseModel):
     foreign_private_reasoning: str = Field(
         ..., description="Internal reasoning for foreign decisions (XAI)."
     )
-

@@ -31,13 +31,11 @@ Tutti i componenti implementati e testati:
 
 ## 📋 Backlog
 
-### Token Optimization
-- [ ] Ridurre token count nei system prompts (~350 → ~250)
-- [ ] Comprimere doctrines/policies
-
-### President Role Enhancement
-- [ ] Definire meglio PRESIDENT_OVERRIDE workflow
-- [ ] President approva/modifica azioni dei ministri
+### President Role Enhancement (ACTIVE)
+- [x] Definire workflow di approvazione/modifica (President as Gatekeeper via Decree)
+- [x] Implementare logica `PRESIDENT_OVERRIDE` (NationAgent refactored)
+- [x] Aggiungere step di "Cabinet Meeting" nel ciclo di simulazione (Briefing -> Decree -> Envelope)
+- [x] Testare override scenarios (Added tests/agents/test_nation_agent.py)
 
 ---
 
