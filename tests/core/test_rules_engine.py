@@ -129,6 +129,9 @@ def test_execution_waterfall():
     world.nations[nation_id].total_energy = 10.0
     world.nations[nation_id].total_workers = 10  # Enough for all
     
+    # Get an owned province
+    target_prov = world.nations[nation_id].province_ids[0]
+    
     # Create 3 CREATE_UNIT actions with explicit unit_type
     payload = DefensePayload(
         decision=Decision.APPROVE,
@@ -136,17 +139,17 @@ def test_execution_waterfall():
             DefenseActionItem(
                 priority=1, 
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "SOLDIER", "quantity": 1}
+                parameters={"unit_type": "SOLDIER", "quantity": 1, "province_id": int(target_prov)}
             ),
             DefenseActionItem(
                 priority=2, 
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "SOLDIER", "quantity": 1}
+                parameters={"unit_type": "SOLDIER", "quantity": 1, "province_id": int(target_prov)}
             ),
             DefenseActionItem(
                 priority=3, 
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "SOLDIER", "quantity": 1}
+                parameters={"unit_type": "SOLDIER", "quantity": 1, "province_id": int(target_prov)}
             )
         ]
     )
