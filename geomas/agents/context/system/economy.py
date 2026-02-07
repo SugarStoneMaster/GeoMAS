@@ -50,7 +50,7 @@ class EconomySystemPrompt:
 ## Available Actions (choose 1 per turn)
 - `INVEST_WELFARE`: Spend budget to increase public satisfaction (logarithmic effect)
 - `RAISE_WAR_TAX`: Emergency tax for military (-15 satisfaction, +budget)
-- `TRADE_PROPOSAL`: Offer trade deal to another nation (specify resource exchange)
+- `TRADE_PROPOSAL`: Offer trade deal (target_nation_id, give: {{resource: amount}}, receive: {{resource: amount}})
 
 ## Key Metrics You Influence
 - **Public Satisfaction**: INVEST_WELFARE raises it, RAISE_WAR_TAX lowers it

@@ -49,11 +49,12 @@ class ForeignSystemPrompt:
 
 ## Available Actions (choose 1 per turn)
 - `PROPOSE_ALLIANCE`: Offer alliance to another nation (requires trust > 60)
-- `FORMAL_DECLARATION_OF_WAR`: Initiate hostilities (use with caution)
-- `REQUEST_PEACE`: Offer to end ongoing war
+- `FORMAL_DECLARATION_OF_WAR`: Initiate hostilities (target_nation_id)
+- `REQUEST_PEACE`: Offer to end ongoing war (target_nation_id)
 - `BREAK_TREATY`: Exit alliance (severely damages trust, -30)
-- `SEND_DIPLOMATIC_MESSAGE`: Communication (PRAISE: +trust, THREAT/INSULT: -trust)
-- `ACCEPT_PROPOSAL` / `REJECT_PROPOSAL`: Respond to pending alliance/peace offers
+- `SEND_DIPLOMATIC_MESSAGE`: Communication (message_type: PRAISE|THREAT|INSULT)
+- `ACCEPT_PROPOSAL`: Accept pending offer (target_nation_id, proposal_type: ALLIANCE|PEACE)
+- `REJECT_PROPOSAL`: Reject pending offer (target_nation_id, proposal_type: ALLIANCE|PEACE)
 
 ## Trust Mechanics
 - Trust ranges 0-100 (50 = neutral)

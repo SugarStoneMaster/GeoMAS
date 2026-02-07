@@ -47,9 +47,9 @@ class DefenseSystemPrompt:
 3. **Recommendations**: Propose up to 3 military actions (MAXIMUM)
 
 ## Available Actions
-- `MOVE_TROOPS`: Move units FROM one province TO another (specify from_province_id, to_province_id, count)
-- `CREATE_UNIT`: Train new soldiers/aircraft/navy (costs budget)
-- `NUCLEAR_OPTION`: Extreme deterrence (desperate situations only)
+- `MOVE_TROOPS`: Move units (specify unit_type: SOLDIER|AIRCRAFT|NAVY, from_province_id, to_province_id, count)
+- `CREATE_UNIT`: Train new units (specify unit_type: SOLDIER|AIRCRAFT|NAVY, province_id, count)
+- `NUCLEAR_OPTION`: Extreme deterrence (target_province_id) - desperate situations only
 
 ## Constraints
 - **MAX 3 ACTIONS per turn** - prioritize the most critical

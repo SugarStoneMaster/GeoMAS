@@ -1,75 +1,53 @@
-# 🚀 Sprint: Fase 7.6 - Persistence & Context
+# 🚀 Sprint Corrente: System Prompt Refinement
 
 **Status:** In Progress | **Test:** 290 passati
 
 ---
 
-## ✅ Completato
+## ✅ Fase 7.6 - Persistence & Context (COMPLETATA)
 
-| Component | Files | Note |
-|-----------|-------|------|
-| **SimulationDB** | `geomas/db/connection.py` | DuckDB persistence |
-| **TurnCache** | `geomas/db/cache.py` | In-memory cache ultimi N turni |
-| **GenesisDB** | `geomas/db/genesis.py` | DB eventi storici |
-| **SpatialTranslator** | `geomas/agents/context/spatial.py` | Geography, borders, encirclement |
-| **MilitaryTranslator** | `geomas/agents/context/military.py` | Forces, threats, options |
-| **NationProfileGenerator** | `geomas/agents/context/profile.py` | Identity, history, economy |
-| **Prompt Architecture** | `geomas/agents/context/system/`, `input/` | 5 system + 5 input builders |
-| **ContextManager** | `geomas/agents/context/memory/` | Schemas + memory management |
-| **TokenCounter** | `geomas/agents/context/tokens.py` | tiktoken-based, budget validation |
-
-### Task Completati
-
-- [x] Context Management Package
-- [x] Memory Update Logic
-- [x] Context Output methods
-- [x] Token Counter (tiktoken)
-- [x] Prompt Budget Tests (19 test)
-- [x] Realistic Budget Tests (7 test con ContextManager popolato)
-
-### Token Budget Results
-
-**Stress Test (20 nations, 25 events, 30 actions):**
-
-| Component | Tokens |
-|-----------|:------:|
-| System | 500 |
-| Base input | 400 |
-| Relationships (19) | 646 |
-| Events (25) | 425 |
-| Actions (30) | 540 |
-| **TOTAL** | **2511 (50%)** |
-
-Budget confirmed safe for simulations up to 20 nations.
+Tutti i componenti implementati e testati:
+- SimulationDB, TurnCache, GenesisDB
+- SpatialTranslator, MilitaryTranslator, NationProfileGenerator
+- Prompt Architecture (5 system + 5 input builders)
+- ContextManager con memory management
+- TokenCounter con budget validation
+- SimulationEngine e Agent integration
 
 ---
 
-## ✅ Integration Complete
+## 🔄 In Progress
 
-### 13. SimulationEngine Integration ✅
-- [x] Hook ContextManager in `SimulationEngine.__init__`
-- [x] Chiamare `context_manager.update_after_turn()` dopo ogni turno
-- [x] Chiamare `context_manager.initialize_from_world()` all'inizio
+### System Prompt Fixes
+- [ ] Defense: aggiungere `unit_type` a MOVE_TROOPS
+- [ ] Economy: specificare formato TRADE_PROPOSAL (give/receive)
+- [ ] Foreign: aggiungere `proposal_type` per ACCEPT/REJECT_PROPOSAL
 
-### 14. Agent Integration ✅
-- [x] Modificare `NationAgent` per usare system prompts
-- [x] Modificare `NationAgent` per usare input builders
-- [x] Passare context da ContextManager agli InputBuilders
-
-### 15. Minister Integration ✅
-- [x] DefenseMinister usa `DefenseSystemPrompt` + `DefenseInputBuilder`
-- [x] EconomicMinister usa `EconomySystemPrompt` + `EconomyInputBuilder`
-- [x] ForeignMinister usa `ForeignSystemPrompt` + `ForeignInputBuilder`
-- [x] Tutti i ministri ricevono ContextManager per memoria
+### Opinion Integration
+- [ ] Integrare Opinion agent nel flusso di simulazione
+- [ ] Collegare output a satisfaction delta
 
 ---
 
-## 📌 Reference: Token Budget
+## 📋 Backlog
 
-```
-Per ogni agente (5000 token max):
-├── SYSTEM (~800): Identità + GlobalStrategy + Regole output
-└── INPUT (~4200): State + Relationships + Events + Actions
-```
+### Token Optimization
+- [ ] Ridurre token count nei system prompts (~350 → ~250)
+- [ ] Comprimere doctrines/policies
 
-**Pruning**: MAX_EVENTS=50, MAX_ACTIONS_PER_DOMAIN=10, MAX_RELATIONSHIP_EVENTS=3
+### President Role Enhancement
+- [ ] Definire meglio PRESIDENT_OVERRIDE workflow
+- [ ] President approva/modifica azioni dei ministri
+
+---
+
+## 📌 Design Notes
+
+**System vs Input Prompts:**
+- **System**: Identità, regole, format output (STATICO)
+- **Input**: Turno, budget, risorse, relazioni (DINAMICO per turno)
+
+**Action Limits:**
+- Defense: MAX 3 azioni/turno
+- Economy: MAX 1 azione/turno
+- Foreign: MAX 1 azione/turno
