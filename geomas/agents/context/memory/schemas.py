@@ -120,9 +120,9 @@ class MyAction(BaseModel):
     """
     turn: int
     domain: str  # "Defense", "Economy", "Foreign"
-    action_type: str  # "ATTACK", "INVEST_IN_WELFARE", "PROPOSE_ALLIANCE"
-    action_summary: str  # "Attacked Province 7 of Valdoria"
-    outcome: Optional[str] = None  # "Captured", "Failed", "Accepted", "Rejected"
+    action_type: str  # "MOVE_TROOPS", "INVEST_WELFARE", "PROPOSE_ALLIANCE"
+    action_summary: str  # "Moved 50 troops to Province 7"
+    outcome: Optional[str] = None  # "Success", "Failed", "Accepted", "Rejected"
     
     def to_prompt_line(self) -> str:
         """

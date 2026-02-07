@@ -93,9 +93,9 @@ class EconomyInputBuilder:
 **Estimated Income:** {income:,.0f}/turn (from taxes)
 
 **Key Costs:**
-- INVEST_IN_WELFARE: ~500 budget → +10 satisfaction
-- CREATE_UNIT (soldier): 10 each
-- CREATE_UNIT (aircraft): 50 each"""
+- INVEST_WELFARE: ~500 budget → satisfaction boost (logarithmic)
+- CREATE_UNIT (soldier): 5 each
+- CREATE_UNIT (aircraft): 80 each"""
 
     def _build_resources_section(self, nation_id: str) -> str:
         """Build resource production section."""
@@ -159,8 +159,8 @@ class EconomyInputBuilder:
 {recommendation}
 
 **Your Tools:**
-- `INVEST_IN_WELFARE`: Spend ~500 budget → +10 satisfaction
-- `WAR_TAX`: +budget, -5 satisfaction (requires satisfaction > 30)"""
+- `INVEST_WELFARE`: Spend budget → satisfaction boost (logarithmic: 10*log(1+amount/100))
+- `RAISE_WAR_TAX`: +budget, -15 satisfaction (requires satisfaction > 30)"""
 
     def _build_trades_section(self, pending_trades: List[Dict[str, Any]]) -> str:
         """Build pending trade offers section."""

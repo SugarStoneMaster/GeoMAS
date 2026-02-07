@@ -182,11 +182,14 @@ class ContextManager:
     ) -> Optional[NotableEvent]:
         """Convert a behavior to a notable event if significant."""
         action_type = behavior.action_type if hasattr(behavior, 'action_type') else str(type(behavior).__name__)
+        # Convert enum to string if needed
+        if hasattr(action_type, 'value'):
+            action_type = action_type.value
         
         nation_name = world.nations[nation_id].name if nation_id in world.nations else nation_id
         
-        # War declaration
-        if "DECLARE_WAR" in action_type:
+        # War declaration (ForeignActionType.FORMAL_DECLARATION_OF_WAR)
+        if "FORMAL_DECLARATION_OF_WAR" in action_type:
             target_id = getattr(behavior, 'target_nation_id', None)
             target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
             return NotableEvent(
@@ -197,58 +200,67 @@ class ContextManager:
                 relevance_to=None  # Global event
             )
         
-        # Peace treaty
-        if "PEACE" in action_type and "ACCEPT" in action_type:
-            other_id = getattr(behavior, 'from_nation_id', None)
-            other_name = world.nations[other_id].name if other_id and other_id in world.nations else other_id
+        # Peace request accepted (ACCEPT_PROPOSAL for peace)
+        if "REQUEST_PEACE" in action_type:
+            target_id = getattr(behavior, 'target_nation_id', None)
+            target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
             return NotableEvent(
                 turn=turn,
                 event_type=EventType.PEACE_SIGNED,
-                actors=[nation_id, other_id] if other_id else [nation_id],
-                summary=f"{nation_name} and {other_name} signed peace treaty",
+                actors=[nation_id, target_id] if target_id else [nation_id],
+                summary=f"{nation_name} requested peace with {target_name}",
                 relevance_to=None
             )
         
-        # Alliance formed
-        if "ALLIANCE" in action_type and "ACCEPT" in action_type:
-            other_id = getattr(behavior, 'from_nation_id', None)
-            other_name = world.nations[other_id].name if other_id and other_id in world.nations else other_id
+        # Alliance proposed (PROPOSE_ALLIANCE)
+        if "PROPOSE_ALLIANCE" in action_type:
+            target_id = getattr(behavior, 'target_nation_id', None)
+            target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
             return NotableEvent(
                 turn=turn,
                 event_type=EventType.ALLIANCE_FORMED,
-                actors=[nation_id, other_id] if other_id else [nation_id],
-                summary=f"{nation_name} and {other_name} formed alliance",
-                relevance_to=None
+                actors=[nation_id, target_id] if target_id else [nation_id],
+                summary=f"{nation_name} proposed alliance to {target_name}",
+                relevance_to=target_id
             )
         
-        # Attack
-        if "ATTACK" in action_type:
+        # Alliance/Treaty broken (BREAK_TREATY)
+        if "BREAK_TREATY" in action_type:
+            target_id = getattr(behavior, 'target_nation_id', None)
+            target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
+            return NotableEvent(
+                turn=turn,
+                event_type=EventType.ALLIANCE_BROKEN,
+                actors=[nation_id, target_id] if target_id else [nation_id],
+                summary=f"{nation_name} broke treaty with {target_name}",
+                relevance_to=None  # Global event - trust implications
+            )
+        
+        # Nuclear strike (DefenseActionType.NUCLEAR_OPTION)
+        if "NUCLEAR_OPTION" in action_type:
             target_id = getattr(behavior, 'target_province_id', None)
             target_nation = None
             if target_id and target_id in world.provinces:
                 target_nation = world.provinces[target_id].owner_id
             target_name = world.nations[target_nation].name if target_nation and target_nation in world.nations else "unknown"
-            
-            outcome = getattr(behavior, 'outcome', None)
-            if outcome == "CAPTURED":
-                return NotableEvent(
-                    turn=turn,
-                    event_type=EventType.TERRITORY_GAINED,
-                    actors=[nation_id, target_nation] if target_nation else [nation_id],
-                    summary=f"{nation_name} captured territory from {target_name}",
-                    relevance_to=target_nation
-                )
+            return NotableEvent(
+                turn=turn,
+                event_type=EventType.NUCLEAR_STRIKE,
+                actors=[nation_id, target_nation] if target_nation else [nation_id],
+                summary=f"{nation_name} launched nuclear strike on {target_name}",
+                relevance_to=None  # Global catastrophe
+            )
         
-        # Trade deal
-        if "TRADE" in action_type and "ACCEPT" in action_type:
-            other_id = getattr(behavior, 'from_nation_id', None)
-            other_name = world.nations[other_id].name if other_id and other_id in world.nations else other_id
+        # Trade deal (TRADE_PROPOSAL accepted)
+        if "TRADE_PROPOSAL" in action_type:
+            target_id = getattr(behavior, 'target_nation_id', None)
+            target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
             return NotableEvent(
                 turn=turn,
                 event_type=EventType.TRADE_DEAL,
-                actors=[nation_id, other_id] if other_id else [nation_id],
-                summary=f"{nation_name} signed trade deal with {other_name}",
-                relevance_to=None
+                actors=[nation_id, target_id] if target_id else [nation_id],
+                summary=f"{nation_name} proposed trade deal with {target_name}",
+                relevance_to=target_id
             )
         
         return None
@@ -296,12 +308,18 @@ class ContextManager:
         """Convert behavior to MyAction record."""
         action_type = behavior.action_type if hasattr(behavior, 'action_type') else str(type(behavior).__name__)
         
-        # Determine domain
-        if any(x in action_type for x in ["ATTACK", "MOVE", "CREATE_UNIT", "FORTIFY"]):
+        # Determine domain based on actual action enum values
+        # Defense: MOVE_TROOPS, CREATE_UNIT, NUCLEAR_OPTION
+        if any(x in action_type for x in ["MOVE_TROOPS", "CREATE_UNIT", "NUCLEAR_OPTION"]):
             domain = "Defense"
-        elif any(x in action_type for x in ["TRADE", "WELFARE", "TAX", "INVEST"]):
+        # Economy: INVEST_WELFARE, TRADE_PROPOSAL, RAISE_WAR_TAX
+        elif any(x in action_type for x in ["INVEST_WELFARE", "TRADE_PROPOSAL", "RAISE_WAR_TAX"]):
             domain = "Economy"
-        elif any(x in action_type for x in ["ALLIANCE", "WAR", "PEACE", "MESSAGE"]):
+        # Foreign: SEND_DIPLOMATIC_MESSAGE, PROPOSE_ALLIANCE, FORMAL_DECLARATION_OF_WAR, etc.
+        elif any(x in action_type for x in ["PROPOSE_ALLIANCE", "FORMAL_DECLARATION_OF_WAR", 
+                                             "BREAK_TREATY", "REQUEST_PEACE", 
+                                             "ACCEPT_PROPOSAL", "REJECT_PROPOSAL",
+                                             "SEND_DIPLOMATIC_MESSAGE"]):
             domain = "Foreign"
         else:
             domain = "Other"
