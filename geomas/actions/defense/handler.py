@@ -32,8 +32,11 @@ def execute_defense_waterfall(
     Lower priority number = higher priority.
     Actions are executed until one fails validation.
     """
-    # Sort by priority (1 is highest)
-    moves = sorted(payload.moves, key=lambda x: x.priority)
+    # Sort by priority (1 is highest) and limit to 3 actions
+    moves = sorted(payload.moves, key=lambda x: x.priority)[:3]
+    
+    if len(payload.moves) > 3:
+        engine.logs.append(f"[DEFENSE] Warning: {nation_id} proposed {len(payload.moves)} actions. Truncating to 3 (highest priority).")
     
     nation = engine.world.nations.get(nation_id)
     if not nation:

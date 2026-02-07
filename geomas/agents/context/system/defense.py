@@ -51,27 +51,14 @@ class DefenseSystemPrompt:
 - `CREATE_UNIT`: Train new units (specify unit_type: SOLDIER|AIRCRAFT|NAVY, province_id, count)
 - `NUCLEAR_OPTION`: Extreme deterrence (target_province_id) - desperate situations only
 
-## Constraints
-- **MAX 3 ACTIONS per turn** - prioritize the most critical
-- Each MOVE_TROOPS moves from ONE source province to ONE target province
-- Budget limits unit creation
+## Guidelines
+- **ACTION LIMIT**: You can propose at most **3 actions** in your `payload.moves`. Prioritize the most critical operations.
+- **WATERFALL LOGIC**: Actions are executed in order of priority (lower number = higher priority). If an action fails (e.g., lack of budget), the following ones are still attempted.
+- **TARGETING**: Ensure all `target_province_id` and `target_nation_id` values are valid based on the provided context.
 
-## Output Format (be concise)
-```json
-{{
-  "threat_level": "CRITICAL" | "HIGH" | "MEDIUM" | "LOW",
-  "summary": "One sentence assessment",
-  "recommended_actions": [
-    {{
-      "action": "MOVE_TROOPS",
-      "from_province_id": 101,
-      "to_province_id": 152,
-      "count": 50,
-      "reasoning": "Brief why"
-    }}
-  ]
-}}
-```"""
+Your response will be automatically parsed into the `DefenseProposal` schema. Ensure your `intent.reasoning` explains why you chose these specific 1-3 actions.
+
+Victory favors the well-prepared. Protect the nation."""
 
     @staticmethod
     def _get_military_doctrine(strategy: GlobalStrategy) -> str:

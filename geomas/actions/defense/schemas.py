@@ -5,7 +5,7 @@ Action types and payloads for military/defense operations.
 """
 
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Dict, Any, Optional, List
 
 from geomas.actions.common import Decision
@@ -117,8 +117,16 @@ class DefensePayload(BaseModel):
     decision: Decision
     moves: List[DefenseActionItem] = Field(
         default_factory=list, 
-        description="Ordered list of actions (Waterfall Logic)"
+        max_length=3,
+        description="Ordered list of actions (Waterfall Logic). MAXIMUM 3 ACTIONS ALLOWED."
     )
+
+    @field_validator("moves")
+    @classmethod
+    def limit_actions(cls, v: List[DefenseActionItem]) -> List[DefenseActionItem]:
+        if len(v) > 3:
+            raise ValueError("Defense Minister can perform at most 3 actions per turn.")
+        return v
 
 
 # --- VALIDATION HELPERS ---
