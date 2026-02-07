@@ -60,7 +60,6 @@ class TestNationAgent:
             economy=EconomicDecree(action=DecreeAction.APPROVE, reasoning="Good"),
             foreign=ForeignDecree(action=DecreeAction.APPROVE, reasoning="Good"),
             
-            global_strategy=GlobalStrategy.COALITION_BUILDER,
             public_statement="We are strong.",
             
             defense_public_intent=DefenseIntentType.DEFENSE,
@@ -121,7 +120,6 @@ class TestNationAgent:
             economy=EconomicDecree(action=DecreeAction.APPROVE, reasoning="Ok"),
             foreign=ForeignDecree(action=DecreeAction.APPROVE, reasoning="Ok"),
             
-            global_strategy=GlobalStrategy.COALITION_BUILDER,
             public_statement="We choose peace.",
             
             defense_public_intent=DefenseIntentType.IDLE,

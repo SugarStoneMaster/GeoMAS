@@ -59,7 +59,6 @@ class UIMockLLM(LLMClient):
                 defense=DefenseDecree(action=DecreeAction.APPROVE, reasoning="Peace"),
                 economy=EconomicDecree(action=DecreeAction.APPROVE, reasoning="Growth"),
                 foreign=ForeignDecree(action=DecreeAction.APPROVE, reasoning="Coop"),
-                global_strategy=GlobalStrategy.COALITION_BUILDER,
                 public_statement="Peace and Prosperity.",
                 defense_public_intent=DefenseIntentType.IDLE,
                 defense_private_intent=DefenseIntentType.IDLE,

@@ -119,14 +119,13 @@ class ForeignDecree(BaseModel):
 class PresidentialDecree(BaseModel):
     """
     The final decision structure from the President.
-    Determines whether to accept minister proposals or override them.
+    Determines whether to accept minister proposals or veto them.
     """
     defense: DefenseDecree
     economy: EconomicDecree
     foreign: ForeignDecree
     
     # Metadata for the final envelope
-    global_strategy: GlobalStrategy
     public_statement: str = Field(..., description="Address to the nation/world.")
     
     # Intents for alignment/misalignment tracking

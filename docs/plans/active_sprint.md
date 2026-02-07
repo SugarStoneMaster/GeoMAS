@@ -33,7 +33,7 @@ Tutti i componenti implementati e testati:
 
 ### President Role Enhancement (DONE)
 - [x] Definire workflow di approvazione/modifica (President as Gatekeeper via Decree)
-- [x] Implementare logica `PRESIDENT_VETO` (NationAgent refactored to Approve/Veto only)
+- [x] Implementare logica `PRESIDENT_VETO` (Removed PRESIDENT_OVERRIDE & new_payload)
 - [x] Aggiungere step di "Cabinet Meeting" nel ciclo di simulazione (Briefing -> Decree -> Envelope)
 - [x] Testare override scenarios (Updated tests/agents/test_nation_agent.py)
 

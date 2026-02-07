@@ -53,7 +53,7 @@ class NationAgent:
         """
         Main cognitive loop:
         1. Ministers Propose
-        2. President Decides (Override or Accept)
+        2. President Decides (Veto or Approve)
         """
         
         # 1. CABINET PHASE
@@ -123,7 +123,7 @@ class NationAgent:
         return self.client.query_agent(system_prompt, user_prompt, PresidentialDecree)
 
     def _construct_envelope_from_decree(self, turn: int, decree: PresidentialDecree, briefing: CabinetBriefing) -> CountryEnvelope:
-        """Apply Approve/Override logic to build final envelope."""
+        """Apply Veto/Approve logic to build final envelope."""
         
         # Defense
         if decree.defense.action == DecreeAction.APPROVE:

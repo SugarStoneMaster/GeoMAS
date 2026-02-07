@@ -14,5 +14,4 @@ class DecisionSource(str, Enum):
     or was overridden by the president/leader.
     """
     MINISTRY_ADVICE = "MINISTRY_ADVICE"
-    PRESIDENT_OVERRIDE = "PRESIDENT_OVERRIDE"
     PRESIDENT_VETO = "PRESIDENT_VETO"

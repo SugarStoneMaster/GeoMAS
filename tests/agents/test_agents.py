@@ -61,7 +61,6 @@ class MockLLMClient(LLMClient):
                 defense=DefenseDecree(action=DecreeAction.APPROVE, reasoning="Approved"),
                 economy=EconomicDecree(action=DecreeAction.APPROVE, reasoning="Approved"),
                 foreign=ForeignDecree(action=DecreeAction.APPROVE, reasoning="Approved"),
-                global_strategy=GlobalStrategy.COALITION_BUILDER,
                 public_statement="We stand united.",
                 defense_public_intent=DefenseIntentType.DEFENSE,
                 defense_private_intent=DefenseIntentType.DEFENSE,
