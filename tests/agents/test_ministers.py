@@ -26,7 +26,7 @@ from geomas.agents.schemas import (
 )
 from geomas.actions.economy.schemas import EconomicActionType
 from geomas.actions.foreign.schemas import ForeignActionType
-from geomas.actions.common import DecisionSource
+from geomas.actions.common import Decision
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.context.memory import ContextManager
 
@@ -60,7 +60,7 @@ class TestDefenseMinister(TestMinisterBase):
                 reasoning="Test reasoning"
             ),
             payload=DefensePayload(
-                source=DecisionSource.MINISTRY_ADVICE,
+                decision=Decision.APPROVE,
                 moves=[],
                 recruits=[],
                 attacks=[],
@@ -99,7 +99,7 @@ class TestDefenseMinister(TestMinisterBase):
                 reasoning="Test"
             ),
             payload=DefensePayload(
-                source=DecisionSource.MINISTRY_ADVICE,
+                decision=Decision.APPROVE,
                 moves=[], recruits=[], attacks=[], nukes_launched=[]
             ),
             urgency=1
@@ -132,7 +132,7 @@ class TestEconomicMinister(TestMinisterBase):
                 reasoning="Test reasoning"
             ),
             payload=EconomicPayload(
-                source=DecisionSource.MINISTRY_ADVICE,
+                decision=Decision.APPROVE,
                 action_type=EconomicActionType.INVEST_WELFARE,
                 parameters={"amount": 10.0}
             ),
@@ -168,7 +168,7 @@ class TestForeignMinister(TestMinisterBase):
                 reasoning="Test reasoning"
             ),
             payload=ForeignPayload(
-                source=DecisionSource.MINISTRY_ADVICE,
+                decision=Decision.APPROVE,
                 action_type=ForeignActionType.PROPOSE_ALLIANCE,
                 target_nation_id="NationB",
                 parameters={"proposal_type": "NONE", "amount": 0.0}
@@ -207,7 +207,7 @@ class TestForeignMinister(TestMinisterBase):
                 reasoning="Test"
             ),
             payload=ForeignPayload(
-                source=DecisionSource.MINISTRY_ADVICE,
+                decision=Decision.APPROVE,
                 action_type=None,
                 target_nation_id=None,
                 parameters={"proposal_type": "NONE", "amount": 0.0}

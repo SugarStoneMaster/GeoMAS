@@ -27,7 +27,7 @@ from geomas.actions.defense.combat import (
     UNIT_COMBAT_STRENGTH,
     CombatResult,
 )
-from geomas.actions.common import DecisionSource
+from geomas.actions.common import Decision
 from geomas.schemas.world import TerrainType
 
 
@@ -176,7 +176,7 @@ class TestIntegratedCombat:
         initial_own_provinces = len(nation.province_ids)
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,

@@ -16,7 +16,7 @@ from geomas.actions.foreign import (
     execute_foreign,
     clear_expired_proposals,
 )
-from geomas.actions.common import DecisionSource
+from geomas.actions.common import Decision
 from geomas.schemas.world import RelationshipState
 
 
@@ -56,7 +56,7 @@ class TestDiplomaticMessages:
         initial_trust = world.trust_matrix[sender_id][target_id]
         
         payload = ForeignPayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE,
             target_nation_id=target_id,
             parameters={"message_type": "PRAISE"}
@@ -78,7 +78,7 @@ class TestDiplomaticMessages:
         initial_trust = world.trust_matrix[sender_id][target_id]
         
         payload = ForeignPayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE,
             target_nation_id=target_id,
             parameters={"message_type": "THREAT"}
@@ -103,7 +103,7 @@ class TestDeclarationOfWar:
         target_id = list(world.nations.keys())[1]
         
         payload = ForeignPayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             action_type=ForeignActionType.FORMAL_DECLARATION_OF_WAR,
             target_nation_id=target_id,
         )
@@ -130,7 +130,7 @@ class TestProposeAlliance:
         world.trust_matrix[proposer_id][target_id] = 40
         
         payload = ForeignPayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             action_type=ForeignActionType.PROPOSE_ALLIANCE,
             target_nation_id=target_id,
         )
@@ -153,7 +153,7 @@ class TestProposeAlliance:
         
         # Step 1: Propose alliance (creates pending)
         propose_payload = ForeignPayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             action_type=ForeignActionType.PROPOSE_ALLIANCE,
             target_nation_id=target_id,
         )
@@ -170,7 +170,7 @@ class TestProposeAlliance:
         
         # Step 2: Accept the proposal
         accept_payload = ForeignPayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             action_type=ForeignActionType.ACCEPT_PROPOSAL,
             target_nation_id=proposer_id,
             parameters={"proposal_type": "ALLIANCE"}
@@ -197,7 +197,7 @@ class TestMessageCooldown:
         initial_trust = world.trust_matrix[sender_id][target_id]
         
         payload = ForeignPayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE,
             target_nation_id=target_id,
             parameters={"message_type": "PRAISE"}
@@ -225,7 +225,7 @@ class TestMessageCooldown:
         target_id = list(world.nations.keys())[1]
         
         payload = ForeignPayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE,
             target_nation_id=target_id,
             parameters={"message_type": "PRAISE"}
@@ -257,7 +257,7 @@ class TestProposalExpiry:
         # Create proposal at turn 5
         world.turn = 5
         propose_payload = ForeignPayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             action_type=ForeignActionType.PROPOSE_ALLIANCE,
             target_nation_id=target_id,
         )
@@ -270,7 +270,7 @@ class TestProposalExpiry:
         # Try to accept at turn 7 (expired)
         world.turn = 7
         accept_payload = ForeignPayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             action_type=ForeignActionType.ACCEPT_PROPOSAL,
             target_nation_id=proposer_id,
             parameters={"proposal_type": "ALLIANCE"}

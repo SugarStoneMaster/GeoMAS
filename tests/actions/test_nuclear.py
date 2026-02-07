@@ -16,7 +16,7 @@ from geomas.actions.defense import (
     DefensePayload,
     DefenseActionItem,
 )
-from geomas.actions.common import DecisionSource
+from geomas.actions.common import Decision
 
 
 class TestNuclearValidation:
@@ -37,7 +37,7 @@ class TestNuclearValidation:
         target_province = world.nations[enemy_id].province_ids[0]
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,
@@ -63,7 +63,7 @@ class TestNuclearValidation:
         own_province = nation.province_ids[0]
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,
@@ -101,7 +101,7 @@ class TestNuclearEffects:
         initial_pop = target_province.population
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,
@@ -140,7 +140,7 @@ class TestNuclearEffects:
                     world.trust_matrix[n_id][other_id] = 90
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,

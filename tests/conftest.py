@@ -42,7 +42,7 @@ def create_test_envelope(
     from geomas.actions.defense import DefensePayload
     from geomas.actions.economy import EconomicPayload
     from geomas.actions.foreign import ForeignPayload
-    from geomas.actions.common import DecisionSource
+    from geomas.actions.common import Decision
     
     return CountryEnvelope(
         turn=turn,
@@ -50,17 +50,17 @@ def create_test_envelope(
         global_strategy=global_strategy or GlobalStrategy.ARMED_ISOLATIONISM,
         public_statement=public_statement,
         # Defense
-        defense_payload=defense_payload or DefensePayload(source=DecisionSource.MINISTRY_ADVICE),
+        defense_payload=defense_payload or DefensePayload(decision=Decision.APPROVE),
         defense_public_intent=defense_public_intent or DefenseIntentType.IDLE,
         defense_private_intent=defense_private_intent or DefenseIntentType.IDLE,
         defense_private_reasoning="Test reasoning",
         # Economic
-        economic_payload=economic_payload or EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
+        economic_payload=economic_payload or EconomicPayload(decision=Decision.APPROVE),
         economic_public_intent=economic_public_intent or EconomicIntentType.IDLE,
         economic_private_intent=economic_private_intent or EconomicIntentType.IDLE,
         economic_private_reasoning="Test reasoning",
         # Foreign
-        foreign_payload=foreign_payload or ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
+        foreign_payload=foreign_payload or ForeignPayload(decision=Decision.APPROVE),
         foreign_public_intent=foreign_public_intent or ForeignIntentType.IDLE,
         foreign_private_intent=foreign_private_intent or ForeignIntentType.IDLE,
         foreign_private_reasoning="Test reasoning",

@@ -7,7 +7,7 @@ Defines triggers, payloads, and satisfaction delta constants.
 from enum import Enum
 from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
-from geomas.actions.common import DecisionSource
+from geomas.actions.common import Decision
 
 
 class OpinionTrigger(str, Enum):
@@ -18,7 +18,7 @@ class OpinionTrigger(str, Enum):
 
 class OpinionPayload(BaseModel):
     """Payload for opinion-related actions (mostly LLM-driven)."""
-    source: DecisionSource = DecisionSource.MINISTRY_ADVICE
+    decision: Decision = Decision.APPROVE
     multiplier_increase: float = Field(default=1.0, ge=0.1, le=2.0)
     multiplier_decrease: float = Field(default=1.0, ge=0.1, le=2.0)
     # Context provided by LLM agent explaining the multipliers

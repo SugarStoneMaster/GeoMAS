@@ -20,9 +20,9 @@ from geomas.agents.schemas import (
     EconomicIntent, EconomicIntentType,
     ForeignIntent, ForeignIntentType,
     DefenseProposal, EconomicProposal, ForeignProposal,
-    PresidentialDecree, DecreeAction, DefenseDecree, EconomicDecree, ForeignDecree
+    PresidentialDecree, Decision, DefenseDecree, EconomicDecree, ForeignDecree
 )
-from geomas.actions.defense import DefensePayload, DecisionSource
+from geomas.actions.defense import DefensePayload, Decision
 from geomas.actions.economy import EconomicPayload, EconomicActionType
 from geomas.actions.foreign import ForeignPayload, ForeignActionType
 
@@ -36,26 +36,26 @@ class E2EMockLLM(LLMClient):
         if response_model == DefenseProposal:
             return DefenseProposal(
                 intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Peace"),
-                payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+                payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
                 urgency=1
             )
         elif response_model == EconomicProposal:
             return EconomicProposal(
                 intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Grow"),
-                payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE, action_type=EconomicActionType.INVEST_WELFARE),
+                payload=EconomicPayload(decision=Decision.APPROVE, action_type=EconomicActionType.INVEST_WELFARE),
                 projected_cost=10.0
             )
         elif response_model == ForeignProposal:
             return ForeignProposal(
                 intent=ForeignIntent(type=ForeignIntentType.COOPERATION, reasoning="Coop"),
-                payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE, action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE),
+                payload=ForeignPayload(decision=Decision.APPROVE, action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE),
                 target_trust_impact=0.1
             )
         elif response_model == PresidentialDecree:
             return PresidentialDecree(
-                defense=DefenseDecree(action=DecreeAction.APPROVE, reasoning="Peace"),
-                economy=EconomicDecree(action=DecreeAction.APPROVE, reasoning="Growth"),
-                foreign=ForeignDecree(action=DecreeAction.APPROVE, reasoning="Coop"),
+                defense=DefenseDecree(action=Decision.APPROVE, reasoning="Peace"),
+                economy=EconomicDecree(action=Decision.APPROVE, reasoning="Growth"),
+                foreign=ForeignDecree(action=Decision.APPROVE, reasoning="Coop"),
                 public_statement="Peace and Prosperity.",
                 defense_public_intent=DefenseIntentType.IDLE,
                 defense_private_intent=DefenseIntentType.IDLE,
@@ -74,13 +74,13 @@ class E2EMockLLM(LLMClient):
                 global_strategy=GlobalStrategy.COALITION_BUILDER,
                 public_statement="[DEFENSE] Peaceful. [ECONOMY] Growing. [FOREIGN] Cooperative.",
                 # Defense - honest
-                defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+                defense_payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
                 defense_public_intent=DefenseIntentType.IDLE,
                 defense_private_intent=DefenseIntentType.IDLE,
                 defense_private_reasoning="Peace is best.",
                 # Economic - honest
                 economic_payload=EconomicPayload(
-                    source=DecisionSource.MINISTRY_ADVICE, 
+                    decision=Decision.APPROVE, 
                     action_type=EconomicActionType.INVEST_WELFARE,
                     parameters={"amount": 10.0}
                 ),
@@ -88,7 +88,7 @@ class E2EMockLLM(LLMClient):
                 economic_private_intent=EconomicIntentType.GROWTH,
                 economic_private_reasoning="Welfare investment.",
                 # Foreign - honest
-                foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
+                foreign_payload=ForeignPayload(decision=Decision.APPROVE),
                 foreign_public_intent=ForeignIntentType.COOPERATION,
                 foreign_private_intent=ForeignIntentType.COOPERATION,
                 foreign_private_reasoning="Coop is best."

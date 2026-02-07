@@ -4,7 +4,7 @@ Economy Actions Package.
 Economic action handlers and trade system.
 
 Modules:
-    - schemas: EconomicActionType, EconomicPayload, DecisionSource
+    - schemas: EconomicActionType, EconomicPayload, Decision
     - handler: Execution logic for INVEST_WELFARE, RAISE_WAR_TAX, TRADE_PROPOSAL
     - trade: Trade offer schema and evaluation oracle
 
@@ -22,7 +22,7 @@ Trade System:
 from geomas.actions.economy.schemas import (
     EconomicActionType,
     EconomicPayload,
-    DecisionSource
+    Decision
 )
 from geomas.actions.economy.handler import execute_economic
 from geomas.actions.economy.trade import (
@@ -39,7 +39,7 @@ from geomas.actions.economy.trade import (
 __all__ = [
     "EconomicActionType",
     "EconomicPayload",
-    "DecisionSource",
+    "Decision",
     "execute_economic",
     "TradeOffer", 
     "evaluate_trade",

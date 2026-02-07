@@ -8,10 +8,10 @@ from typing import List, Optional
 from geomas.schemas.world import WorldState, NationState 
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, CabinetBriefing, 
-    PresidentialDecree, DecreeAction,
+    PresidentialDecree, Decision,
     DefenseProposal, EconomicProposal, ForeignProposal
 )
-from geomas.actions.common import DecisionSource
+from geomas.actions.common import Decision
 from geomas.actions.defense import DefensePayload
 from geomas.actions.economy import EconomicPayload
 from geomas.actions.foreign import ForeignPayload
@@ -126,25 +126,25 @@ class NationAgent:
         """Apply Veto/Approve logic to build final envelope."""
         
         # Defense
-        if decree.defense.action == DecreeAction.APPROVE:
+        if decree.defense.action == Decision.APPROVE:
             def_payload = briefing.defense.payload
-            if hasattr(def_payload, 'source'): def_payload.source = DecisionSource.MINISTRY_ADVICE
+            if hasattr(def_payload, 'decision'): def_payload.decision = Decision.APPROVE
         else: # VETO -> IDLE action
-            def_payload = DefensePayload(source=DecisionSource.PRESIDENT_VETO, moves=[])
+            def_payload = DefensePayload(decision=Decision.VETO, moves=[])
 
         # Economy
-        if decree.economy.action == DecreeAction.APPROVE:
+        if decree.economy.action == Decision.APPROVE:
             eco_payload = briefing.economy.payload
-            if hasattr(eco_payload, 'source'): eco_payload.source = DecisionSource.MINISTRY_ADVICE
+            if hasattr(eco_payload, 'decision'): eco_payload.decision = Decision.APPROVE
         else: # VETO -> No action
-            eco_payload = EconomicPayload(source=DecisionSource.PRESIDENT_VETO, action_type=None)
+            eco_payload = EconomicPayload(decision=Decision.VETO, action_type=None)
 
         # Foreign
-        if decree.foreign.action == DecreeAction.APPROVE:
+        if decree.foreign.action == Decision.APPROVE:
             for_payload = briefing.foreign.payload
-            if hasattr(for_payload, 'source'): for_payload.source = DecisionSource.MINISTRY_ADVICE
+            if hasattr(for_payload, 'decision'): for_payload.decision = Decision.APPROVE
         else: # VETO -> No action
-            for_payload = ForeignPayload(source=DecisionSource.PRESIDENT_VETO, action_type=None)
+            for_payload = ForeignPayload(decision=Decision.VETO, action_type=None)
 
         return CountryEnvelope(
             turn=turn,

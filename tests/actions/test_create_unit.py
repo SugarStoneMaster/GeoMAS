@@ -19,7 +19,7 @@ from geomas.actions.defense import (
     UnitType,
     UNIT_COSTS,
 )
-from geomas.actions.common import DecisionSource
+from geomas.actions.common import Decision
 from geomas.schemas.world import TerrainType
 
 
@@ -33,7 +33,7 @@ class TestCreateUnitValidation:
         nation_id = list(world.nations.keys())[0]
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
@@ -63,7 +63,7 @@ class TestCreateUnitValidation:
         world.nations[nation_a].total_workers = 10
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
@@ -96,7 +96,7 @@ class TestCreateUnitValidation:
         
         # Try to place SOLDIER in ocean (should fail - not owned or terrain)
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
@@ -142,7 +142,7 @@ class TestCreateUnitExecution:
         initial_total_soldiers = nation.total_soldiers
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
@@ -183,7 +183,7 @@ class TestCreateUnitExecution:
         initial_aircraft = world.provinces[target_province].aircraft
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
@@ -227,7 +227,7 @@ class TestCreateUnitExecution:
         initial_navy = world.provinces[target_water].navy
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
@@ -260,7 +260,7 @@ class TestCreateUnitExecution:
         
         # No province_id specified
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,

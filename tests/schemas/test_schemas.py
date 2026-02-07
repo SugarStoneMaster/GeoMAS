@@ -17,7 +17,7 @@ from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, EconomicIntent,
     ForeignIntent, EconomicIntentType, ForeignIntentType
 )
-from geomas.actions.defense import DefensePayload, DecisionSource
+from geomas.actions.defense import DefensePayload, Decision
 from geomas.actions.economy import EconomicPayload
 from geomas.actions.foreign import ForeignPayload
 
@@ -28,7 +28,7 @@ def test_defense_proposal_validation():
     # Valid
     prop = DefenseProposal(
         intent=DefenseIntent(type=DefenseIntentType.DEFENSE, reasoning="Valid"),
-        payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+        payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
         urgency=5
     )
     assert prop.urgency == 5
@@ -37,7 +37,7 @@ def test_defense_proposal_validation():
     with pytest.raises(ValidationError):
         DefenseProposal(
             intent=DefenseIntent(type=DefenseIntentType.DEFENSE, reasoning="Valid"),
-            payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+            payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
             urgency=11 # Max is 10
         )
 
@@ -52,15 +52,15 @@ def test_envelope_structure():
             sender_id="TEST",
             global_strategy=GlobalStrategy.COALITION_BUILDER,
             # Missing public_statement -> should fail
-            defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+            defense_payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
             defense_public_intent=DefenseIntentType.IDLE,
             defense_private_intent=DefenseIntentType.IDLE,
             defense_private_reasoning="Test",
-            economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
+            economic_payload=EconomicPayload(decision=Decision.APPROVE),
             economic_public_intent=EconomicIntentType.IDLE,
             economic_private_intent=EconomicIntentType.IDLE,
             economic_private_reasoning="Test",
-            foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
+            foreign_payload=ForeignPayload(decision=Decision.APPROVE),
             foreign_public_intent=ForeignIntentType.IDLE,
             foreign_private_intent=ForeignIntentType.IDLE,
             foreign_private_reasoning="Test"
@@ -76,17 +76,17 @@ def test_envelope_valid():
         global_strategy=GlobalStrategy.COALITION_BUILDER,
         public_statement="[DEFENSE] Peaceful. [ECONOMY] Growing. [FOREIGN] Cooperative.",
         # Defense
-        defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+        defense_payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
         defense_public_intent=DefenseIntentType.DEFENSE,
         defense_private_intent=DefenseIntentType.IDLE,
         defense_private_reasoning="Maintaining peace.",
         # Economic
-        economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
+        economic_payload=EconomicPayload(decision=Decision.APPROVE),
         economic_public_intent=EconomicIntentType.GROWTH,
         economic_private_intent=EconomicIntentType.GROWTH,
         economic_private_reasoning="Investing in welfare.",
         # Foreign
-        foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
+        foreign_payload=ForeignPayload(decision=Decision.APPROVE),
         foreign_public_intent=ForeignIntentType.COOPERATION,
         foreign_private_intent=ForeignIntentType.COOPERATION,
         foreign_private_reasoning="Seeking alliances."

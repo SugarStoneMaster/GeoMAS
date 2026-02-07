@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 from conftest import create_test_envelope
 from geomas.world import generate_world
 from geomas.actions import ActionEngine
-from geomas.actions.defense import DefensePayload, DefenseActionItem, DefenseActionType, DecisionSource
+from geomas.actions.defense import DefensePayload, DefenseActionItem, DefenseActionType, Decision
 from geomas.actions.economy import EconomicPayload
 from geomas.actions.foreign import ForeignPayload
 from geomas.agents.schemas import DefenseIntentType
@@ -131,7 +131,7 @@ def test_execution_waterfall():
     
     # Create 3 CREATE_UNIT actions with explicit unit_type
     payload = DefensePayload(
-        source=DecisionSource.MINISTRY_ADVICE,
+        decision=Decision.APPROVE,
         moves=[
             DefenseActionItem(
                 priority=1, 

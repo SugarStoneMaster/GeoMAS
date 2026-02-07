@@ -11,12 +11,12 @@ from geomas.agents.schemas import (
     DefenseProposal, DefenseIntent, DefenseIntentType, 
     EconomicProposal, EconomicIntent, EconomicIntentType,
     ForeignProposal, ForeignIntent, ForeignIntentType,
-    PresidentialDecree, DecreeAction, DefenseDecree, EconomicDecree, ForeignDecree
+    PresidentialDecree, Decision, DefenseDecree, EconomicDecree, ForeignDecree
 )
 from geomas.actions.defense import DefensePayload
 from geomas.actions.economy import EconomicPayload
 from geomas.actions.foreign import ForeignPayload
-from geomas.actions.common import DecisionSource
+from geomas.actions.common import Decision
 from geomas.agents.llm_client import LLMClient
 
 
@@ -40,25 +40,25 @@ class TestNationAgent:
         def_prop = DefenseProposal(
             intent=DefenseIntent(type=DefenseIntentType.DEFENSE, reasoning="Defend"),
             # Corrected DefensePayload (only has moves)
-            payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+            payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
             urgency=1
         )
         eco_prop = EconomicProposal(
             intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Grow"),
-            payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
+            payload=EconomicPayload(decision=Decision.APPROVE),
             projected_cost=10
         )
         for_prop = ForeignProposal(
             intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="Chill"),
-            payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
+            payload=ForeignPayload(decision=Decision.APPROVE),
             target_trust_impact=0
         )
         
         # 2. Setup President Decree (APPROVE ALL)
         decree = PresidentialDecree(
-            defense=DefenseDecree(action=DecreeAction.APPROVE, reasoning="Good"),
-            economy=EconomicDecree(action=DecreeAction.APPROVE, reasoning="Good"),
-            foreign=ForeignDecree(action=DecreeAction.APPROVE, reasoning="Good"),
+            defense=DefenseDecree(action=Decision.APPROVE, reasoning="Good"),
+            economy=EconomicDecree(action=Decision.APPROVE, reasoning="Good"),
+            foreign=ForeignDecree(action=Decision.APPROVE, reasoning="Good"),
             
             public_statement="We are strong.",
             
@@ -84,7 +84,7 @@ class TestNationAgent:
         # ASSERT
         assert envelope.sender_id == agent.id
         assert envelope.defense_payload == def_prop.payload
-        assert envelope.defense_payload.source == DecisionSource.MINISTRY_ADVICE
+        assert envelope.defense_payload.decision == Decision.APPROVE
         
         # Verify summaries in President prompt
         args, _ = client.query_agent.call_args # Last call was President
@@ -101,24 +101,24 @@ class TestNationAgent:
         def_prop = DefenseProposal(
             intent=DefenseIntent(type=DefenseIntentType.CONQUEST, reasoning="Attack!"),
             payload=DefensePayload(
-                source=DecisionSource.MINISTRY_ADVICE, 
+                decision=Decision.APPROVE, 
                 moves=[
                     DefenseActionItem(priority=1, action_type=DefenseActionType.MOVE_TROOPS)
                 ]
             ), 
             urgency=10
         )
-        eco_prop = EconomicProposal(intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning="."), payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE), projected_cost=0)
-        for_prop = ForeignProposal(intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="."), payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE), target_trust_impact=0)
+        eco_prop = EconomicProposal(intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning="."), payload=EconomicPayload(decision=Decision.APPROVE), projected_cost=0)
+        for_prop = ForeignProposal(intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="."), payload=ForeignPayload(decision=Decision.APPROVE), target_trust_impact=0)
         
         # President Decree (VETO Defense)
         decree = PresidentialDecree(
             defense=DefenseDecree(
-                action=DecreeAction.VETO, 
+                action=Decision.VETO, 
                 reasoning="Too dangerous!"
             ),
-            economy=EconomicDecree(action=DecreeAction.APPROVE, reasoning="Ok"),
-            foreign=ForeignDecree(action=DecreeAction.APPROVE, reasoning="Ok"),
+            economy=EconomicDecree(action=Decision.APPROVE, reasoning="Ok"),
+            foreign=ForeignDecree(action=Decision.APPROVE, reasoning="Ok"),
             
             public_statement="We choose peace.",
             
@@ -142,8 +142,8 @@ class TestNationAgent:
         
         # ASSERT
         # Defense should be VETOED -> IDLE
-        assert envelope.defense_payload.source == DecisionSource.PRESIDENT_VETO
+        assert envelope.defense_payload.decision == Decision.VETO
         assert envelope.defense_payload.moves == [] # Should be empty
         
-        # Economy/Foreign should be APPROVED -> MINISTRY_ADVICE
-        assert envelope.economic_payload.source == DecisionSource.MINISTRY_ADVICE
+        # Economy/Foreign should be APPROVED -> APPROVE
+        assert envelope.economic_payload.decision == Decision.APPROVE

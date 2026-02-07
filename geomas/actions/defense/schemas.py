@@ -8,7 +8,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
 
-from geomas.actions.common import DecisionSource
+from geomas.actions.common import Decision
 
 
 class DefenseActionType(str, Enum):
@@ -114,7 +114,7 @@ class DefenseActionItem(BaseModel):
 
 class DefensePayload(BaseModel):
     """Payload for Defense Minister actions."""
-    source: DecisionSource
+    decision: Decision
     moves: List[DefenseActionItem] = Field(
         default_factory=list, 
         description="Ordered list of actions (Waterfall Logic)"

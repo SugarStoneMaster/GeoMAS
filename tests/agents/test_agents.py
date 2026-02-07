@@ -21,9 +21,9 @@ from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, EconomicIntent,
     ForeignIntent, EconomicIntentType, ForeignIntentType,
     EconomicProposal, ForeignProposal,
-    PresidentialDecree, DecreeAction, DefenseDecree, EconomicDecree, ForeignDecree
+    PresidentialDecree, Decision, DefenseDecree, EconomicDecree, ForeignDecree
 )
-from geomas.actions.defense import DefensePayload, DecisionSource
+from geomas.actions.defense import DefensePayload, Decision
 from geomas.actions.economy import EconomicPayload
 from geomas.actions.foreign import ForeignPayload
 
@@ -41,26 +41,26 @@ class MockLLMClient(LLMClient):
         if response_model == DefenseProposal:
             return DefenseProposal(
                 intent=DefenseIntent(type=DefenseIntentType.DEFENSE, reasoning="Mock Defense"),
-                payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+                payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
                 urgency=5
             )
         elif response_model == EconomicProposal:
             return EconomicProposal(
                 intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Mock Eco"),
-                payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
+                payload=EconomicPayload(decision=Decision.APPROVE),
                 projected_cost=100.0
             )
         elif response_model == ForeignProposal:
             return ForeignProposal(
                 intent=ForeignIntent(type=ForeignIntentType.COOPERATION, reasoning="Mock Foreign"),
-                payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
+                payload=ForeignPayload(decision=Decision.APPROVE),
                 target_trust_impact=0.1
             )
         elif response_model == PresidentialDecree:
             return PresidentialDecree(
-                defense=DefenseDecree(action=DecreeAction.APPROVE, reasoning="Approved"),
-                economy=EconomicDecree(action=DecreeAction.APPROVE, reasoning="Approved"),
-                foreign=ForeignDecree(action=DecreeAction.APPROVE, reasoning="Approved"),
+                defense=DefenseDecree(action=Decision.APPROVE, reasoning="Approved"),
+                economy=EconomicDecree(action=Decision.APPROVE, reasoning="Approved"),
+                foreign=ForeignDecree(action=Decision.APPROVE, reasoning="Approved"),
                 public_statement="We stand united.",
                 defense_public_intent=DefenseIntentType.DEFENSE,
                 defense_private_intent=DefenseIntentType.DEFENSE,
@@ -79,15 +79,15 @@ class MockLLMClient(LLMClient):
                 sender_id="TEST",
                 global_strategy=GlobalStrategy.COALITION_BUILDER,
                 public_statement="[DEFENSE] Peaceful. [ECONOMY] Growing. [FOREIGN] Cooperative.",
-                defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
+                defense_payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
                 defense_public_intent=DefenseIntentType.DEFENSE,
                 defense_private_intent=DefenseIntentType.IDLE,
                 defense_private_reasoning="Mock defense reasoning",
-                economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
+                economic_payload=EconomicPayload(decision=Decision.APPROVE),
                 economic_public_intent=EconomicIntentType.GROWTH,
                 economic_private_intent=EconomicIntentType.IDLE,
                 economic_private_reasoning="Mock economic reasoning",
-                foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
+                foreign_payload=ForeignPayload(decision=Decision.APPROVE),
                 foreign_public_intent=ForeignIntentType.COOPERATION,
                 foreign_private_intent=ForeignIntentType.IDLE,
                 foreign_private_reasoning="Mock foreign reasoning"

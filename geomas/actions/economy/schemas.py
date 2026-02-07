@@ -8,7 +8,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional
 
-from geomas.actions.common import DecisionSource
+from geomas.actions.common import Decision
 
 
 class EconomicActionType(str, Enum):
@@ -20,7 +20,7 @@ class EconomicActionType(str, Enum):
 
 class EconomicPayload(BaseModel):
     """Payload for Economy Minister actions."""
-    source: DecisionSource
+    decision: Decision
     action_type: Optional[EconomicActionType] = None
     target_nation_id: Optional[str] = None
     parameters: Dict[str, Any] = Field(default_factory=dict)

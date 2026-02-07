@@ -20,7 +20,7 @@ from geomas.actions.defense import (
     MOVEMENT_ENERGY_COST,
     MOVEMENT_RANGE,
 )
-from geomas.actions.common import DecisionSource
+from geomas.actions.common import Decision
 from geomas.schemas.world import TerrainType
 
 
@@ -34,7 +34,7 @@ class TestMoveTroopsValidation:
         nation_id = list(world.nations.keys())[0]
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
@@ -72,7 +72,7 @@ class TestMoveTroopsValidation:
         
         # Try to move 10
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
@@ -114,7 +114,7 @@ class TestMoveTroopsValidation:
         nation.total_energy = 0.0  # No energy!
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
@@ -172,7 +172,7 @@ class TestMoveTroopsExecution:
         initial_energy = 100.0
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
@@ -226,7 +226,7 @@ class TestMoveTroopsExecution:
         nation.total_energy = 500.0
         
         payload = DefensePayload(
-            source=DecisionSource.MINISTRY_ADVICE,
+            decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,

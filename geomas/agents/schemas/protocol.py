@@ -2,6 +2,8 @@ from enum import Enum
 from typing import List, Optional, Dict, Any, Literal
 from pydantic import BaseModel, Field
 from geomas.actions.defense import DefensePayload
+from geomas.actions.common import Decision
+from geomas.actions.defense import DefensePayload
 from geomas.actions.economy import EconomicPayload
 from geomas.actions.foreign import ForeignPayload
 
@@ -97,23 +99,21 @@ class CabinetBriefing(BaseModel):
 
 # --- PRESIDENTIAL DECREES ---
 
-class DecreeAction(str, Enum):
-    APPROVE = "APPROVE"
-    VETO = "VETO"
+
 
 class DefenseDecree(BaseModel):
     """President's decision on Defense."""
-    action: DecreeAction
+    action: Decision
     reasoning: str
 
 class EconomicDecree(BaseModel):
     """President's decision on Economy."""
-    action: DecreeAction
+    action: Decision
     reasoning: str
 
 class ForeignDecree(BaseModel):
     """President's decision on Foreign Affairs."""
-    action: DecreeAction
+    action: Decision
     reasoning: str
 
 class PresidentialDecree(BaseModel):

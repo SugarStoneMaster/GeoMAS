@@ -7,11 +7,11 @@ Shared types and enums used across all domain-specific action handlers.
 from enum import Enum
 
 
-class DecisionSource(str, Enum):
-    """Source of the decision for audit trail.
+class Decision(str, Enum):
+    """Decision outcome for actions.
     
-    Used to track whether an action came from the AI minister's recommendation
-    or was overridden by the president/leader.
+    Tracks whether a proposal was APPROVED (from Ministry)
+    or VETOED (by President).
     """
-    MINISTRY_ADVICE = "MINISTRY_ADVICE"
-    PRESIDENT_VETO = "PRESIDENT_VETO"
+    APPROVE = "APPROVE"
+    VETO = "VETO"
