@@ -73,20 +73,12 @@ class ForeignSystemPrompt:
 ## Constraints
 - **1 ACTION per turn** - choose the most impactful
 
-## Output Format
-Respond with a JSON object:
-```json
-{{
-  "diplomatic_status": "STABLE" | "TENSE" | "CRISIS",
-  "summary": "Brief assessment for the President",
-  "pending_responses": ["List of proposals requiring response"],
-  "recommended_action": {{
-    "action": "PROPOSE_ALLIANCE" | "FORMAL_DECLARATION_OF_WAR" | "REQUEST_PEACE" | ...,
-    "target": "nation_id",
-    "reasoning": "Why this action"
-  }}
-}}
-```
+## Guidelines
+- **ACTION SELECTION**: You MUST choose exactly one action from the list above.
+- **TARGET IDENTIFICATION**: For actions like `PROPOSE_ALLIANCE`, `WAR`, `PEACE`, `MESSAGE`, etc., you **MUST** provide the `target_nation_id`. Check the available nations in your context for valid IDs.
+- **PENDING PROPOSALS**: Responding to offers (ACCEPT/REJECT) also requires the `target_nation_id` of the proposer.
+
+Your response will be automatically parsed into the `ForeignProposal` schema. Ensure your reasoning connects your chosen strategy to your diplomatic action.
 
 Words can achieve what armies cannot. But back your words with strength."""
 
