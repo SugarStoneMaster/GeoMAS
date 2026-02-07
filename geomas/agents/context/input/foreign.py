@@ -115,9 +115,8 @@ class ForeignInputBuilder:
             rel_status = relationships.get(other_id, "PEACE")
             trust_level = trust.get(other_id, 50.0)
             
-            # Trust description
             if trust_level >= 80:
-                trust_desc = "Strong ally"
+                trust_desc = "Exceptional Trust"
             elif trust_level >= 60:
                 trust_desc = "Friendly"
             elif trust_level >= 40:
@@ -146,18 +145,17 @@ class ForeignInputBuilder:
         if at_war:
             lines.append("\n**🔴 AT WAR:**")
             for e in at_war:
-                lines.append(f"  - {e['name']}: Trust {e['trust']:.0f} ({e['trust_desc']})")
+                lines.append(f"  - {e['name']} [ID: {e['id']}]: Trust {e['trust']:.0f} ({e['trust_desc']})")
         
         if allies:
             lines.append("\n**🟢 ALLIES:**")
             for e in allies:
-                lines.append(f"  - {e['name']}: Trust {e['trust']:.0f} ({e['trust_desc']})")
+                lines.append(f"  - {e['name']} [ID: {e['id']}]: Trust {e['trust']:.0f} ({e['trust_desc']})")
         
         if neutral:
             lines.append("\n**⚪ NEUTRAL/PEACE:**")
             for e in sorted(neutral, key=lambda x: -x['trust']):
-                alliance_possible = "✅ Alliance possible" if e['trust'] >= 60 else ""
-                lines.append(f"  - {e['name']}: Trust {e['trust']:.0f} ({e['trust_desc']}) {alliance_possible}")
+                lines.append(f"  - {e['name']} [ID: {e['id']}]: Trust {e['trust']:.0f} ({e['trust_desc']})")
         
         return "\n".join(lines)
     

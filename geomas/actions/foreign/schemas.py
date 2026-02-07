@@ -20,6 +20,7 @@ class ForeignActionType(str, Enum):
     REQUEST_PEACE = "REQUEST_PEACE"
     ACCEPT_PROPOSAL = "ACCEPT_PROPOSAL"   # Accept pending alliance/peace
     REJECT_PROPOSAL = "REJECT_PROPOSAL"   # Reject pending alliance/peace
+    IDLE = "IDLE"                         # No diplomatic action this turn
 
 
 class DiplomaticMessageType(str, Enum):
