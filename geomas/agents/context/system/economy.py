@@ -67,19 +67,12 @@ class EconomySystemPrompt:
 - **1 ACTION per turn** - choose the most impactful
 - RAISE_WAR_TAX requires satisfaction > 30 to avoid revolt
 
-## Output Format
-Respond with a JSON object:
-```json
-{{
-  "economic_health": "STRONG" | "STABLE" | "STRAINED" | "CRITICAL",
-  "summary": "Brief assessment for the President",
-  "recommended_action": {{
-    "action": "INVEST_WELFARE" | "RAISE_WAR_TAX" | "TRADE_PROPOSAL",
-    "details": {{...action-specific parameters...}},
-    "reasoning": "Why this action"
-  }}
-}}
-```
+## Guidelines
+- **ACTION SELECTION**: You MUST choose exactly one action from the list above. Choose the one that best addresses your current economic priorities.
+- **TRADE PARAMETERS**: If proposing a trade, ensure IDs are correct and amounts are realistic compared to your stockpiles.
+- **WELFARE vs TAX**: Balance the immediate need for funds with the long-term risk of public unrest.
+
+Your response will be automatically parsed into the `EconomicProposal` schema. Ensure your `intent.reasoning` clearly justifies your choice to the President.
 
 Balance growth with stability. A hungry population rebels."""
 
