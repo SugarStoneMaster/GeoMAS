@@ -11,11 +11,12 @@ from geomas.world import generate_world
 from geomas.actions import ActionEngine
 from geomas.agents.nation_agent import NationAgent
 from geomas.agents.llm_client import LLMClient
-from geomas.simulation.phases import run_upkeep_phase
+from geomas.simulation.phases import run_upkeep_phase, run_opinion_phase
 from geomas.db import SimulationDB, TurnCache
 from geomas.db.serialization import serialize_world_snapshot, serialize_envelope
 from geomas.analysis import DeceptionAnalyzer, CoherenceAnalyzer
 from geomas.agents.context.memory import ContextManager
+from geomas.agents.opinion import OpinionAgent
 
 
 class SimulationEngine:
@@ -75,7 +76,11 @@ class SimulationEngine:
         # List of turns, where each turn is a list of envelopes
         self.history: List[List[CountryEnvelope]] = []
         
-        # 6. Initialize Database (optional)
+        # 6. Initialize Opinion Agents (post-execution feedback)
+        self.opinion_agents: Dict[str, OpinionAgent] = {}
+        self._init_opinion_agents()
+        
+        # 7. Initialize Database (optional)
         self.db: Optional[SimulationDB] = None
         if db_path:
             self._init_db(db_path)
@@ -115,6 +120,19 @@ class SimulationEngine:
                 llm_client=self.client,
                 global_strategy=strategy,
                 context_manager=self.context_manager
+            )
+    
+    def _init_opinion_agents(self):
+        """Creates an OpinionAgent for each nation."""
+        for nation_id, nation in self.world.nations.items():
+            # Get cultural traits from nation if available, else empty list
+            traits = getattr(nation, 'cultural_traits', []) or []
+            
+            self.opinion_agents[nation_id] = OpinionAgent(
+                nation_id=nation_id,
+                nation_name=nation.name,
+                cultural_traits=traits,
+                llm_client=self.client
             )
 
     def _calculate_behaviors(
@@ -231,7 +249,15 @@ class SimulationEngine:
         # 4. CONTEXT PHASE (Update agent memory)
         self.context_manager.update_after_turn(current_turn, turn_envelopes, self.world)
         
-        # 5. PERSIST PHASE (Database)
+        # 5. OPINION PHASE (Population reaction - post execution)
+        run_opinion_phase(
+            self.world,
+            self.turn_logs,
+            self.opinion_agents,
+            turn_envelopes
+        )
+        
+        # 6. PERSIST PHASE (Database)
         self._persist_turn(current_turn, turn_envelopes)
             
         print(f"--- TURN {current_turn} COMPLETE ---")

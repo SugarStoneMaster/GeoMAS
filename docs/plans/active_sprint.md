@@ -16,16 +16,16 @@ Tutti i componenti implementati e testati:
 
 ---
 
-## 🔄 In Progress
+## ✅ Completed This Sprint
 
-### System Prompt Fixes
-- [ ] Defense: aggiungere `unit_type` a MOVE_TROOPS
-- [ ] Economy: specificare formato TRADE_PROPOSAL (give/receive)
-- [ ] Foreign: aggiungere `proposal_type` per ACCEPT/REJECT_PROPOSAL
+### System Prompt Fixes ✅
+- [x] Defense: aggiungere `unit_type` a MOVE_TROOPS
+- [x] Economy: specificare formato TRADE_PROPOSAL (give/receive)
+- [x] Foreign: aggiungere `proposal_type` per ACCEPT/REJECT_PROPOSAL
 
-### Opinion Integration
-- [ ] Integrare Opinion agent nel flusso di simulazione
-- [ ] Collegare output a satisfaction delta
+### Opinion Integration ✅
+- [x] Integrare Opinion agent nel flusso di simulazione
+- [x] Collegare output a satisfaction delta (multiplier_increase/decrease)
 
 ---
 
