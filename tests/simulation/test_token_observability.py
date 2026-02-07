@@ -39,9 +39,13 @@ class TestTokenObservability(unittest.TestCase):
             # Setup a mock completion object for usage
             mock_usage = MagicMock()
             mock_usage.prompt_tokens = 10
-            mock_usage.completion_tokens = 20
-            mock_usage.total_tokens = 30
-            mock_usage.completion_tokens_details = None
+            mock_usage.completion_tokens = 25
+            mock_usage.total_tokens = 35
+            
+            # Simulate o1/o3-mini reasoning tokens
+            mock_details = MagicMock()
+            mock_details.reasoning_tokens = 5
+            mock_usage.completion_tokens_details = mock_details
             
             mock_raw = MagicMock()
             mock_raw.usage = mock_usage
@@ -119,6 +123,7 @@ class TestTokenObservability(unittest.TestCase):
                 self.assertEqual(row['turn'], '1')
                 self.assertNotEqual(row['nation_id'], 'unknown')
                 self.assertNotEqual(row['role'], 'unknown')
+                self.assertEqual(row['reasoning_tokens'], '5')
 
 if __name__ == "__main__":
     unittest.main()

@@ -114,8 +114,18 @@ class LLMClient:
             # Extract usage
             usage_data = raw_completion.usage
             reasoning_tokens = None
+            
+            # Check for reasoning tokens in various possible locations (LiteLLM/OpenAI standard)
             if hasattr(usage_data, 'completion_tokens_details') and usage_data.completion_tokens_details:
-                reasoning_tokens = getattr(usage_data.completion_tokens_details, 'reasoning_tokens', None)
+                details = usage_data.completion_tokens_details
+                if hasattr(details, 'reasoning_tokens'):
+                    reasoning_tokens = details.reasoning_tokens
+                elif isinstance(details, dict):
+                    reasoning_tokens = details.get('reasoning_tokens')
+            
+            # Fallback: check top-level if present (some versions/models)
+            if reasoning_tokens is None and hasattr(usage_data, 'reasoning_tokens'):
+                reasoning_tokens = usage_data.reasoning_tokens
             
             usage = LLMUsage(
                 prompt_tokens=usage_data.prompt_tokens,
@@ -212,8 +222,16 @@ class LLMClient:
             # Extract usage
             usage_data = raw_response.usage
             reasoning_tokens = None
+            
             if hasattr(usage_data, 'completion_tokens_details') and usage_data.completion_tokens_details:
-                reasoning_tokens = getattr(usage_data.completion_tokens_details, 'reasoning_tokens', None)
+                details = usage_data.completion_tokens_details
+                if hasattr(details, 'reasoning_tokens'):
+                    reasoning_tokens = details.reasoning_tokens
+                elif isinstance(details, dict):
+                    reasoning_tokens = details.get('reasoning_tokens')
+            
+            if reasoning_tokens is None and hasattr(usage_data, 'reasoning_tokens'):
+                reasoning_tokens = usage_data.reasoning_tokens
             
             usage = LLMUsage(
                 prompt_tokens=usage_data.prompt_tokens,
