@@ -10,7 +10,8 @@ from geomas.agents.schemas import (
     DefenseIntent, DefenseIntentType,
     EconomicIntent, EconomicIntentType,
     ForeignIntent, ForeignIntentType,
-    DefenseProposal, EconomicProposal, ForeignProposal
+    DefenseProposal, EconomicProposal, ForeignProposal,
+    PresidentialDecree, DecreeAction, DefenseDecree, EconomicDecree, ForeignDecree
 )
 from geomas.actions.defense import DefensePayload, DecisionSource
 from geomas.actions.economy import EconomicPayload, EconomicActionType
@@ -51,6 +52,24 @@ class UIMockLLM(LLMClient):
                     action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE
                 ),
                 target_trust_impact=0.1
+            )
+        
+        elif response_model == PresidentialDecree:
+            return PresidentialDecree(
+                defense=DefenseDecree(action=DecreeAction.APPROVE, reasoning="Peace"),
+                economy=EconomicDecree(action=DecreeAction.APPROVE, reasoning="Growth"),
+                foreign=ForeignDecree(action=DecreeAction.APPROVE, reasoning="Coop"),
+                global_strategy=GlobalStrategy.COALITION_BUILDER,
+                public_statement="Peace and Prosperity.",
+                defense_public_intent=DefenseIntentType.IDLE,
+                defense_private_intent=DefenseIntentType.IDLE,
+                economic_public_intent=EconomicIntentType.GROWTH,
+                economic_private_intent=EconomicIntentType.GROWTH,
+                foreign_public_intent=ForeignIntentType.COOPERATION,
+                foreign_private_intent=ForeignIntentType.COOPERATION,
+                defense_private_reasoning="Peace.",
+                economic_private_reasoning="Growth.",
+                foreign_private_reasoning="Coop."
             )
         
         elif response_model == CountryEnvelope:

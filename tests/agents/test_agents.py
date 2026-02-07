@@ -20,7 +20,8 @@ from geomas.agents.schemas import (
     DefenseProposal, DefenseIntent, DefenseIntentType,
     CountryEnvelope, GlobalStrategy, EconomicIntent,
     ForeignIntent, EconomicIntentType, ForeignIntentType,
-    EconomicProposal, ForeignProposal
+    EconomicProposal, ForeignProposal,
+    PresidentialDecree, DecreeAction, DefenseDecree, EconomicDecree, ForeignDecree
 )
 from geomas.actions.defense import DefensePayload, DecisionSource
 from geomas.actions.economy import EconomicPayload
@@ -55,23 +56,38 @@ class MockLLMClient(LLMClient):
                 payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
                 target_trust_impact=0.1
             )
+        elif response_model == PresidentialDecree:
+            return PresidentialDecree(
+                defense=DefenseDecree(action=DecreeAction.APPROVE, reasoning="Approved"),
+                economy=EconomicDecree(action=DecreeAction.APPROVE, reasoning="Approved"),
+                foreign=ForeignDecree(action=DecreeAction.APPROVE, reasoning="Approved"),
+                global_strategy=GlobalStrategy.COALITION_BUILDER,
+                public_statement="We stand united.",
+                defense_public_intent=DefenseIntentType.DEFENSE,
+                defense_private_intent=DefenseIntentType.DEFENSE,
+                economic_public_intent=EconomicIntentType.GROWTH,
+                economic_private_intent=EconomicIntentType.GROWTH,
+                foreign_public_intent=ForeignIntentType.COOPERATION,
+                foreign_private_intent=ForeignIntentType.COOPERATION,
+                defense_private_reasoning="R",
+                economic_private_reasoning="R",
+                foreign_private_reasoning="R"
+            )
         elif response_model == CountryEnvelope:
+            # Still kept for legacy tests if any call directly
             return CountryEnvelope(
                 turn=1,
                 sender_id="TEST",
                 global_strategy=GlobalStrategy.COALITION_BUILDER,
                 public_statement="[DEFENSE] Peaceful. [ECONOMY] Growing. [FOREIGN] Cooperative.",
-                # Defense
                 defense_payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
                 defense_public_intent=DefenseIntentType.DEFENSE,
                 defense_private_intent=DefenseIntentType.IDLE,
                 defense_private_reasoning="Mock defense reasoning",
-                # Economic
                 economic_payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE),
                 economic_public_intent=EconomicIntentType.GROWTH,
                 economic_private_intent=EconomicIntentType.IDLE,
                 economic_private_reasoning="Mock economic reasoning",
-                # Foreign
                 foreign_payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE),
                 foreign_public_intent=ForeignIntentType.COOPERATION,
                 foreign_private_intent=ForeignIntentType.IDLE,
