@@ -20,6 +20,8 @@ from geomas.actions.common import DecisionSource
 from geomas.agents.llm_client import LLMClient
 
 
+from geomas.actions.defense.schemas import DefenseActionType, DefenseActionItem
+
 class TestNationAgent:
     
     @pytest.fixture
@@ -91,55 +93,59 @@ class TestNationAgent:
         assert "Defense Minister" in user_prompt
         assert "**Intent:** DEFENSE" in user_prompt
 
-    def test_act_override_flow(self, setup):
-        """Test flow where President overrides a minister."""
+    def test_act_veto_flow(self, setup):
+        """Test flow where President vetoes a minister."""
         agent, client = setup
+        world = agent.world
         
-        # Minister Props
+        # Minister Props (Defense wants to attack)
         def_prop = DefenseProposal(
-            intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Sleep"),
-            payload=DefensePayload(source=DecisionSource.MINISTRY_ADVICE, moves=[]),
-            urgency=1
+            intent=DefenseIntent(type=DefenseIntentType.CONQUEST, reasoning="Attack!"),
+            payload=DefensePayload(
+                source=DecisionSource.MINISTRY_ADVICE, 
+                moves=[
+                    DefenseActionItem(priority=1, action_type=DefenseActionType.MOVE_TROOPS)
+                ]
+            ), 
+            urgency=10
         )
         eco_prop = EconomicProposal(intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning="."), payload=EconomicPayload(source=DecisionSource.MINISTRY_ADVICE), projected_cost=0)
         for_prop = ForeignProposal(intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="."), payload=ForeignPayload(source=DecisionSource.MINISTRY_ADVICE), target_trust_impact=0)
         
-        # President Decree (OVERRIDE Defense)
-        new_def_payload = DefensePayload(
-            source=DecisionSource.PRESIDENT_OVERRIDE, # Will be enforced anyway
-            moves=[]
-        )
-        
+        # President Decree (VETO Defense)
         decree = PresidentialDecree(
             defense=DefenseDecree(
-                action=DecreeAction.OVERRIDE, 
-                new_payload=new_def_payload,
-                reasoning="Wake up!"
+                action=DecreeAction.VETO, 
+                reasoning="Too dangerous!"
             ),
             economy=EconomicDecree(action=DecreeAction.APPROVE, reasoning="Ok"),
             foreign=ForeignDecree(action=DecreeAction.APPROVE, reasoning="Ok"),
             
             global_strategy=GlobalStrategy.COALITION_BUILDER,
-            public_statement="emergency",
+            public_statement="We choose peace.",
             
-            defense_public_intent=DefenseIntentType.DETERRENCE,
-            defense_private_intent=DefenseIntentType.CONQUEST, # Changed intent
+            defense_public_intent=DefenseIntentType.IDLE,
+            defense_private_intent=DefenseIntentType.IDLE, 
             economic_public_intent=EconomicIntentType.IDLE,
             economic_private_intent=EconomicIntentType.IDLE,
             foreign_public_intent=ForeignIntentType.IDLE,
             foreign_private_intent=ForeignIntentType.IDLE,
             
-            defense_private_reasoning="War",
+            defense_private_reasoning="Avoid war.",
             economic_private_reasoning=".",
             foreign_private_reasoning="."
         )
         
+        # Mock LLM returns
         client.query_agent.side_effect = [def_prop, eco_prop, for_prop, decree]
         
         # ACT
         envelope = agent.act(turn=1)
         
         # ASSERT
-        assert envelope.defense_payload != def_prop.payload
-        assert envelope.defense_payload == new_def_payload
-        assert envelope.defense_payload.source == DecisionSource.PRESIDENT_OVERRIDE
+        # Defense should be VETOED -> IDLE
+        assert envelope.defense_payload.source == DecisionSource.PRESIDENT_VETO
+        assert envelope.defense_payload.moves == [] # Should be empty
+        
+        # Economy/Foreign should be APPROVED -> MINISTRY_ADVICE
+        assert envelope.economic_payload.source == DecisionSource.MINISTRY_ADVICE

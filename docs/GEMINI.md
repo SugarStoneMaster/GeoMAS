@@ -29,3 +29,6 @@ Il tuo obiettivo non è creare un gioco, ma una **simulazione scientifica determ
 ---
 **Istruzione per l'Agente:**
 Prima di scrivere codice, controlla sempre `./plans/active_sprint.md` per capire il task corrente e carica il modulo di documentazione pertinente (`./*`) per avere le regole fresche nel contesto.
+
+
+Non dimenticare mai che ogni nuova funzionalità deve essere testata con pytest. Dei nuovi tests vanno eventualmente scritti e tutta la suite va rieseguita per assicurarsi che non ci siano errori.

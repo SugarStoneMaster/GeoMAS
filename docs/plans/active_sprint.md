@@ -1,6 +1,6 @@
 # 🚀 Sprint Corrente: System Prompt Refinement
 
-**Status:** In Progress | **Test:** 290 passati
+**Status:** In Progress | **Test:** 400 passati (Unit + E2E + UI)
 
 ---
 
@@ -31,12 +31,15 @@ Tutti i componenti implementati e testati:
 
 ## 📋 Backlog
 
-### President Role Enhancement (ACTIVE)
+### President Role Enhancement (DONE)
 - [x] Definire workflow di approvazione/modifica (President as Gatekeeper via Decree)
-- [x] Implementare logica `PRESIDENT_OVERRIDE` (NationAgent refactored)
+- [x] Implementare logica `PRESIDENT_VETO` (NationAgent refactored to Approve/Veto only)
 - [x] Aggiungere step di "Cabinet Meeting" nel ciclo di simulazione (Briefing -> Decree -> Envelope)
-- [x] Testare override scenarios (Added tests/agents/test_nation_agent.py)
+- [x] Testare override scenarios (Updated tests/agents/test_nation_agent.py)
 
+### Next Steps
+- [ ] Monitoraggio Token Usage in live run
+- [ ] UI Dashboard refinement
 ---
 
 ## 📌 Design Notes

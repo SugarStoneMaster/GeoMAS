@@ -99,24 +99,21 @@ class CabinetBriefing(BaseModel):
 
 class DecreeAction(str, Enum):
     APPROVE = "APPROVE"
-    OVERRIDE = "OVERRIDE"
+    VETO = "VETO"
 
 class DefenseDecree(BaseModel):
     """President's decision on Defense."""
     action: DecreeAction
-    new_payload: Optional[DefensePayload] = None
     reasoning: str
 
 class EconomicDecree(BaseModel):
     """President's decision on Economy."""
     action: DecreeAction
-    new_payload: Optional[EconomicPayload] = None
     reasoning: str
 
 class ForeignDecree(BaseModel):
     """President's decision on Foreign Affairs."""
     action: DecreeAction
-    new_payload: Optional[ForeignPayload] = None
     reasoning: str
 
 class PresidentialDecree(BaseModel):

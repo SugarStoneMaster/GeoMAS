@@ -12,6 +12,9 @@ from geomas.agents.schemas import (
     DefenseProposal, EconomicProposal, ForeignProposal
 )
 from geomas.actions.common import DecisionSource
+from geomas.actions.defense import DefensePayload
+from geomas.actions.economy import EconomicPayload
+from geomas.actions.foreign import ForeignPayload
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.ministers import DefenseMinister, EconomicMinister, ForeignMinister
 from geomas.agents.context.system import PresidentSystemPrompt
@@ -125,27 +128,23 @@ class NationAgent:
         # Defense
         if decree.defense.action == DecreeAction.APPROVE:
             def_payload = briefing.defense.payload
-            # Ensure source is correct (though it might be set by minister)
             if hasattr(def_payload, 'source'): def_payload.source = DecisionSource.MINISTRY_ADVICE
-        else:
-            def_payload = decree.defense.new_payload
-            if hasattr(def_payload, 'source'): def_payload.source = DecisionSource.PRESIDENT_OVERRIDE
+        else: # VETO -> IDLE action
+            def_payload = DefensePayload(source=DecisionSource.PRESIDENT_VETO, moves=[])
 
         # Economy
         if decree.economy.action == DecreeAction.APPROVE:
             eco_payload = briefing.economy.payload
             if hasattr(eco_payload, 'source'): eco_payload.source = DecisionSource.MINISTRY_ADVICE
-        else:
-            eco_payload = decree.economy.new_payload
-            if hasattr(eco_payload, 'source'): eco_payload.source = DecisionSource.PRESIDENT_OVERRIDE
+        else: # VETO -> No action
+            eco_payload = EconomicPayload(source=DecisionSource.PRESIDENT_VETO, action_type=None)
 
         # Foreign
         if decree.foreign.action == DecreeAction.APPROVE:
             for_payload = briefing.foreign.payload
             if hasattr(for_payload, 'source'): for_payload.source = DecisionSource.MINISTRY_ADVICE
-        else:
-            for_payload = decree.foreign.new_payload
-            if hasattr(for_payload, 'source'): for_payload.source = DecisionSource.PRESIDENT_OVERRIDE
+        else: # VETO -> No action
+            for_payload = ForeignPayload(source=DecisionSource.PRESIDENT_VETO, action_type=None)
 
         return CountryEnvelope(
             turn=turn,
