@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Optional, List
 from geomas.actions.defense.schemas import (
     DefenseActionType, 
     DefensePayload,
+    DefenseActionItem,
     UnitType,
     UNIT_COSTS,
     MOVEMENT_ENERGY_COST,
@@ -45,10 +46,10 @@ def execute_defense_waterfall(
     
     for move in moves:
         if move.action_type == DefenseActionType.CREATE_UNIT:
-            _execute_create_unit(engine, nation_id, move.parameters)
+            _execute_create_unit(engine, nation_id, move)
             
         elif move.action_type == DefenseActionType.MOVE_TROOPS:
-            _execute_move_troops(engine, nation_id, move.parameters)
+            _execute_move_troops(engine, nation_id, move)
             
         elif move.action_type == DefenseActionType.NUCLEAR_OPTION:
             _execute_nuclear_option(engine, nation_id, move.parameters)
@@ -57,30 +58,24 @@ def execute_defense_waterfall(
 def _execute_create_unit(
     engine: 'ActionEngine',
     nation_id: str,
-    parameters: dict
+    move: DefenseActionItem
 ) -> None:
     """
     Execute CREATE_UNIT action.
-    
-    Parameters:
-        - unit_type: UnitType enum value (SOLDIER, NAVY, AIRCRAFT)
-        - quantity: Number of units to create
-        - province_id: Target province for placement (required)
+    Uses move.unit_type, move.quantity, move.target_province_id.
     """
     world = engine.world
     nation = world.nations[nation_id]
     
     # Parse parameters
-    unit_type_str = parameters.get("unit_type", "SOLDIER")
-    quantity = parameters.get("quantity", 1)
-    province_id = parameters.get("province_id")
+    # Parse parameters from explicit fields
+    unit_type = move.unit_type or UnitType.SOLDIER
+    quantity = move.quantity or 1
+    province_id = move.target_province_id
     
     # Validate unit type
-    try:
-        unit_type = UnitType(unit_type_str)
-    except ValueError:
-        engine.logs.append(f"[DEFENSE] Invalid unit type: {unit_type_str}")
-        return
+    # unit_type is already an Enum or None, validated by Pydantic if parsed correctly
+    # If it's None, we defaulted to SOLDIER above.
     
     # Validate province specified
     if province_id is None:
@@ -157,32 +152,24 @@ def _execute_create_unit(
 def _execute_move_troops(
     engine: 'ActionEngine',
     nation_id: str,
-    parameters: dict
+    move: DefenseActionItem
 ) -> None:
     """
     Execute MOVE_TROOPS action.
-    
-    Parameters:
-        - unit_type: UnitType enum value (SOLDIER, NAVY, AIRCRAFT)
-        - quantity: Number of units to move
-        - from_province_id: Source province
-        - to_province_id: Destination province
+    Uses move.unit_type, move.quantity, move.source_province_id, move.target_province_id.
     """
     world = engine.world
     nation = world.nations[nation_id]
     
     # Parse parameters
-    unit_type_str = parameters.get("unit_type", "SOLDIER")
-    quantity = parameters.get("quantity", 1)
-    from_province_id = parameters.get("from_province_id")
-    to_province_id = parameters.get("to_province_id")
+    # Parse parameters
+    unit_type = move.unit_type or UnitType.SOLDIER
+    quantity = move.quantity or 1
+    from_province_id = move.source_province_id
+    to_province_id = move.target_province_id
     
     # Validate unit type
-    try:
-        unit_type = UnitType(unit_type_str)
-    except ValueError:
-        engine.logs.append(f"[DEFENSE] MOVE_TROOPS: Invalid unit type: {unit_type_str}")
-        return
+    # unit_type is Enum
     
     # Validate provinces specified
     if from_province_id is None or to_province_id is None:

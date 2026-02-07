@@ -4,7 +4,7 @@ Foreign Affairs Action Handler.
 Executes diplomatic actions (one action per turn).
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from geomas.actions.foreign.schemas import (
     ForeignActionType,
     ForeignPayload,
@@ -48,7 +48,7 @@ def execute_foreign(
     
     # Dispatch to appropriate handler
     if payload.action_type == ForeignActionType.SEND_DIPLOMATIC_MESSAGE:
-        _execute_send_message(engine, nation_id, target_id, payload.parameters)
+        _execute_send_message(engine, nation_id, target_id, payload.diplomatic_message_type)
     
     elif payload.action_type == ForeignActionType.FORMAL_DECLARATION_OF_WAR:
         _execute_declare_war(engine, nation_id, target_id)
@@ -63,11 +63,11 @@ def execute_foreign(
         _execute_propose_alliance(engine, nation_id, target_id)
     
     elif payload.action_type == ForeignActionType.ACCEPT_PROPOSAL:
-        proposal_type = payload.parameters.get("proposal_type", "ALLIANCE")
+        proposal_type = payload.proposal_ref_type or "ALLIANCE"
         respond_to_proposal(engine, nation_id, target_id, proposal_type, accept=True)
     
     elif payload.action_type == ForeignActionType.REJECT_PROPOSAL:
-        proposal_type = payload.parameters.get("proposal_type", "ALLIANCE")
+        proposal_type = payload.proposal_ref_type or "ALLIANCE"
         respond_to_proposal(engine, nation_id, target_id, proposal_type, accept=False)
 
 
@@ -75,7 +75,7 @@ def _execute_send_message(
     engine: 'ActionEngine',
     sender_id: str,
     target_id: str,
-    parameters: dict
+    message_type: Optional[DiplomaticMessageType]
 ) -> None:
     """Send a diplomatic message with trust impact (with cooldown)."""
     world = engine.world
@@ -91,13 +91,11 @@ def _execute_send_message(
         )
         return
     
-    msg_type_str = parameters.get("message_type", "PRAISE")
-    
-    try:
-        msg_type = DiplomaticMessageType(msg_type_str)
-    except ValueError:
-        engine.logs.append(f"[FOREIGN] Invalid message type: {msg_type_str}")
+    if not message_type:
+        engine.logs.append(f"[FOREIGN] Missing message_type for SEND_DIPLOMATIC_MESSAGE")
         return
+    
+    msg_type = message_type
     
     trust_delta = MESSAGE_TRUST_IMPACT[msg_type]
     

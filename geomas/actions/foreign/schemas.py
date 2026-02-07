@@ -46,4 +46,14 @@ class ForeignPayload(BaseModel):
     )
     action_type: Optional[ForeignActionType] = None
     target_nation_id: Optional[str] = None
-    parameters: Dict[str, Any] = Field(default_factory=dict)
+    parameters: Dict[str, Any] = Field(default_factory=dict, deprecated=True, description="DO NOT USE. Use explicit fields below.")
+    
+    # Explicit fields for strong typing
+    diplomatic_message_type: Optional[DiplomaticMessageType] = Field(
+        None, 
+        description="Required for SEND_DIPLOMATIC_MESSAGE. Enum: PRAISE, THREAT, INSULT."
+    )
+    proposal_ref_type: Optional[str] = Field(
+        None,
+        description="Required for ACCEPT/REJECT_PROPOSAL. matches the type of proposal (e.g. ALLIANCE, PEACE)."
+    )

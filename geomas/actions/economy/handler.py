@@ -35,7 +35,7 @@ def execute_economic(
     
     # --- INVEST_WELFARE ---
     if payload.action_type == EconomicActionType.INVEST_WELFARE:
-        amount = payload.parameters.get("amount", 100.0)
+        amount = payload.amount or 100.0
         
         # Check budget
         allowed, reason = ActionValidators.can_afford_budget(engine.world, nation_id, amount)
@@ -85,9 +85,10 @@ def execute_economic(
             engine.logs.append("[ECONOMY] Failed TRADE_PROPOSAL: No target specified")
             return
         
+        
         # Build TradeOffer from parameters
-        give = payload.parameters.get("give", {})
-        receive = payload.parameters.get("receive", {})
+        give = payload.trade_offer_give or {}
+        receive = payload.trade_offer_receive or {}
         
         offer = TradeOffer(
             sender_id=nation_id,
