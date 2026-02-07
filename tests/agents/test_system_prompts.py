@@ -120,3 +120,43 @@ class TestOpinionSystemPrompt:
         """Prompt explains satisfaction scale."""
         prompt = OpinionSystemPrompt.generate("Test")
         assert "satisfaction" in prompt.lower() or "Satisfaction" in prompt
+
+
+class TestPromptActionSpecifications:
+    """Tests verifying that prompts include correct action parameters."""
+    
+    def test_defense_includes_unit_type(self):
+        """Defense prompt specifies unit_type for MOVE_TROOPS."""
+        prompt = DefenseSystemPrompt.generate("Test", GlobalStrategy.COALITION_BUILDER)
+        assert "unit_type" in prompt
+        assert "SOLDIER" in prompt or "AIRCRAFT" in prompt or "NAVY" in prompt
+    
+    def test_defense_create_unit_includes_unit_type(self):
+        """Defense prompt specifies unit_type for CREATE_UNIT."""
+        prompt = DefenseSystemPrompt.generate("Test", GlobalStrategy.ARMED_ISOLATIONISM)
+        assert "CREATE_UNIT" in prompt
+        # Should mention unit_type in CREATE_UNIT context
+        assert prompt.count("unit_type") >= 1
+    
+    def test_economy_trade_proposal_includes_format(self):
+        """Economy prompt specifies give/receive format for TRADE_PROPOSAL."""
+        prompt = EconomySystemPrompt.generate("Test", GlobalStrategy.MERCANTILE_HEGEMONY)
+        assert "TRADE_PROPOSAL" in prompt
+        assert "give" in prompt.lower()
+        assert "receive" in prompt.lower()
+        assert "target_nation_id" in prompt
+    
+    def test_foreign_accept_proposal_includes_proposal_type(self):
+        """Foreign prompt specifies proposal_type for ACCEPT_PROPOSAL."""
+        prompt = ForeignSystemPrompt.generate("Test", GlobalStrategy.COALITION_BUILDER)
+        assert "ACCEPT_PROPOSAL" in prompt
+        assert "proposal_type" in prompt
+        assert "ALLIANCE" in prompt
+        assert "PEACE" in prompt
+    
+    def test_foreign_reject_proposal_includes_proposal_type(self):
+        """Foreign prompt specifies proposal_type for REJECT_PROPOSAL."""
+        prompt = ForeignSystemPrompt.generate("Test", GlobalStrategy.COALITION_BUILDER)
+        assert "REJECT_PROPOSAL" in prompt
+        assert "proposal_type" in prompt
+
