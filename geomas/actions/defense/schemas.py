@@ -109,7 +109,6 @@ class DefenseActionItem(BaseModel):
     action_type: DefenseActionType
     target_nation_id: Optional[str] = None
     target_province_id: Optional[int] = None
-    parameters: Dict[str, Any] = Field(default_factory=dict, deprecated=True, description="DO NOT USE. Use explicit fields below.")
     
     # Explicit fields for strong typing
     unit_type: Optional[UnitType] = None

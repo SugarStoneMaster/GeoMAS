@@ -46,7 +46,6 @@ class ForeignPayload(BaseModel):
     )
     action_type: Optional[ForeignActionType] = None
     target_nation_id: Optional[str] = None
-    parameters: Dict[str, Any] = Field(default_factory=dict, deprecated=True, description="DO NOT USE. Use explicit fields below.")
     
     # Explicit fields for strong typing
     diplomatic_message_type: Optional[DiplomaticMessageType] = Field(

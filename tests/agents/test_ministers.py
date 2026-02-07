@@ -61,10 +61,7 @@ class TestDefenseMinister(TestMinisterBase):
             ),
             payload=DefensePayload(
                 decision=Decision.APPROVE,
-                moves=[],
-                recruits=[],
-                attacks=[],
-                nukes_launched=[]
+                moves=[]
             ),
             urgency=5
         )
@@ -100,7 +97,7 @@ class TestDefenseMinister(TestMinisterBase):
             ),
             payload=DefensePayload(
                 decision=Decision.APPROVE,
-                moves=[], recruits=[], attacks=[], nukes_launched=[]
+                moves=[]
             ),
             urgency=1
         )
@@ -134,7 +131,7 @@ class TestEconomicMinister(TestMinisterBase):
             payload=EconomicPayload(
                 decision=Decision.APPROVE,
                 action_type=EconomicActionType.INVEST_WELFARE,
-                parameters={"amount": 10.0}
+                amount=10.0
             ),
             projected_cost=100.0
         )
@@ -170,8 +167,7 @@ class TestForeignMinister(TestMinisterBase):
             payload=ForeignPayload(
                 decision=Decision.APPROVE,
                 action_type=ForeignActionType.PROPOSE_ALLIANCE,
-                target_nation_id="NationB",
-                parameters={"proposal_type": "NONE", "amount": 0.0}
+                target_nation_id="NationB"
             ),
             target_trust_impact=0.1
         )
@@ -209,8 +205,7 @@ class TestForeignMinister(TestMinisterBase):
             payload=ForeignPayload(
                 decision=Decision.APPROVE,
                 action_type=None,
-                target_nation_id=None,
-                parameters={"proposal_type": "NONE", "amount": 0.0}
+                target_nation_id=None
             ),
             target_trust_impact=0.0
         )

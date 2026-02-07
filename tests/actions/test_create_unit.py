@@ -27,24 +27,36 @@ class TestCreateUnitValidation:
     """Tests for CREATE_UNIT input validation."""
     
     def test_invalid_unit_type(self):
-        """Invalid unit type should fail gracefully."""
+        """When unit_type is None, it should default to SOLDIER."""
         world = generate_world(seed=42, n_cells=50, n_nations=1)
         engine = ActionEngine(world)
         nation_id = list(world.nations.keys())[0]
+        nation = world.nations[nation_id]
+        
+        # Get a land province and setup resources
+        target_province = nation.province_ids[0]
+        nation.total_budget = 100.0
+        nation.total_materials = 50.0
+        nation.total_workers = 10
+        initial_soldiers = nation.total_soldiers
         
         payload = DefensePayload(
             decision=Decision.APPROVE,
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "INVALID_TYPE", "quantity": 1}
+                unit_type=None,  # Should default to SOLDIER
+                quantity=1,
+                target_province_id=int(target_province)
             )]
         )
         
         envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
-        assert any("Invalid unit type" in log for log in logs)
+        # With None unit_type, handler defaults to SOLDIER
+        assert nation.total_soldiers == initial_soldiers + 1
+        assert any("Created 1x SOLDIER" in log for log in logs)
     
     def test_province_not_owned(self):
         """Cannot create units in provinces not owned by the nation."""
@@ -67,7 +79,9 @@ class TestCreateUnitValidation:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "SOLDIER", "quantity": 1, "province_id": int(enemy_province)}
+                unit_type="SOLDIER", 
+                quantity=1, 
+                target_province_id=int(enemy_province)
             )]
         )
         
@@ -100,7 +114,9 @@ class TestCreateUnitValidation:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "SOLDIER", "quantity": 1, "province_id": int(ocean_prov)}
+                unit_type="SOLDIER", 
+                quantity=1, 
+                target_province_id=int(ocean_prov)
             )]
         )
         
@@ -146,7 +162,9 @@ class TestCreateUnitExecution:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "SOLDIER", "quantity": 5, "province_id": int(target_province)}
+                unit_type="SOLDIER", 
+                quantity=5, 
+                target_province_id=int(target_province)
             )]
         )
         
@@ -187,7 +205,9 @@ class TestCreateUnitExecution:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "AIRCRAFT", "quantity": 2, "province_id": int(target_province)}
+                unit_type="AIRCRAFT", 
+                quantity=2, 
+                target_province_id=int(target_province)
             )]
         )
         
@@ -231,7 +251,9 @@ class TestCreateUnitExecution:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "NAVY", "quantity": 2, "province_id": int(target_water)}
+                unit_type="NAVY", 
+                quantity=2, 
+                target_province_id=int(target_water)
             )]
         )
         
@@ -263,7 +285,8 @@ class TestCreateUnitExecution:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "SOLDIER", "quantity": 1}
+                unit_type="SOLDIER", 
+                quantity=1
             )]
         )
         

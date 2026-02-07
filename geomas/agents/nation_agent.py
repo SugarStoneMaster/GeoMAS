@@ -211,7 +211,15 @@ class NationAgent:
         summary = f"**Intent:** {intent.type.value} - {intent.reasoning}\n**Cost:** {proposal.projected_cost:.1f}\n**Action:**"
         
         if payload.action_type:
-            details = str(payload.parameters) if payload.parameters else ""
+            # Build details from explicit fields
+            details_parts = []
+            if payload.amount is not None:
+                details_parts.append(f"amount={payload.amount:.0f}")
+            if payload.trade_offer_give:
+                details_parts.append(f"give={payload.trade_offer_give}")
+            if payload.trade_offer_receive:
+                details_parts.append(f"receive={payload.trade_offer_receive}")
+            details = " ".join(details_parts)
             return f"{summary} {payload.action_type.value} {details}"
         return f"{summary} None"
 
@@ -223,6 +231,12 @@ class NationAgent:
         
         if payload.action_type:
             target = f" (Target: {payload.target_nation_id})" if payload.target_nation_id else ""
-            details = str(payload.parameters) if payload.parameters else ""
+            # Build details from explicit fields
+            details_parts = []
+            if payload.diplomatic_message_type:
+                details_parts.append(f"msg_type={payload.diplomatic_message_type.value}")
+            if payload.proposal_ref_type:
+                details_parts.append(f"ref={payload.proposal_ref_type}")
+            details = " ".join(details_parts)
             return f"{summary} {payload.action_type.value}{target} {details}"
         return f"{summary} None"

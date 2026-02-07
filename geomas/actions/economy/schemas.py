@@ -26,7 +26,6 @@ class EconomicPayload(BaseModel):
     )
     action_type: Optional[EconomicActionType] = None
     target_nation_id: Optional[str] = None
-    parameters: Dict[str, Any] = Field(default_factory=dict, deprecated=True, description="DO NOT USE. Use explicit fields below.")
     
     # Explicit fields for strong typing
     amount: Optional[float] = Field(None, description="Amount for INVEST_WELFARE")

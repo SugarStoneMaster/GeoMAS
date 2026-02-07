@@ -78,7 +78,9 @@ class TestSequentialExecution(unittest.TestCase):
                 moves=[DefenseActionItem(
                     priority=1,
                     action_type=DefenseActionType.CREATE_UNIT,
-                    parameters={"quantity": 100, "unit_type": "SOLDIER", "province_id": cap_id}
+                    quantity=100,
+                    unit_type="SOLDIER",
+                    target_province_id=cap_id
                 )]
             ),
             defense_public_intent="DETERRENCE",

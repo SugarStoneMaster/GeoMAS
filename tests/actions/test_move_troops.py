@@ -38,7 +38,8 @@ class TestMoveTroopsValidation:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
-                parameters={"unit_type": "SOLDIER", "quantity": 1}
+                unit_type="SOLDIER", 
+                quantity=1
             )]
         )
         
@@ -76,12 +77,10 @@ class TestMoveTroopsValidation:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
-                parameters={
-                    "unit_type": "SOLDIER",
-                    "quantity": 10,
-                    "from_province_id": int(province_a),
-                    "to_province_id": int(province_b),
-                }
+                unit_type="SOLDIER",
+                quantity=10,
+                source_province_id=int(province_a),
+                target_province_id=int(province_b),
             )]
         )
         
@@ -118,12 +117,10 @@ class TestMoveTroopsValidation:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
-                parameters={
-                    "unit_type": "SOLDIER",
-                    "quantity": 5,
-                    "from_province_id": int(province_a),
-                    "to_province_id": int(province_b),
-                }
+                unit_type="SOLDIER",
+                quantity=5,
+                source_province_id=int(province_a),
+                target_province_id=int(province_b),
             )]
         )
         
@@ -176,12 +173,10 @@ class TestMoveTroopsExecution:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
-                parameters={
-                    "unit_type": "SOLDIER",
-                    "quantity": 3,
-                    "from_province_id": int(province_a),
-                    "to_province_id": int(province_b),
-                }
+                unit_type="SOLDIER",
+                quantity=3,
+                source_province_id=int(province_a),
+                target_province_id=int(province_b),
             )]
         )
         
@@ -233,12 +228,10 @@ class TestMoveTroopsExecution:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
-                parameters={
-                    "unit_type": "AIRCRAFT",
-                    "quantity": 2,
-                    "from_province_id": int(start_province),
-                    "to_province_id": int(dest_province),
-                }
+                unit_type="AIRCRAFT",
+                quantity=2,
+                source_province_id=int(start_province),
+                target_province_id=int(dest_province),
             )]
         )
         

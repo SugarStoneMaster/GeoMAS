@@ -161,7 +161,10 @@ def main():
         
         if result.payload.action_type:
             print(f"Action: {result.payload.action_type.value}")
-            print(f"Parameters: {result.payload.parameters}")
+            if result.payload.diplomatic_message_type:
+                print(f"Message Type: {result.payload.diplomatic_message_type.value}")
+            if result.payload.proposal_ref_type:
+                print(f"Proposal Ref: {result.payload.proposal_ref_type}")
         else:
             print("Action: None (Idle)")
             

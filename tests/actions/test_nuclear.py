@@ -41,7 +41,7 @@ class TestNuclearValidation:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,
-                parameters={"target_province_id": target_province}
+                target_province_id=target_province
             )]
         )
         
@@ -67,7 +67,7 @@ class TestNuclearValidation:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,
-                parameters={"target_province_id": own_province}
+                target_province_id=own_province
             )]
         )
         
@@ -105,7 +105,7 @@ class TestNuclearEffects:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,
-                parameters={"target_province_id": target_province_id}
+                target_province_id=target_province_id
             )]
         )
         
@@ -144,7 +144,7 @@ class TestNuclearEffects:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,
-                parameters={"target_province_id": target_province}
+                target_province_id=target_province
             )]
         )
         

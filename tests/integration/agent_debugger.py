@@ -173,11 +173,10 @@ def render_foreign_minister():
                         if response.payload.target_nation_id:
                             st.write(f"**Target Nation:** `{response.payload.target_nation_id}`")
                         
-                        if response.payload.parameters:
-                            st.write("**Parameters:**")
-                            st.json(response.payload.parameters)
-                        else:
-                            st.write("**Parameters:** None")
+                        if response.payload.diplomatic_message_type:
+                            st.write(f"**Message Type:** `{response.payload.diplomatic_message_type.value}`")
+                        if response.payload.proposal_ref_type:
+                            st.write(f"**Proposal Ref:** `{response.payload.proposal_ref_type}`")
                     else:
                         st.write("**Action:** `None` (Idle)")
                     

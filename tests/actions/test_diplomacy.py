@@ -59,7 +59,7 @@ class TestDiplomaticMessages:
             decision=Decision.APPROVE,
             action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE,
             target_nation_id=target_id,
-            parameters={"message_type": "PRAISE"}
+            diplomatic_message_type=DiplomaticMessageType.PRAISE
         )
         
         execute_foreign(engine, sender_id, payload)
@@ -81,7 +81,7 @@ class TestDiplomaticMessages:
             decision=Decision.APPROVE,
             action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE,
             target_nation_id=target_id,
-            parameters={"message_type": "THREAT"}
+            diplomatic_message_type=DiplomaticMessageType.THREAT
         )
         
         execute_foreign(engine, sender_id, payload)
@@ -173,7 +173,7 @@ class TestProposeAlliance:
             decision=Decision.APPROVE,
             action_type=ForeignActionType.ACCEPT_PROPOSAL,
             target_nation_id=proposer_id,
-            parameters={"proposal_type": "ALLIANCE"}
+            proposal_ref_type="ALLIANCE"
         )
         execute_foreign(engine, target_id, accept_payload)
         
@@ -200,7 +200,7 @@ class TestMessageCooldown:
             decision=Decision.APPROVE,
             action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE,
             target_nation_id=target_id,
-            parameters={"message_type": "PRAISE"}
+            diplomatic_message_type=DiplomaticMessageType.PRAISE
         )
         
         # First message works
@@ -228,7 +228,7 @@ class TestMessageCooldown:
             decision=Decision.APPROVE,
             action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE,
             target_nation_id=target_id,
-            parameters={"message_type": "PRAISE"}
+            diplomatic_message_type=DiplomaticMessageType.PRAISE
         )
         
         # First message at turn 1
@@ -273,7 +273,7 @@ class TestProposalExpiry:
             decision=Decision.APPROVE,
             action_type=ForeignActionType.ACCEPT_PROPOSAL,
             target_nation_id=proposer_id,
-            parameters={"proposal_type": "ALLIANCE"}
+            proposal_ref_type="ALLIANCE"
         )
         execute_foreign(engine, target_id, accept_payload)
         

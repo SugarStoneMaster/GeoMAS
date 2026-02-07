@@ -139,17 +139,23 @@ def test_execution_waterfall():
             DefenseActionItem(
                 priority=1, 
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "SOLDIER", "quantity": 1, "province_id": int(target_prov)}
+                unit_type="SOLDIER",
+                quantity=1,
+                target_province_id=int(target_prov)
             ),
             DefenseActionItem(
                 priority=2, 
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "SOLDIER", "quantity": 1, "province_id": int(target_prov)}
+                unit_type="SOLDIER",
+                quantity=1,
+                target_province_id=int(target_prov)
             ),
             DefenseActionItem(
                 priority=3, 
                 action_type=DefenseActionType.CREATE_UNIT,
-                parameters={"unit_type": "SOLDIER", "quantity": 1, "province_id": int(target_prov)}
+                unit_type="SOLDIER",
+                quantity=1,
+                target_province_id=int(target_prov)
             )
         ]
     )

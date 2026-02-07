@@ -86,7 +86,7 @@ class UIMockLLM(LLMClient):
                 economic_payload=EconomicPayload(
                     decision=Decision.APPROVE,
                     action_type=EconomicActionType.INVEST_WELFARE,
-                    parameters={"amount": 50.0}
+                    amount=50.0
                 ),
                 economic_public_intent=EconomicIntentType.GROWTH,
                 economic_private_intent=EconomicIntentType.GROWTH,

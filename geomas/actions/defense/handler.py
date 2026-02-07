@@ -52,7 +52,7 @@ def execute_defense_waterfall(
             _execute_move_troops(engine, nation_id, move)
             
         elif move.action_type == DefenseActionType.NUCLEAR_OPTION:
-            _execute_nuclear_option(engine, nation_id, move.parameters)
+            _execute_nuclear_option(engine, nation_id, move)
 
 
 def _execute_create_unit(
@@ -496,7 +496,7 @@ def _is_enemy_territory(world, nation_id: str, province_id: int, unit_type: Unit
 def _execute_nuclear_option(
     engine: 'ActionEngine',
     nation_id: str,
-    parameters: dict
+    move: DefenseActionItem
 ) -> None:
     """
     Execute a nuclear strike on a target province.
@@ -515,9 +515,9 @@ def _execute_nuclear_option(
         engine.logs.append(f"[NUCLEAR] Nation {nation_id} not found")
         return
     
-    # Parse parameters
-    target_province_id = parameters.get("target_province_id")
-    quantity = parameters.get("quantity", 1)
+    # Use explicit fields from DefenseActionItem
+    target_province_id = move.target_province_id
+    quantity = move.quantity or 1
     
     if target_province_id is None:
         engine.logs.append("[NUCLEAR] Missing target_province_id")

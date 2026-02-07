@@ -180,12 +180,10 @@ class TestIntegratedCombat:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
-                parameters={
-                    "unit_type": "SOLDIER",
-                    "quantity": 50,
-                    "from_province_id": int(own_province),
-                    "to_province_id": int(enemy_province),
-                }
+                source_province_id=int(own_province),
+                target_province_id=int(enemy_province),
+                unit_type="SOLDIER",
+                quantity=50
             )]
         )
         
