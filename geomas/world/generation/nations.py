@@ -6,7 +6,7 @@ territorial waters, and nuclear distribution.
 """
 
 import numpy as np
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from shapely.geometry import Polygon as ShapelyPolygon
 
 from geomas.schemas.world import NationState, ProvinceState, TerrainType
@@ -24,27 +24,25 @@ NUKES_PER_NATION_MAX = 5
 
 def assign_nations(
     land_indices: List[int],
-    cell_centroids: Dict[int, np.ndarray],
     rng: np.random.RandomState,
     n_nations: int
-) -> Dict[str, NationState]:
+) -> Tuple[Dict[str, NationState], List[int]]:
     """
-    Creates nations and assigns initial capitals using Voronoi clustering.
+    Creates nations and picks initial seed provinces for territory expansion.
     
     Args:
         land_indices: List of land cell indices
-        cell_centroids: Mapping of cell index to centroid coordinates
         rng: Random state for determinism
         n_nations: Number of nations to create
         
     Returns:
-        Dictionary of nation_id -> NationState
+        tuple (nations_dict, seed_province_ids)
     """
     import random
     
     n_nations = min(n_nations, len(PRESET_NATIONS), len(land_indices))
     sorted_land = sorted(land_indices)
-    initial_capitals = random.sample(sorted_land, n_nations)
+    seed_provinces = random.sample(sorted_land, n_nations)
     
     nations_dict = {}
     
@@ -57,35 +55,41 @@ def assign_nations(
             id=nation_id,
             name=preset["name"],
             color=preset["color"],
-            capital_province_id=int(initial_capitals[i]),
             province_ids=[],
             total_budget=initial_budget
         )
     
-    return nations_dict
+    return nations_dict, seed_provinces
 
 
 def assign_provinces_to_nations(
     land_indices: List[int],
     cell_centroids: Dict[int, np.ndarray],
-    nations_dict: Dict[str, NationState]
+    nations_dict: Dict[str, NationState],
+    seed_province_ids: List[int]
 ) -> Dict[int, str]:
     """
-    Assigns each land cell to the nearest nation's capital.
+    Assigns each land cell to the nearest nation's seed province.
     
     Returns:
         Political map (region_idx -> nation_id)
     """
     political_map = {}
     
+    # Map nation_id to its seed centroid
+    nation_ids = list(nations_dict.keys())
+    seed_locations = {
+        nation_ids[i]: cell_centroids[seed_province_ids[i]] 
+        for i in range(len(nation_ids))
+    }
+    
     for region_idx in land_indices:
         my_loc = cell_centroids[region_idx]
         closest_nation_id = None
         min_dist = float('inf')
         
-        for nation_id, nation in nations_dict.items():
-            cap_loc = cell_centroids[nation.capital_province_id]
-            dist = np.linalg.norm(my_loc - cap_loc)
+        for nation_id, start_loc in seed_locations.items():
+            dist = np.linalg.norm(my_loc - start_loc)
             if dist < min_dist:
                 min_dist = dist
                 closest_nation_id = nation_id
@@ -96,25 +100,6 @@ def assign_provinces_to_nations(
     return political_map
 
 
-def refine_capitals(
-    nations_dict: Dict[str, NationState],
-    provinces_dict: Dict[int, ProvinceState]
-) -> None:
-    """Moves capital to the largest province in each nation."""
-    for nation in nations_dict.values():
-        max_area = -1.0
-        best_capital = nation.capital_province_id
-        
-        for p_id in nation.province_ids:
-            prov = provinces_dict.get(p_id)
-            if prov and prov.vertices and len(prov.vertices) >= 3:
-                poly = ShapelyPolygon(prov.vertices)
-                area = poly.area
-                if area > max_area:
-                    max_area = area
-                    best_capital = p_id
-        
-        nation.capital_province_id = int(best_capital)
 
 
 def assign_territorial_waters(

@@ -1,7 +1,7 @@
 """
 Map Rendering Component.
 
-Handles the Voronoi map visualization with terrain colors and capitals.
+Handles the Voronoi map visualization with terrain colors.
 """
 
 import streamlit as st
@@ -53,7 +53,6 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> N
         - Territorial waters: blended nation color + ocean with wave pattern
         - Nation territories in their assigned colors
         - Mountains darkened with dotted pattern
-        - Capital provinces marked with gold stars
         - Provinces in revolt marked with red X
         - Selected nation highlighted with bright border
     """
@@ -76,8 +75,8 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> N
     colors = []
     hatches = []
     edge_colors = []
+    edge_colors = []
     edge_widths = []
-    capital_coords = []
     revolt_coords = []  # Track provinces in civil unrest
     
     for p_id, province in world.provinces.items():
@@ -123,10 +122,6 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> N
                     
                     colors.append(final_color)
                     
-                    # Mark capital
-                    if owner.capital_province_id == p_id:
-                        capital_coords.append((province.coordinates[0], province.coordinates[1], "gold"))
-                    
                     # Mark provinces in revolt
                     if province.in_revolt:
                         revolt_coords.append((province.coordinates[0], province.coordinates[1]))
@@ -151,9 +146,6 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> N
             patch.set_hatch(hatches[i])
             ax.add_patch(patch)
     
-    # Draw capital stars
-    for cx, cy, ccolor in capital_coords:
-        ax.scatter(cx, cy, s=120, c=ccolor, marker='*', edgecolors='black', zorder=10)
     
     # Draw revolt markers (red X) on provinces in civil unrest
     for rx, ry in revolt_coords:

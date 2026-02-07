@@ -18,7 +18,6 @@ from geomas.world.generation.geography import generate_geography
 from geomas.world.generation.nations import (
     assign_nations,
     assign_provinces_to_nations,
-    refine_capitals,
     assign_territorial_waters,
     distribute_nukes
 )
@@ -78,8 +77,8 @@ class MapGenerator:
         )
         
         # Step 3: Create and assign nations
-        nations_dict = assign_nations(land_indices, cell_centroids, self.rng, self.n_nations)
-        political_map = assign_provinces_to_nations(land_indices, cell_centroids, nations_dict)
+        nations_dict, seed_ids = assign_nations(land_indices, self.rng, self.n_nations)
+        political_map = assign_provinces_to_nations(land_indices, cell_centroids, nations_dict, seed_ids)
         
         # Step 4: Create provinces
         provinces_dict = create_provinces(
@@ -87,8 +86,7 @@ class MapGenerator:
             cell_centroids, cell_vertices, self.rng
         )
         
-        # Step 5: Refine and finalize
-        refine_capitals(nations_dict, provinces_dict)
+        # Step 5: Finalize
         assign_territorial_waters(ocean_indices, provinces_dict, nations_dict)
         distribute_nukes(nations_dict, self.rng)
         

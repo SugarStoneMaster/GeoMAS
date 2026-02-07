@@ -19,8 +19,8 @@ def sample_world():
             1: ProvinceState(id=1, coordinates=(1.0, 0.0), terrain=TerrainType.COASTAL),
         },
         nations={
-            "nation_a": NationState(id="nation_a", name="Nation A", color="#FF0000", capital_province_id=0, province_ids=[0]),
-            "nation_b": NationState(id="nation_b", name="Nation B", color="#00FF00", capital_province_id=1, province_ids=[1]),
+            "nation_a": NationState(id="nation_a", name="Nation A", color="#FF0000", province_ids=[0]),
+            "nation_b": NationState(id="nation_b", name="Nation B", color="#00FF00", province_ids=[1]),
         },
         trust_matrix={"nation_a": {"nation_b": 50.0}, "nation_b": {"nation_a": 50.0}},
         relationship_matrix={"nation_a": {"nation_b": "PEACE"}, "nation_b": {"nation_a": "PEACE"}}

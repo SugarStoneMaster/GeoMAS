@@ -60,7 +60,6 @@ class NationState(BaseModel):
     id: str
     name: str
     color: str  # Hex code or Matplotlib color
-    capital_province_id: Optional[int] = None
     province_ids: List[int] = Field(default_factory=list)
     
     # --- TERRITORIAL WATERS ---

@@ -172,7 +172,7 @@ class TestCreateUnitExecution:
         nation = world.nations[nation_id]
         
         # Get a land province
-        target_province = nation.capital_province_id
+        target_province = nation.province_ids[0]
         
         # Setup resources (AIRCRAFT: 80 budget, 40 materials, 10 energy, 5 pop)
         nation.total_budget = 200.0
@@ -244,19 +244,18 @@ class TestCreateUnitExecution:
         
         assert any("Created 2x NAVY" in log for log in logs)
     
-    def test_default_to_capital_province(self):
-        """If no province specified, default to capital."""
+    def test_no_province_fails(self):
+        """If no province specified, creation should fail."""
         world = generate_world(seed=42, n_cells=100, n_nations=1)
         engine = ActionEngine(world)
         nation_id = list(world.nations.keys())[0]
         nation = world.nations[nation_id]
         
-        capital = nation.capital_province_id
         nation.total_budget = 100.0
         nation.total_materials = 50.0
         nation.total_workers = 10
         
-        initial_soldiers = world.provinces[capital].soldiers
+        initial_total_soldiers = nation.total_soldiers
         
         # No province_id specified
         payload = DefensePayload(
@@ -271,8 +270,8 @@ class TestCreateUnitExecution:
         envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
-        # Should create in capital
-        assert world.provinces[capital].soldiers == initial_soldiers + 1
-        assert any("Created 1x SOLDIER" in log for log in logs)
+        # Should NOT create anything
+        assert nation.total_soldiers == initial_total_soldiers
+        assert any("No province_id specified" in log for log in logs)
 
 

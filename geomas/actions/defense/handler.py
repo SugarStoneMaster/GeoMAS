@@ -84,11 +84,8 @@ def _execute_create_unit(
     
     # Validate province specified
     if province_id is None:
-        # Default to capital if not specified
-        province_id = nation.capital_province_id
-        if province_id is None:
-            engine.logs.append(f"[DEFENSE] No province specified and no capital found")
-            return
+        engine.logs.append(f"[DEFENSE] CREATE_UNIT failed: No province_id specified")
+        return
     
     # Validate province exists and is owned
     province = world.provinces.get(province_id)

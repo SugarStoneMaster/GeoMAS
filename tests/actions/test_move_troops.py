@@ -205,24 +205,27 @@ class TestMoveTroopsExecution:
         nation_id = list(world.nations.keys())[0]
         nation = world.nations[nation_id]
         
-        # Get capital and find a destination within aircraft range
-        capital = nation.capital_province_id
+        # Get a starting province and find a destination within aircraft range
+        start_province = nation.province_ids[0]
         dest_province = None
         
         for pid in nation.province_ids:
+            if pid == start_province:
+                continue
             prov = world.provinces[pid]
-            if pid != capital and prov.terrain != TerrainType.OCEAN:
-                # Check distance is within aircraft range (6)
-                path = engine.spatial.get_shortest_path(capital, pid)
-                if path and len(path) - 1 <= MOVEMENT_RANGE[UnitType.AIRCRAFT]:
-                    dest_province = pid
-                    break
+            if prov.terrain == TerrainType.OCEAN:
+                continue
+            # Check distance is within aircraft range (6)
+            path = engine.spatial.get_shortest_path(start_province, pid)
+            if path and len(path) - 1 <= MOVEMENT_RANGE[UnitType.AIRCRAFT]:
+                dest_province = pid
+                break
         
         if dest_province is None:
             pytest.skip("No reachable destination within aircraft range")
         
         # Setup aircraft
-        world.provinces[capital].aircraft = 5
+        world.provinces[start_province].aircraft = 5
         nation.total_energy = 500.0
         
         payload = DefensePayload(
@@ -233,7 +236,7 @@ class TestMoveTroopsExecution:
                 parameters={
                     "unit_type": "AIRCRAFT",
                     "quantity": 2,
-                    "from_province_id": int(capital),
+                    "from_province_id": int(start_province),
                     "to_province_id": int(dest_province),
                 }
             )]
@@ -243,7 +246,7 @@ class TestMoveTroopsExecution:
         logs = engine.execute_envelope(envelope)
         
         # Verify aircraft moved
-        assert world.provinces[capital].aircraft == 3
+        assert world.provinces[start_province].aircraft == 3
         assert world.provinces[dest_province].aircraft >= 2
         
         assert any("Moved 2x AIRCRAFT" in log for log in logs)

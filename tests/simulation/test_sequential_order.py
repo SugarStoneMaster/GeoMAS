@@ -62,8 +62,8 @@ class TestSequentialExecution(unittest.TestCase):
         
         print(f"Test Order: 1st={first_nation}, 2nd={second_nation}")
         
-        # First nation will create 100 soldiers in its capital
-        cap_id = self.sim.world.nations[first_nation].capital_province_id
+        # First nation will create 100 soldiers in its first province
+        cap_id = self.sim.world.nations[first_nation].province_ids[0]
         
         from geomas.actions.economy import EconomicPayload
         from geomas.actions.foreign import ForeignPayload
