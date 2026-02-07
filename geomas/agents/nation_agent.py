@@ -57,9 +57,9 @@ class NationAgent:
         """
         
         # 1. CABINET PHASE
-        def_prop = self.defense_minister.propose(self.strategy)
-        eco_prop = self.economy_minister.propose(self.strategy)
-        for_prop = self.foreign_minister.propose(self.strategy)
+        def_prop = self.defense_minister.propose(self.strategy, turn)
+        eco_prop = self.economy_minister.propose(self.strategy, turn)
+        for_prop = self.foreign_minister.propose(self.strategy, turn)
         
         briefing = CabinetBriefing(
             defense=def_prop,
@@ -101,6 +101,7 @@ class NationAgent:
         
         user_prompt = input_builder.build(
             nation_id=self.id,
+            turn=turn,
             defense_summary=defense_summary,
             economy_summary=economy_summary,
             foreign_summary=foreign_summary
@@ -120,7 +121,11 @@ class NationAgent:
                 user_prompt += "\n\n== YOUR RECENT DECISIONS ==\n" + "\n".join(actions[:5])
         
         # Call LLM expecting PresidentialDecree
-        return self.client.query_agent(system_prompt, user_prompt, PresidentialDecree)
+        return self.client.query_agent(
+            system_prompt, 
+            user_prompt, 
+            PresidentialDecree
+        )
 
     def _construct_envelope_from_decree(self, turn: int, decree: PresidentialDecree, briefing: CabinetBriefing) -> CountryEnvelope:
         """Apply Veto/Approve logic to build final envelope."""

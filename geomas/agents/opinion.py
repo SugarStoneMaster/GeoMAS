@@ -65,7 +65,8 @@ class OpinionAgent:
         events: List[str],
         government_actions: List[str],
         current_satisfaction: float,
-        at_war: bool
+        at_war: bool,
+        turn: int = 1
     ) -> OpinionResponse:
         """
         Generate population reaction to recent events and government actions.
@@ -75,6 +76,7 @@ class OpinionAgent:
             government_actions: Actions taken by the government this turn
             current_satisfaction: Current satisfaction level (0-100)
             at_war: Whether the nation is currently at war
+            turn: Current turn number
             
         Returns:
             OpinionResponse with multipliers
@@ -88,7 +90,7 @@ class OpinionAgent:
         # Build prompt
         system_prompt = self._build_system_prompt()
         input_prompt = self._build_input_prompt(
-            events, government_actions, current_satisfaction, at_war
+            events, government_actions, current_satisfaction, at_war, turn
         )
         
         # Query LLM
@@ -135,10 +137,12 @@ Respond with JSON only."""
         events: List[str],
         government_actions: List[str],
         current_satisfaction: float,
-        at_war: bool
+        at_war: bool,
+        turn: int = 1
     ) -> str:
         """Build the input prompt with current context."""
         # Mood description
+        turn_header = f"## TURN {turn}\n\n"
         if current_satisfaction < 20:
             mood_desc = "ANGRY - On the verge of revolt"
         elif current_satisfaction < 40:
@@ -155,7 +159,7 @@ Respond with JSON only."""
         events_text = "\n".join(f"- {e}" for e in events[-10:]) if events else "- No major events"
         actions_text = "\n".join(f"- {a}" for a in government_actions[-5:]) if government_actions else "- No actions taken"
         
-        return f"""## Current State
+        return turn_header + f"""## Current State
 **Satisfaction:** {current_satisfaction:.0f}%
 **Mood:** {mood_desc}
 **Status:** {war_status}

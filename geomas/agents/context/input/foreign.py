@@ -27,6 +27,7 @@ class ForeignInputBuilder:
     def build(
         self,
         nation_id: str,
+        turn: int,
         recent_events: Optional[List[str]] = None,
         recent_actions: Optional[List[str]] = None,
     ) -> str:
@@ -46,6 +47,9 @@ class ForeignInputBuilder:
             return "Error: Nation not found."
         
         sections = []
+        
+        # Metadata Header for Observability
+        sections.append(f"## TURN {turn}")
         
         # 1. Pending Proposals (require response)
         sections.append(self._build_pending_proposals(nation))

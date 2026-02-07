@@ -27,6 +27,7 @@ class EconomyInputBuilder:
     def build(
         self,
         nation_id: str,
+        turn: int,
         pending_trades: Optional[List[Dict[str, Any]]] = None,
         recent_actions: Optional[List[str]] = None,
     ) -> str:
@@ -46,6 +47,9 @@ class EconomyInputBuilder:
             return "Error: Nation not found."
         
         sections = []
+        
+        # Metadata Header for Observability
+        sections.append(f"## TURN {turn}")
         
         # 1. Treasury and Budget
         sections.append(self._build_treasury_section(nation))

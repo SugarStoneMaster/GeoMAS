@@ -29,6 +29,7 @@ class DefenseInputBuilder:
     def build(
         self,
         nation_id: str,
+        turn: int,
         recent_actions: Optional[List[str]] = None,
     ) -> str:
         """
@@ -36,6 +37,7 @@ class DefenseInputBuilder:
         
         Args:
             nation_id: Nation ID
+            turn: Current turn number
             recent_actions: List of recent military actions
             
         Returns:
@@ -46,6 +48,9 @@ class DefenseInputBuilder:
             return "Error: Nation not found."
         
         sections = []
+        
+        # Metadata Header for Observability
+        sections.append(f"## TURN {turn}")
         
         # 1. Full Military Report
         military_report = self.military_translator.generate_military_report(nation_id)

@@ -15,6 +15,7 @@ from geomas.simulation.phases import run_upkeep_phase, run_opinion_phase
 from geomas.db import SimulationDB, TurnCache
 from geomas.db.serialization import serialize_world_snapshot, serialize_envelope
 from geomas.analysis import DeceptionAnalyzer, CoherenceAnalyzer
+from geomas.analysis.token_logger import token_logger
 from geomas.agents.context.memory import ContextManager
 from geomas.agents.opinion import OpinionAgent
 
@@ -261,7 +262,8 @@ class SimulationEngine:
             self.world,
             self.turn_logs,
             self.opinion_agents,
-            turn_envelopes
+            turn_envelopes,
+            turn=current_turn
         )
         
         # 6. PERSIST PHASE (Database)
@@ -300,6 +302,9 @@ class SimulationEngine:
         """Close database connection if open."""
         if self.db:
             self.db.close()
+        
+        # Save token usage at the end of simulation
+        token_logger.save_to_csv()
     
     def __enter__(self):
         """Context manager entry."""

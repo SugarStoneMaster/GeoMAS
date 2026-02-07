@@ -26,6 +26,7 @@ class PresidentInputBuilder:
     def build(
         self,
         nation_id: str,
+        turn: int,
         defense_summary: Optional[str] = None,
         economy_summary: Optional[str] = None,
         foreign_summary: Optional[str] = None,
@@ -51,6 +52,9 @@ class PresidentInputBuilder:
             return "Error: Nation not found."
         
         sections = []
+        
+        # Metadata Header for Observability
+        sections.append(f"## TURN {turn}")
         
         # 1. Current State Overview
         sections.append(self._build_state_overview(nation))

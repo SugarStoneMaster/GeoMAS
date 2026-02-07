@@ -50,7 +50,7 @@ class BaseMinister:
 class DefenseMinister(BaseMinister):
     """Minister of Defense - handles military strategy and threats."""
     
-    def propose(self, strategy: GlobalStrategy) -> DefenseProposal:
+    def propose(self, strategy: GlobalStrategy, turn: int) -> DefenseProposal:
         nation = self.world.nations[self.nation_id]
         
         # Generate system prompt using new architecture
@@ -61,18 +61,22 @@ class DefenseMinister(BaseMinister):
         
         # Build input context using new architecture
         input_builder = DefenseInputBuilder(self.world)
-        user_prompt = input_builder.build(self.nation_id)
+        user_prompt = input_builder.build(self.nation_id, turn)
         
         # Add memory context
         user_prompt = self._add_memory_context(user_prompt, "Defense")
         
-        return self.client.query_agent(system_prompt, user_prompt, DefenseProposal)
+        return self.client.query_agent(
+            system_prompt, 
+            user_prompt, 
+            DefenseProposal
+        )
 
 
 class EconomicMinister(BaseMinister):
     """Minister of Economy - handles resources, trade, and welfare."""
     
-    def propose(self, strategy: GlobalStrategy) -> EconomicProposal:
+    def propose(self, strategy: GlobalStrategy, turn: int) -> EconomicProposal:
         nation = self.world.nations[self.nation_id]
         
         # Generate system prompt using new architecture
@@ -83,18 +87,22 @@ class EconomicMinister(BaseMinister):
         
         # Build input context using new architecture
         input_builder = EconomyInputBuilder(self.world)
-        user_prompt = input_builder.build(self.nation_id)
+        user_prompt = input_builder.build(self.nation_id, turn)
         
         # Add memory context
         user_prompt = self._add_memory_context(user_prompt, "Economy")
         
-        return self.client.query_agent(system_prompt, user_prompt, EconomicProposal)
+        return self.client.query_agent(
+            system_prompt, 
+            user_prompt, 
+            EconomicProposal
+        )
 
 
 class ForeignMinister(BaseMinister):
     """Minister of Foreign Affairs - handles diplomacy and alliances."""
     
-    def propose(self, strategy: GlobalStrategy) -> ForeignProposal:
+    def propose(self, strategy: GlobalStrategy, turn: int) -> ForeignProposal:
         nation = self.world.nations[self.nation_id]
         
         # Generate system prompt using new architecture
@@ -105,7 +113,7 @@ class ForeignMinister(BaseMinister):
         
         # Build input context using new architecture
         input_builder = ForeignInputBuilder(self.world)
-        user_prompt = input_builder.build(self.nation_id)
+        user_prompt = input_builder.build(self.nation_id, turn)
         
         # Add memory context (relationships + actions)
         if self.context_manager:
@@ -116,4 +124,8 @@ class ForeignMinister(BaseMinister):
         
         user_prompt = self._add_memory_context(user_prompt, "Foreign")
         
-        return self.client.query_agent(system_prompt, user_prompt, ForeignProposal)
+        return self.client.query_agent(
+            system_prompt, 
+            user_prompt, 
+            ForeignProposal
+        )

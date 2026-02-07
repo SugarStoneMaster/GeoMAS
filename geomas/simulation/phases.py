@@ -128,7 +128,8 @@ def run_opinion_phase(
     world: WorldState,
     turn_logs: List[str],
     opinion_agents: dict,
-    envelopes: list
+    envelopes: list,
+    turn: int = 0
 ) -> None:
     """
     Runs the Opinion phase after government actions.
@@ -187,7 +188,8 @@ def run_opinion_phase(
             events=events,
             government_actions=gov_actions,
             current_satisfaction=nation.public_satisfaction,
-            at_war=at_war
+            at_war=at_war,
+            turn=turn
         )
         
         # Apply modifiers

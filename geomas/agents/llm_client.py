@@ -9,8 +9,10 @@ import instructor
 import litellm
 from litellm import completion
 from pydantic import BaseModel
-from typing import Type, TypeVar, Tuple, Optional
+from typing import Type, TypeVar, Tuple, Optional, Dict, Any
 from dataclasses import dataclass
+
+from geomas.analysis.token_logger import token_logger
 
 # Drop unsupported params for models like GPT-5 that don't support temperature
 litellm.drop_params = True
@@ -75,19 +77,22 @@ class LLMClient:
         system_prompt: str, 
         user_prompt: str, 
         response_model: Type[T],
-        max_retries: int = 3
+        max_retries: int = 3,
+        context: Optional[Dict[str, Any]] = None
     ) -> T:
         """
         Queries the LLM and forces a structured Pydantic response.
-        
+        Now automatically extracts metadata (Turn, Nation, Role) from prompts.
+
         Args:
             system_prompt: The persona and rules.
             user_prompt: The context and task.
             response_model: The Pydantic class to validate against.
             max_retries: How many times to retry on validation error.
-            
+
         Returns:
             An instance of response_model.
+
         """
         messages = [
             {"role": "system", "content": system_prompt},
@@ -95,7 +100,8 @@ class LLMClient:
         ]
 
         try:
-            response = self.client.chat.completions.create(
+            # Capture completion to get usage
+            response, raw_completion = self.client.chat.completions.create_with_completion(
                 model=self.model_name,
                 messages=messages,
                 response_model=response_model,
@@ -104,11 +110,70 @@ class LLMClient:
                 reasoning_effort=self.reasoning_effort,
                 max_retries=max_retries,
             )
+            
+            # Extract usage
+            usage_data = raw_completion.usage
+            reasoning_tokens = None
+            if hasattr(usage_data, 'completion_tokens_details') and usage_data.completion_tokens_details:
+                reasoning_tokens = getattr(usage_data.completion_tokens_details, 'reasoning_tokens', None)
+            
+            usage = LLMUsage(
+                prompt_tokens=usage_data.prompt_tokens,
+                completion_tokens=usage_data.completion_tokens,
+                total_tokens=usage_data.total_tokens,
+                reasoning_tokens=reasoning_tokens
+            )
+            self.last_usage = usage
+            
+            # AUTO-EXTRACT METADATA for logging if context not provided
+            if not context:
+                context = self._extract_metadata(system_prompt, user_prompt)
+
+            # Log usage
+            token_logger.log(
+                turn=context.get("turn", 0),
+                nation_id=context.get("nation_id", "unknown"),
+                role=context.get("role", "unknown"),
+                model=self.model_name,
+                input_tokens=usage.prompt_tokens,
+                output_tokens=usage.completion_tokens,
+                total_tokens=usage.total_tokens,
+                reasoning_tokens=usage.reasoning_tokens
+            )
+
             return response
             
         except Exception as e:
-            print(f"LLM Query Failed: {e}")
+            # Token usage might not be available on error, but we should handle it
             raise e
+
+    def _extract_metadata(self, system_prompt: str, user_prompt: str) -> Dict[str, Any]:
+        """Automatically extract metadata from prompts using regex."""
+        import re
+        meta = {"turn": 0, "nation_id": "unknown", "role": "unknown"}
+        
+        # 1. Turn: ## TURN (\d+)
+        turn_match = re.search(r"## TURN (\d+)", user_prompt)
+        if turn_match:
+            meta["turn"] = int(turn_match.group(1))
+            
+        # 2. Role & Nation: You are the **(Role) of (Nation)**
+        # Matches "Defense Minister of VALKYR" or "voice of the people of VALKYR"
+        match = re.search(r"You are the \*\*(?P<role>.*?) of (?P<nation>.*?)\*\*", system_prompt)
+        if match:
+            meta["role"] = match.group("role")
+            meta["nation_id"] = match.group("nation")
+        else:
+            # Fallback for individual matches
+            role_match = re.search(r"You are the \*\*(.*?)\*\*", system_prompt)
+            if role_match:
+                meta["role"] = role_match.group(1)
+            
+            nation_match = re.search(r"of \*\*(.*?)\*\*", system_prompt)
+            if nation_match:
+                meta["nation_id"] = nation_match.group(1)
+            
+        return meta
 
     def query_agent_with_usage(
         self, 
