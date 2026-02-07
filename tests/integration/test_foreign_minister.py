@@ -39,6 +39,7 @@ def get_foreign_prompts(
     world, 
     nation_id: str, 
     strategy: GlobalStrategy,
+    turn: int = 1,
     target_relationships: Optional[dict] = None
 ) -> Tuple[str, str]:
     """
@@ -68,7 +69,7 @@ def get_foreign_prompts(
     
     # 2. User Prompt
     input_builder = ForeignInputBuilder(world)
-    user_prompt = input_builder.build(nation_id)
+    user_prompt = input_builder.build(nation_id, turn=turn)
     
     # Mock/Add memory context logic if needed (similar to Agent logic)
     # The actual agent does this internally, but for prompt inspection we reconstruct it.
@@ -80,6 +81,7 @@ def execute_foreign_agent(
     world, 
     nation_id: str, 
     strategy: GlobalStrategy, 
+    turn: int = 1,
     model_name: str = "azure/gpt-5-nano",
     temperature: float = 0.7
 ) -> ForeignProposal:
@@ -92,7 +94,7 @@ def execute_foreign_agent(
     client = LLMClient(model_name=model_name, temperature=temperature)
     minister = ForeignMinister(nation_id, world, client)
     
-    proposal = minister.propose(strategy)
+    proposal = minister.propose(strategy, turn=turn)
     return proposal
 
 
@@ -104,6 +106,7 @@ def main():
     parser.add_argument("--model", default="azure/gpt-5-nano", help="LLM Model name")
     parser.add_argument("--seed", type=int, default=42, help="World seed")
     parser.add_argument("--strategy", default="COALITION_BUILDER", help="Global Strategy to test")
+    parser.add_argument("--turn", type=int, default=1, help="Turn number")
     
     args = parser.parse_args()
     
@@ -124,7 +127,7 @@ def main():
     print(f"Strategy: {strategy_enum.value}")
     
     # Generate Prompts
-    sys_p, user_p = get_foreign_prompts(world, nation_id, strategy_enum)
+    sys_p, user_p = get_foreign_prompts(world, nation_id, strategy_enum, turn=args.turn)
     
     print("\n" + "-" * 60)
     print("📋 SYSTEM PROMPT PREVIEW")
@@ -146,7 +149,7 @@ def main():
     print("=" * 60)
     
     try:
-        result = execute_foreign_agent(world, nation_id, strategy_enum, args.model)
+        result = execute_foreign_agent(world, nation_id, strategy_enum, turn=args.turn, model_name=args.model)
         
         print("\n✅ AGENT RESPONSE RECEIVED")
         print("-" * 60)

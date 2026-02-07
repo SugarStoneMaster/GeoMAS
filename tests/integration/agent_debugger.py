@@ -53,6 +53,7 @@ with st.sidebar:
     st.subheader("LLM Settings")
     model_name = st.text_input("Model Name", value="azure/gpt-5-nano")
     temperature = st.slider("Temperature", 0.0, 1.0, 0.7)
+    turn = st.number_input("Turn Number", min_value=1, value=1, step=1)
     
     if st.button("Reload World (Reset State)"):
         st.session_state.clear()
@@ -107,7 +108,8 @@ def render_foreign_minister():
     system_prompt, user_prompt = get_foreign_prompts(
         world=world, 
         nation_id=nation_id, 
-        strategy=strategy
+        strategy=strategy,
+        turn=turn
     )
 
     with col2:
@@ -135,6 +137,7 @@ def render_foreign_minister():
                     world=world,
                     nation_id=nation_id,
                     strategy=strategy,
+                    turn=turn,
                     model_name=model_name,
                     temperature=temperature
                 )
