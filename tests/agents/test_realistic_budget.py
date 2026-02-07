@@ -178,9 +178,9 @@ class TestRealisticTokenBudget:
             system = PresidentSystemPrompt.generate(nation.name, strategy)
             
             # Get minister summaries from other input builders
-            defense_input = DefenseInputBuilder(world).build(nation_id)
-            economy_input = EconomyInputBuilder(world).build(nation_id)
-            foreign_input = ForeignInputBuilder(world).build(nation_id)
+            defense_input = DefenseInputBuilder(world).build(nation_id, turn=30)
+            economy_input = EconomyInputBuilder(world).build(nation_id, turn=30)
+            foreign_input = ForeignInputBuilder(world).build(nation_id, turn=30)
             
             # Create summarized versions (first 200 chars each as "briefing")
             defense_summary = defense_input[:200] + "..."
@@ -189,6 +189,7 @@ class TestRealisticTokenBudget:
             
             base_input = PresidentInputBuilder(world).build(
                 nation_id,
+                turn=30,
                 defense_summary=defense_summary,
                 economy_summary=economy_summary,
                 foreign_summary=foreign_summary
@@ -210,7 +211,7 @@ class TestRealisticTokenBudget:
             
         elif agent_type == "Defense":
             system = DefenseSystemPrompt.generate(nation.name, strategy)
-            base_input = DefenseInputBuilder(world).build(nation_id)
+            base_input = DefenseInputBuilder(world).build(nation_id, turn=30)
             
             actions = context_manager.get_actions_for(nation_id, domain="Defense", max_actions=10)
             actions_text = "\n".join(actions) if actions else "No recent defense actions"
@@ -229,7 +230,7 @@ class TestRealisticTokenBudget:
             
         elif agent_type == "Economy":
             system = EconomySystemPrompt.generate(nation.name, strategy)
-            base_input = EconomyInputBuilder(world).build(nation_id)
+            base_input = EconomyInputBuilder(world).build(nation_id, turn=30)
             
             actions = context_manager.get_actions_for(nation_id, domain="Economy", max_actions=10)
             actions_text = "\n".join(actions) if actions else "No recent economy actions"
@@ -244,7 +245,7 @@ class TestRealisticTokenBudget:
             
         elif agent_type == "Foreign":
             system = ForeignSystemPrompt.generate(nation.name, strategy)
-            base_input = ForeignInputBuilder(world).build(nation_id)
+            base_input = ForeignInputBuilder(world).build(nation_id, turn=30)
             
             actions = context_manager.get_actions_for(nation_id, domain="Foreign", max_actions=10)
             actions_text = "\n".join(actions) if actions else "No recent foreign actions"
@@ -262,7 +263,7 @@ class TestRealisticTokenBudget:
             
         else:  # Opinion
             system = OpinionSystemPrompt.generate(nation.name)
-            base_input = OpinionInputBuilder(world).build(nation_id)
+            base_input = OpinionInputBuilder(world).build(nation_id, turn=30)
             
             user = f"""{base_input}
 

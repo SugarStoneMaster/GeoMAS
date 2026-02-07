@@ -168,6 +168,7 @@ class TestInputBuilderBudget:
         
         context = builder.build(
             nation_id,
+            turn=1,
             defense_summary="2 borders at risk, 1 attack option",
             economy_summary="Budget stable, need energy",
             foreign_summary="1 alliance proposal pending"
@@ -182,7 +183,7 @@ class TestInputBuilderBudget:
         builder = DefenseInputBuilder(world)
         nation_id = list(world.nations.keys())[0]
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         tokens = counter.count(context)
         
         assert tokens < self.INPUT_BUDGET, f"Defense input is {tokens} tokens"
@@ -193,7 +194,7 @@ class TestInputBuilderBudget:
         builder = EconomyInputBuilder(world)
         nation_id = list(world.nations.keys())[0]
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         tokens = counter.count(context)
         
         assert tokens < self.INPUT_BUDGET, f"Economy input is {tokens} tokens"
@@ -204,7 +205,7 @@ class TestInputBuilderBudget:
         builder = ForeignInputBuilder(world)
         nation_id = list(world.nations.keys())[0]
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         tokens = counter.count(context)
         
         assert tokens < self.INPUT_BUDGET, f"Foreign input is {tokens} tokens"
@@ -215,7 +216,7 @@ class TestInputBuilderBudget:
         builder = OpinionInputBuilder(world)
         nation_id = list(world.nations.keys())[0]
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         tokens = counter.count(context)
         
         assert tokens < self.INPUT_BUDGET, f"Opinion input is {tokens} tokens"
@@ -243,7 +244,7 @@ class TestCombinedBudget:
         system = PresidentSystemPrompt.generate(
             nation.name, GlobalStrategy.COALITION_BUILDER
         )
-        user = PresidentInputBuilder(world).build(nation_id)
+        user = PresidentInputBuilder(world).build(nation_id, turn=1)
         
         is_valid, details = counter.validate_budget(system, user, self.TOTAL_BUDGET)
         
@@ -258,19 +259,19 @@ class TestCombinedBudget:
         agents = [
             ("President", 
              PresidentSystemPrompt.generate(nation.name, GlobalStrategy.COALITION_BUILDER),
-             PresidentInputBuilder(world).build(nation_id)),
+             PresidentInputBuilder(world).build(nation_id, turn=1)),
             ("Defense",
              DefenseSystemPrompt.generate(nation.name, GlobalStrategy.COALITION_BUILDER),
-             DefenseInputBuilder(world).build(nation_id)),
+             DefenseInputBuilder(world).build(nation_id, turn=1)),
             ("Economy",
              EconomySystemPrompt.generate(nation.name, GlobalStrategy.COALITION_BUILDER),
-             EconomyInputBuilder(world).build(nation_id)),
+             EconomyInputBuilder(world).build(nation_id, turn=1)),
             ("Foreign",
              ForeignSystemPrompt.generate(nation.name, GlobalStrategy.COALITION_BUILDER),
-             ForeignInputBuilder(world).build(nation_id)),
+             ForeignInputBuilder(world).build(nation_id, turn=1)),
             ("Opinion",
              OpinionSystemPrompt.generate(nation.name),
-             OpinionInputBuilder(world).build(nation_id)),
+             OpinionInputBuilder(world).build(nation_id, turn=1)),
         ]
         
         all_valid = True

@@ -26,6 +26,7 @@ class OpinionInputBuilder:
     def build(
         self,
         nation_id: str,
+        turn: int,
         recent_events: Optional[List[str]] = None,
         satisfaction_history: Optional[List[float]] = None,
         government_actions: Optional[List[str]] = None,
@@ -35,6 +36,7 @@ class OpinionInputBuilder:
         
         Args:
             nation_id: Nation ID
+            turn: Current turn number
             recent_events: Events that affect public mood
             satisfaction_history: Recent satisfaction values (for trend)
             government_actions: Actions taken by the government
@@ -47,6 +49,9 @@ class OpinionInputBuilder:
             return "Error: Nation not found."
         
         sections = []
+        
+        # Metadata Header for Observability
+        sections.append(f"## TURN {turn}")
         
         # 1. Current Satisfaction State
         sections.append(self._build_satisfaction_state(nation, satisfaction_history))

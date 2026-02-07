@@ -71,7 +71,7 @@ class TestDefenseMinister(TestMinisterBase):
         client.query_agent.return_value = mock_response
         
         strategy = GlobalStrategy.ARMED_ISOLATIONISM
-        response = minister.propose(strategy)
+        response = minister.propose(strategy, turn=1)
         
         # Verify call
         client.query_agent.assert_called_once()
@@ -105,7 +105,7 @@ class TestDefenseMinister(TestMinisterBase):
             urgency=1
         )
         
-        minister.propose(GlobalStrategy.ARMED_ISOLATIONISM)
+        minister.propose(GlobalStrategy.ARMED_ISOLATIONISM, turn=1)
         
         # Check that context was requested
         cm.get_actions_for.assert_called_with(nation_id, domain="Defense", max_actions=5)
@@ -141,7 +141,7 @@ class TestEconomicMinister(TestMinisterBase):
         client.query_agent.return_value = mock_response
         
         strategy = GlobalStrategy.MERCANTILE_HEGEMONY
-        response = minister.propose(strategy)
+        response = minister.propose(strategy, turn=1)
         
         # Verify call
         client.query_agent.assert_called_once()
@@ -178,7 +178,7 @@ class TestForeignMinister(TestMinisterBase):
         client.query_agent.return_value = mock_response
         
         strategy = GlobalStrategy.COALITION_BUILDER
-        response = minister.propose(strategy)
+        response = minister.propose(strategy, turn=1)
         
         # Verify call
         client.query_agent.assert_called_once()
@@ -215,7 +215,7 @@ class TestForeignMinister(TestMinisterBase):
             target_trust_impact=0.0
         )
         
-        minister.propose(GlobalStrategy.COALITION_BUILDER)
+        minister.propose(GlobalStrategy.COALITION_BUILDER, turn=1)
         
         # Check prompt
         args, _ = client.query_agent.call_args

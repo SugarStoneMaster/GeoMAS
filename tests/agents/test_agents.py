@@ -117,7 +117,7 @@ def test_defense_minister_proposal():
     client = MockLLMClient()
     
     minister = DefenseMinister(nation_id, world, client)
-    proposal = minister.propose(strategy=GlobalStrategy.COALITION_BUILDER)
+    proposal = minister.propose(strategy=GlobalStrategy.COALITION_BUILDER, turn=1)
     
     assert isinstance(proposal, DefenseProposal)
     assert proposal.intent is not None

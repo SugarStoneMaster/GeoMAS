@@ -87,13 +87,13 @@ class TestStressBudget:
                 world.nations[nation_id].name, 
                 GlobalStrategy.TOTAL_EXPANSIONISM
             )
-            base = ForeignInputBuilder(world).build(nation_id)
+            base = ForeignInputBuilder(world).build(nation_id, turn=0)
         else:
             system = DefenseSystemPrompt.generate(
                 world.nations[nation_id].name,
                 GlobalStrategy.TOTAL_EXPANSIONISM
             )
-            base = DefenseInputBuilder(world).build(nation_id)
+            base = DefenseInputBuilder(world).build(nation_id, turn=0)
         
         user = f"""{base}
 

@@ -27,7 +27,7 @@ class TestPresidentInputBuilder:
         builder = PresidentInputBuilder(world)
         nation_id = list(world.nations.keys())[0]
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         
         assert "NATION STATUS" in context
         assert "RELATIONSHIPS" in context
@@ -39,6 +39,7 @@ class TestPresidentInputBuilder:
         
         context = builder.build(
             nation_id,
+            turn=1,
             defense_summary="Border secure",
             economy_summary="Budget stable",
             foreign_summary="Peace with all"
@@ -57,7 +58,7 @@ class TestDefenseInputBuilder:
         builder = DefenseInputBuilder(world)
         nation_id = list(world.nations.keys())[0]
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         
         assert "MILITARY" in context or "BUDGET" in context
     
@@ -69,7 +70,7 @@ class TestDefenseInputBuilder:
         # Lower satisfaction
         world.nations[nation_id].public_satisfaction = 25
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         
         assert "MORALE" in context or "WARNING" in context
 
@@ -82,7 +83,7 @@ class TestEconomyInputBuilder:
         builder = EconomyInputBuilder(world)
         nation_id = list(world.nations.keys())[0]
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         
         assert "TREASURY" in context
         assert "SATISFACTION" in context
@@ -92,7 +93,7 @@ class TestEconomyInputBuilder:
         builder = EconomyInputBuilder(world)
         nation_id = list(world.nations.keys())[0]
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         
         assert "INVEST_IN_WELFARE" in context or "welfare" in context.lower()
 
@@ -105,7 +106,7 @@ class TestForeignInputBuilder:
         builder = ForeignInputBuilder(world)
         nation_id = list(world.nations.keys())[0]
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         
         assert "DIPLOMATIC" in context or "RELATIONSHIPS" in context
     
@@ -119,7 +120,7 @@ class TestForeignInputBuilder:
             {"type": "ALLIANCE", "from": "other_nation", "turn": 5}
         ]
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         
         assert "PENDING" in context
         assert "ALLIANCE" in context
@@ -133,7 +134,7 @@ class TestOpinionInputBuilder:
         builder = OpinionInputBuilder(world)
         nation_id = list(world.nations.keys())[0]
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         
         assert "PUBLIC MOOD" in context or "SATISFACTION" in context
     
@@ -148,6 +149,6 @@ class TestOpinionInputBuilder:
             world.relationship_matrix[nation_id] = {}
         world.relationship_matrix[nation_id][other_id] = "WAR"
         
-        context = builder.build(nation_id)
+        context = builder.build(nation_id, turn=1)
         
         assert "WAR" in context
