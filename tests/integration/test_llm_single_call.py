@@ -94,38 +94,79 @@ def main():
     
     # Call LLM
     print("\n" + "=" * 60)
-    print("🤖 CALLING LLM...")
+    print("🤖 CALLING LLM (LiteLLM - single call)...")
     print("=" * 60)
     
     try:
-        from geomas.agents.llm_client import LLMClient
+        from litellm import completion
+        import json
         
-        client = LLMClient(model_name=args.model, temperature=0.2)
-        
-        response = client.query_agent(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            response_model=DefenseProposal,
-            max_retries=2
+        # LiteLLM call - uses env vars AZURE_API_KEY, AZURE_API_BASE automatically
+        # reasoning_effort controls reasoning tokens: "none", "minimal", "low", "medium", "high"
+        raw_response = completion(
+            model=args.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            reasoning_effort="minimal"  # Minimize reasoning tokens
         )
         
-        print("\n✅ LLM RESPONSE:")
-        print("-" * 40)
-        print(f"Intent Type: {response.intent.type}")
-        print(f"Reasoning: {response.intent.reasoning}")
-        print(f"Urgency: {response.urgency}")
-        print(f"Payload Moves: {len(response.payload.moves)} actions")
+        raw_content = raw_response.choices[0].message.content
+        usage = raw_response.usage
         
-        if response.payload.moves:
-            print("\nActions proposed:")
-            for move in response.payload.moves[:3]:
-                print(f"  - {move}")
+        # Token usage
+        print("\n" + "=" * 60)
+        print("📊 TOKEN USAGE")
+        print("=" * 60)
+        reasoning_tokens = 0
+        if hasattr(usage, 'completion_tokens_details') and usage.completion_tokens_details:
+            reasoning_tokens = getattr(usage.completion_tokens_details, 'reasoning_tokens', 0) or 0
+        print(f"Prompt tokens:     {usage.prompt_tokens}")
+        print(f"Completion tokens: {usage.completion_tokens}")
+        if reasoning_tokens:
+            print(f"  - Reasoning:     {reasoning_tokens}")
+            print(f"  - Output:        {usage.completion_tokens - reasoning_tokens}")
+        print(f"TOTAL:             {usage.total_tokens}")
+        
+        # Raw output
+        print("\n" + "=" * 60)
+        print("📄 RAW LLM OUTPUT")
+        print("=" * 60)
+        print(raw_content)
+        
+        # Parse JSON manually
+        print("\n" + "=" * 60)
+        print("✅ PARSED RESPONSE")
+        print("=" * 60)
+        
+        try:
+            # Find JSON in the response (might be wrapped in markdown)
+            json_start = raw_content.find("{")
+            json_end = raw_content.rfind("}") + 1
+            if json_start >= 0 and json_end > json_start:
+                json_str = raw_content[json_start:json_end]
+                parsed = json.loads(json_str)
+                print(json.dumps(parsed, indent=2))
+                
+                # Show key fields
+                print("\n--- Summary ---")
+                print(f"Threat Level: {parsed.get('threat_level', 'N/A')}")
+                print(f"Summary: {parsed.get('summary', 'N/A')}")
+                actions = parsed.get('recommended_actions', [])
+                print(f"Actions: {len(actions)}")
+                for i, action in enumerate(actions[:3], 1):
+                    print(f"  {i}. {action.get('action', 'N/A')}: {action.get('reasoning', 'N/A')[:60]}...")
+            else:
+                print("Could not extract JSON from response")
+        except json.JSONDecodeError as e:
+            print(f"JSON parse error: {e}")
                 
     except Exception as e:
         print(f"\n❌ LLM CALL FAILED: {e}")
         print("\n📋 Configuration for Azure OpenAI (LiteLLM):")
         print("  export AZURE_API_KEY=your_key")
-        print("  export AZURE_API_BASE=https://ciem-mlb985wq-swedencentral.cognitiveservices.azure.com")
+        print("  export AZURE_API_BASE=https://your-endpoint.cognitiveservices.azure.com")
         print("  export AZURE_API_VERSION=2024-02-01")
         print("\n  Then use: --model azure/gpt-5-nano")
 

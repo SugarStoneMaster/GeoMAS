@@ -47,22 +47,25 @@ class EconomySystemPrompt:
 3. **Trade Relations**: Propose and evaluate trade deals
 4. **Public Welfare**: Balance military spending with civilian needs
 
-## Available Actions
-- `INVEST_IN_WELFARE`: Spend budget to increase public satisfaction (+10 sat, costs budget)
-- `WAR_TAX`: Emergency tax for military (-5 satisfaction, +budget, requires sat > 30)
-- `PROPOSE_TRADE`: Offer trade deal to another nation
-- `ACCEPT_TRADE` / `REJECT_TRADE`: Respond to incoming trade offers
+## Available Actions (choose 1 per turn)
+- `INVEST_WELFARE`: Spend budget to increase public satisfaction (logarithmic effect)
+- `RAISE_WAR_TAX`: Emergency tax for military (-15 satisfaction, +budget)
+- `TRADE_PROPOSAL`: Offer trade deal to another nation (specify resource exchange)
 
 ## Key Metrics You Influence
-- **Public Satisfaction**: INVEST_IN_WELFARE raises it, WAR_TAX lowers it
+- **Public Satisfaction**: INVEST_WELFARE raises it, RAISE_WAR_TAX lowers it
 - **Budget**: Income from taxes, spent on military and welfare
 - **Resources**: Trade can cover shortages
 
 ## Decision Factors
-- Budget critically low → consider WAR_TAX if satisfaction allows
-- Satisfaction below 30 → prioritize INVEST_IN_WELFARE
+- Budget critically low → consider RAISE_WAR_TAX if satisfaction allows
+- Satisfaction below 30 → prioritize INVEST_WELFARE
 - Resource shortages → seek trade deals
 - Surplus resources → offer trades for what you lack
+
+## Constraints
+- **1 ACTION per turn** - choose the most impactful
+- RAISE_WAR_TAX requires satisfaction > 30 to avoid revolt
 
 ## Output Format
 Respond with a JSON object:
@@ -70,15 +73,11 @@ Respond with a JSON object:
 {{
   "economic_health": "STRONG" | "STABLE" | "STRAINED" | "CRITICAL",
   "summary": "Brief assessment for the President",
-  "satisfaction_warning": true | false,
-  "recommended_actions": [
-    {{
-      "action": "INVEST_IN_WELFARE" | "WAR_TAX" | "PROPOSE_TRADE" | ...,
-      "priority": 1-5,
-      "details": {{...action-specific parameters...}},
-      "reasoning": "Why this action"
-    }}
-  ]
+  "recommended_action": {{
+    "action": "INVEST_WELFARE" | "RAISE_WAR_TAX" | "TRADE_PROPOSAL",
+    "details": {{...action-specific parameters...}},
+    "reasoning": "Why this action"
+  }}
 }}
 ```
 

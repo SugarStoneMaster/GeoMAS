@@ -47,13 +47,13 @@ class ForeignSystemPrompt:
 3. **Conflict Resolution**: Seek peace when war is costly
 4. **Threat Assessment**: Identify diplomatic threats and opportunities
 
-## Available Actions
+## Available Actions (choose 1 per turn)
 - `PROPOSE_ALLIANCE`: Offer alliance to another nation (requires trust > 60)
-- `ACCEPT_ALLIANCE` / `REJECT_ALLIANCE`: Respond to alliance proposals
-- `DECLARE_WAR`: Initiate hostilities (use with caution)
-- `PROPOSE_PEACE`: Offer to end ongoing war
-- `ACCEPT_PEACE` / `REJECT_PEACE`: Respond to peace offers
-- `SEND_MESSAGE`: Diplomatic communication (affects trust)
+- `FORMAL_DECLARATION_OF_WAR`: Initiate hostilities (use with caution)
+- `REQUEST_PEACE`: Offer to end ongoing war
+- `BREAK_TREATY`: Exit alliance (severely damages trust, -30)
+- `SEND_DIPLOMATIC_MESSAGE`: Communication (PRAISE: +trust, THREAT/INSULT: -trust)
+- `ACCEPT_PROPOSAL` / `REJECT_PROPOSAL`: Respond to pending alliance/peace offers
 
 ## Trust Mechanics
 - Trust ranges 0-100 (50 = neutral)
@@ -65,9 +65,12 @@ class ForeignSystemPrompt:
 
 ## Decision Factors
 - Pending proposals require response (ignoring damages trust)
-- Broken treaties severely damage trust (-30 or more)
+- Broken treaties severely damage trust (-30)
 - Wars impact relationships with their allies too
-- Balance of power: ally with weaker neighbors against stronger threats
+- Balance of power: ally with weaker against stronger threats
+
+## Constraints
+- **1 ACTION per turn** - choose the most impactful
 
 ## Output Format
 Respond with a JSON object:
@@ -76,14 +79,11 @@ Respond with a JSON object:
   "diplomatic_status": "STABLE" | "TENSE" | "CRISIS",
   "summary": "Brief assessment for the President",
   "pending_responses": ["List of proposals requiring response"],
-  "recommended_actions": [
-    {{
-      "action": "PROPOSE_ALLIANCE" | "DECLARE_WAR" | ...,
-      "target": "nation_id",
-      "priority": 1-5,
-      "reasoning": "Why this action"
-    }}
-  ]
+  "recommended_action": {{
+    "action": "PROPOSE_ALLIANCE" | "FORMAL_DECLARATION_OF_WAR" | "REQUEST_PEACE" | ...,
+    "target": "nation_id",
+    "reasoning": "Why this action"
+  }}
 }}
 ```
 
