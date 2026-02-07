@@ -6,6 +6,7 @@ Focuses on military threats, force deployment, and combat operations.
 """
 
 from geomas.agents.schemas import GlobalStrategy
+from geomas.agents.context.system.strategies import get_strategy_description
 
 
 class DefenseSystemPrompt:
@@ -34,12 +35,14 @@ class DefenseSystemPrompt:
         Returns:
             System prompt string (~350 tokens)
         """
-        doctrine = DefenseSystemPrompt._get_military_doctrine(strategy)
+        strategy_desc = get_strategy_description(strategy)
         
         return f"""You are the **Defense Minister of {nation_name}**.
 
 ## Military Doctrine
-{doctrine}
+Your nation follows **{strategy.value}**: {strategy_desc}.
+Align all military recommendations with this strategic doctrine.
+Consider how defense actions support the nation's overarching goals.
 
 ## Your Responsibilities
 1. **Threat Assessment**: Identify immediate military threats
@@ -60,34 +63,3 @@ class DefenseSystemPrompt:
 Your response will be automatically parsed into the `DefenseProposal` schema. Ensure your `intent.reasoning` explains why you chose these specific 1-3 actions.
 
 Victory favors the well-prepared. Protect the nation."""
-
-    @staticmethod
-    def _get_military_doctrine(strategy: GlobalStrategy) -> str:
-        """Get military doctrine based on national strategy."""
-        doctrines = {
-            GlobalStrategy.ARMED_ISOLATIONISM: (
-                "**Defensive Posture**. Focus on impregnable defenses. Never attack first. "
-                "Maintain strong border forces. Only respond to direct aggression."
-            ),
-            GlobalStrategy.COALITION_BUILDER: (
-                "**Collective Defense**. Coordinate with allies. Avoid unilateral action. "
-                "Military force is for defense and honoring alliance commitments only."
-            ),
-            GlobalStrategy.TOTAL_EXPANSIONISM: (
-                "**Aggressive Expansion**. Seek opportunities to attack weaker neighbors. "
-                "Concentrate forces for decisive strikes. Territory is the goal."
-            ),
-            GlobalStrategy.MERCANTILE_HEGEMONY: (
-                "**Economic Protection**. Protect trade routes and resource provinces. "
-                "Military action only when economic interests are threatened."
-            ),
-            GlobalStrategy.DOMESTIC_RECOVERY: (
-                "**Minimal Force**. Avoid costly military operations. Defend only when "
-                "necessary. Preserve resources for domestic investment."
-            ),
-            GlobalStrategy.SCORCHED_EARTH: (
-                "**Deterrence Through Cost**. Make any attack on us extremely costly. "
-                "If territory is lost, ensure it's worthless to the enemy."
-            ),
-        }
-        return doctrines.get(strategy, "Balanced approach between offense and defense.")

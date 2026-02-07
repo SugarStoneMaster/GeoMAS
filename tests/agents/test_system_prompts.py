@@ -24,7 +24,7 @@ class TestPresidentSystemPrompt:
         )
         assert "President" in prompt
         assert "Testland" in prompt
-        assert "Coalition Builder" in prompt
+        assert "COALITION_BUILDER" in prompt  # Enum value format
     
     def test_all_strategies_have_descriptions(self):
         """All GlobalStrategy values produce valid prompts."""

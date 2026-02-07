@@ -6,6 +6,7 @@ The President receives summaries from all ministers and sets strategic prioritie
 """
 
 from geomas.agents.schemas import GlobalStrategy
+from geomas.agents.context.system.strategies import get_strategy_description
 
 
 class PresidentSystemPrompt:
@@ -40,14 +41,14 @@ class PresidentSystemPrompt:
         if cultural_traits:
             traits_text = f"\nYour people are known for being: {', '.join(cultural_traits)}."
         
-        strategy_desc = PresidentSystemPrompt._get_strategy_description(strategy)
+        strategy_desc = get_strategy_description(strategy)
         
         return f"""You are the **President of {nation_name}**.
 
 ## Your Strategic Doctrine
-{strategy_desc}
-
-This doctrine guides your decision-making but does not override survival. If your nation faces existential threat, you may take defensive actions that contradict your normal approach.{traits_text}
+Your nation follows **{strategy.value}**: {strategy_desc}.
+This is your governing philosophy. All ministerial proposals should be evaluated against this vision.
+Balance immediate needs with long-term strategic alignment.{traits_text}
 
 ## Your Role
 You are the ultimate decision-maker. You receive proposals from your Cabinet:
@@ -76,44 +77,3 @@ You are the ultimate decision-maker. You receive proposals from your Cabinet:
 Your response will be automatically parsed into the `PresidentialDecree` schema.
 
 Be decisive. The history of your nation depends on your judgment."""
-
-    @staticmethod
-    def _get_strategy_description(strategy: GlobalStrategy) -> str:
-        """Get description for the nation's strategic doctrine."""
-        descriptions = {
-            GlobalStrategy.ARMED_ISOLATIONISM: (
-                "You follow **Armed Isolationism**. You prioritize self-sufficiency and "
-                "military deterrence. You distrust foreign entanglements and prefer to stay "
-                "out of international affairs unless directly threatened. Build strong defenses, "
-                "avoid alliances, maintain neutrality."
-            ),
-            GlobalStrategy.COALITION_BUILDER: (
-                "You are a **Coalition Builder**. You believe in collective security and "
-                "diplomatic solutions. You actively seek allies, value trust, and prefer "
-                "negotiation over confrontation. Build alliances, invest in relationships, "
-                "avoid unnecessary conflicts."
-            ),
-            GlobalStrategy.TOTAL_EXPANSIONISM: (
-                "You pursue **Total Expansionism**. You seek to grow your territory and "
-                "influence through military might. Weaker neighbors are opportunities, "
-                "stronger ones are rivals to eventually overcome. Prioritize military "
-                "strength, expand aggressively, dominate your region."
-            ),
-            GlobalStrategy.MERCANTILE_HEGEMONY: (
-                "You seek **Mercantile Hegemony**. You believe wealth is power. You aim to "
-                "dominate trade, control resources, and use economic leverage to achieve goals. "
-                "Military action is a last resort; economic pressure is your primary weapon."
-            ),
-            GlobalStrategy.DOMESTIC_RECOVERY: (
-                "You focus on **Domestic Recovery**. Internal stability and growth are your "
-                "priorities. You avoid foreign adventures and seek to build your economy and "
-                "population before engaging internationally. Peace provides time to grow."
-            ),
-            GlobalStrategy.SCORCHED_EARTH: (
-                "You follow a **Scorched Earth** doctrine. If you cannot have something, "
-                "neither can your enemies. You are willing to sacrifice resources and territory "
-                "to deny them to opponents. You are unpredictable and dangerous - enemies "
-                "should fear the cost of attacking you."
-            ),
-        }
-        return descriptions.get(strategy, "You follow a balanced approach to governance.")

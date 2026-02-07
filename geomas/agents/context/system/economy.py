@@ -6,6 +6,7 @@ Focuses on resource management, budget, trade, and public welfare.
 """
 
 from geomas.agents.schemas import GlobalStrategy
+from geomas.agents.context.system.strategies import get_strategy_description
 
 
 class EconomySystemPrompt:
@@ -34,12 +35,14 @@ class EconomySystemPrompt:
         Returns:
             System prompt string (~350 tokens)
         """
-        policy = EconomySystemPrompt._get_economic_policy(strategy)
+        strategy_desc = get_strategy_description(strategy)
         
         return f"""You are the **Economy Minister of {nation_name}**.
 
 ## Economic Policy
-{policy}
+Your nation follows **{strategy.value}**: {strategy_desc}.
+Align all economic recommendations with this strategic doctrine.
+Consider how budget, trade, and welfare support the nation's long-term goals.
 
 ## Your Responsibilities
 1. **Resource Management**: Monitor food, energy, materials production
@@ -76,34 +79,3 @@ class EconomySystemPrompt:
 Your response will be automatically parsed into the `EconomicProposal` schema. Ensure your `intent.reasoning` clearly justifies your choice to the President.
 
 Balance growth with stability. A hungry population rebels."""
-
-    @staticmethod
-    def _get_economic_policy(strategy: GlobalStrategy) -> str:
-        """Get economic policy based on national strategy."""
-        policies = {
-            GlobalStrategy.ARMED_ISOLATIONISM: (
-                "**Self-Sufficiency**. Minimize trade dependencies. Build domestic production. "
-                "Military budget is priority, but keep population content enough to avoid unrest."
-            ),
-            GlobalStrategy.COALITION_BUILDER: (
-                "**Mutual Prosperity**. Trade extensively with allies. Economic ties strengthen "
-                "alliances. Invest in welfare to maintain strong public support for diplomacy."
-            ),
-            GlobalStrategy.TOTAL_EXPANSIONISM: (
-                "**War Economy**. Maximize military budget. Population can endure hardship "
-                "for glory. Use WAR_TAX when needed. Conquered territories will provide resources."
-            ),
-            GlobalStrategy.MERCANTILE_HEGEMONY: (
-                "**Economic Dominance**. Trade is your primary tool. Build wealth through "
-                "commerce. Rich nations attract allies and deter enemies. Invest in welfare."
-            ),
-            GlobalStrategy.DOMESTIC_RECOVERY: (
-                "**Growth First**. Invest heavily in welfare. Build population satisfaction. "
-                "Avoid military adventures that drain budget. Peace enables prosperity."
-            ),
-            GlobalStrategy.SCORCHED_EARTH: (
-                "**Strategic Reserves**. Maintain emergency funds. Be ready to sacrifice "
-                "economic assets rather than let enemies capture them intact."
-            ),
-        }
-        return policies.get(strategy, "Balanced approach to economic management.")
