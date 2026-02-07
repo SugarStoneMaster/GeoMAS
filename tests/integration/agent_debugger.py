@@ -133,7 +133,7 @@ def render_foreign_minister():
                 # Use shared execution logic
                 # We need to pass the same world object (already updated)
                 # But execute_foreign_agent creates a new minister instance. That is fine.
-                response = execute_foreign_agent(
+                response, usage = execute_foreign_agent(
                     world=world,
                     nation_id=nation_id,
                     strategy=strategy,
@@ -143,7 +143,12 @@ def render_foreign_minister():
                 )
                 
                 st.subheader("✅ Agent Response")
-                st.success("Execution Successful")
+                if usage:
+                    st.success(f"Execution Successful | Tokens: {usage.total_tokens} ({usage.prompt_tokens} in / {usage.completion_tokens} out)")
+                    if usage.reasoning_tokens:
+                        st.info(f"🧠 Reasoning Tokens: {usage.reasoning_tokens}")
+                else:
+                    st.success("Execution Successful")
                 
                 # Visualizing result
                 r_col1, r_col2 = st.columns(2)
@@ -155,13 +160,23 @@ def render_foreign_minister():
                 
                 with r_col2:
                     st.markdown("### Payload (Action)")
+                    st.write(f"**Decision:** `{response.payload.decision.value}`")
+                    
                     if response.payload.action_type:
                         st.write(f"**Action:** `{response.payload.action_type.value}`")
-                        st.json(response.payload.parameters)
+                        
                         if response.payload.target_nation_id:
-                            st.write(f"**Target:** `{response.payload.target_nation_id}`")
+                            st.write(f"**Target Nation:** `{response.payload.target_nation_id}`")
+                        
+                        if response.payload.parameters:
+                            st.write("**Parameters:**")
+                            st.json(response.payload.parameters)
+                        else:
+                            st.write("**Parameters:** None")
                     else:
                         st.write("**Action:** `None` (Idle)")
+                    
+                    st.info("ℹ️ **Pydantic Validation:** The response above has been validated against the `ForeignProposal` schema.")
 
                 st.markdown("### Raw JSON Response")
                 st.json(response.model_dump())

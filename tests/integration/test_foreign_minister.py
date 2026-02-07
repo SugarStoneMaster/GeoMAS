@@ -23,7 +23,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 load_dotenv(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.env")))
 
 from geomas.world import generate_world
-from geomas.agents.llm_client import LLMClient
+from geomas.agents.llm_client import LLMClient, LLMUsage
 from geomas.agents.ministers import ForeignMinister
 from geomas.agents.context.system import ForeignSystemPrompt
 from geomas.agents.context.input import ForeignInputBuilder
@@ -84,7 +84,7 @@ def execute_foreign_agent(
     turn: int = 1,
     model_name: str = "azure/gpt-5-nano",
     temperature: float = 0.7
-) -> ForeignProposal:
+) -> Tuple[ForeignProposal, Optional[LLMUsage]]:
     """
     Execute the full ForeignMinister agent pipeline.
     
@@ -95,7 +95,7 @@ def execute_foreign_agent(
     minister = ForeignMinister(nation_id, world, client)
     
     proposal = minister.propose(strategy, turn=turn)
-    return proposal
+    return proposal, client.last_usage
 
 
 # --- CLI MAIN ---
@@ -149,9 +149,11 @@ def main():
     print("=" * 60)
     
     try:
-        result = execute_foreign_agent(world, nation_id, strategy_enum, turn=args.turn, model_name=args.model)
+        result, usage = execute_foreign_agent(world, nation_id, strategy_enum, turn=args.turn, model_name=args.model)
         
         print("\n✅ AGENT RESPONSE RECEIVED")
+        if usage:
+            print(f"{usage}")
         print("-" * 60)
         print(f"Intent: {result.intent.type.value}")
         print(f"Reasoning: {result.intent.reasoning}")
