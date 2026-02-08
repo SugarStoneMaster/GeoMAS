@@ -123,6 +123,9 @@ You are reacting to recent events and government decisions."""
         at_war = []
         for other_id, status in relationships.items():
             if status == "WAR":
+                # Skip nations that were filtered out
+                if other_id not in self.world.nations:
+                    continue
                 other_name = self.world.nations[other_id].name
                 at_war.append(other_name)
         

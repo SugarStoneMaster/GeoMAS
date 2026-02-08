@@ -193,6 +193,9 @@ class EconomyInputBuilder:
         trust = self.world.trust_matrix.get(nation_id, {})
         
         for other_id, status in relationships.items():
+            # Skip nations that were filtered out
+            if other_id not in self.world.nations:
+                continue
             other = self.world.nations[other_id]
             trust_level = trust.get(other_id, 50)
             

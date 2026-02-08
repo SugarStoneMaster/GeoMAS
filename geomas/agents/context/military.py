@@ -201,6 +201,9 @@ class MilitaryTranslator:
         lines = ["## 🛡️ BORDER DEFENSE STATUS"]
         
         for enemy_id, data in neighbor_analysis.items():
+            # Skip nations that were filtered out
+            if enemy_id not in self.world.nations:
+                continue
             enemy_name = self.world.nations[enemy_id].name
             my_forces = data["my_forces"]
             enemy_forces = data["enemy_forces"]
@@ -246,6 +249,9 @@ class MilitaryTranslator:
                     
                     # Threat if enemy has significant force advantage
                     if enemy_forces > my_defense * 1.5 and enemy_forces >= 50:
+                        # Skip nations that were filtered out
+                        if neighbor_prov.owner_id not in self.world.nations:
+                            continue
                         enemy_name = self.world.nations[neighbor_prov.owner_id].name
                         threats.append({
                             "province_id": p_id,
@@ -291,6 +297,9 @@ class MilitaryTranslator:
                         continue  # Skip unowned/ocean
                     
                     enemy_forces = neighbor_prov.soldiers + neighbor_prov.aircraft
+                    # Skip nations that were filtered out
+                    if neighbor_prov.owner_id not in self.world.nations:
+                        continue
                     enemy_name = self.world.nations[neighbor_prov.owner_id].name
                     
                     # Attack viable if we have significant advantage

@@ -105,6 +105,9 @@ class DefenseInputBuilder:
         allies = []
         
         for other_id, status in relationships.items():
+            # Skip nations that were filtered out
+            if other_id not in self.world.nations:
+                continue
             other_name = self.world.nations[other_id].name
             if status == "WAR":
                 at_war.append(other_name)

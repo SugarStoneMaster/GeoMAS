@@ -144,6 +144,9 @@ class SpatialTranslator:
         
         descriptions = []
         for enemy_id, stats in neighbor_stats.items():
+            # Skip nations that were filtered out
+            if enemy_id not in self.world.nations:
+                continue
             enemy_nation = self.world.nations[enemy_id]
             enemy_power = enemy_nation.power_projection
             segments = stats["segments"]
@@ -207,6 +210,9 @@ class SpatialTranslator:
             )
         elif neighbor_count == 1:
             neighbor_id = list(neighbors)[0]
+            # Skip if neighbor was filtered out
+            if neighbor_id not in self.world.nations:
+                return "You have limited neighbors."
             neighbor_name = self.world.nations[neighbor_id].name
             return (
                 f"You have only one neighbor ({neighbor_name}). "
