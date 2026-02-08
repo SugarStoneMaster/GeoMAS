@@ -21,6 +21,8 @@ class EventType(str, Enum):
     ALLIANCE_FORMED = "ALLIANCE_FORMED"
     ALLIANCE_BROKEN = "ALLIANCE_BROKEN"
     ALLIANCE_REJECTED = "ALLIANCE_REJECTED"
+    DIPLOMATIC_MESSAGE = "DIPLOMATIC_MESSAGE"
+    DIPLOMATIC_PROPOSAL = "DIPLOMATIC_PROPOSAL"
     
     # Military events (world news)
     ATTACK = "ATTACK"
@@ -97,7 +99,7 @@ class NotableEvent(BaseModel):
     event_type: EventType
     actors: List[str] = Field(default_factory=list)  # Nation IDs involved
     summary: str  # "Valdoria attacked Aquilonia's northern border"
-    relevance_to: Optional[str] = None  # None = global, else specific nation
+    relevance_to: Optional[List[str]] = None  # None = global, else specific nations
     
     def to_prompt_line(self) -> str:
         """

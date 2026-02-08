@@ -60,20 +60,26 @@ Consider how alliances and communications serve the nation's strategic interests
 ## Available Actions (choose 1 per turn)
 1. **`SEND_DIPLOMATIC_MESSAGE`**
    - **Types & Trust Impact**: `PRAISE` (+10 Trust), `INSULT` (-10 Trust), `THREAT` (-30 Trust).
-   - **Cooldown**: 5-turn cooldown per nation (you cannot message the same nation again for 5 turns).
+   - **Fields**: `diplomatic_message_type`, `target_nation_id`, `message` (optional).
+   - **Cooldown**: 5-turn cooldown per nation.
 2. **`PROPOSE_ALLIANCE`**
+   - **Fields**: `target_nation_id`, `message` (optional).
    - **Requirement**: Trust toward target must be > 60.
    - **Effect**: If accepted, trust increases by +10.
 3. **`FORMAL_DECLARATION_OF_WAR`**
-   - **Effect**: Trust with target drops to 0. Relationship becomes WAR.
+   - **Fields**: `target_nation_id`, `message` (optional).
+   - **Effect**: Trust drops to 0.
 4. **`BREAK_TREATY`**
-   - **Effect**: Ends alliance. Trust with target drops by -50.
+   - **Fields**: `target_nation_id`, `message` (optional).
+   - **Effect**: Ends alliance. Trust drops by -50.
 5. **`REQUEST_PEACE`**
-   - **Effect**: Sends a peace proposal to a nation you are at war with.
+   - **Fields**: `target_nation_id`, `message` (optional).
+   - **Effect**: Sends a peace proposal.
 6. **`ACCEPT_PROPOSAL` / `REJECT_PROPOSAL`**
-   - **Fields**: `target_nation_id`, `proposal_ref_type` (ALLIANCE or PEACE).
+   - **Fields**: `target_nation_id`, `proposal_ref_type` (ALLIANCE or PEACE), `message` (optional).
+   - **Note**: The `message` explains your decision to the sender.
 7. **`IDLE`**
-   - No diplomatic action taken this turn.
+   - No action. Cannot carry a message.
 
 ## Guidelines
 - **DECISION FIELD**: Your payload includes a `decision` field. You **MUST** leave this as `PENDING`. This field is reserved for the President to Approve or Veto your proposal.

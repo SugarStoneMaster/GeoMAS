@@ -47,35 +47,36 @@ def execute_foreign(
         return
     
     # Dispatch to appropriate handler
-    if payload.action_type == ForeignActionType.SEND_DIPLOMATIC_MESSAGE:
-        _execute_send_message(engine, nation_id, target_id, payload.diplomatic_message_type)
+    elif payload.action_type == ForeignActionType.SEND_DIPLOMATIC_MESSAGE:
+        _execute_send_message(engine, nation_id, target_id, payload.diplomatic_message_type, payload.message)
     
     elif payload.action_type == ForeignActionType.FORMAL_DECLARATION_OF_WAR:
-        _execute_declare_war(engine, nation_id, target_id)
+        _execute_declare_war(engine, nation_id, target_id, payload.message)
     
     elif payload.action_type == ForeignActionType.BREAK_TREATY:
-        _execute_break_treaty(engine, nation_id, target_id)
+        _execute_break_treaty(engine, nation_id, target_id, payload.message)
     
     elif payload.action_type == ForeignActionType.REQUEST_PEACE:
-        _execute_request_peace(engine, nation_id, target_id)
+        _execute_request_peace(engine, nation_id, target_id, payload.message)
     
     elif payload.action_type == ForeignActionType.PROPOSE_ALLIANCE:
-        _execute_propose_alliance(engine, nation_id, target_id)
+        _execute_propose_alliance(engine, nation_id, target_id, payload.message)
     
     elif payload.action_type == ForeignActionType.ACCEPT_PROPOSAL:
         proposal_type = payload.proposal_ref_type or "ALLIANCE"
-        respond_to_proposal(engine, nation_id, target_id, proposal_type, accept=True)
+        respond_to_proposal(engine, nation_id, target_id, proposal_type, accept=True, message=payload.message)
     
     elif payload.action_type == ForeignActionType.REJECT_PROPOSAL:
         proposal_type = payload.proposal_ref_type or "ALLIANCE"
-        respond_to_proposal(engine, nation_id, target_id, proposal_type, accept=False)
+        respond_to_proposal(engine, nation_id, target_id, proposal_type, accept=False, message=payload.message)
 
 
 def _execute_send_message(
     engine: 'ActionEngine',
     sender_id: str,
     target_id: str,
-    message_type: Optional[DiplomaticMessageType]
+    message_type: Optional[DiplomaticMessageType],
+    message: Optional[str] = None
 ) -> None:
     """Send a diplomatic message with trust impact (with cooldown)."""
     world = engine.world
@@ -107,15 +108,17 @@ def _execute_send_message(
     # Set cooldown
     sender.message_cooldown[target_id] = current_turn
     
+    msg_str = f" Message: '{message}'" if message else ""
     engine.logs.append(
-        f"[FOREIGN] {sender_id} sends {msg_type.value} to {target_id}. Trust impact: {trust_delta:+.1f}"
+        f"[FOREIGN] {sender_id} sends {msg_type.value} to {target_id}. Trust impact: {trust_delta:+.1f}.{msg_str}"
     )
 
 
 def _execute_declare_war(
     engine: 'ActionEngine',
     aggressor_id: str,
-    target_id: str
+    target_id: str,
+    message: Optional[str] = None
 ) -> None:
     """Formally declare war on target nation."""
     world = engine.world
@@ -134,8 +137,9 @@ def _execute_declare_war(
     world.trust_matrix.setdefault(aggressor_id, {})[target_id] = 0
     world.trust_matrix.setdefault(target_id, {})[aggressor_id] = 0
     
+    msg_str = f" Message: '{message}'" if message else ""
     engine.logs.append(
-        f"[FOREIGN] ⚔️ {aggressor_id} DECLARES WAR on {target_id}!"
+        f"[FOREIGN] ⚔️ {aggressor_id} DECLARES WAR on {target_id}!{msg_str}"
     )
     
     # Global notification
@@ -147,7 +151,8 @@ def _execute_declare_war(
 def _execute_break_treaty(
     engine: 'ActionEngine',
     breaker_id: str,
-    target_id: str
+    target_id: str,
+    message: Optional[str] = None
 ) -> None:
     """Break alliance treaty with target nation."""
     world = engine.world
@@ -165,15 +170,17 @@ def _execute_break_treaty(
     # Trust penalty for the one who breaks (-50 on 0-100 scale)
     engine.adjust_trust(target_id, breaker_id, -50)
     
+    msg_str = f" Message: '{message}'" if message else ""
     engine.logs.append(
-        f"[FOREIGN] 💔 {breaker_id} BREAKS alliance with {target_id}. Trust penalty applied."
+        f"[FOREIGN] 💔 {breaker_id} BREAKS alliance with {target_id}. Trust penalty applied.{msg_str}"
     )
 
 
 def _execute_request_peace(
     engine: 'ActionEngine',
     requester_id: str,
-    target_id: str
+    target_id: str,
+    message: Optional[str] = None
 ) -> None:
     """
     Request peace with a nation at war.
@@ -192,18 +199,21 @@ def _execute_request_peace(
     target_nation.pending_proposals.append({
         "type": "PEACE",
         "from": requester_id,
-        "turn": world.turn
+        "turn": world.turn,
+        "message": message
     })
     
+    msg_str = f" Message: '{message}'" if message else ""
     engine.logs.append(
-        f"[FOREIGN] 🕊️ {requester_id} requests peace with {target_id}. Awaiting response."
+        f"[FOREIGN] 🕊️ {requester_id} requests peace with {target_id}. Awaiting response.{msg_str}"
     )
 
 
 def _execute_propose_alliance(
     engine: 'ActionEngine',
     proposer_id: str,
-    target_id: str
+    target_id: str,
+    message: Optional[str] = None
 ) -> None:
     """
     Propose alliance with target nation.
@@ -235,11 +245,13 @@ def _execute_propose_alliance(
     target_nation.pending_proposals.append({
         "type": "ALLIANCE",
         "from": proposer_id,
-        "turn": world.turn
+        "turn": world.turn,
+        "message": message
     })
     
+    msg_str = f" Message: '{message}'" if message else ""
     engine.logs.append(
-        f"[FOREIGN] 🤝 {proposer_id} proposes alliance to {target_id}. Awaiting response."
+        f"[FOREIGN] 🤝 {proposer_id} proposes alliance to {target_id}. Awaiting response.{msg_str}"
     )
 
 
@@ -250,7 +262,8 @@ def respond_to_proposal(
     nation_id: str,
     proposer_id: str,
     proposal_type: str,
-    accept: bool
+    accept: bool,
+    message: Optional[str] = None
 ) -> None:
     """
     Respond to a pending proposal (ACCEPT or REJECT).
@@ -279,9 +292,10 @@ def respond_to_proposal(
         )
         return
     
+    msg_str = f" Message: '{message}'" if message else ""
     if not accept:
         engine.logs.append(
-            f"[FOREIGN] {nation_id} REJECTS {proposal_type} proposal from {proposer_id}"
+            f"[FOREIGN] {nation_id} REJECTS {proposal_type} proposal from {proposer_id}.{msg_str}"
         )
         return
     
@@ -290,7 +304,7 @@ def respond_to_proposal(
         world.relationship_matrix[nation_id][proposer_id] = "PEACE"
         world.relationship_matrix[proposer_id][nation_id] = "PEACE"
         engine.logs.append(
-            f"[FOREIGN] 🕊️ Peace treaty signed between {nation_id} and {proposer_id}"
+            f"[FOREIGN] 🕊️ Peace treaty signed between {nation_id} and {proposer_id}.{msg_str}"
         )
     
     elif proposal_type == "ALLIANCE":
@@ -299,7 +313,7 @@ def respond_to_proposal(
         engine.adjust_trust(nation_id, proposer_id, 10)  # 0-100 scale
         engine.adjust_trust(proposer_id, nation_id, 10)
         engine.logs.append(
-            f"[FOREIGN] 🤝 ALLIANCE formed between {nation_id} and {proposer_id}!"
+            f"[FOREIGN] 🤝 ALLIANCE formed between {nation_id} and {proposer_id}!{msg_str}"
         )
 
 

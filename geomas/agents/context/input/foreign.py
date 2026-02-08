@@ -90,6 +90,9 @@ class ForeignInputBuilder:
                 from_name = from_nation
             
             lines.append(f"\n**{p_type} proposal from {from_name}** (Turn {turn})")
+            message = proposal.get("message")
+            if message:
+                lines.append(f"  > \"{message}\"")
             lines.append(f"  → Use ACCEPT_PROPOSAL or REJECT_PROPOSAL with target={from_nation}")
         
         lines.append("\n⚠️ Ignoring proposals damages trust.")

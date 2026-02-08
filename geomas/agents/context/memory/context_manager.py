@@ -215,11 +215,17 @@ class ContextManager:
         if "FORMAL_DECLARATION_OF_WAR" in action_type:
             target_id = getattr(behavior, 'target_nation_id', None)
             target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
+            
+            message = getattr(behavior, 'message', None)
+            summary = f"{nation_name} declared war on {target_name}"
+            if message:
+                summary += f" (Message: '{message}')"
+                
             return NotableEvent(
                 turn=turn,
                 event_type=EventType.WAR_DECLARED,
                 actors=[nation_id, target_id] if target_id else [nation_id],
-                summary=f"{nation_name} declared war on {target_name}",
+                summary=summary,
                 relevance_to=None  # Global event
             )
         
@@ -242,61 +248,62 @@ class ContextManager:
         if "BREAK_TREATY" in action_type:
             target_id = getattr(behavior, 'target_nation_id', None)
             target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
+            
+            message = getattr(behavior, 'message', None)
+            summary = f"{nation_name} broke alliance with {target_name}"
+            if message:
+                summary += f" (Message: '{message}')"
+                
             return NotableEvent(
                 turn=turn,
                 event_type=EventType.ALLIANCE_BROKEN,
                 actors=[nation_id, target_id] if target_id else [nation_id],
-                summary=f"{nation_name} broke alliance with {target_name}",
+                summary=summary,
                 relevance_to=None  # Global
             )
         
-        # === PROPOSAL RESPONSES (events on accept/reject only) ===
-        
-        # Accept proposal - generates ALLIANCE_FORMED or PEACE_SIGNED
-        if "ACCEPT_PROPOSAL" in action_type:
+        # Diplomatic messages
+        if "SEND_DIPLOMATIC_MESSAGE" in action_type:
             target_id = getattr(behavior, 'target_nation_id', None)
             target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
-            proposal_type = params.get('proposal_type', 'ALLIANCE')
+            msg_type = getattr(behavior, 'diplomatic_message_type', 'MESSAGE')
+            message = getattr(behavior, 'message', None)
             
-            if proposal_type == "ALLIANCE":
-                return NotableEvent(
-                    turn=turn,
-                    event_type=EventType.ALLIANCE_FORMED,
-                    actors=[nation_id, target_id] if target_id else [nation_id],
-                    summary=f"{nation_name} and {target_name} formed alliance",
-                    relevance_to=None  # Global
-                )
-            elif proposal_type == "PEACE":
-                return NotableEvent(
-                    turn=turn,
-                    event_type=EventType.PEACE_SIGNED,
-                    actors=[nation_id, target_id] if target_id else [nation_id],
-                    summary=f"{nation_name} and {target_name} signed peace treaty",
-                    relevance_to=None  # Global
-                )
-        
-        # Reject proposal - generates ALLIANCE_REJECTED or PEACE_REJECTED
-        if "REJECT_PROPOSAL" in action_type:
+            summary = f"{nation_name} sent a {msg_type} to {target_name}"
+            if message:
+                summary += f" (Message: '{message}')"
+                
+            return NotableEvent(
+                turn=turn,
+                event_type=EventType.DIPLOMATIC_MESSAGE,
+                actors=[nation_id, target_id] if target_id else [nation_id],
+                summary=summary,
+                relevance_to=[nation_id, target_id] if target_id else [nation_id]
+            )
+            
+        # Proposals and responses
+        if any(x in action_type for x in ["PROPOSE_ALLIANCE", "REQUEST_PEACE", "ACCEPT_PROPOSAL", "REJECT_PROPOSAL"]):
             target_id = getattr(behavior, 'target_nation_id', None)
             target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
-            proposal_type = params.get('proposal_type', 'ALLIANCE')
+            message = getattr(behavior, 'message', None)
             
-            if proposal_type == "ALLIANCE":
-                return NotableEvent(
-                    turn=turn,
-                    event_type=EventType.ALLIANCE_REJECTED,
-                    actors=[nation_id, target_id] if target_id else [nation_id],
-                    summary=f"{nation_name} rejected alliance with {target_name}",
-                    relevance_to=target_id  # Relevant to proposer
-                )
-            elif proposal_type == "PEACE":
-                return NotableEvent(
-                    turn=turn,
-                    event_type=EventType.PEACE_REJECTED,
-                    actors=[nation_id, target_id] if target_id else [nation_id],
-                    summary=f"{nation_name} rejected peace with {target_name}",
-                    relevance_to=target_id  # Relevant to proposer
-                )
+            event_type = EventType.DIPLOMATIC_PROPOSAL
+            if "ACCEPT_PROPOSAL" in action_type:
+                event_type = EventType.ALLIANCE_FORMED if "ALLIANCE" in str(getattr(behavior, 'proposal_ref_type', '')) else EventType.PEACE_SIGNED
+            elif "REJECT_PROPOSAL" in action_type:
+                event_type = EventType.ALLIANCE_REJECTED if "ALLIANCE" in str(getattr(behavior, 'proposal_ref_type', '')) else EventType.PEACE_REJECTED
+            
+            summary = f"{nation_name} {action_type.replace('_', ' ').lower()} with {target_name}"
+            if message:
+                summary += f" (Message: '{message}')"
+            
+            return NotableEvent(
+                turn=turn,
+                event_type=event_type,
+                actors=[nation_id, target_id] if target_id else [nation_id],
+                summary=summary,
+                relevance_to=[nation_id, target_id] if target_id else [nation_id]
+            )
         
         # === TRADE (auto-accepted via oracle, so proposal = deal) ===
         if "TRADE_PROPOSAL" in action_type:
@@ -502,7 +509,8 @@ class ContextManager:
         for event in self.global_events:
             # Include if: global, or involves this nation, or relevant to this nation
             if (event.relevance_to is None or 
-                event.relevance_to == nation_id or
+                (isinstance(event.relevance_to, list) and nation_id in event.relevance_to) or
+                (isinstance(event.relevance_to, str) and event.relevance_to == nation_id) or
                 nation_id in event.actors):
                 relevant.append(event)
         

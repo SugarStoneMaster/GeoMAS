@@ -46,6 +46,7 @@ class ForeignPayload(BaseModel):
     )
     action_type: Optional[ForeignActionType] = None
     target_nation_id: Optional[str] = None
+    message: Optional[str] = Field(None, description="Diplomatic message to the target nation.")
     
     # Explicit fields for strong typing
     diplomatic_message_type: Optional[DiplomaticMessageType] = Field(
