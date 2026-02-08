@@ -33,7 +33,8 @@ class SimulationEngine:
         self, 
         map_seed: int = 42, 
         history_seed: int = 99, 
-        n_cells: int = 1500, 
+        n_cells: int = 1500,
+        n_nations: int = 10,  # Added configurable n_nations
         llm_client: LLMClient = None,
         db_path: Optional[str] = None,
         cache_size: int = 20
@@ -45,6 +46,7 @@ class SimulationEngine:
             map_seed: Seed for world map generation
             history_seed: Seed for historical events
             n_cells: Number of provinces
+            n_nations: Number of nations (4-10)
             llm_client: Optional LLM client for agent decisions
             db_path: Optional path to DuckDB file for persistence
             cache_size: Number of recent turns to keep in memory (default 20)
@@ -52,9 +54,15 @@ class SimulationEngine:
         self.map_seed = map_seed
         self.history_seed = history_seed
         self.n_cells = n_cells
+        self.n_nations = n_nations
         
         # 1. Initialize World
-        self.world = generate_world(seed=map_seed, history_seed=history_seed, n_cells=n_cells)
+        self.world = generate_world(
+            seed=map_seed, 
+            history_seed=history_seed, 
+            n_cells=n_cells,
+            n_nations=n_nations
+        )
         
         # 2. Initialize Engine
         self.engine = ActionEngine(self.world)

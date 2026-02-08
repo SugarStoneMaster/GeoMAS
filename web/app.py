@@ -43,6 +43,7 @@ with ctrl_cols[1]:
 
 with ctrl_cols[2]:
     n_cells = st.number_input("Cells", value=1500, min_value=500, max_value=3000, step=100, key="n_cells")
+    n_nations = st.slider("Nations", min_value=4, max_value=10, value=4, key="n_nations")
 
 # Initialize session state
 if "sim" not in st.session_state:
@@ -63,6 +64,7 @@ with ctrl_cols[3]:
             map_seed=int(map_seed),
             history_seed=int(history_seed),
             n_cells=int(n_cells),
+            n_nations=int(n_nations),
             llm_client=client
         )
         st.session_state["sim"] = sim
