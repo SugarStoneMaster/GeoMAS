@@ -305,9 +305,11 @@ class ContextManager:
             
             event_type = None
             if "ACCEPT_PROPOSAL" in action_type:
-                event_type = EventType.ALLIANCE_FORMED if "ALLIANCE" in str(getattr(behavior, 'proposal_ref_type', '')) else EventType.PEACE_SIGNED
+                ref = str(getattr(behavior, 'proposal_ref_type', '') or '').upper()
+                event_type = EventType.PEACE_SIGNED if "PEACE" in ref else EventType.ALLIANCE_FORMED
             elif "REJECT_PROPOSAL" in action_type:
-                event_type = EventType.ALLIANCE_REJECTED if "ALLIANCE" in str(getattr(behavior, 'proposal_ref_type', '')) else EventType.PEACE_REJECTED
+                ref = str(getattr(behavior, 'proposal_ref_type', '') or '').upper()
+                event_type = EventType.PEACE_REJECTED if "PEACE" in ref else EventType.ALLIANCE_REJECTED
             elif "PROPOSE_ALLIANCE" in action_type:
                 event_type = EventType.PROPOSE_ALLIANCE
             elif "REQUEST_PEACE" in action_type:

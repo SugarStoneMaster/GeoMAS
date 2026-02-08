@@ -242,6 +242,13 @@ def _execute_propose_alliance(
     
     # Add pending proposal to target nation
     target_nation = world.nations[target_id]
+
+    # Check if already proposed to prevent spam
+    for p in target_nation.pending_proposals:
+        if p["from"] == proposer_id and p["type"] == "ALLIANCE":
+            engine.logs.append(f"[FOREIGN] Alliance proposal to {target_id} already pending")
+            return
+    
     target_nation.pending_proposals.append({
         "type": "ALLIANCE",
         "from": proposer_id,
@@ -329,3 +336,5 @@ def clear_expired_proposals(world: 'WorldState') -> None:
             p for p in proposals 
             if current_turn - p["turn"] <= 1
         ]
+        if len(proposals) != len(nation.pending_proposals):
+            print(f"[DEBUG] Cleared {len(proposals) - len(nation.pending_proposals)} expired proposals for {nation.name}")

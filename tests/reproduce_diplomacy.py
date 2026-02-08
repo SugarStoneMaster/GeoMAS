@@ -2,120 +2,74 @@
 from geomas.world import generate_world
 from geomas.actions import ActionEngine
 from geomas.actions.foreign import ForeignPayload, ForeignActionType, execute_foreign
-from geomas.agents.context.input import ForeignInputBuilder
-from geomas.schemas.world import RelationshipState
+from geomas.agents.context.memory.context_manager import ContextManager
+from geomas.agents.context.memory.schemas import EventType
 
-def test_missing_proposals():
-    print("--- TESTING MISSING PROPOSALS ---")
+def test_duplicate_proposals():
+    print("--- TESTING DUPLICATE PROPOSALS ---")
     world = generate_world(seed=42, n_nations=3, n_cells=100)
     engine = ActionEngine(world)
     
     n1_id = list(world.nations.keys())[0]
     n2_id = list(world.nations.keys())[1]
     
-    print(f"Nation 1: {n1_id}")
-    print(f"Nation 2: {n2_id}")
-    
-    # ensure trust is high enough for alliance (need > 60)
+    # High trust
     world.trust_matrix.setdefault(n1_id, {})[n2_id] = 80.0
-    world.trust_matrix.setdefault(n2_id, {})[n1_id] = 80.0
     
-    # 1. N1 proposes alliance to N2
+    # 1. First Proposal
     payload = ForeignPayload(
         action_type=ForeignActionType.PROPOSE_ALLIANCE,
         target_nation_id=n2_id,
-        message="Let's ally"
+        message="Ally?"
     )
-    # execute_foreign(engine, nation_id, payload)
     execute_foreign(engine, n1_id, payload)
-    logs = engine.logs
-    print("Logs (N1 act):", logs)
+    print("Logs 1:", engine.logs)
+    assert len(world.nations[n2_id].pending_proposals) == 1
     
-    # 2. Check N2 pending proposals
-    n2 = world.nations[n2_id]
-    print(f"N2 Pending Proposals (Raw): {n2.pending_proposals}")
-    assert len(n2.pending_proposals) == 1
-    assert n2.pending_proposals[0]["type"] == "ALLIANCE"
+    # 2. Second Proposal (Should be blocked)
+    engine.logs = []
+    execute_foreign(engine, n1_id, payload)
+    print("Logs 2:", engine.logs)
     
-    # 3. Check ForeignInputBuilder for N2
-    builder = ForeignInputBuilder(world)
-    context = builder.build(n2_id, turn=1)
-    print("--- N2 Context ---")
-    print(context)
-    
-    if "ALLIANCE proposal from" in context:
-        print("✅ SUCCESS: Proposal visible in context")
+    # Assert logs contain blocking message
+    if any("already pending" in log for log in engine.logs):
+        print("✅ SUCCESS: Duplicate proposal blocked")
     else:
-        print("❌ FAILURE: Proposal NOT visible in context")
+        print("❌ FAILURE: Duplicate proposal NOT blocked")
+        
+    # Assert still only 1 pending
+    assert len(world.nations[n2_id].pending_proposals) == 1
 
-def test_ghost_peace():
-    print("\n--- TESTING GHOST PEACE ---")
+def test_ghost_peace_event_mapping():
+    print("\n--- TESTING EVENT MAPPING (GHOST PEACE FIX) ---")
     world = generate_world(seed=42, n_nations=3, n_cells=100)
-    engine = ActionEngine(world)
+    cm = ContextManager()
+    cm.initialize_from_world(world)
     
     n1_id = list(world.nations.keys())[0]
     n2_id = list(world.nations.keys())[1]
     
-    # Start at WAR
-    world.relationship_matrix.setdefault(n1_id, {})[n2_id] = "WAR"
-    world.relationship_matrix.setdefault(n2_id, {})[n1_id] = "WAR"
+    # Simulate an ACCEPT_PROPOSAL action with MISSING proposal_ref_type
+    # This was causing "PEACE_SIGNED" previously
+    class MockBehavior:
+        action_type = "ACCEPT_PROPOSAL"
+        target_nation_id = n2_id
+        proposal_ref_type = None # MISSING!
+        message = "Ok"
     
-    # 1. N1 Requests Peace
-    payload = ForeignPayload(
-        action_type=ForeignActionType.REQUEST_PEACE,
-        target_nation_id=n2_id,
-        message="Peace please"
-    )
-    engine.logs = []
-    execute_foreign(engine, n1_id, payload)
-    logs = engine.logs
-    print("Logs (N1 act):", logs)
+    behavior = MockBehavior()
     
-    # Verify proposal exists
-    n2 = world.nations[n2_id]
-    print(f"N2 Pending: {n2.pending_proposals}")
-    assert len(n2.pending_proposals) == 1
-    assert n2.pending_proposals[0]["type"] == "PEACE"
+    event = cm._behavior_to_event(turn=1, nation_id=n1_id, behavior=behavior, world=world)
     
-    # 2. N2 Accepts (but specifies ALLIANCE ref type by mistake?)
-    # or specifies correct ref type
-    payload_accept = ForeignPayload(
-        action_type=ForeignActionType.ACCEPT_PROPOSAL,
-        target_nation_id=n1_id,
-        proposal_ref_type="PEACE", # Correct
-        message="Ok fine"
-    )
-    engine.logs = []
-    execute_foreign(engine, n2_id, payload_accept)
-    logs2 = engine.logs
-    print("Logs (N2 act):", logs2)
+    print(f"Generated Event: {event.event_type} - {event.summary}")
     
-    if "Peace treaty signed" in str(logs2):
-        print("✅ SUCCESS: Peace signed correctly")
+    if event.event_type == EventType.PEACE_SIGNED:
+        print("❌ FAILURE: Mapped to PEACE_SIGNED (Ghost Peace persists)")
+    elif event.event_type == EventType.ALLIANCE_FORMED:
+        print("✅ SUCCESS: Mapped to ALLIANCE_FORMED (Default safely)")
     else:
-        print("❌ FAILURE: Peace NOT signed")
-
-    # 3. Test ACCEPT without REQUEST (Ghost Peace)
-    print("\n--- Testing ACCEPT without REQUEST ---")
-    # clear proposals
-    n2.pending_proposals = []
-    
-    payload_ghost = ForeignPayload(
-        action_type=ForeignActionType.ACCEPT_PROPOSAL,
-        target_nation_id=n1_id,
-        proposal_ref_type="PEACE",
-        message="Ghost peace"
-    )
-    engine.logs = []
-    execute_foreign(engine, n2_id, payload_ghost)
-    logs3 = engine.logs
-    print("Logs (Ghost):", logs3)
-    
-    if "Peace treaty signed" in str(logs3):
-        print("❌ FAILURE: Peace signed without request! (Ghost Bug Reproduced)")
-    else:
-        print("✅ SUCCESS: Ghost peace rejected")
+        print(f"❓ UNEXPECTED: {event.event_type}")
 
 if __name__ == "__main__":
-    test_missing_proposals()
-    test_ghost_peace()
+    test_duplicate_proposals()
+    test_ghost_peace_event_mapping()

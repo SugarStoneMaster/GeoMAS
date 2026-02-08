@@ -75,9 +75,11 @@ class ForeignInputBuilder:
         lines = ["## 📬 PENDING PROPOSALS (Require Response)"]
         
         if not nation.pending_proposals:
+            print(f"[DEBUG] ForeignInputBuilder for {nation.name}: No pending proposals found.")
             lines.append("No pending proposals.")
             return "\n".join(lines)
         
+        print(f"[DEBUG] ForeignInputBuilder for {nation.name}: Found {len(nation.pending_proposals)} proposals.")
         for proposal in nation.pending_proposals:
             p_type = proposal.get("type", "Unknown")
             from_nation = proposal.get("from", "Unknown")

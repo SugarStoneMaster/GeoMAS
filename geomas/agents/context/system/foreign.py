@@ -51,6 +51,7 @@ Consider how alliances and communications serve the nation's strategic interests
   - **Trust > 60**: Required to propose an **ALLIANCE**.
   - **Trust < 20**: Relations are **Hostile** (Trade becomes impossible).
 - **Proposals**: All proposals (Alliance, Peace) **expire after 1 turn**. Failure to respond is treated as a rejection.
+- **PRIORITY**: You **MUST** respond to any "PENDING PROPOSALS" listed in your context BEFORE initiating new actions. Clearing your inbox is critical for reputation.
 - **Deception**: Your declared intentions may differ from your true strategic goals.
 
 ## Available Actions (choose 1 per turn)
