@@ -120,8 +120,8 @@ elif active_tab == "LOGS":
     # 2-column layout for logs: History | Events
     tab_hist, tab_events = st.tabs(["Turn History", "Global Events"])
     with tab_hist:
-        render_logs_page(world, sim.history)
+        render_logs_page(world, sim.history, sim.context_manager.global_events)
     with tab_events:
-        render_event_log(sim.history)
+        render_event_log(sim.context_manager.global_events)
 elif active_tab == "DECEPTION":
     render_deception_page(world, sim.history)

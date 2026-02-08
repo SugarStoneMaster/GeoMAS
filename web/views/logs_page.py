@@ -10,13 +10,16 @@ from geomas.schemas.world import WorldState
 from geomas.agents.schemas import CountryEnvelope
 
 
-def render_logs_page(world: WorldState, history: List[List[CountryEnvelope]]) -> None:
+from geomas.agents.context.memory.schemas import NotableEvent
+
+def render_logs_page(world: WorldState, history: List[List[CountryEnvelope]], global_events: List[NotableEvent] = None) -> None:
     """
     Renders the History & Logs tab content.
     
     Args:
         world: Current world state (for nation names)
         history: List of turn envelopes from simulation
+        global_events: List of notable events from ContextManager
     """
     # Genesis events
     st.subheader("📜 Genesis History (Ancient)")

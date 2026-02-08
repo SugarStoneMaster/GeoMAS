@@ -1,47 +1,31 @@
 import streamlit as st
 import pandas as pd
+from typing import List
+from geomas.agents.context.memory.schemas import NotableEvent
 
-def render_event_log(history: list):
+def render_event_log(global_events: List[NotableEvent]):
     """
-    Renders a table of global events from the simulation history.
+    Renders a table of global events from the ContextManager.
     """
     st.subheader("📜 Global Event Log")
     
-    if not history:
-        st.info("No events recorded yet.")
+    if not global_events:
+        st.info("No global events recorded yet.")
         return
 
-    # Flatten events from history envelopes
-    events = []
-    for turn_data in history: 
-        # structure of history depends on engine implementation
-        # usually list of dicts: {nid: Envelope}
-        if not turn_data: continue
-        
-        turn_num = list(turn_data.values())[0].turn if turn_data else "?"
-        
-        for nid, envelope in turn_data.items():
-            if not envelope: continue
-            
-            # Extract public statement
-            if envelope.public_statement:
-                events.append({
-                    "Turn": turn_num,
-                    "Nation": nid,
-                    "Type": "STATEMENT",
-                    "Content": envelope.public_statement
-                })
-                
-            # Extract specific actions if needed (e.g. War declarations)
-            # This requires parsing the envelope payload or reading from ContextManager global_events
-            # For now, we use public statements which summarize the turn for other agents.
+    # Convert NotableEvent objects to dicts for DataFrame
+    events_data = []
+    for event in global_events:
+        events_data.append({
+            "Turn": event.turn,
+            "Type": event.event_type.value,
+            "Description": event.summary,
+            "Actors": ", ".join(event.actors) if event.actors else "Global"
+        })
 
-    if not events:
-        st.info("No public events found.")
-        return
-
-    df = pd.DataFrame(events)
-    # Sort by Turn (descending)
+    df = pd.DataFrame(events_data)
+    
+    # Sort by Turn (descending) so newest events are top
     df = df.sort_values(by="Turn", ascending=False)
     
     st.dataframe(
@@ -49,9 +33,9 @@ def render_event_log(history: list):
         use_container_width=True,
         column_config={
             "Turn": st.column_config.NumberColumn("Turn", format="%d"),
-            "Nation": "Actor",
             "Type": "Event Type",
-            "Content": "Description"
+            "Description": "Content",
+            "Actors": "Involved"
         },
         hide_index=True
     )
