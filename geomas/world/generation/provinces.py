@@ -128,20 +128,29 @@ def calculate_production(
     """
     Calculate production values based on terrain and workforce.
     
+    Production yields are balanced against consumption rates:
+    - Food: 1.0 per person consumed, ~1.5 per worker produced (slight surplus)
+    - Energy: 0.5 per person consumed, ~0.8 per worker produced (slight surplus)
+    - Materials: Variable, depends on military maintenance needs
+    
     Returns:
         Tuple of (food_production, energy_production, materials_production)
     """
-    # Base yields per worker
+    # Base yields per worker (balanced: each worker should sustain ~1.5 people)
     if terrain == TerrainType.COASTAL:
-        food_yield, energy_yield, materials_yield = 0.08, 0.03, 0.02
+        # Coastal: Good fishing (food), decent energy, low materials
+        food_yield, energy_yield, materials_yield = 1.8, 0.7, 0.3
     elif terrain == TerrainType.MOUNTAIN:
-        food_yield, energy_yield, materials_yield = 0.02, 0.01, 0.10
+        # Mountain: Low food, low energy but great materials (mining)
+        food_yield, energy_yield, materials_yield = 0.5, 0.4, 1.5
     else:  # LAND
-        food_yield, energy_yield, materials_yield = 0.06, 0.05, 0.04
+        # Balanced inland production
+        food_yield, energy_yield, materials_yield = 1.5, 0.8, 0.5
     
-    # Add random variation
+    # Add random variation (+/-20%)
     food_prod = workers * food_yield * rng.uniform(0.8, 1.2)
     energy_prod = workers * energy_yield * rng.uniform(0.8, 1.2)
     materials_prod = workers * materials_yield * rng.uniform(0.8, 1.2)
     
     return food_prod, energy_prod, materials_prod
+
