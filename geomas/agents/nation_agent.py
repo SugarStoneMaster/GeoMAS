@@ -42,10 +42,18 @@ class NationAgent:
         self.strategy = global_strategy 
         self.context_manager = context_manager
         
-        # Initialize Cabinet (pass context_manager for memory access)
-        self.defense_minister = DefenseMinister(nation_id, world, llm_client, context_manager)
-        self.economy_minister = EconomicMinister(nation_id, world, llm_client, context_manager)
-        self.foreign_minister = ForeignMinister(nation_id, world, llm_client, context_manager)
+        # System Prompt Caching (Eager Init)
+        self.last_strategy: Optional[GlobalStrategy] = global_strategy
+        self.president_system_prompt = PresidentSystemPrompt.generate(
+            nation_name=world.nations[nation_id].name,
+            strategy=global_strategy,
+            cultural_traits=getattr(world.nations[nation_id], 'cultural_traits', None)
+        )
+        
+        # Initialize Cabinet (pass context_manager and strategy for eager init)
+        self.defense_minister = DefenseMinister(nation_id, world, llm_client, context_manager, strategy=global_strategy)
+        self.economy_minister = EconomicMinister(nation_id, world, llm_client, context_manager, strategy=global_strategy)
+        self.foreign_minister = ForeignMinister(nation_id, world, llm_client, context_manager, strategy=global_strategy)
         
         self.memory: List[str] = [] 
 
@@ -84,12 +92,16 @@ class NationAgent:
         """
         nation = self.world.nations[self.id]
         
-        # Generate system prompt
-        system_prompt = PresidentSystemPrompt.generate(
-            nation_name=nation.name,
-            strategy=self.strategy,
-            cultural_traits=getattr(nation, 'cultural_traits', None)
-        )
+        # Generate/Update system prompt if needed
+        if not self.president_system_prompt or self.strategy != self.last_strategy:
+            self.president_system_prompt = PresidentSystemPrompt.generate(
+                nation_name=nation.name,
+                strategy=self.strategy,
+                cultural_traits=getattr(nation, 'cultural_traits', None)
+            )
+            self.last_strategy = self.strategy
+            
+        system_prompt = self.president_system_prompt
         
         # Build input context
         input_builder = PresidentInputBuilder(self.world)

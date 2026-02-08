@@ -65,6 +65,9 @@ class OpinionAgent:
         self.cultural_traits = cultural_traits
         self.llm_client = llm_client
         self.world = world
+        
+        # Eager Initialization
+        self.system_prompt = OpinionSystemPrompt.generate(nation_name, cultural_traits)
     
     def react(
         self,
@@ -95,10 +98,7 @@ class OpinionAgent:
         
         # Build prompt using new architecture if world is available
         if self.world:
-            system_prompt = OpinionSystemPrompt.generate(
-                nation_name=self.nation_name,
-                cultural_traits=self.cultural_traits
-            )
+            system_prompt = self.system_prompt
             input_builder = OpinionInputBuilder(self.world)
             input_prompt = input_builder.build(
                 nation_id=self.nation_id,

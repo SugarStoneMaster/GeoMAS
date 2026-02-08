@@ -21,12 +21,33 @@ class BaseMinister:
         nation_id: str, 
         world: WorldState, 
         client: LLMClient,
-        context_manager: Optional[ContextManager] = None
+        context_manager: Optional[ContextManager] = None,
+        strategy: Optional[GlobalStrategy] = None
     ):
         self.nation_id = nation_id
         self.world = world
         self.client = client
         self.context_manager = context_manager
+        
+        # System Prompt Caching
+        self.system_prompt: Optional[str] = None
+        self.last_strategy: Optional[GlobalStrategy] = None
+        
+        # Eager Initialization if strategy provided
+        if strategy:
+            self._update_prompt(strategy)
+            
+    def _update_prompt(self, strategy: GlobalStrategy):
+        """Generate and cache system prompt."""
+        if not hasattr(self, 'prompt_class'):
+            return
+            
+        nation = self.world.nations[self.nation_id]
+        self.system_prompt = self.prompt_class.generate(
+            nation_name=nation.name,
+            strategy=strategy
+        )
+        self.last_strategy = strategy
 
     def _add_memory_context(self, base_prompt: str, domain: str) -> str:
         """Add memory context from ContextManager if available."""
@@ -37,7 +58,7 @@ class BaseMinister:
         actions = self.context_manager.get_actions_for(
             self.nation_id, 
             domain=domain, 
-            max_actions=5
+            max_actions=10
         )
         
         if actions:
@@ -49,15 +70,16 @@ class BaseMinister:
 
 class DefenseMinister(BaseMinister):
     """Minister of Defense - handles military strategy and threats."""
+    prompt_class = DefenseSystemPrompt
     
     def propose(self, strategy: GlobalStrategy, turn: int) -> DefenseProposal:
         nation = self.world.nations[self.nation_id]
         
-        # Generate system prompt using new architecture
-        system_prompt = DefenseSystemPrompt.generate(
-            nation_name=nation.name,
-            strategy=strategy
-        )
+        # Generate/Update system prompt if needed
+        if not self.system_prompt or strategy != self.last_strategy:
+            self._update_prompt(strategy)
+            
+        system_prompt = self.system_prompt
         
         # Build input context using new architecture
         input_builder = DefenseInputBuilder(self.world)
@@ -75,15 +97,16 @@ class DefenseMinister(BaseMinister):
 
 class EconomicMinister(BaseMinister):
     """Minister of Economy - handles resources, trade, and welfare."""
+    prompt_class = EconomySystemPrompt
     
     def propose(self, strategy: GlobalStrategy, turn: int) -> EconomicProposal:
         nation = self.world.nations[self.nation_id]
         
-        # Generate system prompt using new architecture
-        system_prompt = EconomySystemPrompt.generate(
-            nation_name=nation.name,
-            strategy=strategy
-        )
+        # Generate/Update system prompt if needed
+        if not self.system_prompt or strategy != self.last_strategy:
+            self._update_prompt(strategy)
+            
+        system_prompt = self.system_prompt
         
         # Build input context using new architecture
         input_builder = EconomyInputBuilder(self.world)
@@ -101,15 +124,16 @@ class EconomicMinister(BaseMinister):
 
 class ForeignMinister(BaseMinister):
     """Minister of Foreign Affairs - handles diplomacy and alliances."""
+    prompt_class = ForeignSystemPrompt
     
     def propose(self, strategy: GlobalStrategy, turn: int) -> ForeignProposal:
         nation = self.world.nations[self.nation_id]
         
-        # Generate system prompt using new architecture
-        system_prompt = ForeignSystemPrompt.generate(
-            nation_name=nation.name,
-            strategy=strategy
-        )
+        # Generate/Update system prompt if needed
+        if not self.system_prompt or strategy != self.last_strategy:
+            self._update_prompt(strategy)
+            
+        system_prompt = self.system_prompt
         
         # Build input context using new architecture
         input_builder = ForeignInputBuilder(self.world)
