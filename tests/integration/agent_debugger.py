@@ -51,7 +51,7 @@ with st.sidebar:
     )
     
     st.subheader("LLM Settings")
-    model_name = st.text_input("Model Name", value="azure/gpt-5-nano")
+    model_name = st.text_input("Model Name", value=os.environ.get("AZURE_MODEL", "azure/gpt-5-nano"))
     temperature = st.slider("Temperature", 0.0, 1.0, 0.7)
     turn = st.number_input("Turn Number", min_value=1, value=1, step=1)
     

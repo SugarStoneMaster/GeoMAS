@@ -51,18 +51,22 @@ class LLMClient:
 
     def __init__(
         self, 
-        model_name: str = "azure/gpt-4o", 
+        model_name: str = None,  # Will use AZURE_MODEL env var if not provided
         temperature: float = 0.2,
         max_tokens: int = 1000,
         reasoning_effort: str = "minimal"
     ):
         """
         Args:
-            model_name: The LiteLLM model identifier (e.g., 'azure/gpt-4o', 'gpt-3.5-turbo').
+            model_name: The LiteLLM model identifier. If None, uses AZURE_MODEL env var.
             temperature: Low temperature for deterministic reasoning.
             max_tokens: Maximum output tokens (default 1000, safety limit).
             reasoning_effort: For reasoning models - 'minimal', 'low', 'medium', 'high'.
         """
+        # Use env var if model_name not provided
+        if model_name is None:
+            model_name = os.environ.get("AZURE_MODEL", "azure/gpt-5-nano")
+        
         self.model_name = model_name
         self.temperature = temperature
         self.max_tokens = max_tokens

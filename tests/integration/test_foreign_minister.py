@@ -82,7 +82,7 @@ def execute_foreign_agent(
     nation_id: str, 
     strategy: GlobalStrategy, 
     turn: int = 1,
-    model_name: str = "azure/gpt-5-nano",
+    model_name: str = None,  # Uses AZURE_MODEL env var
     temperature: float = 0.7
 ) -> Tuple[ForeignProposal, Optional[LLMUsage]]:
     """
@@ -103,7 +103,7 @@ def execute_foreign_agent(
 def main():
     parser = argparse.ArgumentParser(description="Test Foreign Minister Agent")
     parser.add_argument("--dry-run", action="store_true", help="Print prompts only")
-    parser.add_argument("--model", default="azure/gpt-5-nano", help="LLM Model name")
+    parser.add_argument("--model", default=os.environ.get("AZURE_MODEL", "azure/gpt-5-nano"), help="LLM Model name")
     parser.add_argument("--seed", type=int, default=42, help="World seed")
     parser.add_argument("--strategy", default="COALITION_BUILDER", help="Global Strategy to test")
     parser.add_argument("--turn", type=int, default=1, help="Turn number")

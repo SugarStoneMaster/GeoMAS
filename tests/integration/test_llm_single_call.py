@@ -23,7 +23,7 @@ from geomas.agents.schemas import GlobalStrategy, DefenseProposal
 def main():
     parser = argparse.ArgumentParser(description="Test LLM Integration")
     parser.add_argument("--dry-run", action="store_true", help="Only print prompts, don't call LLM")
-    parser.add_argument("--model", default="azure/gpt-5-nano", help="Model to use (e.g., azure/gpt-5-nano)")
+    parser.add_argument("--model", default=os.environ.get("AZURE_MODEL", "azure/gpt-5-nano"), help="Model to use")
     args = parser.parse_args()
     
     print("=" * 60)
