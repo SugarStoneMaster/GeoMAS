@@ -88,7 +88,7 @@ class TestDiplomaticMessages:
         
         new_trust = world.trust_matrix[sender_id][target_id]
         assert new_trust < initial_trust
-        assert new_trust == pytest.approx(initial_trust - 0.3, abs=0.01)
+        assert new_trust == pytest.approx(initial_trust - 30.0, abs=0.01)
 
 
 class TestDeclarationOfWar:
