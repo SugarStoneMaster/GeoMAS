@@ -96,19 +96,25 @@ class CabinetBriefing(BaseModel):
 
 
 
+class PresidentialDecision(str, Enum):
+    """Restricted decision set for President (cannot be PENDING)."""
+    APPROVE = "APPROVE"
+    VETO = "VETO"
+
+
 class DefenseDecree(BaseModel):
     """President's decision on Defense."""
-    action: Decision
+    action: PresidentialDecision
     reasoning: str
 
 class EconomicDecree(BaseModel):
     """President's decision on Economy."""
-    action: Decision
+    action: PresidentialDecision
     reasoning: str
 
 class ForeignDecree(BaseModel):
     """President's decision on Foreign Affairs."""
-    action: Decision
+    action: PresidentialDecision
     reasoning: str
 
 class PresidentialDecree(BaseModel):

@@ -8,7 +8,7 @@ from typing import List, Optional
 from geomas.schemas.world import WorldState, NationState 
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, CabinetBriefing, 
-    PresidentialDecree, Decision,
+    PresidentialDecree, Decision, PresidentialDecision,
     DefenseProposal, EconomicProposal, ForeignProposal,
     DefenseIntentType, EconomicIntentType, ForeignIntentType
 )
@@ -171,7 +171,7 @@ class NationAgent:
         """Apply Veto/Approve logic to build final envelope."""
         
         # --- DEFENSE ---
-        if decree.defense.action == Decision.APPROVE:
+        if decree.defense.action == PresidentialDecision.APPROVE:
             def_payload = briefing.defense.payload
             def_payload.decision = Decision.APPROVE
             def_pub_intent = briefing.defense.intent.public_intent
@@ -184,7 +184,7 @@ class NationAgent:
             def_reasoning = f"VETOED: {decree.defense.reasoning}"
 
         # --- ECONOMY ---
-        if decree.economy.action == Decision.APPROVE:
+        if decree.economy.action == PresidentialDecision.APPROVE:
             eco_payload = briefing.economy.payload
             eco_payload.decision = Decision.APPROVE
             eco_pub_intent = briefing.economy.intent.public_intent
@@ -197,7 +197,7 @@ class NationAgent:
             eco_reasoning = f"VETOED: {decree.economy.reasoning}"
 
         # --- FOREIGN ---
-        if decree.foreign.action == Decision.APPROVE:
+        if decree.foreign.action == PresidentialDecision.APPROVE:
             for_payload = briefing.foreign.payload
             for_payload.decision = Decision.APPROVE
             for_pub_intent = briefing.foreign.intent.public_intent
