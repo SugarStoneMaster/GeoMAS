@@ -121,8 +121,13 @@ class SimulationEngine:
 
     def _init_agents(self):
         """Creates a NationAgent for each nation in the world."""
+        # Deterministic strategy assignment using map_seed
+        rng = random.Random(self.map_seed)
+        strategies = list(GlobalStrategy)
+        
         for nation_id in self.world.nations:
-            strategy = GlobalStrategy.COALITION_BUILDER 
+            strategy = rng.choice(strategies)
+            print(f"[INIT] {nation_id} Strategy: {strategy.value}")
             
             self.agents[nation_id] = NationAgent(
                 nation_id=nation_id,
