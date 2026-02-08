@@ -9,21 +9,37 @@ FOOD_PER_PERSON = 1.0
 ENERGY_PER_PERSON = 0.5
 
 # --- MILITARY MAINTENANCE COSTS (per unit per turn) ---
+# Centralized source of truth for all unit maintenance
+MAINTENANCE_DATA = {
+    "SOLDIER": {
+        "budget": 0.2,
+        "materials": 0.1,
+        "energy": 0.0,
+    },
+    "AIRCRAFT": {
+        "budget": 5.0,
+        "materials": 2.0,
+        "energy": 5.0,
+    },
+    "NAVY": {
+        "budget": 4.0,
+        "materials": 1.5,
+        "energy": 3.0,
+    }
+}
 
-# MATERIALS (Hardware/Supplies)
-MAINTENANCE_SOLDIER = 0.1
-MAINTENANCE_AIRCRAFT = 2.0
-MAINTENANCE_NAVY = 1.5
+# Legacy flat constants (derived from dictionary for compatibility)
+MAINTENANCE_SOLDIER = MAINTENANCE_DATA["SOLDIER"]["materials"]
+MAINTENANCE_AIRCRAFT = MAINTENANCE_DATA["AIRCRAFT"]["materials"]
+MAINTENANCE_NAVY = MAINTENANCE_DATA["NAVY"]["materials"]
 
-# BUDGET (Salaries/Operational)
-SALARY_SOLDIER = 0.2
-SALARY_AIRCRAFT = 5.0
-SALARY_NAVY = 4.0
+SALARY_SOLDIER = MAINTENANCE_DATA["SOLDIER"]["budget"]
+SALARY_AIRCRAFT = MAINTENANCE_DATA["AIRCRAFT"]["budget"]
+SALARY_NAVY = MAINTENANCE_DATA["NAVY"]["budget"]
 
-# ENERGY (Fuel/Operations)
-ENERGY_MAINTENANCE_SOLDIER = 0.0
-ENERGY_MAINTENANCE_AIRCRAFT = 5.0
-ENERGY_MAINTENANCE_NAVY = 3.0
+ENERGY_MAINTENANCE_SOLDIER = MAINTENANCE_DATA["SOLDIER"]["energy"]
+ENERGY_MAINTENANCE_AIRCRAFT = MAINTENANCE_DATA["AIRCRAFT"]["energy"]
+ENERGY_MAINTENANCE_NAVY = MAINTENANCE_DATA["NAVY"]["energy"]
 
 
 def calculate_food_consumption(total_population: int) -> float:
