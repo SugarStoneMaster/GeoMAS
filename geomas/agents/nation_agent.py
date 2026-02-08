@@ -9,7 +9,8 @@ from geomas.schemas.world import WorldState, NationState
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, CabinetBriefing, 
     PresidentialDecree, Decision,
-    DefenseProposal, EconomicProposal, ForeignProposal
+    DefenseProposal, EconomicProposal, ForeignProposal,
+    DefenseIntentType, EconomicIntentType, ForeignIntentType
 )
 from geomas.actions.common import Decision
 from geomas.actions.defense import DefensePayload
@@ -142,47 +143,65 @@ class NationAgent:
     def _construct_envelope_from_decree(self, turn: int, decree: PresidentialDecree, briefing: CabinetBriefing) -> CountryEnvelope:
         """Apply Veto/Approve logic to build final envelope."""
         
-        # Defense
+        # --- DEFENSE ---
         if decree.defense.action == Decision.APPROVE:
             def_payload = briefing.defense.payload
             def_payload.decision = Decision.APPROVE
+            def_pub_intent = briefing.defense.intent.type
+            def_priv_intent = briefing.defense.intent.type
+            def_reasoning = f"{briefing.defense.intent.reasoning} [President: {decree.defense.reasoning}]"
         else: # VETO -> IDLE action
             def_payload = DefensePayload(decision=Decision.VETO, moves=[])
+            def_pub_intent = DefenseIntentType.IDLE
+            def_priv_intent = DefenseIntentType.IDLE
+            def_reasoning = f"VETOED: {decree.defense.reasoning}"
 
-        # Economy
+        # --- ECONOMY ---
         if decree.economy.action == Decision.APPROVE:
             eco_payload = briefing.economy.payload
             eco_payload.decision = Decision.APPROVE
+            eco_pub_intent = briefing.economy.intent.type
+            eco_priv_intent = briefing.economy.intent.type
+            eco_reasoning = f"{briefing.economy.intent.reasoning} [President: {decree.economy.reasoning}]"
         else: # VETO -> No action
             eco_payload = EconomicPayload(decision=Decision.VETO, action_type=None)
+            eco_pub_intent = EconomicIntentType.IDLE
+            eco_priv_intent = EconomicIntentType.IDLE
+            eco_reasoning = f"VETOED: {decree.economy.reasoning}"
 
-        # Foreign
+        # --- FOREIGN ---
         if decree.foreign.action == Decision.APPROVE:
             for_payload = briefing.foreign.payload
             for_payload.decision = Decision.APPROVE
+            for_pub_intent = briefing.foreign.intent.type
+            for_priv_intent = briefing.foreign.intent.type
+            for_reasoning = f"{briefing.foreign.intent.reasoning} [President: {decree.foreign.reasoning}]"
         else: # VETO -> No action
             for_payload = ForeignPayload(decision=Decision.VETO, action_type=None)
+            for_pub_intent = ForeignIntentType.IDLE
+            for_priv_intent = ForeignIntentType.IDLE
+            for_reasoning = f"VETOED: {decree.foreign.reasoning}"
 
         return CountryEnvelope(
             turn=turn,
             sender_id=self.id,
-            global_strategy=self.strategy, # Strategy is fixed, decree metadata is for reference
+            global_strategy=self.strategy, 
             public_statement=decree.public_statement,
             
             defense_payload=def_payload,
-            defense_public_intent=decree.defense_public_intent,
-            defense_private_intent=decree.defense_private_intent,
-            defense_private_reasoning=decree.defense_private_reasoning,
+            defense_public_intent=def_pub_intent,
+            defense_private_intent=def_priv_intent,
+            defense_private_reasoning=def_reasoning,
             
             economic_payload=eco_payload,
-            economic_public_intent=decree.economic_public_intent,
-            economic_private_intent=decree.economic_private_intent,
-            economic_private_reasoning=decree.economic_private_reasoning,
+            economic_public_intent=eco_pub_intent,
+            economic_private_intent=eco_priv_intent,
+            economic_private_reasoning=eco_reasoning,
             
             foreign_payload=for_payload,
-            foreign_public_intent=decree.foreign_public_intent,
-            foreign_private_intent=decree.foreign_private_intent,
-            foreign_private_reasoning=decree.foreign_private_reasoning
+            foreign_public_intent=for_pub_intent,
+            foreign_private_intent=for_priv_intent,
+            foreign_private_reasoning=for_reasoning
         )
 
     def _summarize_defense(self, proposal: DefenseProposal) -> str:

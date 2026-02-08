@@ -105,7 +105,7 @@ class TestDefenseMinister(TestMinisterBase):
         minister.propose(GlobalStrategy.ARMED_ISOLATIONISM, turn=1)
         
         # Check that context was requested
-        cm.get_actions_for.assert_called_with(nation_id, domain="Defense", max_actions=5)
+        cm.get_actions_for.assert_called_with(nation_id, domain="Defense", max_actions=10)
         
         # Check that prompt contains actions
         args, _ = client.query_agent.call_args

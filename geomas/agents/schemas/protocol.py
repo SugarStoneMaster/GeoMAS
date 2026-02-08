@@ -124,19 +124,6 @@ class PresidentialDecree(BaseModel):
     
     # Metadata for the final envelope
     public_statement: str = Field(..., description="Address to the nation/world.")
-    
-    # Intents for alignment/misalignment tracking
-    defense_public_intent: DefenseIntentType
-    defense_private_intent: DefenseIntentType
-    economic_public_intent: EconomicIntentType
-    economic_private_intent: EconomicIntentType
-    foreign_public_intent: ForeignIntentType
-    foreign_private_intent: ForeignIntentType
-    
-    # Explanations
-    defense_private_reasoning: str
-    economic_private_reasoning: str
-    foreign_private_reasoning: str
 
 
 # --- THE ENVELOPE ---

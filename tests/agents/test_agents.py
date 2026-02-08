@@ -61,16 +61,7 @@ class MockLLMClient(LLMClient):
                 defense=DefenseDecree(action=Decision.APPROVE, reasoning="Approved"),
                 economy=EconomicDecree(action=Decision.APPROVE, reasoning="Approved"),
                 foreign=ForeignDecree(action=Decision.APPROVE, reasoning="Approved"),
-                public_statement="We stand united.",
-                defense_public_intent=DefenseIntentType.DEFENSE,
-                defense_private_intent=DefenseIntentType.DEFENSE,
-                economic_public_intent=EconomicIntentType.GROWTH,
-                economic_private_intent=EconomicIntentType.GROWTH,
-                foreign_public_intent=ForeignIntentType.COOPERATION,
-                foreign_private_intent=ForeignIntentType.COOPERATION,
-                defense_private_reasoning="R",
-                economic_private_reasoning="R",
-                foreign_private_reasoning="R"
+                public_statement="We stand united."
             )
         elif response_model == CountryEnvelope:
             # Still kept for legacy tests if any call directly
