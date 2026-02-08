@@ -5,6 +5,7 @@ Type-safe wrapper for LLM interactions using Instructor and LiteLLM.
 Provides structured output validation, retries, and token observability.
 """
 import os
+import time
 import instructor
 import litellm
 from litellm import completion
@@ -103,63 +104,79 @@ class LLMClient:
             {"role": "user", "content": user_prompt}
         ]
 
-        try:
-            # Capture completion to get usage
-            response, raw_completion = self.client.chat.completions.create_with_completion(
-                model=self.model_name,
-                messages=messages,
-                response_model=response_model,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                reasoning_effort=self.reasoning_effort,
-                max_retries=max_retries,
-            )
-            
-            # Extract usage
-            usage_data = raw_completion.usage
-            reasoning_tokens = None
-            
-            # Check for reasoning tokens in various possible locations (LiteLLM/OpenAI standard)
-            if hasattr(usage_data, 'completion_tokens_details') and usage_data.completion_tokens_details:
-                details = usage_data.completion_tokens_details
-                if hasattr(details, 'reasoning_tokens'):
-                    reasoning_tokens = details.reasoning_tokens
-                elif isinstance(details, dict):
-                    reasoning_tokens = details.get('reasoning_tokens')
-            
-            # Fallback: check top-level if present (some versions/models)
-            if reasoning_tokens is None and hasattr(usage_data, 'reasoning_tokens'):
-                reasoning_tokens = usage_data.reasoning_tokens
-            
-            usage = LLMUsage(
-                prompt_tokens=usage_data.prompt_tokens,
-                completion_tokens=usage_data.completion_tokens,
-                total_tokens=usage_data.total_tokens,
-                reasoning_tokens=reasoning_tokens
-            )
-            self.last_usage = usage
-            
-            # AUTO-EXTRACT METADATA for logging if context not provided
-            if not context:
-                context = self._extract_metadata(system_prompt, user_prompt)
+        # Retry loop for rate limiting
+        max_rate_retries = 5
+        base_wait = 3.0  # seconds
+        
+        for attempt in range(max_rate_retries):
+            try:
+                # Capture completion to get usage
+                response, raw_completion = self.client.chat.completions.create_with_completion(
+                    model=self.model_name,
+                    messages=messages,
+                    response_model=response_model,
+                    temperature=self.temperature,
+                    max_tokens=self.max_tokens,
+                    reasoning_effort=self.reasoning_effort,
+                    max_retries=max_retries,
+                )
+                
+                # Extract usage
+                usage_data = raw_completion.usage
+                reasoning_tokens = None
+                
+                # Check for reasoning tokens in various possible locations (LiteLLM/OpenAI standard)
+                if hasattr(usage_data, 'completion_tokens_details') and usage_data.completion_tokens_details:
+                    details = usage_data.completion_tokens_details
+                    if hasattr(details, 'reasoning_tokens'):
+                        reasoning_tokens = details.reasoning_tokens
+                    elif isinstance(details, dict):
+                        reasoning_tokens = details.get('reasoning_tokens')
+                
+                # Fallback: check top-level if present (some versions/models)
+                if reasoning_tokens is None and hasattr(usage_data, 'reasoning_tokens'):
+                    reasoning_tokens = usage_data.reasoning_tokens
+                
+                usage = LLMUsage(
+                    prompt_tokens=usage_data.prompt_tokens,
+                    completion_tokens=usage_data.completion_tokens,
+                    total_tokens=usage_data.total_tokens,
+                    reasoning_tokens=reasoning_tokens
+                )
+                self.last_usage = usage
+                
+                # AUTO-EXTRACT METADATA for logging if context not provided
+                if not context:
+                    context = self._extract_metadata(system_prompt, user_prompt)
 
-            # Log usage
-            token_logger.log(
-                turn=context.get("turn", 0),
-                nation_id=context.get("nation_id", "unknown"),
-                role=context.get("role", "unknown"),
-                model=self.model_name,
-                input_tokens=usage.prompt_tokens,
-                output_tokens=usage.completion_tokens,
-                total_tokens=usage.total_tokens,
-                reasoning_tokens=usage.reasoning_tokens
-            )
+                # Log usage
+                token_logger.log(
+                    turn=context.get("turn", 0),
+                    nation_id=context.get("nation_id", "unknown"),
+                    role=context.get("role", "unknown"),
+                    model=self.model_name,
+                    input_tokens=usage.prompt_tokens,
+                    output_tokens=usage.completion_tokens,
+                    total_tokens=usage.total_tokens,
+                    reasoning_tokens=usage.reasoning_tokens
+                )
 
-            return response
-            
-        except Exception as e:
-            # Token usage might not be available on error, but we should handle it
-            raise e
+                return response
+                
+            except Exception as e:
+                error_str = str(e).lower()
+                # Check for rate limit errors (429)
+                if "429" in str(e) or "rate" in error_str or "limit" in error_str:
+                    wait_time = base_wait * (2 ** attempt)  # Exponential backoff
+                    print(f"⏳ Rate limit hit. Waiting {wait_time:.1f}s before retry {attempt + 1}/{max_rate_retries}...")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    # Non-rate-limit error, raise immediately
+                    raise e
+        
+        # If we exhausted all retries
+        raise Exception(f"Rate limit exceeded after {max_rate_retries} retries")
 
     def _extract_metadata(self, system_prompt: str, user_prompt: str) -> Dict[str, Any]:
         """Automatically extract metadata from prompts using regex."""
