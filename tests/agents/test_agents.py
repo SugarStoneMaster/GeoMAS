@@ -40,19 +40,31 @@ class MockLLMClient(LLMClient):
         # Return a valid dummy object based on the requested model
         if response_model == DefenseProposal:
             return DefenseProposal(
-                intent=DefenseIntent(type=DefenseIntentType.DEFENSE, reasoning="Mock Defense"),
+                intent=DefenseIntent(
+                    public_intent=DefenseIntentType.DEFENSE,
+                    private_intent=DefenseIntentType.DEFENSE,
+                    reasoning="Mock Defense"
+                ),
                 payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
                 urgency=5
             )
         elif response_model == EconomicProposal:
             return EconomicProposal(
-                intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Mock Eco"),
+                intent=EconomicIntent(
+                    public_intent=EconomicIntentType.GROWTH,
+                    private_intent=EconomicIntentType.GROWTH,
+                    reasoning="Mock Eco"
+                ),
                 payload=EconomicPayload(decision=Decision.APPROVE),
                 projected_cost=100.0
             )
         elif response_model == ForeignProposal:
             return ForeignProposal(
-                intent=ForeignIntent(type=ForeignIntentType.COOPERATION, reasoning="Mock Foreign"),
+                intent=ForeignIntent(
+                    public_intent=ForeignIntentType.COOPERATION,
+                    private_intent=ForeignIntentType.COOPERATION,
+                    reasoning="Mock Foreign"
+                ),
                 payload=ForeignPayload(decision=Decision.APPROVE),
                 target_trust_impact=0.1
             )
@@ -96,9 +108,10 @@ class MockLLMClient(LLMClient):
 def test_mock_llm_client_defense():
     """Mock returns a valid DefenseProposal."""
     mock = MockLLMClient()
+    mock = MockLLMClient()
     result = mock.query_agent("", "", DefenseProposal)
     assert isinstance(result, DefenseProposal)
-    assert result.intent.type == DefenseIntentType.DEFENSE
+    assert result.intent.private_intent == DefenseIntentType.DEFENSE
 
 
 def test_defense_minister_proposal():

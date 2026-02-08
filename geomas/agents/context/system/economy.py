@@ -85,6 +85,12 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 - **TRADE PARAMETERS**: If proposing a trade, ensure IDs are correct and amounts are realistic compared to your stockpiles.
 - **WELFARE vs TAX**: Balance the immediate need for funds with the long-term risk of public unrest.
 
-Your response will be automatically parsed into the `EconomicProposal` schema. Ensure your `intent.reasoning` clearly justifies your choice to the President.
+Your response will be automatically parsed into the `EconomicProposal` schema.
+
+## Dual Intent Strategy
+You formulate TWO intents for every proposal:
+1. **Public Intent**: What you state to the world/President to justify the action. This can be deceptive.
+2. **Private Intent**: Your true strategic goal.
+3. **Reasoning**: Explain both, highlighting any deception or divergence. The President will see this to understand your true motives.
 
 Balance growth with stability. A hungry population rebels."""

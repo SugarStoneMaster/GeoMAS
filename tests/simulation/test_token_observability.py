@@ -53,19 +53,31 @@ class TestTokenObservability(unittest.TestCase):
             # Create a real response object to avoid validation issues in simulation
             if "DefenseProposal" in str(response_model):
                 res = DefenseProposal(
-                    intent=DefenseIntent(type=DefenseIntentType.DEFENSE, reasoning="mock"),
+                    intent=DefenseIntent(
+                        public_intent=DefenseIntentType.DEFENSE,
+                        private_intent=DefenseIntentType.DEFENSE,
+                        reasoning="mock"
+                    ),
                     payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
                     urgency=5
                 )
             elif "EconomicProposal" in str(response_model):
                 res = EconomicProposal(
-                    intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="mock"),
+                    intent=EconomicIntent(
+                        public_intent=EconomicIntentType.GROWTH,
+                        private_intent=EconomicIntentType.GROWTH,
+                        reasoning="mock"
+                    ),
                     payload=EconomicPayload(decision=Decision.APPROVE),
                     projected_cost=0.0
                 )
             elif "ForeignProposal" in str(response_model):
                 res = ForeignProposal(
-                    intent=ForeignIntent(type=ForeignIntentType.COOPERATION, reasoning="mock"),
+                    intent=ForeignIntent(
+                        public_intent=ForeignIntentType.COOPERATION,
+                        private_intent=ForeignIntentType.COOPERATION,
+                        reasoning="mock"
+                    ),
                     payload=ForeignPayload(decision=Decision.APPROVE),
                     target_trust_impact=0.0
                 )
@@ -74,16 +86,7 @@ class TestTokenObservability(unittest.TestCase):
                     defense=DefenseDecree(action=Decision.APPROVE, reasoning="mock"),
                     economy=EconomicDecree(action=Decision.APPROVE, reasoning="mock"),
                     foreign=ForeignDecree(action=Decision.APPROVE, reasoning="mock"),
-                    public_statement="mock",
-                    defense_public_intent=DefenseIntentType.DEFENSE,
-                    defense_private_intent=DefenseIntentType.DEFENSE,
-                    economic_public_intent=EconomicIntentType.GROWTH,
-                    economic_private_intent=EconomicIntentType.GROWTH,
-                    foreign_public_intent=ForeignIntentType.COOPERATION,
-                    foreign_private_intent=ForeignIntentType.COOPERATION,
-                    defense_private_reasoning="mock",
-                    economic_private_reasoning="mock",
-                    foreign_private_reasoning="mock"
+                    public_statement="mock"
                 )
             elif "OpinionResponse" in str(response_model):
                 res = OpinionResponse(multiplier_increase=1.0, multiplier_decrease=1.0, mood="NEUTRAL", reasoning="mock")

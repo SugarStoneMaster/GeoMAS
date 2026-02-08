@@ -50,20 +50,23 @@ class ForeignIntentType(str, Enum):
 
 class DefenseIntent(BaseModel):
     """Defense/military strategic intent with reasoning."""
-    type: DefenseIntentType
-    reasoning: str = Field(..., description="Explanation of the defense strategy.")
+    public_intent: DefenseIntentType
+    private_intent: DefenseIntentType
+    reasoning: str = Field(..., description="Explanation of strategy and any divergence (Public vs Private).")
 
 
 class EconomicIntent(BaseModel):
     """Economic strategic intent with reasoning."""
-    type: EconomicIntentType
-    reasoning: str = Field(..., description="Explanation of the economic strategy.")
+    public_intent: EconomicIntentType
+    private_intent: EconomicIntentType
+    reasoning: str = Field(..., description="Explanation of strategy and any divergence (Public vs Private).")
 
 
 class ForeignIntent(BaseModel):
     """Foreign affairs strategic intent with reasoning."""
-    type: ForeignIntentType
-    reasoning: str = Field(..., description="Explanation of the foreign affairs strategy.")
+    public_intent: ForeignIntentType
+    private_intent: ForeignIntentType
+    reasoning: str = Field(..., description="Explanation of strategy and any divergence (Public vs Private).")
 
 
 # --- INTERMEDIATE PROPOSALS (Minister to President) ---

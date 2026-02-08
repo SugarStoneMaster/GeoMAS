@@ -56,7 +56,8 @@ class TestDefenseMinister(TestMinisterBase):
         # Mock response
         mock_response = DefenseProposal(
             intent=DefenseIntent(
-                type=DefenseIntentType.DEFENSE,
+                public_intent=DefenseIntentType.DEFENSE,
+                private_intent=DefenseIntentType.DEFENSE,
                 reasoning="Test reasoning"
             ),
             payload=DefensePayload(
@@ -92,7 +93,8 @@ class TestDefenseMinister(TestMinisterBase):
         # Mock response
         client.query_agent.return_value = DefenseProposal(
             intent=DefenseIntent(
-                type=DefenseIntentType.DEFENSE,
+                public_intent=DefenseIntentType.DEFENSE,
+                private_intent=DefenseIntentType.DEFENSE,
                 reasoning="Test"
             ),
             payload=DefensePayload(
@@ -125,7 +127,8 @@ class TestEconomicMinister(TestMinisterBase):
         # Mock response
         mock_response = EconomicProposal(
             intent=EconomicIntent(
-                type=EconomicIntentType.GROWTH,
+                public_intent=EconomicIntentType.GROWTH,
+                private_intent=EconomicIntentType.GROWTH,
                 reasoning="Test reasoning"
             ),
             payload=EconomicPayload(
@@ -161,7 +164,8 @@ class TestForeignMinister(TestMinisterBase):
         # Mock response
         mock_response = ForeignProposal(
             intent=ForeignIntent(
-                type=ForeignIntentType.COOPERATION,
+                public_intent=ForeignIntentType.COOPERATION,
+                private_intent=ForeignIntentType.COOPERATION,
                 reasoning="Test reasoning"
             ),
             payload=ForeignPayload(
@@ -199,7 +203,8 @@ class TestForeignMinister(TestMinisterBase):
         # Mock response
         client.query_agent.return_value = ForeignProposal(
             intent=ForeignIntent(
-                type=ForeignIntentType.IDLE,
+                public_intent=ForeignIntentType.IDLE,
+                private_intent=ForeignIntentType.IDLE,
                 reasoning="Test"
             ),
             payload=ForeignPayload(

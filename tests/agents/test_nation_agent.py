@@ -38,18 +38,30 @@ class TestNationAgent:
         
         # 1. Setup Minister Proposals
         def_prop = DefenseProposal(
-            intent=DefenseIntent(type=DefenseIntentType.DEFENSE, reasoning="Defend"),
+            intent=DefenseIntent(
+                public_intent=DefenseIntentType.DEFENSE,
+                private_intent=DefenseIntentType.DEFENSE,
+                reasoning="Defend"
+            ),
             # Corrected DefensePayload (only has moves)
             payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
             urgency=1
         )
         eco_prop = EconomicProposal(
-            intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Grow"),
+            intent=EconomicIntent(
+                public_intent=EconomicIntentType.GROWTH,
+                private_intent=EconomicIntentType.GROWTH,
+                reasoning="Grow"
+            ),
             payload=EconomicPayload(decision=Decision.APPROVE),
             projected_cost=10
         )
         for_prop = ForeignProposal(
-            intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="Chill"),
+            intent=ForeignIntent(
+                public_intent=ForeignIntentType.IDLE,
+                private_intent=ForeignIntentType.IDLE,
+                reasoning="Chill"
+            ),
             payload=ForeignPayload(decision=Decision.APPROVE),
             target_trust_impact=0
         )
@@ -90,7 +102,7 @@ class TestNationAgent:
         args, _ = client.query_agent.call_args # Last call was President
         system_prompt, user_prompt, schema = args
         assert "Defense Minister" in user_prompt
-        assert "**Intent:** DEFENSE" in user_prompt
+        assert "**Public Intent:** DEFENSE" in user_prompt
 
     def test_act_veto_flow(self, setup):
         """Test flow where President vetoes a minister."""
@@ -99,7 +111,11 @@ class TestNationAgent:
         
         # Minister Props (Defense wants to attack)
         def_prop = DefenseProposal(
-            intent=DefenseIntent(type=DefenseIntentType.CONQUEST, reasoning="Attack!"),
+            intent=DefenseIntent(
+                public_intent=DefenseIntentType.CONQUEST,
+                private_intent=DefenseIntentType.CONQUEST,
+                reasoning="Attack!"
+            ),
             payload=DefensePayload(
                 decision=Decision.APPROVE, 
                 moves=[
@@ -108,8 +124,24 @@ class TestNationAgent:
             ), 
             urgency=10
         )
-        eco_prop = EconomicProposal(intent=EconomicIntent(type=EconomicIntentType.IDLE, reasoning="."), payload=EconomicPayload(decision=Decision.APPROVE), projected_cost=0)
-        for_prop = ForeignProposal(intent=ForeignIntent(type=ForeignIntentType.IDLE, reasoning="."), payload=ForeignPayload(decision=Decision.APPROVE), target_trust_impact=0)
+        eco_prop = EconomicProposal(
+            intent=EconomicIntent(
+                public_intent=EconomicIntentType.IDLE,
+                private_intent=EconomicIntentType.IDLE,
+                reasoning="."
+            ),
+            payload=EconomicPayload(decision=Decision.APPROVE), 
+            projected_cost=0
+        )
+        for_prop = ForeignProposal(
+            intent=ForeignIntent(
+                public_intent=ForeignIntentType.IDLE,
+                private_intent=ForeignIntentType.IDLE,
+                reasoning="."
+            ),
+            payload=ForeignPayload(decision=Decision.APPROVE), 
+            target_trust_impact=0
+        )
         
         # President Decree (VETO Defense)
         decree = PresidentialDecree(

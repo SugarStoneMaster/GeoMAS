@@ -29,14 +29,22 @@ class UIMockLLM(LLMClient):
         
         if response_model == DefenseProposal:
             return DefenseProposal(
-                intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Peace is good"),
+                intent=DefenseIntent(
+                    public_intent=DefenseIntentType.IDLE,
+                    private_intent=DefenseIntentType.IDLE,
+                    reasoning="Peace is good"
+                ),
                 payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
                 urgency=1
             )
         
         elif response_model == EconomicProposal:
             return EconomicProposal(
-                intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="We need to grow"),
+                intent=EconomicIntent(
+                    public_intent=EconomicIntentType.GROWTH,
+                    private_intent=EconomicIntentType.GROWTH,
+                    reasoning="We need to grow"
+                ),
                 payload=EconomicPayload(
                     decision=Decision.APPROVE, 
                     action_type=EconomicActionType.INVEST_WELFARE
@@ -46,7 +54,11 @@ class UIMockLLM(LLMClient):
         
         elif response_model == ForeignProposal:
             return ForeignProposal(
-                intent=ForeignIntent(type=ForeignIntentType.COOPERATION, reasoning="Friends are good"),
+                intent=ForeignIntent(
+                    public_intent=ForeignIntentType.COOPERATION,
+                    private_intent=ForeignIntentType.COOPERATION,
+                    reasoning="Friends are good"
+                ),
                 payload=ForeignPayload(
                     decision=Decision.APPROVE, 
                     action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE
@@ -59,16 +71,7 @@ class UIMockLLM(LLMClient):
                 defense=DefenseDecree(action=Decision.APPROVE, reasoning="Peace"),
                 economy=EconomicDecree(action=Decision.APPROVE, reasoning="Growth"),
                 foreign=ForeignDecree(action=Decision.APPROVE, reasoning="Coop"),
-                public_statement="Peace and Prosperity.",
-                defense_public_intent=DefenseIntentType.IDLE,
-                defense_private_intent=DefenseIntentType.IDLE,
-                economic_public_intent=EconomicIntentType.GROWTH,
-                economic_private_intent=EconomicIntentType.GROWTH,
-                foreign_public_intent=ForeignIntentType.COOPERATION,
-                foreign_private_intent=ForeignIntentType.COOPERATION,
-                defense_private_reasoning="Peace.",
-                economic_private_reasoning="Growth.",
-                foreign_private_reasoning="Coop."
+                public_statement="Peace and Prosperity."
             )
         
         elif response_model == CountryEnvelope:

@@ -147,8 +147,8 @@ class NationAgent:
         if decree.defense.action == Decision.APPROVE:
             def_payload = briefing.defense.payload
             def_payload.decision = Decision.APPROVE
-            def_pub_intent = briefing.defense.intent.type
-            def_priv_intent = briefing.defense.intent.type
+            def_pub_intent = briefing.defense.intent.public_intent
+            def_priv_intent = briefing.defense.intent.private_intent
             def_reasoning = f"{briefing.defense.intent.reasoning} [President: {decree.defense.reasoning}]"
         else: # VETO -> IDLE action
             def_payload = DefensePayload(decision=Decision.VETO, moves=[])
@@ -160,8 +160,8 @@ class NationAgent:
         if decree.economy.action == Decision.APPROVE:
             eco_payload = briefing.economy.payload
             eco_payload.decision = Decision.APPROVE
-            eco_pub_intent = briefing.economy.intent.type
-            eco_priv_intent = briefing.economy.intent.type
+            eco_pub_intent = briefing.economy.intent.public_intent
+            eco_priv_intent = briefing.economy.intent.private_intent
             eco_reasoning = f"{briefing.economy.intent.reasoning} [President: {decree.economy.reasoning}]"
         else: # VETO -> No action
             eco_payload = EconomicPayload(decision=Decision.VETO, action_type=None)
@@ -173,8 +173,8 @@ class NationAgent:
         if decree.foreign.action == Decision.APPROVE:
             for_payload = briefing.foreign.payload
             for_payload.decision = Decision.APPROVE
-            for_pub_intent = briefing.foreign.intent.type
-            for_priv_intent = briefing.foreign.intent.type
+            for_pub_intent = briefing.foreign.intent.public_intent
+            for_priv_intent = briefing.foreign.intent.private_intent
             for_reasoning = f"{briefing.foreign.intent.reasoning} [President: {decree.foreign.reasoning}]"
         else: # VETO -> No action
             for_payload = ForeignPayload(decision=Decision.VETO, action_type=None)
@@ -208,7 +208,7 @@ class NationAgent:
         """Format defense proposal for President."""
         intent = proposal.intent
         payload = proposal.payload
-        summary = f"**Intent:** {intent.type.value} - {intent.reasoning}\n**Urgency:** {proposal.urgency}/10\n**Actions:**"
+        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Urgency:** {proposal.urgency}/10\n**Actions:**"
         
         # Count action types from the generic 'moves' list
         move_count = 0
@@ -239,7 +239,7 @@ class NationAgent:
         """Format economic proposal for President."""
         intent = proposal.intent
         payload = proposal.payload
-        summary = f"**Intent:** {intent.type.value} - {intent.reasoning}\n**Cost:** {proposal.projected_cost:.1f}\n**Action:**"
+        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Cost:** {proposal.projected_cost:.1f}\n**Action:**"
         
         if payload.action_type:
             # Build details from explicit fields
@@ -258,7 +258,7 @@ class NationAgent:
         """Format foreign proposal for President."""
         intent = proposal.intent
         payload = proposal.payload
-        summary = f"**Intent:** {intent.type.value} - {intent.reasoning}\n**Trust Impact:** {proposal.target_trust_impact:+.0f}\n**Action:**"
+        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Trust Impact:** {proposal.target_trust_impact:+.0f}\n**Action:**"
         
         if payload.action_type:
             target = f" (Target: {payload.target_nation_id})" if payload.target_nation_id else ""

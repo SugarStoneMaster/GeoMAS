@@ -27,7 +27,11 @@ def test_defense_proposal_validation():
     
     # Valid
     prop = DefenseProposal(
-        intent=DefenseIntent(type=DefenseIntentType.DEFENSE, reasoning="Valid"),
+        intent=DefenseIntent(
+            public_intent=DefenseIntentType.DEFENSE,
+            private_intent=DefenseIntentType.DEFENSE,
+            reasoning="Valid"
+        ),
         payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
         urgency=5
     )
@@ -36,7 +40,11 @@ def test_defense_proposal_validation():
     # Invalid Urgency (Too high)
     with pytest.raises(ValidationError):
         DefenseProposal(
-            intent=DefenseIntent(type=DefenseIntentType.DEFENSE, reasoning="Valid"),
+            intent=DefenseIntent(
+                public_intent=DefenseIntentType.DEFENSE,
+                private_intent=DefenseIntentType.DEFENSE,
+                reasoning="Valid"
+            ),
             payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
             urgency=11 # Max is 10
         )
