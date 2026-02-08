@@ -16,6 +16,9 @@ from geomas.actions.opinion.schemas import (
     THRESHOLD_GENERAL_STRIKE,
     THRESHOLD_CIVIL_UNREST,
     THRESHOLD_UNREST_RECOVERY,
+    THRESHOLD_PRODUCTION_DECAY_START,
+    THRESHOLD_PRODUCTION_DECAY_FLOOR,
+    MIN_PRODUCTION_MULTIPLIER,
     STRIKE_PRODUCTION_PENALTY,
 )
 
@@ -167,27 +170,50 @@ def check_triggers(engine: 'ActionEngine', nation_id: str, rng: random.Random = 
         )
     
     # --- GENERAL_STRIKE (sat < 20 but >= 10) ---
+    # We keep this as a formal trigger for narrative/logging consistency
     if sat < THRESHOLD_GENERAL_STRIKE and sat >= THRESHOLD_CIVIL_UNREST:
         triggered.append(OpinionTrigger.GENERAL_STRIKE)
         engine.logs.append(
-            f"[OPINION] ⚠️ GENERAL STRIKE in {nation_id}! Production -50%."
+            f"[OPINION] ⚠️ GENERAL STRIKE in {nation_id}! Efficiency is low."
+        )
+    
+    # --- PRODUCTION DECAY LOGGING (starts earlier) ---
+    if sat < THRESHOLD_PRODUCTION_DECAY_START and sat >= THRESHOLD_GENERAL_STRIKE:
+        mult = get_production_multiplier(nation)
+        engine.logs.append(
+            f"[OPINION] 📉 DECAYING PRODUCTIVITY in {nation_id}: {mult*100:.1f}% efficiency."
         )
     
     return triggered
 
 
 def is_nation_on_strike(nation: 'NationState') -> bool:
-    """Check if nation is under general strike (for production penalty)."""
-    return nation.public_satisfaction < THRESHOLD_GENERAL_STRIKE
+    """Check if nation is under general strike (legacy check)."""
+    return nation.public_satisfaction < THRESHOLD_PRODUCTION_DECAY_START
 
 
 def get_production_multiplier(nation: 'NationState') -> float:
-    """Get production multiplier considering strikes and unrest."""
+    """Get production multiplier considering linear decay and unrest."""
     if nation.civil_unrest_active:
-        return 0.0  # No production during unrest (handled per-province via in_revolt)
-    elif is_nation_on_strike(nation):
-        return STRIKE_PRODUCTION_PENALTY  # 50% during strike
-    return 1.0
+        return 0.0
+    
+    sat = nation.public_satisfaction
+    
+    if sat >= THRESHOLD_PRODUCTION_DECAY_START:
+        return 1.0
+    
+    if sat <= THRESHOLD_PRODUCTION_DECAY_FLOOR:
+        return MIN_PRODUCTION_MULTIPLIER
+    
+    # Linear interpolation between DECAY_START (1.0) and DECAY_FLOOR (MIN_MULT)
+    # Range: 50 -> 10, Multiplier: 1.0 -> 0.5
+    decay_range = THRESHOLD_PRODUCTION_DECAY_START - THRESHOLD_PRODUCTION_DECAY_FLOOR
+    mult_range = 1.0 - MIN_PRODUCTION_MULTIPLIER
+    
+    relative_sat = sat - THRESHOLD_PRODUCTION_DECAY_FLOOR
+    decay_ratio = relative_sat / decay_range
+    
+    return MIN_PRODUCTION_MULTIPLIER + (decay_ratio * mult_range)
 
 
 def get_province_production_multiplier(province, nation: 'NationState') -> float:
@@ -196,11 +222,11 @@ def get_province_production_multiplier(province, nation: 'NationState') -> float
     
     Returns:
         0.0 if province in revolt
-        0.5 if nation on strike
+        linear decay multiplier if nation has low satisfaction
         1.0 otherwise
     """
     if province.in_revolt:
         return 0.0
-    if nation and is_nation_on_strike(nation):
-        return STRIKE_PRODUCTION_PENALTY
+    if nation:
+        return get_production_multiplier(nation)
     return 1.0

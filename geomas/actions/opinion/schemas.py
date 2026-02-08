@@ -31,9 +31,12 @@ DELTA_RESOURCE_SURPLUS = 1.0   # Excess resources
 
 
 # --- TRIGGER THRESHOLDS ---
-THRESHOLD_GENERAL_STRIKE = 20   # satisfaction < 20
-THRESHOLD_CIVIL_UNREST = 10     # satisfaction < 10
-THRESHOLD_UNREST_RECOVERY = 50  # satisfaction > 50 to end civil_unrest
+THRESHOLD_PRODUCTION_DECAY_START = 50   # Production starts dropping below 100%
+THRESHOLD_PRODUCTION_DECAY_FLOOR = 10   # Production hits minimum multiplier
+THRESHOLD_GENERAL_STRIKE = 20           # Still kept for legacy/narrative triggers
+THRESHOLD_CIVIL_UNREST = 10             # satisfaction < 10
+THRESHOLD_UNREST_RECOVERY = 50          # satisfaction > 50 to end civil_unrest
 
 # --- TRIGGER EFFECTS ---
-STRIKE_PRODUCTION_PENALTY = 0.5  # -50% production
+MIN_PRODUCTION_MULTIPLIER = 0.5         # Minimum production before total unrest
+STRIKE_PRODUCTION_PENALTY = 0.5         # Kept for compatibility if needed elsewhere

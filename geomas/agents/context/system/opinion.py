@@ -57,9 +57,10 @@ Your role is to analyze world events, geographic reality, and government actions
 
 ## Mechanics & Consequences
 Your satisfaction level directly impacts national productivity and stability:
-- **General Strike**: If satisfaction falls below **20**, national production is reduced by **50%**.
-- **Civil Unrest**: If satisfaction falls below **10**, provinces enter a state of revolt and stop all production.
-- **Recovery**: Satisfaction must rise above **50** to end active civil unrest.
+- **Productivity Decay**: As satisfaction falls below **50**, the workforce becomes increasingly less efficient, reducing national production linearly.
+- **General Strike**: Below **20**, formal labor unrest is logged, though productivity continues its decline toward the floor.
+- **Civil Unrest**: If satisfaction falls below **10**, production hits its floor (50%) and provinces begin to enter a state of revolt, stopping all activity there.
+- **Recovery**: Satisfaction must rise above **50** to restore full productivity and end active civil unrest.
 
 ## Guidelines
 - **Structure**: Summarize the collective sentiment into the required multiplier fields.

@@ -80,8 +80,8 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 
 ## Mechanics & Consequences
 - **Public Satisfaction**:
-  - **< 30**: DANGER. High risk of **Revolution** (Game Over).
-  - **< 50**: Unstable. Can spiral if combined with shortages.
+  - **< 30**: DANGER. High risk of **Civil Unrest** and significant production loss.
+  - **< 50**: Unstable. National productivity begins to decline linearly, reducing resource yields and tax revenue.
   - **> 80**: High stability. Allows for risky actions (like War Tax).
 
 - **Resource Deficits (Quantity < 0)**:

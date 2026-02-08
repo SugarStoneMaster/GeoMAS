@@ -142,13 +142,14 @@ class TestProductionMultiplier:
         assert get_production_multiplier(nation) == 1.0
     
     def test_strike_production(self):
-        """50% penalty during general strike."""
+        """Production decays linearly (at 15 satisfaction, mult should be 0.5625)."""
         world = generate_world(seed=42, n_cells=50, n_nations=2)
         nation = list(world.nations.values())[0]
-        nation.public_satisfaction = 15  # Below 20
+        nation.public_satisfaction = 15  # In the decay zone
         nation.civil_unrest_active = False
         
-        assert get_production_multiplier(nation) == 0.5
+        # 0.5 + (15-10)/40 * 0.5 = 0.5 + 0.0625 = 0.5625
+        assert get_production_multiplier(nation) == pytest.approx(0.5625)
     
     def test_unrest_production(self):
         """0% production during civil unrest."""
