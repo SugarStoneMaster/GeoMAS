@@ -80,6 +80,19 @@ with ctrl_cols[4]:
             with st.spinner("Thinking..."):
                 sim.step()
             st.rerun()
+            
+        if st.button("⏩ Run 5 Turns", use_container_width=True):
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            for i in range(5):
+                status_text.text(f"Running Turn {sim.world.turn + 1}...")
+                sim.step()
+                progress_bar.progress((i + 1) / 5)
+                
+            status_text.empty()
+            progress_bar.empty()
+            st.rerun()
     else:
         st.markdown("&nbsp;")
         st.info("Click Init/Reset")
