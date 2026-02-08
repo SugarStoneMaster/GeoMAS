@@ -204,9 +204,12 @@ def _execute_request_peace(
     })
     
     msg_str = f" Message: '{message}'" if message else ""
-    engine.logs.append(
-        f"[FOREIGN] 🕊️ {requester_id} requests peace with {target_id}. Awaiting response.{msg_str}"
-    )
+    msg_str = f" Message: '{message}'" if message else ""
+    summary = f"[FOREIGN] 🕊️ {requester_id} requests peace with {target_id}. Awaiting response.{msg_str}"
+    engine.logs.append(summary)
+    
+    # Global notification (Real Event)
+    engine.world.global_events.append(summary)
 
 
 def _execute_propose_alliance(
@@ -255,11 +258,15 @@ def _execute_propose_alliance(
         "turn": world.turn,
         "message": message
     })
+
     
     msg_str = f" Message: '{message}'" if message else ""
-    engine.logs.append(
-        f"[FOREIGN] 🤝 {proposer_id} proposes alliance to {target_id}. Awaiting response.{msg_str}"
-    )
+    msg_str = f" Message: '{message}'" if message else ""
+    summary = f"[FOREIGN] 🤝 {proposer_id} proposes alliance to {target_id}. Awaiting response.{msg_str}"
+    engine.logs.append(summary)
+    
+    # Global notification (Real Event)
+    engine.world.global_events.append(summary)
 
 
 # --- RESPONSE ACTIONS ---
@@ -336,5 +343,4 @@ def clear_expired_proposals(world: 'WorldState') -> None:
             p for p in proposals 
             if current_turn - p["turn"] <= 1
         ]
-        if len(proposals) != len(nation.pending_proposals):
-            print(f"[DEBUG] Cleared {len(proposals) - len(nation.pending_proposals)} expired proposals for {nation.name}")
+

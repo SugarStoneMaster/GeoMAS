@@ -292,6 +292,8 @@ class SimulationEngine:
         print(f"--- TURN {current_turn} COMPLETE ---")
             
         print(f"--- TURN {current_turn} COMPLETE ---")
+        
+
 
     def run(self, steps: int = 1):
         """Runs the simulation for N steps."""

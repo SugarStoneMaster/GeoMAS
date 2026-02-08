@@ -310,10 +310,10 @@ class ContextManager:
             elif "REJECT_PROPOSAL" in action_type:
                 ref = str(getattr(behavior, 'proposal_ref_type', '') or '').upper()
                 event_type = EventType.PEACE_REJECTED if "PEACE" in ref else EventType.ALLIANCE_REJECTED
-            elif "PROPOSE_ALLIANCE" in action_type:
-                event_type = EventType.PROPOSE_ALLIANCE
-            elif "REQUEST_PEACE" in action_type:
-                event_type = EventType.REQUEST_PEACE
+            
+            # NOTE: Proposal events (PROPOSE_ALLIANCE, REQUEST_PEACE) are now handled directly 
+            # by the Action Handler to ensure they only appear if successful.
+            # We skip them here to avoid "phantom" events for blocked actions.
             
             summary = f"{nation_name} {action_type.replace('_', ' ').lower()} with {target_name}"
             if message:
