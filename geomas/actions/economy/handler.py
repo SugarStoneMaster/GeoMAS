@@ -13,11 +13,12 @@ if TYPE_CHECKING:
 
 
 # Satisfaction scale: 0-100
-WAR_TAX_SATISFACTION_PENALTY = 15  # -15 satisfaction
-WAR_TAX_BUDGET_BOOST_RATIO = 0.10
+WAR_TAX_SATISFACTION_PENALTY = 15  # Base penalty
+WAR_TAX_BUDGET_BOOST_RATIO = 0.01  # 1% of population (Rebalanced from 0.10)
 
-# INVEST_WELFARE logarithmic formula constants
-WELFARE_LOG_CONSTANT = 100  # Divisor for diminishing returns
+# INVEST_WELFARE constants
+WELFARE_LOG_CONSTANT = 100         # Divisor for diminishing returns
+WELFARE_MATERIALS_RATIO = 0.2      # 20% of budget amount must be paid in materials
 
 
 def execute_economic(
@@ -35,27 +36,34 @@ def execute_economic(
     
     # --- INVEST_WELFARE ---
     if payload.action_type == EconomicActionType.INVEST_WELFARE:
-        amount = payload.amount or 100.0
+        budget_amount = payload.amount or 100.0
+        materials_amount = budget_amount * WELFARE_MATERIALS_RATIO
         
-        # Check budget
-        allowed, reason = ActionValidators.can_afford_budget(engine.world, nation_id, amount)
-        if not allowed:
-            engine.logs.append(f"[ECONOMY] Failed INVEST_WELFARE: {reason}")
+        # Check budget and materials
+        can_afford_b, reason_b = ActionValidators.can_afford_budget(engine.world, nation_id, budget_amount)
+        if not can_afford_b:
+            engine.logs.append(f"[ECONOMY] Failed INVEST_WELFARE: {reason_b}")
+            return
+            
+        can_afford_m, reason_m = ActionValidators.can_afford_materials(engine.world, nation_id, materials_amount)
+        if not can_afford_m:
+            engine.logs.append(f"[ECONOMY] Failed INVEST_WELFARE: {reason_m}")
             return
         
-        # Deduct budget
-        engine.deduct_budget(nation_id, amount)
+        # Deduct resources
+        engine.deduct_budget(nation_id, budget_amount)
+        nation.total_materials -= materials_amount
         
         # Logarithmic diminishing returns: gain = K * log(1 + amount / C)
-        if amount > 0:
-            satisfaction_gain = 10 * math.log(1 + amount / WELFARE_LOG_CONSTANT)
+        if budget_amount > 0:
+            satisfaction_gain = 10 * math.log(1 + budget_amount / WELFARE_LOG_CONSTANT)
             nation.public_satisfaction = min(
                 100,
                 nation.public_satisfaction + satisfaction_gain
             )
             msg_str = f" Message to citizens: '{payload.message}'" if payload.message else ""
             engine.logs.append(
-                f"[ECONOMY] Invested {amount:.0f} in Welfare. "
+                f"[ECONOMY] Invested {budget_amount:.0f} Budget and {materials_amount:.0f} Materials in Welfare. "
                 f"Satisfaction +{satisfaction_gain:.1f} (now {nation.public_satisfaction:.0f}){msg_str}"
             )
     
@@ -66,18 +74,24 @@ def execute_economic(
             engine.logs.append(f"[ECONOMY] Failed RAISE_WAR_TAX: {reason}")
             return
         
-        # Calculate tax boost based on population
+        # Calculate tax boost
         tax_boost = nation.total_population * WAR_TAX_BUDGET_BOOST_RATIO
         
+        # Dynamic satisfaction penalty: taxing a miserable population is harder
+        # If sat < 30, penalty increases by 50%
+        final_penalty = WAR_TAX_SATISFACTION_PENALTY
+        if nation.public_satisfaction < 30:
+            final_penalty *= 1.5
+            
         # Apply effects
         nation.total_budget += tax_boost
-        nation.public_satisfaction -= WAR_TAX_SATISFACTION_PENALTY
+        nation.public_satisfaction -= final_penalty
         nation.public_satisfaction = max(0, nation.public_satisfaction)
         
         msg_str = f" Message to citizens: '{payload.message}'" if payload.message else ""
         engine.logs.append(
             f"[ECONOMY] War Tax raised! Budget +{tax_boost:.0f}, "
-            f"Satisfaction -{WAR_TAX_SATISFACTION_PENALTY} (now {nation.public_satisfaction:.0f}){msg_str}"
+            f"Satisfaction -{final_penalty:.0f} (now {nation.public_satisfaction:.0f}){msg_str}"
         )
     
     # --- TRADE_PROPOSAL ---

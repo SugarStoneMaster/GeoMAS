@@ -15,8 +15,8 @@ from geomas.agents.schemas import (
 @pytest.fixture
 def world():
     w = WorldState(turn=1)
-    w.nations["NAT_A"] = NationState(id="NAT_A", name="Nation A", color="blue", total_budget=1000, public_satisfaction=50)
-    w.nations["NAT_B"] = NationState(id="NAT_B", name="Nation B", color="red", total_budget=1000, public_satisfaction=50)
+    w.nations["NAT_A"] = NationState(id="NAT_A", name="Nation A", color="blue", total_budget=1000, total_materials=500, public_satisfaction=50)
+    w.nations["NAT_B"] = NationState(id="NAT_B", name="Nation B", color="red", total_budget=1000, total_materials=500, public_satisfaction=50)
     return w
 
 def create_valid_envelope(nation_id, turn, economic_payload):

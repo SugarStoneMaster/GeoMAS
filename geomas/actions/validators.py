@@ -78,6 +78,20 @@ class ActionValidators:
             return False, f"Insufficient funds. Required: {amount}, Available: {nation.total_budget}"
 
     @staticmethod
+    def can_afford_materials(
+        world: WorldState, 
+        nation_id: str, 
+        amount: float
+    ) -> Tuple[bool, str]:
+        nation = world.nations.get(nation_id)
+        if not nation: return False, "Nation not found."
+        
+        if nation.total_materials >= amount:
+            return True, "Materials available."
+        else:
+            return False, f"Insufficient materials. Required: {amount}, Available: {nation.total_materials:.1f}"
+
+    @staticmethod
     def can_raise_war_tax(world: WorldState, nation_id: str) -> Tuple[bool, str]:
         """Check if nation can raise war tax (satisfaction threshold)."""
         nation = world.nations.get(nation_id)

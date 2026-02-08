@@ -11,13 +11,12 @@ from geomas.world.spatial import SpatialManager
 
 from geomas.actions.validators import ActionValidators
 from geomas.actions.defense import DefenseActionType, execute_defense_waterfall
-from geomas.actions.economy import execute_economic, EconomicActionType
+from geomas.actions.economy.handler import (
+    execute_economic, 
+    WAR_TAX_SATISFACTION_PENALTY,
+    WAR_TAX_BUDGET_BOOST_RATIO
+)
 from geomas.actions.foreign import execute_foreign, ForeignActionType
-
-
-# Constants from economy handler
-WAR_TAX_SATISFACTION_PENALTY = 0.15
-WAR_TAX_BUDGET_BOOST_RATIO = 0.10
 
 
 class ActionEngine:
@@ -50,6 +49,9 @@ class ActionEngine:
 
     def can_raise_war_tax(self, nation_id: str) -> Tuple[bool, str]:
         return ActionValidators.can_raise_war_tax(self.world, nation_id)
+
+    def can_afford_materials(self, nation_id: str, amount: float) -> Tuple[bool, str]:
+        return ActionValidators.can_afford_materials(self.world, nation_id, amount)
 
     def can_trade(self, nation_a_id: str, nation_b_id: str) -> Tuple[bool, str]:
         trust = self.world.trust_matrix.get(nation_a_id, {}).get(nation_b_id, 50)

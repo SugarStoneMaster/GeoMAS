@@ -114,6 +114,11 @@ def test_full_simulation_step():
     # Capture initial state
     initial_turn = sim.world.turn
     n_id = list(sim.world.nations.keys())[0]
+    
+    # Ensure nations have enough materials for welfare
+    for nation in sim.world.nations.values():
+        nation.total_materials = 500.0
+        
     initial_budget = sim.world.nations[n_id].total_budget
     
     # RUN STEP

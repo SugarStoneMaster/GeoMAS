@@ -49,21 +49,22 @@ UNIT_COSTS: dict[UnitType, dict[str, float]] = {
 }
 
 # --- MAINTENANCE COSTS (per unit per turn) ---
+# Note: These values must stay in sync with geomas.calculators.consumption
 UNIT_MAINTENANCE: dict[UnitType, dict[str, float]] = {
     UnitType.SOLDIER: {
-        "budget": 1.0,        # Pay and supplies
-        "materials": 0.5,     # Ammunition, equipment wear
+        "budget": 0.2,        # SALARY_SOLDIER
+        "materials": 0.1,     # MAINTENANCE_SOLDIER
         "energy": 0.0,
     },
     UnitType.NAVY: {
-        "budget": 10.0,       # Crew pay, port fees
-        "materials": 5.0,     # Repairs, ammunition
-        "energy": 3.0,        # Fuel consumption
+        "budget": 4.0,        # SALARY_NAVY
+        "materials": 1.5,     # MAINTENANCE_NAVY
+        "energy": 3.0,        # ENERGY_MAINTENANCE_NAVY
     },
     UnitType.AIRCRAFT: {
-        "budget": 15.0,       # Pilot pay, hangar
-        "materials": 8.0,     # Parts, repairs
-        "energy": 5.0,        # Aviation fuel
+        "budget": 5.0,        # SALARY_AIRCRAFT
+        "materials": 2.0,     # MAINTENANCE_AIRCRAFT
+        "energy": 5.0,        # ENERGY_MAINTENANCE_AIRCRAFT
     },
 }
 

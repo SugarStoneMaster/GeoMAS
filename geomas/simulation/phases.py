@@ -55,7 +55,11 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
         
         # 5. Calculate consumption & Upkeep
         food_consumed = economy.calculate_food_consumption(nation.total_population)
-        energy_consumed = economy.calculate_energy_consumption(nation.total_population)
+        energy_consumed = economy.calculate_energy_consumption(
+            nation.total_population,
+            total_aircraft=nation.total_aircraft,
+            total_navy=nation.total_navy
+        )
         materials_consumed = economy.calculate_materials_consumption(
             nation.total_soldiers,
             nation.total_aircraft,
