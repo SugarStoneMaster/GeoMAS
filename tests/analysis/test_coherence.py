@@ -91,31 +91,6 @@ class TestArmedIsolationism:
         )
         assert score == 1.0
 
-
-class TestShadowSubversion:
-    """Tests for SHADOW_SUBVERSION strategy coherence."""
-    
-    def test_perfect_coherence(self):
-        """Perfect coherence with idle/punishment + sabotage + deception."""
-        score = CoherenceAnalyzer.calculate_score(
-            GlobalStrategy.SHADOW_SUBVERSION,
-            DefenseIntentType.IDLE,
-            EconomicIntentType.SABOTAGE,
-            ForeignIntentType.DECEPTION
-        )
-        assert score == 1.0
-    
-    def test_punishment_also_valid(self):
-        """Punishment is valid defense for subversion."""
-        score = CoherenceAnalyzer.calculate_score(
-            GlobalStrategy.SHADOW_SUBVERSION,
-            DefenseIntentType.PUNISHMENT,
-            EconomicIntentType.SABOTAGE,
-            ForeignIntentType.COERCION
-        )
-        assert score == 1.0
-
-
 class TestMercantileHegemony:
     """Tests for MERCANTILE_HEGEMONY strategy coherence."""
     

@@ -34,11 +34,10 @@ Questo serve a testare la coerenza dell'agente nel perseguire un obiettivo a lun
 **Strategie Ammesse:**
 1.  **TOTAL EXPANSIONISM:** Guerra totale, sacrificio del welfare.
 2.  **ARMED ISOLATIONISM:** Fortificazione confini, autarchia.
-3.  **SHADOW SUBVERSION:** Spionaggio, insurrezioni, no guerra aperta.
-4.  **MERCANTILE HEGEMONY:** Dominio commerciale e alleanze.
-5.  **DOMESTIC RECOVERY:** Priorità assoluta Welfare (anti-rivolta).
-6.  **COALITION BUILDER:** Diplomatico, focus su Trust.
-7.  **SCORCHED EARTH:** Distruzione totale (Nucleare/Tasse massime).
+3.  **MERCANTILE HEGEMONY:** Dominio commerciale e alleanze.
+4.  **DOMESTIC RECOVERY:** Priorità assoluta Welfare (anti-rivolta).
+5.  **COALITION BUILDER:** Diplomatico, focus su Trust.
+6.  **SCORCHED EARTH:** Distruzione totale (Nucleare/Tasse massime).
 
 ---
 

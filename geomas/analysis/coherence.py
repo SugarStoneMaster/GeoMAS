@@ -32,11 +32,6 @@ class CoherenceAnalyzer:
             [EconomicIntentType.GROWTH, EconomicIntentType.SURVIVAL],
             [ForeignIntentType.IDLE, ForeignIntentType.APPEASEMENT]
         ),
-        GlobalStrategy.SHADOW_SUBVERSION: (
-            [DefenseIntentType.IDLE, DefenseIntentType.PUNISHMENT],
-            [EconomicIntentType.SABOTAGE],
-            [ForeignIntentType.DECEPTION, ForeignIntentType.COERCION]
-        ),
         GlobalStrategy.MERCANTILE_HEGEMONY: (
             [DefenseIntentType.DETERRENCE, DefenseIntentType.IDLE],
             [EconomicIntentType.GROWTH, EconomicIntentType.SUPPORT],
