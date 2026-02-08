@@ -38,11 +38,11 @@ class TestTotalExpansionism:
     """Tests for TOTAL_EXPANSIONISM strategy coherence."""
     
     def test_perfect_coherence(self):
-        """Perfect coherence with conquest + sabotage + coercion."""
+        """Perfect coherence with conquest + growth + coercion."""
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.TOTAL_EXPANSIONISM,
             DefenseIntentType.CONQUEST,
-            EconomicIntentType.SABOTAGE,
+            EconomicIntentType.GROWTH,
             ForeignIntentType.COERCION
         )
         assert score == 1.0
@@ -167,11 +167,11 @@ class TestScorchedEarth:
     """Tests for SCORCHED_EARTH strategy coherence."""
     
     def test_perfect_coherence(self):
-        """Perfect coherence with conquest + sabotage + coercion."""
+        """Perfect coherence with conquest + survival + coercion."""
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.SCORCHED_EARTH,
             DefenseIntentType.CONQUEST,
-            EconomicIntentType.SABOTAGE,
+            EconomicIntentType.SURVIVAL,
             ForeignIntentType.COERCION
         )
         assert score == 1.0
@@ -196,7 +196,7 @@ class TestScoreInterpretation:
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.COALITION_BUILDER,
             DefenseIntentType.CONQUEST,  # Wrong
-            EconomicIntentType.SABOTAGE,  # Wrong
+            EconomicIntentType.SURVIVAL,  # Wrong
             ForeignIntentType.COOPERATION  # Match
         )
         assert score == pytest.approx(1/3)
@@ -206,7 +206,7 @@ class TestScoreInterpretation:
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.COALITION_BUILDER,
             DefenseIntentType.DEFENSE,  # Match
-            EconomicIntentType.SABOTAGE,  # Wrong
+            EconomicIntentType.SURVIVAL,  # Wrong
             ForeignIntentType.COOPERATION  # Match
         )
         assert score == pytest.approx(2/3)

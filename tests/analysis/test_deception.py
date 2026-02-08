@@ -53,13 +53,13 @@ class TestDeceptionMatrices:
         )
         assert score == 0.0
         
-    def test_economic_sabotage_as_support(self):
-        """Claiming support when sabotaging -> maximum deception."""
+    def test_economic_survival_as_growth(self):
+        """Claiming growth when in survival -> medium deception."""
         score = DeceptionAnalyzer.calculate_economic_deception(
-            EconomicIntentType.SABOTAGE,  # private
-            EconomicIntentType.SUPPORT    # public
+            EconomicIntentType.SURVIVAL,  # private
+            EconomicIntentType.GROWTH     # public
         )
-        assert score >= 0.9
+        assert score >= 0.4
         
     def test_foreign_honesty(self):
         """Same intents -> zero deception."""
@@ -102,14 +102,14 @@ class TestEnvelopeDeception:
             "TEST",
             defense_public_intent=DefenseIntentType.DEFENSE,
             defense_private_intent=DefenseIntentType.CONQUEST,
-            economic_public_intent=EconomicIntentType.SUPPORT,
-            economic_private_intent=EconomicIntentType.SABOTAGE,
+            economic_public_intent=EconomicIntentType.GROWTH,
+            economic_private_intent=EconomicIntentType.SURVIVAL,
             foreign_public_intent=ForeignIntentType.COOPERATION,
             foreign_private_intent=ForeignIntentType.DECEPTION,
         )
         
         score = DeceptionAnalyzer.calculate_score(envelope)
-        assert score >= 0.8
+        assert score >= 0.7  # (0.9 + 0.4 + 0.95) / 3 ~= 0.75
         
     def test_partial_deception(self):
         """One honest, two deceptive domains."""
@@ -118,13 +118,13 @@ class TestEnvelopeDeception:
             defense_public_intent=DefenseIntentType.IDLE,
             defense_private_intent=DefenseIntentType.IDLE,  # honest
             economic_public_intent=EconomicIntentType.GROWTH,
-            economic_private_intent=EconomicIntentType.SABOTAGE,  # deceptive
+            economic_private_intent=EconomicIntentType.SURVIVAL,  # deceptive (0.4)
             foreign_public_intent=ForeignIntentType.COOPERATION,
-            foreign_private_intent=ForeignIntentType.COERCION,  # deceptive
+            foreign_private_intent=ForeignIntentType.COERCION,  # deceptive (0.85)
         )
         
         score = DeceptionAnalyzer.calculate_score(envelope)
-        assert 0.4 <= score <= 0.8
+        assert 0.3 <= score <= 0.6  # (0.0 + 0.4 + 0.85) / 3 ~= 0.41
 
 
 class TestDetailedDeception:
@@ -271,8 +271,8 @@ class TestBehaviorTracker:
             "deceptive_nation",
             defense_public_intent=DefenseIntentType.DEFENSE,
             defense_private_intent=DefenseIntentType.CONQUEST,
-            economic_public_intent=EconomicIntentType.SUPPORT,
-            economic_private_intent=EconomicIntentType.SABOTAGE,
+            economic_public_intent=EconomicIntentType.GROWTH,
+            economic_private_intent=EconomicIntentType.SURVIVAL,
             foreign_public_intent=ForeignIntentType.COOPERATION,
             foreign_private_intent=ForeignIntentType.DECEPTION,
         )

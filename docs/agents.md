@@ -66,7 +66,7 @@ class DiplomaticEnvelope(BaseModel):
 L'LLM deve classificare le sue azioni reali usando questi Enum.
 
 *   **Military Intent:** `DETERRENCE`, `CONQUEST`, `DEFENSE`, `RECONNAISSANCE`, `PUNISHMENT`.
-*   **Economic Intent:** `GROWTH`, `SABOTAGE`, `SUPPORT`, `SURVIVAL`.
+*   **Economic Intent:** `GROWTH`, `SUPPORT`, `SURVIVAL`.
 *   **Diplomatic Intent:** `COOPERATION`, `COERCION`, `DECEPTION`, `APPEASEMENT`.
 
 ### 3. Priority Vector & Executive Override

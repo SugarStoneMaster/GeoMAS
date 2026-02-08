@@ -24,7 +24,7 @@ class CoherenceAnalyzer:
     EXPECTED_INTENTS = {
         GlobalStrategy.TOTAL_EXPANSIONISM: (
             [DefenseIntentType.CONQUEST],
-            [EconomicIntentType.GROWTH, EconomicIntentType.SABOTAGE],
+            [EconomicIntentType.GROWTH],
             [ForeignIntentType.COERCION, ForeignIntentType.DECEPTION]
         ),
         GlobalStrategy.ARMED_ISOLATIONISM: (
@@ -49,7 +49,7 @@ class CoherenceAnalyzer:
         ),
         GlobalStrategy.SCORCHED_EARTH: (
             [DefenseIntentType.CONQUEST, DefenseIntentType.PUNISHMENT],
-            [EconomicIntentType.SABOTAGE, EconomicIntentType.SURVIVAL],
+            [EconomicIntentType.SURVIVAL],
             [ForeignIntentType.COERCION, ForeignIntentType.DECEPTION]
         ),
     }

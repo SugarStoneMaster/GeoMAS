@@ -62,37 +62,26 @@ class DeceptionAnalyzer:
     
     # --- ECONOMIC DOMAIN DECEPTION MATRIX ---
     ECONOMIC_MATRIX = {
-        # Private is SABOTAGE
-        (EconomicIntentType.SABOTAGE, EconomicIntentType.SABOTAGE): 0.0,
-        (EconomicIntentType.SABOTAGE, EconomicIntentType.GROWTH): 0.9,
-        (EconomicIntentType.SABOTAGE, EconomicIntentType.SUPPORT): 0.95,
-        (EconomicIntentType.SABOTAGE, EconomicIntentType.SURVIVAL): 0.5,
-        (EconomicIntentType.SABOTAGE, EconomicIntentType.IDLE): 0.6,
-        
         # Private is GROWTH
         (EconomicIntentType.GROWTH, EconomicIntentType.GROWTH): 0.0,
-        (EconomicIntentType.GROWTH, EconomicIntentType.SABOTAGE): 0.3,
         (EconomicIntentType.GROWTH, EconomicIntentType.SUPPORT): 0.2,
         (EconomicIntentType.GROWTH, EconomicIntentType.SURVIVAL): 0.2,
         (EconomicIntentType.GROWTH, EconomicIntentType.IDLE): 0.1,
         
         # Private is SUPPORT
         (EconomicIntentType.SUPPORT, EconomicIntentType.SUPPORT): 0.0,
-        (EconomicIntentType.SUPPORT, EconomicIntentType.SABOTAGE): 0.4,
         (EconomicIntentType.SUPPORT, EconomicIntentType.GROWTH): 0.1,
         (EconomicIntentType.SUPPORT, EconomicIntentType.SURVIVAL): 0.2,
         (EconomicIntentType.SUPPORT, EconomicIntentType.IDLE): 0.2,
         
         # Private is SURVIVAL
         (EconomicIntentType.SURVIVAL, EconomicIntentType.SURVIVAL): 0.0,
-        (EconomicIntentType.SURVIVAL, EconomicIntentType.SABOTAGE): 0.4,
         (EconomicIntentType.SURVIVAL, EconomicIntentType.GROWTH): 0.4,
         (EconomicIntentType.SURVIVAL, EconomicIntentType.SUPPORT): 0.3,
         (EconomicIntentType.SURVIVAL, EconomicIntentType.IDLE): 0.2,
         
         # Private is IDLE
         (EconomicIntentType.IDLE, EconomicIntentType.IDLE): 0.0,
-        (EconomicIntentType.IDLE, EconomicIntentType.SABOTAGE): 0.3,
         (EconomicIntentType.IDLE, EconomicIntentType.GROWTH): 0.2,
         (EconomicIntentType.IDLE, EconomicIntentType.SUPPORT): 0.2,
         (EconomicIntentType.IDLE, EconomicIntentType.SURVIVAL): 0.1,

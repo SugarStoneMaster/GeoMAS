@@ -30,7 +30,6 @@ class DefenseIntentType(str, Enum):
 class EconomicIntentType(str, Enum):
     """Economic strategic intent types."""
     GROWTH = "GROWTH"               # Develop economy
-    SABOTAGE = "SABOTAGE"           # Undermine others economically
     SUPPORT = "SUPPORT"             # Aid allies economically
     SURVIVAL = "SURVIVAL"           # Emergency measures to stay afloat
     IDLE = "IDLE"                   # No significant economic action
