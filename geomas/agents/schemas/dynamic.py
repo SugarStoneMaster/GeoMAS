@@ -3,45 +3,97 @@ Dynamic Schema Generator.
 
 Creates Pydantic models at runtime to enforce strict validation of dynamic values
 like Nation IDs, which change depending on the simulation state.
+
+Supports:
+- ForeignProposal (Direct payload.target_nation_id)
+- EconomicProposal (Direct payload.target_nation_id)
+- DefenseProposal (Nested payload.moves[].target_nation_id)
 """
 
-from typing import List, Type, Literal, Optional
+from typing import List, Type, Literal, Optional, Any
 from pydantic import create_model, Field
-from geomas.agents.schemas import ForeignProposal, ForeignPayload
-from geomas.actions.foreign.schemas import ForeignActionType, DiplomaticMessageType
-from geomas.actions.common import Decision
 
-def get_dynamic_foreign_proposal(valid_nation_ids: List[str]) -> Type[ForeignProposal]:
+from geomas.agents.schemas import ForeignProposal, EconomicProposal, DefenseProposal
+from geomas.actions.foreign.schemas import ForeignPayload
+from geomas.actions.economy.schemas import EconomicPayload
+from geomas.actions.defense.schemas import DefensePayload, DefenseActionItem
+
+def get_dynamic_proposal_model(
+    base_model: Type[Any], 
+    valid_nation_ids: List[str]
+) -> Type[Any]:
     """
-    Create a ForeignProposal model that strictly validates target_nation_id
-    against the provided list of valid IDs using a Literal type.
+    Factory function to create a dynamic proposal model with restricted Nation IDs.
+    Automatically detects the model type and applies the appropriate constraints.
+    
+    Args:
+        base_model: The base Pydantic model class (ForeignProposal, etc.)
+        valid_nation_ids: List of valid Nation IDs to enforce.
+        
+    Returns:
+        A new Pydantic model class with strict Literal validation.
     """
     if not valid_nation_ids:
-        return ForeignProposal
+        return base_model
 
     # Create Dynamic Literal for Target IDs
-    # We must convert to tuple for Literal
+    # We must convert to tuple for Literal to work in pydantic
     ValidIDs = Literal[tuple(valid_nation_ids)] # type: ignore
     
-    # 1. Create Dynamic Payload
-    # We redefine ForeignPayload but with restricted target_nation_id
-    DynamicForeignPayload = create_model(
-        'DynamicForeignPayload',
-        decision=(Decision, Field(default=Decision.PENDING, description="FOR PRESIDENT ONLY. Ministers MUST leave as PENDING.")),
-        action_type=(Optional[ForeignActionType], None),
-        target_nation_id=(Optional[ValidIDs], Field(None, description=f"MUST be one of: {valid_nation_ids}")),
-        message=(Optional[str], Field(None, description="Diplomatic message to the target nation.")),
-        diplomatic_message_type=(Optional[DiplomaticMessageType], Field(None, description="Required for SEND_DIPLOMATIC_MESSAGE.")),
-        proposal_ref_type=(Optional[str], None),
-        __base__=ForeignPayload
-    )
-    
-    # 2. Create Dynamic Proposal
-    # We redefine ForeignProposal to use the Dynamic Payload
-    DynamicForeignProposal = create_model(
-        'DynamicForeignProposal',
-        payload=(DynamicForeignPayload, ...),
-        __base__=ForeignProposal
-    )
-    
-    return DynamicForeignProposal
+    # === FOREIGN PROPOSAL ===
+    if base_model == ForeignProposal:
+        DynamicForeignPayload = create_model(
+            'DynamicForeignPayload',
+            __base__=ForeignPayload,
+            target_nation_id=(Optional[ValidIDs], Field(None, description=f"MUST be one of: {valid_nation_ids}"))
+        )
+        return create_model(
+            'DynamicForeignProposal',
+            __base__=ForeignProposal,
+            payload=(DynamicForeignPayload, ...)
+        )
+
+    # === ECONOMIC PROPOSAL ===
+    elif base_model == EconomicProposal:
+        DynamicEconomicPayload = create_model(
+            'DynamicEconomicPayload',
+            __base__=EconomicPayload,
+            target_nation_id=(Optional[ValidIDs], Field(None, description=f"MUST be one of: {valid_nation_ids}"))
+        )
+        return create_model(
+            'DynamicEconomicProposal',
+            __base__=EconomicProposal,
+            payload=(DynamicEconomicPayload, ...)
+        )
+
+    # === DEFENSE PROPOSAL ===
+    elif base_model == DefenseProposal:
+        # Defense is trickier: target_nation_id is inside a List[DefenseActionItem]
+        
+        # 1. Dynamic Action Item
+        DynamicDefenseActionItem = create_model(
+            'DynamicDefenseActionItem',
+            __base__=DefenseActionItem,
+            target_nation_id=(Optional[ValidIDs], Field(None, description=f"MUST be one of: {valid_nation_ids}"))
+        )
+        
+        # 2. Dynamic Payload using the Dynamic Action Item
+        DynamicDefensePayload = create_model(
+            'DynamicDefensePayload',
+            __base__=DefensePayload,
+            moves=(List[DynamicDefenseActionItem], Field(
+                default_factory=list, 
+                max_length=3,
+                description="Ordered list of actions (Waterfall Logic). MAXIMUM 3 ACTIONS ALLOWED."
+            ))
+        )
+        
+        # 3. Dynamic Proposal
+        return create_model(
+            'DynamicDefenseProposal',
+            __base__=DefenseProposal,
+            payload=(DynamicDefensePayload, ...)
+        )
+
+    # Default fallback if unknown model
+    return base_model

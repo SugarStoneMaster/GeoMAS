@@ -8,7 +8,7 @@ from typing import Any, Optional
 from geomas.agents.llm_client import LLMClient
 from geomas.schemas.world import WorldState
 from geomas.agents.schemas import DefenseProposal, EconomicProposal, ForeignProposal, GlobalStrategy
-from geomas.agents.schemas.dynamic import get_dynamic_foreign_proposal
+from geomas.agents.schemas.dynamic import get_dynamic_proposal_model
 from geomas.agents.context.system import DefenseSystemPrompt, EconomySystemPrompt, ForeignSystemPrompt
 from geomas.agents.context.input import DefenseInputBuilder, EconomyInputBuilder, ForeignInputBuilder
 from geomas.agents.context.memory import ContextManager
@@ -93,10 +93,14 @@ class DefenseMinister(BaseMinister):
         # Add memory context
         user_prompt = self._add_memory_context(user_prompt, "Defense")
         
+        # Dynamic Validation: Enforce valid nation IDs
+        valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
+        ResponseModel = get_dynamic_proposal_model(DefenseProposal, valid_targets)
+        
         proposal = self.client.query_agent(
             system_prompt, 
             user_prompt, 
-            DefenseProposal
+            ResponseModel
         )
         
         self.last_trace = {
@@ -128,10 +132,14 @@ class EconomicMinister(BaseMinister):
         # Add memory context
         user_prompt = self._add_memory_context(user_prompt, "Economy")
         
+        # Dynamic Validation: Enforce valid nation IDs
+        valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
+        ResponseModel = get_dynamic_proposal_model(EconomicProposal, valid_targets)
+        
         proposal = self.client.query_agent(
             system_prompt, 
             user_prompt, 
-            EconomicProposal
+            ResponseModel
         )
         
         self.last_trace = {
@@ -171,9 +179,7 @@ class ForeignMinister(BaseMinister):
         
         # Dynamic Validation: Enforce valid nation IDs
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
-        
-        # Generate strict schema for this turn
-        ResponseModel = get_dynamic_foreign_proposal(valid_targets)
+        ResponseModel = get_dynamic_proposal_model(ForeignProposal, valid_targets)
         
         proposal = self.client.query_agent(
             system_prompt, 

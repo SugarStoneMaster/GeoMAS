@@ -1,51 +1,92 @@
 import pytest
 from pydantic import ValidationError
-from geomas.agents.schemas.dynamic import get_dynamic_foreign_proposal
-from geomas.actions.foreign.schemas import ForeignPayload, ForeignActionType
+from geomas.agents.schemas.dynamic import get_dynamic_proposal_model
+from geomas.agents.schemas import ForeignProposal, EconomicProposal, DefenseProposal
 
-def test_dynamic_foreign_proposal_creation():
+def test_dynamic_foreign_proposal():
     valid_ids = ["NATION_A", "NATION_B"]
-    DynamicModel = get_dynamic_foreign_proposal(valid_ids)
+    DynamicModel = get_dynamic_proposal_model(ForeignProposal, valid_ids)
     
-    # Test valid ID
+    # Test valid
     valid_data = {
         "payload": {
             "decision": "PENDING",
             "action_type": "PROPOSE_ALLIANCE",
             "target_nation_id": "NATION_A"
         },
-        "intent": {
-            "public_intent": "COOPERATION",
-            "private_intent": "COOPERATION",
-            "reasoning": "Test reasoning"
-        }
+        "intent": {"public_intent": "COOPERATION", "private_intent": "COOPERATION", "reasoning": "Test"}
     }
     instance = DynamicModel(**valid_data)
     assert instance.payload.target_nation_id == "NATION_A"
 
-    # Test invalid ID
-    invalid_data = {
-        "payload": {
-            "decision": "PENDING",
-            "action_type": "PROPOSE_ALLIANCE",
-            "target_nation_id": "INVALID_NATION"
-        },
-        "intent": {
-            "public_intent": "COOPERATION",
-            "private_intent": "COOPERATION",
-            "reasoning": "Test reasoning"
-        }
-    }
+    # Test invalid
+    invalid_data = valid_data.copy()
+    invalid_data["payload"] = valid_data["payload"].copy()
+    invalid_data["payload"]["target_nation_id"] = "INVALID"
     
     with pytest.raises(ValidationError) as excinfo:
         DynamicModel(**invalid_data)
-    
     assert "Input should be 'NATION_A' or 'NATION_B'" in str(excinfo.value)
 
-def test_dynamic_foreign_proposal_empty_list():
-    # Should fall back to base class or handle gracefully
-    DynamicModel = get_dynamic_foreign_proposal([])
-    # If list is empty, target_nation_id might be effectively impossible or Any?
-    # Our implementation returns base class if empty
-    from geomas.agents.schemas import ForeignProposal
-    assert DynamicModel == ForeignProposal
+def test_dynamic_economic_proposal():
+    valid_ids = ["NATION_X", "NATION_Y"]
+    DynamicModel = get_dynamic_proposal_model(EconomicProposal, valid_ids)
+    
+    # Test valid
+    valid_data = {
+        "payload": {
+            "decision": "PENDING",
+            "action_type": "TRADE_PROPOSAL",
+            "target_nation_id": "NATION_X"
+        },
+        "intent": {"public_intent": "GROWTH", "private_intent": "GROWTH", "reasoning": "Test"}
+    }
+    instance = DynamicModel(**valid_data)
+    assert instance.payload.target_nation_id == "NATION_X"
+    
+    # Test invalid
+    invalid_data = valid_data.copy()
+    invalid_data["payload"] = valid_data["payload"].copy()
+    invalid_data["payload"]["target_nation_id"] = "INVALID"
+    
+    with pytest.raises(ValidationError):
+        DynamicModel(**invalid_data)
+
+def test_dynamic_defense_proposal():
+    valid_ids = ["ENEMY_1", "ENEMY_2"]
+    DynamicModel = get_dynamic_proposal_model(DefenseProposal, valid_ids)
+    
+    # Test valid
+    valid_data = {
+        "payload": {
+            "decision": "PENDING",
+            "moves": [
+                {
+                    "priority": 1,
+                    "action_type": "MOVE_TROOPS",
+                    "target_nation_id": "ENEMY_1"
+                }
+            ]
+        },
+        "intent": {"public_intent": "DETERRENCE", "private_intent": "DETERRENCE", "reasoning": "Test"}
+    }
+    instance = DynamicModel(**valid_data)
+    assert instance.payload.moves[0].target_nation_id == "ENEMY_1"
+    
+    # Test invalid in nesting
+    invalid_data = {
+        "payload": {
+            "decision": "PENDING",
+            "moves": [
+                {
+                    "priority": 1,
+                    "action_type": "MOVE_TROOPS",
+                    "target_nation_id": "INVALID_ENEMY"
+                }
+            ]
+        },
+        "intent": {"public_intent": "DETERRENCE", "private_intent": "DETERRENCE", "reasoning": "Test"}
+    }
+    
+    with pytest.raises(ValidationError):
+        DynamicModel(**invalid_data)

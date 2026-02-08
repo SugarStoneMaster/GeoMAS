@@ -33,37 +33,37 @@ class E2EMockLLM(LLMClient):
     
     def query_agent(self, system_prompt, user_prompt, response_model, max_retries=3):
         # Return valid dummy objects
-        if response_model == DefenseProposal:
-            return DefenseProposal(
+        if issubclass(response_model, DefenseProposal):
+            return response_model(
                 intent=DefenseIntent(
                     public_intent=DefenseIntentType.IDLE,
                     private_intent=DefenseIntentType.IDLE,
                     reasoning="Peace"
                 ),
-                payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
+                payload={"decision": Decision.APPROVE, "moves": []},
                 urgency=1
             )
-        elif response_model == EconomicProposal:
-            return EconomicProposal(
+        elif issubclass(response_model, EconomicProposal):
+            return response_model(
                 intent=EconomicIntent(
                     public_intent=EconomicIntentType.GROWTH,
                     private_intent=EconomicIntentType.GROWTH,
                     reasoning="Grow"
                 ),
-                payload=EconomicPayload(decision=Decision.APPROVE, action_type=EconomicActionType.INVEST_WELFARE),
+                payload={"decision": Decision.APPROVE, "action_type": EconomicActionType.INVEST_WELFARE},
                 projected_cost=10.0
             )
-        elif response_model == ForeignProposal:
-            return ForeignProposal(
+        elif issubclass(response_model, ForeignProposal):
+            return response_model(
                 intent=ForeignIntent(
                     public_intent=ForeignIntentType.COOPERATION,
                     private_intent=ForeignIntentType.COOPERATION,
                     reasoning="Coop"
                 ),
-                payload=ForeignPayload(decision=Decision.APPROVE, action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE),
+                payload={"decision": Decision.APPROVE, "action_type": ForeignActionType.SEND_DIPLOMATIC_MESSAGE},
                 target_trust_impact=0.1
             )
-        elif response_model == PresidentialDecree:
+        elif issubclass(response_model, PresidentialDecree):
             return PresidentialDecree(
                 defense=DefenseDecree(action=Decision.APPROVE, reasoning="Peace"),
                 economy=EconomicDecree(action=Decision.APPROVE, reasoning="Growth"),

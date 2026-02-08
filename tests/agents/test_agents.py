@@ -38,34 +38,34 @@ class MockLLMClient(LLMClient):
 
     def query_agent(self, system_prompt: str, user_prompt: str, response_model: Type, max_retries: int = 3):
         # Return a valid dummy object based on the requested model
-        if response_model == DefenseProposal:
-            return DefenseProposal(
+        if issubclass(response_model, DefenseProposal):
+            return response_model(
                 intent=DefenseIntent(
                     public_intent=DefenseIntentType.DEFENSE,
                     private_intent=DefenseIntentType.DEFENSE,
                     reasoning="Mock Defense"
                 ),
-                payload=DefensePayload(decision=Decision.APPROVE, moves=[])
+                payload={"decision": Decision.APPROVE, "moves": []}
             )
-        elif response_model == EconomicProposal:
-            return EconomicProposal(
+        elif issubclass(response_model, EconomicProposal):
+            return response_model(
                 intent=EconomicIntent(
                     public_intent=EconomicIntentType.GROWTH,
                     private_intent=EconomicIntentType.GROWTH,
                     reasoning="Mock Eco"
                 ),
-                payload=EconomicPayload(decision=Decision.APPROVE)
+                payload={"decision": Decision.APPROVE}
             )
-        elif response_model == ForeignProposal:
-            return ForeignProposal(
+        elif issubclass(response_model, ForeignProposal):
+            return response_model(
                 intent=ForeignIntent(
                     public_intent=ForeignIntentType.COOPERATION,
                     private_intent=ForeignIntentType.COOPERATION,
                     reasoning="Mock Foreign"
                 ),
-                payload=ForeignPayload(decision=Decision.APPROVE)
+                payload={"decision": Decision.APPROVE}
             )
-        elif response_model == PresidentialDecree:
+        elif issubclass(response_model, PresidentialDecree):
             return PresidentialDecree(
                 defense=DefenseDecree(action=Decision.APPROVE, reasoning="Approved"),
                 economy=EconomicDecree(action=Decision.APPROVE, reasoning="Approved"),

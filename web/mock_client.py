@@ -27,43 +27,43 @@ class UIMockLLM(LLMClient):
     def query_agent(self, system_prompt, user_prompt, response_model, max_retries=3):
         """Returns deterministic responses based on the requested model type."""
         
-        if response_model == DefenseProposal:
-            return DefenseProposal(
+        if issubclass(response_model, DefenseProposal):
+            return response_model(
                 intent=DefenseIntent(
                     public_intent=DefenseIntentType.IDLE,
                     private_intent=DefenseIntentType.IDLE,
                     reasoning="Peace is good"
                 ),
-                payload=DefensePayload(decision=Decision.APPROVE, moves=[])
+                payload={"decision": Decision.APPROVE, "moves": []}
             )
         
-        elif response_model == EconomicProposal:
-            return EconomicProposal(
+        elif issubclass(response_model, EconomicProposal):
+            return response_model(
                 intent=EconomicIntent(
                     public_intent=EconomicIntentType.GROWTH,
                     private_intent=EconomicIntentType.GROWTH,
                     reasoning="We need to grow"
                 ),
-                payload=EconomicPayload(
-                    decision=Decision.APPROVE, 
-                    action_type=EconomicActionType.INVEST_WELFARE
-                )
+                payload={
+                    "decision": Decision.APPROVE, 
+                    "action_type": EconomicActionType.INVEST_WELFARE
+                }
             )
         
-        elif response_model == ForeignProposal:
-            return ForeignProposal(
+        elif issubclass(response_model, ForeignProposal):
+            return response_model(
                 intent=ForeignIntent(
                     public_intent=ForeignIntentType.COOPERATION,
                     private_intent=ForeignIntentType.COOPERATION,
                     reasoning="Friends are good"
                 ),
-                payload=ForeignPayload(
-                    decision=Decision.APPROVE, 
-                    action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE
-                )
+                payload={
+                    "decision": Decision.APPROVE, 
+                    "action_type": ForeignActionType.SEND_DIPLOMATIC_MESSAGE
+                }
             )
         
-        elif response_model == PresidentialDecree:
+        elif issubclass(response_model, PresidentialDecree):
             return PresidentialDecree(
                 defense=DefenseDecree(action=Decision.APPROVE, reasoning="Peace"),
                 economy=EconomicDecree(action=Decision.APPROVE, reasoning="Growth"),
