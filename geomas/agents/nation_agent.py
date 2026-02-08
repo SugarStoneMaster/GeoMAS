@@ -215,10 +215,10 @@ class NationAgent:
             details_parts = []
             if payload.amount is not None:
                 details_parts.append(f"amount={payload.amount:.0f}")
-            if payload.trade_offer_give:
-                details_parts.append(f"give={payload.trade_offer_give}")
-            if payload.trade_offer_receive:
-                details_parts.append(f"receive={payload.trade_offer_receive}")
+            if payload.trade_offer_give_type:
+                details_parts.append(f"give={payload.trade_offer_give_amount} {payload.trade_offer_give_type}")
+            if payload.trade_offer_want_type:
+                details_parts.append(f"want={payload.trade_offer_want_type}")
             details = " ".join(details_parts)
             return f"{summary} {payload.action_type.value} {details}"
         return f"{summary} None"

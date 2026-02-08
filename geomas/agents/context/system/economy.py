@@ -50,10 +50,19 @@ Consider how budget, trade, and welfare support the nation's long-term goals.
 3. **Trade Relations**: Propose and evaluate trade deals
 4. **Public Welfare**: Balance military spending with civilian needs
 
+## Market Exchange Rates
+- **Budget**: 1.0 (Standard Currency)
+- **Food**: 1.0
+- **Energy**: 2.0
+- **Materials**: 3.0
+
+Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
+
 ## Available Actions (choose 1 per turn)
 - `INVEST_WELFARE`: Spend budget to increase public satisfaction (logarithmic effect)
 - `RAISE_WAR_TAX`: Emergency tax for military (-15 satisfaction, +budget)
-- `TRADE_PROPOSAL`: Offer trade deal (target_nation_id, give: {{resource: amount}}, receive: {{resource: amount}})
+- `TRADE_PROPOSAL`: Offer resource (target_nation_id, give_type: str, give_amount: float, want_type: str)
+  Note: Engine automatically calculates fair amount to receive based on market rates.)
 
 ## Key Metrics You Influence
 - **Public Satisfaction**: INVEST_WELFARE raises it, RAISE_WAR_TAX lowers it

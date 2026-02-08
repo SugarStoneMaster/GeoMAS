@@ -85,11 +85,40 @@ def execute_economic(
             engine.logs.append("[ECONOMY] Failed TRADE_PROPOSAL: No target specified")
             return
         
+        # 1. Extract Single-Resource Parameters
+        give_type = payload.trade_offer_give_type
+        give_amount = payload.trade_offer_give_amount
+        want_type = payload.trade_offer_want_type
         
-        # Build TradeOffer from parameters
-        give = payload.trade_offer_give or {}
-        receive = payload.trade_offer_receive or {}
+        if not give_type or not want_type or give_amount is None:
+            engine.logs.append(f"[ECONOMY] Failed TRADE_PROPOSAL: Missing parameters (give_type, give_amount, or want_type)")
+            return
+            
+        if give_amount <= 0:
+            engine.logs.append(f"[ECONOMY] Failed TRADE_PROPOSAL: Amount must be positive")
+            return
+
+        from geomas.actions.economy.trade import BASE_PRICES
         
+        # Verify resource validity
+        give_price = BASE_PRICES.get(give_type)
+        want_price = BASE_PRICES.get(want_type)
+        
+        if give_price is None or want_price is None:
+             engine.logs.append(f"[ECONOMY] Failed TRADE_PROPOSAL: Invalid resource '{give_type}' or '{want_type}'")
+             return
+
+        # 2. Calculate Value
+        total_value = give_amount * give_price
+        
+        # 3. Calculate Receive Amount
+        receive_amount = total_value / want_price
+        
+        # Build strict single-resource dicts for internal TradeOffer
+        give = {give_type: give_amount}
+        receive = {want_type: receive_amount}
+        
+        # Build internal TradeOffer
         offer = TradeOffer(
             sender_id=nation_id,
             receiver_id=target_id,
@@ -97,17 +126,17 @@ def execute_economic(
             receive=receive
         )
         
-        # Evaluate trade using Trade Oracle
+        # Evaluate using Oracle (Trust & Balance Check)
         accepted, explanation = evaluate_trade(offer, engine.world)
         
         if accepted:
             # Execute trade: transfer resources
             execute_trade(engine.world, offer)
             
-            # Boost trust slightly (0-100 scale)
+            # Boost trust slightly
             engine.adjust_trust(nation_id, target_id, 2)
             engine.adjust_trust(target_id, nation_id, 2)
             
-            engine.logs.append(f"[TRADE] {nation_id} -> {target_id}: {explanation}")
+            engine.logs.append(f"[TRADE] ACCEPTED {nation_id} -> {target_id}: {explanation}")
         else:
-            engine.logs.append(f"[TRADE] {nation_id} -> {target_id}: {explanation}")
+            engine.logs.append(f"[TRADE] REJECTED {nation_id} -> {target_id}: {explanation}")
