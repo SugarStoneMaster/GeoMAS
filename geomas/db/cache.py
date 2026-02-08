@@ -86,6 +86,22 @@ class TurnCache:
         self._turns.append(snapshot)
         self._turn_index[turn] = snapshot
     
+    def update_turn_envelopes(
+        self, 
+        turn: int, 
+        envelopes: List[CountryEnvelope],
+        behaviors: Optional[Dict[str, Dict[str, float]]] = None
+    ) -> None:
+        """
+        Update existing turn snapshot with envelopes and behaviors.
+        Used when simulation splits execution and state persistence.
+        """
+        snapshot = self.get_turn(turn)
+        if snapshot:
+            snapshot.envelopes = list(envelopes)
+            if behaviors:
+                snapshot.behaviors = behaviors
+    
     def get_turn(self, turn: int) -> Optional[TurnSnapshot]:
         """
         Get snapshot for a specific turn.

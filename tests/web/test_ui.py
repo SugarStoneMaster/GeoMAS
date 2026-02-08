@@ -97,7 +97,7 @@ class TestUIIntegration:
         # Run a turn
         sim.step()
         
-        assert sim.world.turn == 1
+        assert sim.world.turn == 2
         assert len(sim.history) == 1
         assert len(sim.history[0]) > 0  # At least one envelope
     

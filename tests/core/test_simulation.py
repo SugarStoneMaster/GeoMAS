@@ -86,7 +86,7 @@ def test_simulation_init():
     
     assert len(sim.world.nations) == 10 # Default
     assert len(sim.agents) == 10
-    assert sim.world.turn == 0
+    assert sim.world.turn == 1
 
 
 def test_simulation_step():

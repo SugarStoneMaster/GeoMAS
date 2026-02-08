@@ -95,7 +95,7 @@ class MapGenerator:
         
         # Assemble World
         world = WorldState(
-            turn=0,
+            turn=1,
             provinces=provinces_dict,
             nations=nations_dict,
             trust_matrix={}

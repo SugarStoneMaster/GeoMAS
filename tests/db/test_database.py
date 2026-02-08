@@ -271,14 +271,14 @@ class TestEngineIntegration:
                 db_path=db_path
             )
             
-            # Verify turn 0 was saved
-            snapshot = engine.db.load_snapshot(0)
+            # Verify turn 1 was saved
+            snapshot = engine.db.load_snapshot(1)
             assert snapshot is not None
             
             # Verify world can be loaded
-            world = engine.db.load_world_at_turn(0)
+            world = engine.db.load_world_at_turn(1)
             assert world is not None
-            assert world.turn == 0
+            assert world.turn == 1
             
             engine.close()
 

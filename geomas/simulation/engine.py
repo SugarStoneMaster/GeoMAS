@@ -95,16 +95,16 @@ class SimulationEngine:
             n_cells=self.n_cells
         )
         
-        # Save initial world state (turn 0)
+        # Save initial world state (turn 1 - Genesis)
         snapshot = serialize_world_snapshot(self.world)
         self.db.save_snapshot(
-            turn=0,
+            turn=1,
             **snapshot
         )
         
-        # Also cache turn 0
+        # Also cache turn 1
         self.cache.add_turn(
-            turn=0,
+            turn=1,
             world_state=self.world,
             envelopes=[],
             behaviors={}
@@ -164,25 +164,13 @@ class SimulationEngine:
         
         return behaviors
 
-    def _persist_turn(self, turn: int, envelopes: List[CountryEnvelope]) -> None:
-        """Persist turn data to database."""
-        if self.db is None:
-            return
+    def _persist_envelopes(self, turn: int, envelopes: List[CountryEnvelope]) -> None:
+        """Save envelopes and behaviors for a turn."""
+        if self.db is None: return
         
-        # Save world snapshot
-        snapshot = serialize_world_snapshot(self.world)
-        self.db.save_snapshot(turn=turn, **snapshot)
-        
-        # Save envelopes and behavior metrics
         for envelope in envelopes:
-            # Save envelope
-            self.db.save_envelope(
-                turn=turn,
-                nation_id=envelope.sender_id,
-                envelope_json=serialize_envelope(envelope)
-            )
+            self.db.save_envelope(turn=turn, nation_id=envelope.sender_id, envelope_json=serialize_envelope(envelope))
             
-            # Calculate and save behavior metrics
             detailed = DeceptionAnalyzer.calculate_detailed_score(envelope)
             coherence = CoherenceAnalyzer.calculate_score(
                 envelope.global_strategy,
@@ -190,17 +178,18 @@ class SimulationEngine:
                 envelope.economic_private_intent,
                 envelope.foreign_private_intent
             )
-            
             self.db.save_behavior(
-                turn=turn,
-                nation_id=envelope.sender_id,
-                deception_total=detailed["total"],
-                deception_defense=detailed["defense"],
-                deception_economic=detailed["economic"],
-                deception_foreign=detailed["foreign"],
-                coherence_score=coherence,
-                global_strategy=envelope.global_strategy.value
+                turn=turn, nation_id=envelope.sender_id,
+                deception_total=detailed["total"], deception_defense=detailed["defense"],
+                deception_economic=detailed["economic"], deception_foreign=detailed["foreign"],
+                coherence_score=coherence, global_strategy=envelope.global_strategy.value
             )
+
+    def _persist_snapshot(self, turn: int) -> None:
+        """Save world snapshot for a turn."""
+        if self.db is None: return
+        snapshot = serialize_world_snapshot(self.world)
+        self.db.save_snapshot(turn=turn, **snapshot)
 
     def _cache_turn(self, turn: int, envelopes: List[CountryEnvelope]) -> None:
         """Add turn data to in-memory cache."""
@@ -214,8 +203,7 @@ class SimulationEngine:
 
     def step(self):
         """Executes one full turn of the simulation."""
-        # Increment Turn FIRST
-        self.world.turn += 1
+        
         current_turn = self.world.turn
         
         print(f"--- STARTING TURN {current_turn} ---")
@@ -252,8 +240,8 @@ class SimulationEngine:
         # Store envelopes in history
         self.history.append(turn_envelopes)
         
-        # 3. CACHE PHASE (In-Memory)
-        self._cache_turn(current_turn, turn_envelopes)
+        # 3. CACHE PHASE (See end of step for implementation)
+        # self._cache_turn(current_turn, turn_envelopes)
         
         # 4. CONTEXT PHASE (Update agent memory)
         self.context_manager.update_after_turn(current_turn, turn_envelopes, self.world)
@@ -268,7 +256,26 @@ class SimulationEngine:
         )
         
         # 6. PERSIST PHASE (Database)
-        self._persist_turn(current_turn, turn_envelopes)
+        # 6. PERSIST PHASE (Database & Cache)
+        # Save Envelopes & Behavior for CURRENT turn (The actions taken)
+        self._persist_envelopes(current_turn, turn_envelopes)
+        
+        # Increment Turn to Next State (Result of actions)
+        self.world.turn += 1
+        next_turn = self.world.turn
+        
+        # Save Snapshot of NEXT turn (The resulting world state)
+        self._persist_snapshot(next_turn)
+        
+        # Cache Update: We associate Envelopes of T1 with T1.
+        # And World State T2 with T2.
+        # Basic caching (overwriting or appending)
+        # Ideally, update cache for current_turn with envelopes? 
+        # For simple logic: just cache the NEW state as next turn.
+        self._cache_turn(next_turn, []) # Cache new state
+        self.cache.update_turn_envelopes(current_turn, turn_envelopes, self._calculate_behaviors(turn_envelopes))
+        
+        print(f"--- TURN {current_turn} COMPLETE ---")
             
         print(f"--- TURN {current_turn} COMPLETE ---")
 
