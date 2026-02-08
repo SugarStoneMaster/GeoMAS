@@ -129,8 +129,8 @@ class ForeignInputBuilder:
             else:
                 trust_desc = "Hostile"
             
+            # Use ID primarily
             entry = {
-                "name": other_nation.name,
                 "id": other_id,
                 "trust": trust_level,
                 "trust_desc": trust_desc,
@@ -148,17 +148,17 @@ class ForeignInputBuilder:
         if at_war:
             lines.append("\n**🔴 AT WAR:**")
             for e in at_war:
-                lines.append(f"  - {e['name']} [ID: {e['id']}]: Trust {e['trust']:.0f} ({e['trust_desc']})")
+                lines.append(f"  - **{e['id']}**: Trust {e['trust']:.0f} ({e['trust_desc']})")
         
         if allies:
             lines.append("\n**🟢 ALLIES:**")
             for e in allies:
-                lines.append(f"  - {e['name']} [ID: {e['id']}]: Trust {e['trust']:.0f} ({e['trust_desc']})")
+                lines.append(f"  - **{e['id']}**: Trust {e['trust']:.0f} ({e['trust_desc']})")
         
         if neutral:
             lines.append("\n**⚪ NEUTRAL/PEACE:**")
             for e in sorted(neutral, key=lambda x: -x['trust']):
-                lines.append(f"  - {e['name']} [ID: {e['id']}]: Trust {e['trust']:.0f} ({e['trust_desc']})")
+                lines.append(f"  - **{e['id']}**: Trust {e['trust']:.0f} ({e['trust_desc']})")
         
         return "\n".join(lines)
     

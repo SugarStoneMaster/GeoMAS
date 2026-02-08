@@ -48,7 +48,8 @@ class NationAgent:
         self.president_system_prompt = PresidentSystemPrompt.generate(
             nation_name=world.nations[nation_id].name,
             strategy=global_strategy,
-            cultural_traits=getattr(world.nations[nation_id], 'cultural_traits', None)
+            cultural_traits=getattr(world.nations[nation_id], 'cultural_traits', None),
+            nation_id=self.id
         )
         
         # Initialize Cabinet (pass context_manager and strategy for eager init)
@@ -117,7 +118,8 @@ class NationAgent:
             self.president_system_prompt = PresidentSystemPrompt.generate(
                 nation_name=nation.name,
                 strategy=self.strategy,
-                cultural_traits=getattr(nation, 'cultural_traits', None)
+                cultural_traits=getattr(nation, 'cultural_traits', None),
+                nation_id=self.id
             )
             self.last_strategy = self.strategy
             

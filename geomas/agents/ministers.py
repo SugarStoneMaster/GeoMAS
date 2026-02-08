@@ -8,6 +8,7 @@ from typing import Any, Optional
 from geomas.agents.llm_client import LLMClient
 from geomas.schemas.world import WorldState
 from geomas.agents.schemas import DefenseProposal, EconomicProposal, ForeignProposal, GlobalStrategy
+from geomas.agents.schemas.dynamic import get_dynamic_foreign_proposal
 from geomas.agents.context.system import DefenseSystemPrompt, EconomySystemPrompt, ForeignSystemPrompt
 from geomas.agents.context.input import DefenseInputBuilder, EconomyInputBuilder, ForeignInputBuilder
 from geomas.agents.context.memory import ContextManager
@@ -48,7 +49,8 @@ class BaseMinister:
         nation = self.world.nations[self.nation_id]
         self.system_prompt = self.prompt_class.generate(
             nation_name=nation.name,
-            strategy=strategy
+            strategy=strategy,
+            nation_id=self.nation_id
         )
         self.last_strategy = strategy
 
@@ -167,10 +169,16 @@ class ForeignMinister(BaseMinister):
         
         user_prompt = self._add_memory_context(user_prompt, "Foreign")
         
+        # Dynamic Validation: Enforce valid nation IDs
+        valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
+        
+        # Generate strict schema for this turn
+        ResponseModel = get_dynamic_foreign_proposal(valid_targets)
+        
         proposal = self.client.query_agent(
             system_prompt, 
             user_prompt, 
-            ForeignProposal
+            ResponseModel
         )
         
         self.last_trace = {

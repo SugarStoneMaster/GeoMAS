@@ -208,7 +208,7 @@ class EconomyInputBuilder:
             else:
                 trade_status = "⚠️ Low trust - trade risky"
             
-            lines.append(f"- **{other.name}**: {status}, Trust {trust_level:.0f} - {trade_status}")
+            lines.append(f"- **{other_id}**: {status}, Trust {trust_level:.0f} - {trade_status}")
         
         return "\n".join(lines)
     

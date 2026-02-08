@@ -264,8 +264,16 @@ class ContextManager:
         
         # Diplomatic messages
         if "SEND_DIPLOMATIC_MESSAGE" in action_type:
-            target_id = getattr(behavior, 'target_nation_id', None)
-            target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
+            target_id = str(getattr(behavior, 'target_nation_id', ''))
+            if not target_id or target_id == 'None':
+                target_id = None
+
+            target_name = target_id
+            if target_id and target_id in world.nations:
+                target_name = world.nations[target_id].name
+            elif target_id and str(target_id) in world.nations:
+                 target_name = world.nations[str(target_id)].name
+
             msg_type = getattr(behavior, 'diplomatic_message_type', 'MESSAGE')
             message = getattr(behavior, 'message', None)
             
@@ -283,8 +291,16 @@ class ContextManager:
             
         # Proposals and responses
         if any(x in action_type for x in ["PROPOSE_ALLIANCE", "REQUEST_PEACE", "ACCEPT_PROPOSAL", "REJECT_PROPOSAL"]):
-            target_id = getattr(behavior, 'target_nation_id', None)
-            target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
+            target_id = str(getattr(behavior, 'target_nation_id', ''))
+            if not target_id or target_id == 'None':
+                target_id = None
+            
+            target_name = target_id
+            if target_id and target_id in world.nations:
+                target_name = world.nations[target_id].name
+            elif target_id and str(target_id) in world.nations: # Handle int-as-string keys
+                 target_name = world.nations[str(target_id)].name
+
             message = getattr(behavior, 'message', None)
             
             event_type = None
@@ -302,6 +318,13 @@ class ContextManager:
                 summary += f" (Message: '{message}')"
             
             if event_type:
+                # Deduplication: Check if identical event exists this turn
+                for existing in self.global_events:
+                    if (existing.turn == turn and 
+                        existing.event_type == event_type and 
+                        set(existing.actors) == {nation_id, target_id}):
+                        return None
+
                 return NotableEvent(
                     turn=turn,
                     event_type=event_type,
@@ -313,8 +336,15 @@ class ContextManager:
         
         # === TRADE (auto-accepted via oracle, so proposal = deal) ===
         if "TRADE_PROPOSAL" in action_type:
-            target_id = getattr(behavior, 'target_nation_id', None)
-            target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
+            target_id = str(getattr(behavior, 'target_nation_id', ''))
+            if not target_id or target_id == 'None':
+                target_id = None
+
+            target_name = target_id
+            if target_id and target_id in world.nations:
+                target_name = world.nations[target_id].name
+            elif target_id and str(target_id) in world.nations:
+                 target_name = world.nations[str(target_id)].name
             
             message = getattr(behavior, 'message', None)
             summary = f"{nation_name} established trade with {target_name}"

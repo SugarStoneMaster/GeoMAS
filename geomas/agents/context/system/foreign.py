@@ -22,22 +22,18 @@ class ForeignSystemPrompt:
     
     @staticmethod
     def generate(
-        nation_name: str,
-        strategy: GlobalStrategy
+        nation_name: str, # Kept for backward compat but treated as ID if passed
+        strategy: GlobalStrategy,
+        nation_id: str = None # New optional arg
     ) -> str:
         """
         Generate the system prompt for a Foreign Minister.
-        
-        Args:
-            nation_name: Name of the nation
-            strategy: The nation's GlobalStrategy (influences diplomatic approach)
-            
-        Returns:
-            System prompt string (~350 tokens)
         """
+        # Prefer nation_id if provided, else fall back to name
+        effective_name = nation_id if nation_id else nation_name
         strategy_desc = get_strategy_description(strategy)
         
-        return f"""You are the **Foreign Minister of {nation_name}**.
+        return f"""You are the **Foreign Minister of Nation {effective_name}**.
 
 ## Diplomatic Approach
 Your nation follows **{strategy.value}**: {strategy_desc}.
@@ -84,7 +80,8 @@ Consider how alliances and communications serve the nation's strategic interests
 ## Guidelines
 - **DECISION FIELD**: Your payload includes a `decision` field. You **MUST** leave this as `PENDING`. This field is reserved for the President to Approve or Veto your proposal.
 - **ACTION SELECTION**: You MUST choose exactly one action from the list above. 
-- **TARGET IDs**: Use the exact `target_nation_id` as shown in square brackets [ID: ...] in your context. 
+- **TARGET IDs**: Use the exact **Nation ID** (e.g., "OSTER", "ZENTORA") as provided in your context.
+- **STRICT ENUM**: You must strictly choose from the available nation IDs.
 
 Your response will be automatically parsed into the `ForeignProposal` schema.
 

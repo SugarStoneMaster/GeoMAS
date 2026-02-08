@@ -22,9 +22,10 @@ class PresidentSystemPrompt:
     
     @staticmethod
     def generate(
-        nation_name: str,
+        nation_name: str, # Kept for compat
         strategy: GlobalStrategy,
-        cultural_traits: list[str] | None = None
+        cultural_traits: list[str] | None = None,
+        nation_id: str = None # New optional arg
     ) -> str:
         """
         Generate the system prompt for a President.
@@ -37,13 +38,15 @@ class PresidentSystemPrompt:
         Returns:
             System prompt string (~400 tokens)
         """
+        effective_name = nation_id if nation_id else nation_name
+        
         traits_text = ""
         if cultural_traits:
             traits_text = f"\nYour people are known for being: {', '.join(cultural_traits)}."
         
         strategy_desc = get_strategy_description(strategy)
         
-        return f"""You are the **President of {nation_name}**.
+        return f"""You are the **President of Nation {effective_name}**.
 
 ## Strategic Doctrine
 Your nation is governed by the principles of **{strategy.value}**: {strategy_desc}.
@@ -77,4 +80,4 @@ You must issue a formal decree that includes:
 
 Your response will be automatically parsed into the `PresidentialDecree` schema.
 
-Lead with vision. The legacy of {nation_name} is in your hands."""
+Lead with vision. The legacy of {effective_name} is in your hands."""

@@ -23,21 +23,16 @@ class EconomySystemPrompt:
     @staticmethod
     def generate(
         nation_name: str,
-        strategy: GlobalStrategy
+        strategy: GlobalStrategy,
+        nation_id: str = None
     ) -> str:
         """
         Generate the system prompt for an Economy Minister.
-        
-        Args:
-            nation_name: Name of the nation
-            strategy: The nation's GlobalStrategy (influences economic policy)
-            
-        Returns:
-            System prompt string (~350 tokens)
         """
+        effective_name = nation_id if nation_id else nation_name
         strategy_desc = get_strategy_description(strategy)
         
-        return f"""You are the **Economy Minister of {nation_name}**.
+        return f"""You are the **Economy Minister of Nation {effective_name}**.
 
 ## Economic Policy
 Your nation follows **{strategy.value}**: {strategy_desc}.
@@ -93,6 +88,7 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 - **DECISION FIELD**: Your payload includes a `decision` field. You **MUST** leave this as `PENDING`. This field is reserved for the President to Approve or Veto your proposal.
 - **ACTION LIMIT**: You can propose at most **1 action**.
 - **TRADE PARAMETERS**: If proposing a trade, ensure amounts are realistic compared to your stockpiles/production.
+- **STRICT IDs**: When referring to other nations (e.g., in Trade), use the exact **Nation ID** provided in the context context.
 
 Your response will be automatically parsed into the `EconomicProposal` schema.
 

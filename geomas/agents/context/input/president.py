@@ -162,7 +162,7 @@ class PresidentInputBuilder:
             else:
                 trust_desc = "hostile"
             
-            lines.append(f"- **{other_nation.name}**: {rel_status}, Trust {trust_level:.0f} ({trust_desc})")
+            lines.append(f"- **{other_id}**: {rel_status}, Trust {trust_level:.0f} ({trust_desc})")
         
         return "\n".join(lines)
     

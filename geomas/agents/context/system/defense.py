@@ -23,21 +23,16 @@ class DefenseSystemPrompt:
     @staticmethod
     def generate(
         nation_name: str,
-        strategy: GlobalStrategy
+        strategy: GlobalStrategy,
+        nation_id: str = None # New optional arg
     ) -> str:
         """
         Generate the system prompt for a Defense Minister.
-        
-        Args:
-            nation_name: Name of the nation
-            strategy: The nation's GlobalStrategy (influences military doctrine)
-            
-        Returns:
-            System prompt string (~350 tokens)
         """
+        effective_name = nation_id if nation_id else nation_name
         strategy_desc = get_strategy_description(strategy)
         
-        return f"""You are the **Defense Minister of {nation_name}**.
+        return f"""You are the **Defense Minister of Nation {effective_name}**.
 
 ## Military Doctrine
 Your nation follows **{strategy.value}**: {strategy_desc}.
@@ -82,6 +77,7 @@ Consider how defense actions support the nation's overarching goals.
 - **DECISION FIELD**: Your payload includes a `decision` field. You **MUST** leave this as `PENDING`. This field is reserved for the President to Approve or Veto your proposal.
 - **ACTION LIMIT**: Propose at most **3 actions** in `payload.moves`.
 - **WATERFALL LOGIC**: Actions are executed in order of priority (1 = highest). If one fails (e.g., budget), the rest are still attempted.
+- **STRICT IDs**: When referring to provinces, use the exact Province ID (integer). When referring to nations, use the exact **Nation ID**.
 
 Your response will be automatically parsed into the `DefenseProposal` schema.
 
