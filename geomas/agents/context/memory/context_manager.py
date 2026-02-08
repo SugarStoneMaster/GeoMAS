@@ -287,23 +287,29 @@ class ContextManager:
             target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
             message = getattr(behavior, 'message', None)
             
-            event_type = EventType.DIPLOMATIC_PROPOSAL
+            event_type = None
             if "ACCEPT_PROPOSAL" in action_type:
                 event_type = EventType.ALLIANCE_FORMED if "ALLIANCE" in str(getattr(behavior, 'proposal_ref_type', '')) else EventType.PEACE_SIGNED
             elif "REJECT_PROPOSAL" in action_type:
                 event_type = EventType.ALLIANCE_REJECTED if "ALLIANCE" in str(getattr(behavior, 'proposal_ref_type', '')) else EventType.PEACE_REJECTED
+            elif "PROPOSE_ALLIANCE" in action_type:
+                event_type = EventType.PROPOSE_ALLIANCE
+            elif "REQUEST_PEACE" in action_type:
+                event_type = EventType.REQUEST_PEACE
             
             summary = f"{nation_name} {action_type.replace('_', ' ').lower()} with {target_name}"
             if message:
                 summary += f" (Message: '{message}')"
             
-            return NotableEvent(
-                turn=turn,
-                event_type=event_type,
-                actors=[nation_id, target_id] if target_id else [nation_id],
-                summary=summary,
-                relevance_to=[nation_id, target_id] if target_id else [nation_id]
-            )
+            if event_type:
+                return NotableEvent(
+                    turn=turn,
+                    event_type=event_type,
+                    actors=[nation_id, target_id] if target_id else [nation_id],
+                    summary=summary,
+                    relevance_to=[nation_id, target_id] if target_id else [nation_id]
+                )
+            return None
         
         # === TRADE (auto-accepted via oracle, so proposal = deal) ===
         if "TRADE_PROPOSAL" in action_type:

@@ -33,9 +33,11 @@ from geomas.agents.schemas.protocol import (
     CountryEnvelope,
     PresidentialDecree,
     Decision,
+    PresidentialDecision,
     DefenseDecree,
     EconomicDecree,
     ForeignDecree,
+    PresidentialDecision,
 )
 
 # Re-export payloads from domain packages for convenience

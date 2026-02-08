@@ -9,3 +9,4 @@ pytest
 shapely
 instructor
 litellm
+duckdb
