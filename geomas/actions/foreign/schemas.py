@@ -32,9 +32,9 @@ class DiplomaticMessageType(str, Enum):
 
 # Trust impact per message type
 MESSAGE_TRUST_IMPACT: dict[DiplomaticMessageType, float] = {
-    DiplomaticMessageType.PRAISE: +0.1,
-    DiplomaticMessageType.THREAT: -0.3,   # Stronger than insult
-    DiplomaticMessageType.INSULT: -0.1,
+    DiplomaticMessageType.PRAISE: +10.0,
+    DiplomaticMessageType.THREAT: -30.0,   # Stronger than insult
+    DiplomaticMessageType.INSULT: -10.0,
 }
 
 

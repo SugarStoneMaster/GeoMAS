@@ -150,7 +150,7 @@ class TestPromptActionSpecifications:
         """Foreign prompt specifies proposal_type for ACCEPT_PROPOSAL."""
         prompt = ForeignSystemPrompt.generate("Test", GlobalStrategy.COALITION_BUILDER)
         assert "ACCEPT_PROPOSAL" in prompt
-        assert "proposal_type" in prompt
+        assert "proposal_ref_type" in prompt
         assert "ALLIANCE" in prompt
         assert "PEACE" in prompt
     
@@ -158,5 +158,5 @@ class TestPromptActionSpecifications:
         """Foreign prompt specifies proposal_type for REJECT_PROPOSAL."""
         prompt = ForeignSystemPrompt.generate("Test", GlobalStrategy.COALITION_BUILDER)
         assert "REJECT_PROPOSAL" in prompt
-        assert "proposal_type" in prompt
+        assert "proposal_ref_type" in prompt
 
