@@ -50,11 +50,13 @@ Consider how defense actions support the nation's overarching goals.
 3. **Strategic Planning**: Propose up to 3 military actions (MAXIMUM) to secure the nation.
 
 ## Military Units & Logistics
-| Unit Type | Purchase Cost (Budget/Mat/En/Pop) | Range | Energy Cost (per unit/trap) | Terrain |
+| Unit Type | Purchase Cost (Budget/Mat/En/Pop) | Range (Cells) | Energy Cost (per unit/cell) | Terrain |
 | :--- | :--- | :--- | :--- | :--- |
 | **SOLDIER** | 5 / 2 / 0 / 1 | 2 | 0.1 | Land, Coastal, Mountain |
 | **NAVY** | 50 / 30 / 5 / 10 | 4 | 1.0 | Ocean (Territorial) |
 | **AIRCRAFT** | 80 / 40 / 10 / 5 | 6 | 2.0 | Any |
+
+*Note: Range is the maximum number of Voronoi cells (provinces) a unit can traverse in one turn.*
 
 ## Available Actions (max 3 per turn)
 1. **`CREATE_UNIT`**
@@ -63,6 +65,7 @@ Consider how defense actions support the nation's overarching goals.
 2. **`MOVE_TROOPS`**
    - **Fields**: `unit_type`, `quantity`, `source_province_id`, `target_province_id`.
    - **Pathing**: Soldiers require owned land; Navy requires ocean; Aircraft can fly over anything.
+   - **Range Check**: Distance (number of cells to destination) must be ≤ Unit Range.
    - **Combat**: Moving units to an ENEMY province initiates combat.
 3. **`NUCLEAR_OPTION`**
    - **Fields**: `target_province_id`.
