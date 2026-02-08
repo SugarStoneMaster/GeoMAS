@@ -112,18 +112,45 @@ class MapGenerator:
         nations_dict: dict,
         provinces_dict: dict
     ) -> None:
-        """Calculates aggregate values for each nation from their provinces."""
+        """
+        Calculates aggregate values and initializes stockpiles for each nation.
+        
+        Stockpile logic:
+        - Each nation gets 10 turns of consumption as initial reserves.
+        - A 'Prosperity Factor' (0.7 - 1.3) adds variance between nations.
+        """
         temp_world = WorldState(provinces=provinces_dict, nations=nations_dict)
         
-        for nation in nations_dict.values():
+        # Constants for stockpile calculation
+        AUTONOMY_TURNS = 10
+        FOOD_PER_PERSON = 1.0
+        ENERGY_PER_PERSON = 0.5
+        
+        for i, nation in enumerate(nations_dict.values()):
+            # Seed-based prosperity factor (0.7 to 1.3)
+            prosperity = 0.7 + (self.rng.random() * 0.6)
+            
             aggregates = economy.calculate_nation_aggregates(nation, temp_world)
             
+            # Set production totals from provinces
             nation.total_population = aggregates["total_population"]
             nation.total_soldiers = aggregates["total_soldiers"]
             nation.total_aircraft = aggregates["total_aircraft"]
             nation.total_navy = aggregates["total_navy"]
-            nation.total_food = aggregates["total_food_production"]
-            nation.total_energy = aggregates["total_energy_production"]
-            nation.total_materials = aggregates["total_materials_production"]
+            
+            # Calculate consumption-based stockpiles (10 turns of autonomy)
+            pop = nation.total_population
+            food_consumption = pop * FOOD_PER_PERSON
+            energy_consumption = pop * ENERGY_PER_PERSON
+            materials_consumption = economy.calculate_materials_consumption(
+                nation.total_soldiers, nation.total_aircraft, nation.total_navy
+            )
+            
+            # Apply prosperity factor and autonomy buffer
+            nation.total_food = food_consumption * AUTONOMY_TURNS * prosperity
+            nation.total_energy = energy_consumption * AUTONOMY_TURNS * prosperity
+            nation.total_materials = max(100, materials_consumption * AUTONOMY_TURNS * prosperity)
+            nation.total_budget = (1000 + pop * 0.01) * prosperity
             
             nation.power_projection = economy.calculate_power_projection(nation)
+
