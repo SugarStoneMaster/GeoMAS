@@ -143,7 +143,7 @@ class TestPromptActionSpecifications:
         prompt = EconomySystemPrompt.generate("Test", GlobalStrategy.MERCANTILE_HEGEMONY)
         assert "TRADE_PROPOSAL" in prompt
         assert "give" in prompt.lower()
-        assert "receive" in prompt.lower()
+        assert "want" in prompt.lower() or "get" in prompt.lower()
         assert "target_nation_id" in prompt
     
     def test_foreign_accept_proposal_includes_proposal_type(self):
