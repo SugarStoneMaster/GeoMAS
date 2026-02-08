@@ -19,10 +19,12 @@ if project_root not in sys.path:
 from geomas.simulation import SimulationEngine
 
 # Import local modules
-from web.mock_client import UIMockLLM
+# Import local modules
+from geomas.agents.llm_client import LLMClient
 from web.views.map_page import render_map_page
 from web.views.logs_page import render_logs_page
 from web.views.deception_page import render_deception_page
+from web.components.event_log import render_event_log
 
 
 # --- PAGE CONFIG ---
@@ -48,12 +50,20 @@ if "sim" not in st.session_state:
 
 with ctrl_cols[3]:
     st.markdown("&nbsp;")  # Spacer for alignment
-    if st.button("🔄 Init/Reset", use_container_width=True):
+    if st.button("🔄 Init/Reset (Real LLM)", use_container_width=True):
+        
+        # Initialize Real LLM Client
+        try:
+            client = LLMClient()
+        except Exception as e:
+            st.error(f"LLM Error: {e}")
+            st.stop()
+            
         sim = SimulationEngine(
             map_seed=int(map_seed),
             history_seed=int(history_seed),
             n_cells=int(n_cells),
-            llm_client=UIMockLLM()
+            llm_client=client
         )
         st.session_state["sim"] = sim
         st.session_state["nation_index"] = 0
@@ -107,6 +117,11 @@ active_tab = st.session_state["active_tab"]
 if active_tab == "MAP":
     render_map_page(world)
 elif active_tab == "LOGS":
-    render_logs_page(world, sim.history)
+    # 2-column layout for logs: History | Events
+    tab_hist, tab_events = st.tabs(["Turn History", "Global Events"])
+    with tab_hist:
+        render_logs_page(world, sim.history)
+    with tab_events:
+        render_event_log(sim.history)
 elif active_tab == "DECEPTION":
     render_deception_page(world, sim.history)

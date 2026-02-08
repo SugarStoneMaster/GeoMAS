@@ -140,6 +140,7 @@
 - [ ] 7.1 Structured Logger (Cabinet Debate)
 - [ ] 7.2 Counterfactual Engine (Forking)
 - [ ] 7.3 Query Interface ("Why did you do X?")
+- [ ] 7.4 Full Cognitive State Persistence (System/User Prompts for Forking)
 
 ---
 

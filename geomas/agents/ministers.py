@@ -33,6 +33,9 @@ class BaseMinister:
         self.system_prompt: Optional[str] = None
         self.last_strategy: Optional[GlobalStrategy] = None
         
+        # Trace for analysis
+        self.last_trace: dict = {}
+        
         # Eager Initialization if strategy provided
         if strategy:
             self._update_prompt(strategy)
@@ -88,11 +91,19 @@ class DefenseMinister(BaseMinister):
         # Add memory context
         user_prompt = self._add_memory_context(user_prompt, "Defense")
         
-        return self.client.query_agent(
+        proposal = self.client.query_agent(
             system_prompt, 
             user_prompt, 
             DefenseProposal
         )
+        
+        self.last_trace = {
+            "system_prompt": system_prompt,
+            "user_prompt": user_prompt,
+            "proposal": proposal
+        }
+        
+        return proposal
 
 
 class EconomicMinister(BaseMinister):
@@ -115,11 +126,19 @@ class EconomicMinister(BaseMinister):
         # Add memory context
         user_prompt = self._add_memory_context(user_prompt, "Economy")
         
-        return self.client.query_agent(
+        proposal = self.client.query_agent(
             system_prompt, 
             user_prompt, 
             EconomicProposal
         )
+        
+        self.last_trace = {
+            "system_prompt": system_prompt,
+            "user_prompt": user_prompt,
+            "proposal": proposal
+        }
+        
+        return proposal
 
 
 class ForeignMinister(BaseMinister):
@@ -148,8 +167,16 @@ class ForeignMinister(BaseMinister):
         
         user_prompt = self._add_memory_context(user_prompt, "Foreign")
         
-        return self.client.query_agent(
+        proposal = self.client.query_agent(
             system_prompt, 
             user_prompt, 
             ForeignProposal
         )
+        
+        self.last_trace = {
+            "system_prompt": system_prompt,
+            "user_prompt": user_prompt,
+            "proposal": proposal
+        }
+        
+        return proposal

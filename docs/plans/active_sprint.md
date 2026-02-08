@@ -1,54 +1,50 @@
-# 🚀 Sprint Corrente: System Prompt Refinement
+# 🚀 Sprint Corrente: Visual Testing & UI Integration
 
-**Status:** In Progress | **Test:** 400 passati (Unit + E2E + UI)
-
----
-
-## ✅ Fase 7.6 - Persistence & Context (COMPLETATA)
-
-Tutti i componenti implementati e testati:
-- SimulationDB, TurnCache, GenesisDB
-- SpatialTranslator, MilitaryTranslator, NationProfileGenerator
-- Prompt Architecture (5 system + 5 input builders)
-- ContextManager con memory management
-- TokenCounter con budget validation
-- SimulationEngine e Agent integration
+**Status:** Planning | **Priority:** High
 
 ---
 
-## ✅ Completed This Sprint
-
-### System Prompt Fixes ✅
-- [x] Defense: aggiungere `unit_type` a MOVE_TROOPS
-- [x] Economy: specificare formato TRADE_PROPOSAL (give/receive)
-- [x] Foreign: aggiungere `proposal_type` per ACCEPT/REJECT_PROPOSAL
-
-### Opinion Integration ✅
-- [x] Integrare Opinion agent nel flusso di simulazione
-- [x] Collegare output a satisfaction delta (multiplier_increase/decrease)
+## 🎯 Obiettivo
+Passare dal testing headless al **Testing Visuale** integrato nella UI esistente.
+Rimuovere tutti i mock/placeholders e abilitare le chiamate LLM reali per validare il comportamento degli agenti turno per turno.
 
 ---
 
-## 📋 Backlog
+## 📋 Tasks
 
-### President Role Enhancement (DONE)
-- [x] Definire workflow di approvazione/modifica (President as Gatekeeper via Decree)
-- [x] Implementare logica `PRESIDENT_VETO` (Removed PRESIDENT_OVERRIDE & new_payload)
-- [x] Aggiungere step di "Cabinet Meeting" nel ciclo di simulazione (Briefing -> Decree -> Envelope)
-- [x] Testare override scenarios (Updated tests/agents/test_nation_agent.py)
+### 1. UI Integration (Real LLM)
+- [x] **Rimuovere Mock:** Sostituire i dati finti nella UI con dati reali dal `SimulationEngine`.
+- [x] **Manual Turn Control:** 
+    - [x] Disabilitare auto-play se presente.
+    - [x] Il bottone "Next Turn" deve eseguire un singolo step (`engine.step()`) e attendere.
+    - [x] Aggiornare lo stato della UI solo dopo il completamento del turno.
 
-### Next Steps
-- [ ] Monitoraggio Token Usage in live run
-- [ ] UI Dashboard refinement
+### 2. Inspector View (Prompts & Context)
+- [x] **Agent Inspector Panel:**
+    - [x] Quando si seleziona una nazione, mostrare tab per ogni agente (Presidente, Esteri, Economia, Difesa, Opinione).
+    - [x] Per ogni agente mostrare:
+        - **System Prompt:** Il prompt statico/dinamico usato.
+        - **User/Input Prompt:** Il contesto fornito per quel turno.
+        - **Output Raw:** La risposta JSON dell'LLM.
+
+### 3. Event Log & History
+- [x] **Event Viewer:**
+    - [x] Sezione dedicata per consultare `ContextManager.global_events`.
+    - [x] Filtri per turno e nazione.
+    - [x] Visualizzazione chiara di come gli eventi vengono iniettati nel contesto (es. "Eventi Recenti").
+
 ---
 
 ## 📌 Design Notes
 
-**System vs Input Prompts:**
-- **System**: Identità, regole, format output (STATICO)
-- **Input**: Turno, budget, risorse, relazioni (DINAMICO per turno)
+**Data Source:**
+- L'UI deve leggere direttamente da `engine.agents` e `engine.world`.
+- Per i prompt, useremo la struttura `last_trace` implementata in `NationAgent` e `Minister` (già pronta).
 
-**Action Limits:**
-- Defense: MAX 3 azioni/turno
-- Economy: MAX 1 azione/turno
-- Foreign: MAX 1 azione/turno
+**UX Flow:**
+1. Setup Simulazione (Nazioni, Map Seed) -> Start.
+2. Dashboard visualizza Turno 0.
+3. User clicca "Next Turn".
+4. Spinner di caricamento (LLM in corso).
+5. Dashboard si aggiorna al Turno 1.
+6. User clicca su una Nazione -> Inspector apre i dettagli del ragionamento.

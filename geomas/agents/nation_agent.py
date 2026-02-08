@@ -56,7 +56,11 @@ class NationAgent:
         self.economy_minister = EconomicMinister(nation_id, world, llm_client, context_manager, strategy=global_strategy)
         self.foreign_minister = ForeignMinister(nation_id, world, llm_client, context_manager, strategy=global_strategy)
         
-        self.memory: List[str] = [] 
+        self.memory: List[str] = []
+        
+        # Traces for analysis
+        self.last_trace: dict = {}
+        self.last_president_trace: dict = {} 
 
     def act(self, turn: int) -> CountryEnvelope:
         """
@@ -64,11 +68,22 @@ class NationAgent:
         1. Ministers Propose
         2. President Decides (Veto or Approve)
         """
+        # Initialize trace
+        self.last_trace = {
+            "turn": turn,
+            "nation_id": self.id,
+            "defense": {}, "economy": {}, "foreign": {}, "president": {}, "envelope": None
+        }
         
         # 1. CABINET PHASE
         def_prop = self.defense_minister.propose(self.strategy, turn)
+        self.last_trace["defense"] = self.defense_minister.last_trace
+        
         eco_prop = self.economy_minister.propose(self.strategy, turn)
+        self.last_trace["economy"] = self.economy_minister.last_trace
+        
         for_prop = self.foreign_minister.propose(self.strategy, turn)
+        self.last_trace["foreign"] = self.foreign_minister.last_trace
         
         briefing = CabinetBriefing(
             defense=def_prop,
@@ -78,12 +93,16 @@ class NationAgent:
 
         # 2. PRESIDENTIAL PHASE
         decree = self._presidential_decision(turn, briefing)
+        self.last_trace["president"] = self.last_president_trace
         
         # 3. ENFORCE DECREE (Construct Envelope)
         envelope = self._construct_envelope_from_decree(turn, decree, briefing)
         
         # 4. MEMORIZE
         self.memory.append(f"Turn {turn}: {envelope.public_statement}")
+        
+        # 5. TRACE FINAL
+        self.last_trace["envelope"] = envelope
         
         return envelope
 
@@ -134,11 +153,19 @@ class NationAgent:
                 user_prompt += "\n\n== YOUR RECENT DECISIONS ==\n" + "\n".join(actions[:5])
         
         # Call LLM expecting PresidentialDecree
-        return self.client.query_agent(
+        decree = self.client.query_agent(
             system_prompt, 
             user_prompt, 
             PresidentialDecree
         )
+        
+        self.last_president_trace = {
+            "system_prompt": system_prompt,
+            "user_prompt": user_prompt,
+            "decree": decree
+        }
+        
+        return decree
 
     def _construct_envelope_from_decree(self, turn: int, decree: PresidentialDecree, briefing: CabinetBriefing) -> CountryEnvelope:
         """Apply Veto/Approve logic to build final envelope."""

@@ -13,8 +13,10 @@ import argparse
 import os
 import sys
 import json
+import hashlib
 from pathlib import Path
 from datetime import datetime
+import numpy as np # Required for analysis
 
 # Add project root to path
 project_root = Path(__file__).parent
@@ -48,6 +50,8 @@ def main():
                         help="Path to save simulation database (optional)")
     parser.add_argument("--log", type=str, default=None,
                         help="Path to save simulation log file (optional)")
+    parser.add_argument("--trace", type=str, default=None,
+                        help="Path to save full agent trace (prompts/actions)")
     parser.add_argument("--verbose", "-v", action="store_true",
                         help="Print detailed logs")
     
@@ -61,10 +65,14 @@ def main():
         print("⚠️  Minimum 2 nations required. Using 2.")
         args.nations = 2
     
-    # Auto-generate log file path if not specified
+    # Auto-generate file paths
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
     if args.log is None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         args.log = f"simulation_log_{timestamp}.json"
+        
+    if args.trace is None:
+        args.trace = f"simulation_trace_{timestamp}.txt"
     
     # Print configuration
     print("=" * 60)
@@ -78,6 +86,7 @@ def main():
     print(f"🤖 Model:        {os.environ.get('AZURE_MODEL', 'Not set!')}")
     print(f"💾 Database:     {args.db or 'In-memory only'}")
     print(f"📝 Log File:     {args.log}")
+    print(f"📄 Trace File:   {args.trace}")
     print("=" * 60)
     
     # Check LLM configuration
@@ -225,13 +234,115 @@ def main():
     for turn in range(args.turns):
         turn_start = engine.world.turn
         print(f"\n{'='*20} TURN {turn_start} {'='*20}")
+        print(f"\n{'='*20} TURN {turn_start} {'='*20}")
         
         turn_data = {"turn": turn_start, "logs": [], "errors": []}
+        
+        # Deduplication set for system prompts this turn (or global?)
+        # Better global to avoid repeating same static prompt every turn
+        if turn == 0:
+            seen_prompts = set()
         
         try:
             engine.step()
             # Capture logs from this turn
             turn_data["logs"] = engine.turn_logs[-20:]  # Last 20 logs per turn
+            
+            # --- TRACE LOGGING ---
+            with open(args.trace, "a" if turn > 0 else "w") as f:
+                f.write(f"\n{'='*40} TURN {turn_start} {'='*40}\n")
+                for nid in nation_ids:
+                    if nid not in engine.agents: continue
+                    agent = engine.agents[nid]
+                    trace = getattr(agent, 'last_trace', {})
+                    if not trace: continue
+                    
+                    f.write(f"\n--- NATION: {engine.world.nations[nid].name} ({nid}) ---\n")
+                    
+                    def safe_dump(obj):
+                        return obj.model_dump_json(indent=2) if hasattr(obj, 'model_dump_json') else str(obj)
+
+                    # Defense
+                    def_t = trace.get("defense", {})
+                    if def_t:
+                        f.write("\n[DEFENSE MINISTER]\n")
+                        sys_p = def_t.get('system_prompt', '')
+                        sys_hash = hashlib.md5(sys_p.encode()).hexdigest()
+                        if sys_hash in seen_prompts:
+                             f.write("SYSTEM PROMPT: [SAME AS PREVIOUS - DEDUPLICATED]\n")
+                        else:
+                             f.write(f"SYSTEM PROMPT:\n{sys_p}\n")
+                             seen_prompts.add(sys_hash)
+                        f.write("-" * 20 + "\n")
+                        f.write(f"USER PROMPT:\n{def_t.get('user_prompt', '')}\n")
+                        f.write("-" * 20 + "\n")
+                        f.write(f"PROPOSAL:\n{safe_dump(def_t.get('proposal', ''))}\n")
+
+                    # Economy
+                    eco_t = trace.get("economy", {})
+                    if eco_t:
+                        f.write("\n[ECONOMY MINISTER]\n")
+                        sys_p = eco_t.get('system_prompt', '')
+                        sys_hash = hashlib.md5(sys_p.encode()).hexdigest()
+                        if sys_hash in seen_prompts:
+                             f.write("SYSTEM PROMPT: [SAME AS PREVIOUS - DEDUPLICATED]\n")
+                        else:
+                             f.write(f"SYSTEM PROMPT:\n{sys_p}\n")
+                             seen_prompts.add(sys_hash)
+                        f.write("-" * 20 + "\n")
+                        f.write(f"USER PROMPT:\n{eco_t.get('user_prompt', '')}\n")
+                        f.write("-" * 20 + "\n")
+                        f.write(f"PROPOSAL:\n{safe_dump(eco_t.get('proposal', ''))}\n")
+
+                    # Foreign
+                    for_t = trace.get("foreign", {})
+                    if for_t:
+                        f.write("\n[FOREIGN MINISTER]\n")
+                        sys_p = for_t.get('system_prompt', '')
+                        sys_hash = hashlib.md5(sys_p.encode()).hexdigest()
+                        if sys_hash in seen_prompts:
+                             f.write("SYSTEM PROMPT: [SAME AS PREVIOUS - DEDUPLICATED]\n")
+                        else:
+                             f.write(f"SYSTEM PROMPT:\n{sys_p}\n")
+                             seen_prompts.add(sys_hash)
+                        f.write("-" * 20 + "\n")
+                        f.write(f"USER PROMPT:\n{for_t.get('user_prompt', '')}\n")
+                        f.write("-" * 20 + "\n")
+                        f.write(f"PROPOSAL:\n{safe_dump(for_t.get('proposal', ''))}\n")
+
+                    # President
+                    pres_t = trace.get("president", {})
+                    if pres_t:
+                        f.write("\n[PRESIDENT]\n")
+                        sys_p = pres_t.get('system_prompt', '')
+                        sys_hash = hashlib.md5(sys_p.encode()).hexdigest()
+                        if sys_hash in seen_prompts:
+                             f.write("SYSTEM PROMPT: [SAME AS PREVIOUS - DEDUPLICATED]\n")
+                        else:
+                             f.write(f"SYSTEM PROMPT:\n{sys_p}\n")
+                             seen_prompts.add(sys_hash)
+                        f.write("-" * 20 + "\n")
+                        f.write(f"USER PROMPT:\n{pres_t.get('user_prompt', '')}\n")
+                        f.write("-" * 20 + "\n")
+                        f.write(f"DECREE:\n{safe_dump(pres_t.get('decree', ''))}\n")
+                    
+                    # Envelope
+                    env = trace.get("envelope")
+                    if env:
+                        f.write("\n[FINAL ENVELOPE]\n")
+                        f.write(f"{safe_dump(env)}\n")
+            
+            # Capture STATE for analysis
+            turn_state = {}
+            for nid, nation in engine.world.nations.items():
+                turn_state[nid] = {
+                    "budget": nation.total_budget,
+                    "satisfaction": nation.public_satisfaction,
+                    "population": nation.total_population,
+                    "power": nation.power_projection
+                }
+            turn_data["state"] = turn_state
+            
         except KeyboardInterrupt:
             print("\n\n⏹️  Simulation interrupted by user.")
             simulation_log["errors"].append({"turn": turn_start, "error": "User interrupt"})
@@ -269,7 +380,19 @@ def main():
     # Save log file
     with open(args.log, "w") as f:
         json.dump(simulation_log, f, indent=2, default=str)
-    print(f"\n📝 Log saved to: {args.log}")
+    print(f"\n📝 Log saved to:   {args.log}")
+    print(f"📄 Trace saved to: {args.trace}")
+    
+    # --- HEALTH ANALYSIS ---
+    try:
+        from geomas.analysis.sanity import SimulationHealthAnalyzer
+        analyzer = SimulationHealthAnalyzer(simulation_log)
+        report = analyzer.analyze()
+        print("\n" + report)
+    except ImportError:
+        print("\n⚠️  Could not import SimulationHealthAnalyzer. skipping analysis.")
+    except Exception as e:
+        print(f"\n⚠️  Analysis failed: {e}")
     
     # Summary
     print("\n" + "=" * 60)

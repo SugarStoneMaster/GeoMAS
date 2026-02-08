@@ -12,6 +12,8 @@ from geomas.agents.context import SpatialTranslator
 from web.components.map_renderer import render_map
 from web.components.nation_panel import render_nation_stats
 from web.components.trust_matrix import render_trust_matrix
+from web.components.inspector import render_inspector
+import streamlit as st
 
 
 def render_map_page(world: WorldState) -> None:
@@ -41,6 +43,16 @@ def render_map_page(world: WorldState) -> None:
             translator = SpatialTranslator(world)
             report = translator.generate_intelligence_report(selected_nation_id)
             st.markdown(report)
+            
+            st.divider()
+            
+            # INSPECTOR PANEL
+            if "sim" in st.session_state and st.session_state["sim"]:
+                sim = st.session_state["sim"]
+                if selected_nation_id in sim.agents:
+                    agent = sim.agents[selected_nation_id]
+                    trace = getattr(agent, 'last_trace', {})
+                    render_inspector(selected_nation_id, trace)
 
 
 def render_nation_selector(world: WorldState) -> str:
