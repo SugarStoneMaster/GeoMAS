@@ -86,7 +86,7 @@ with ctrl_cols[4]:
             status_text = st.empty()
             
             for i in range(5):
-                status_text.text(f"Running Turn {sim.world.turn + 1}...")
+                status_text.text(f"Running Turn {sim.world.turn}...")
                 sim.step()
                 progress_bar.progress((i + 1) / 5)
                 
