@@ -132,7 +132,7 @@ def apply_population_loss(world: WorldState, nation_id: str, casualties: int):
             # Workers decrease proportionally
             province.workers = max(0, province.workers - province_loss)
             # Update tax revenue
-            province.tax_revenue = province.population * 0.1
+            province.tax_revenue = province.population * 1.0  # Aligned with TAX_RATE
 
 
 def run_opinion_phase(

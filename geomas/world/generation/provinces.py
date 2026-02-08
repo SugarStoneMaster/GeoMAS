@@ -16,7 +16,7 @@ POP_MIN = 500
 POP_MAX = 5000
 INITIAL_MILITARY_RATIO_MIN = 0.02  # 2%
 INITIAL_MILITARY_RATIO_MAX = 0.08  # 8%
-TAX_RATE = 0.1  # 10% base tax rate
+TAX_RATE = 1.0  # 1 budget per person per turn (aligns with 1 food consumed/person)
 
 
 def create_provinces(
@@ -128,29 +128,33 @@ def calculate_production(
     """
     Calculate production values based on terrain and workforce.
     
-    Production yields are balanced against consumption rates:
-    - Food: 1.0 per person consumed, ~1.5 per worker produced (slight surplus)
-    - Energy: 0.5 per person consumed, ~0.8 per worker produced (slight surplus)
-    - Materials: Variable, depends on military maintenance needs
+    BALANCE PHILOSOPHY (105% surplus):
+    - Production yields create a ~5% baseline surplus.
+    - Any significant action (military, welfare) quickly consumes this margin.
+    - Terrain specialization forces trade: Mountains need food, Coastal needs materials.
+    - Food: 1.0/person consumed, ~1.05/worker produced (5% surplus)
+    - Energy: 0.5/person consumed, ~0.55/worker produced (10% surplus)
     
     Returns:
         Tuple of (food_production, energy_production, materials_production)
     """
-    # Base yields per worker (balanced: each worker should sustain ~1.5 people)
+    # Tight margin yields: 105% of consumption
     if terrain == TerrainType.COASTAL:
-        # Coastal: Good fishing (food), decent energy, low materials
-        food_yield, energy_yield, materials_yield = 1.8, 0.7, 0.3
+        # Coastal: Great fishing (food), good energy (ports), poor materials
+        food_yield, energy_yield, materials_yield = 1.2, 0.55, 0.15
     elif terrain == TerrainType.MOUNTAIN:
-        # Mountain: Low food, low energy but great materials (mining)
-        food_yield, energy_yield, materials_yield = 0.5, 0.4, 1.5
+        # Mountain: DEFICIT in food, low energy, excellent materials (mining)
+        food_yield, energy_yield, materials_yield = 0.3, 0.25, 1.0
     else:  # LAND
-        # Balanced inland production
-        food_yield, energy_yield, materials_yield = 1.5, 0.8, 0.5
+        # Balanced: slight surplus in all categories
+        food_yield, energy_yield, materials_yield = 1.05, 0.55, 0.35
     
-    # Add random variation (+/-20%)
-    food_prod = workers * food_yield * rng.uniform(0.8, 1.2)
-    energy_prod = workers * energy_yield * rng.uniform(0.8, 1.2)
-    materials_prod = workers * materials_yield * rng.uniform(0.8, 1.2)
+    # Add random variation (+/-5%)
+    food_prod = workers * food_yield * rng.uniform(0.95, 1.05)
+    energy_prod = workers * energy_yield * rng.uniform(0.95, 1.05)
+    materials_prod = workers * materials_yield * rng.uniform(0.95, 1.05)
     
     return food_prod, energy_prod, materials_prod
+
+
 

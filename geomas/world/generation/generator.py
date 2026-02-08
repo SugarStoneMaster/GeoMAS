@@ -122,7 +122,7 @@ class MapGenerator:
         temp_world = WorldState(provinces=provinces_dict, nations=nations_dict)
         
         # Constants for stockpile calculation
-        AUTONOMY_TURNS = 10
+        AUTONOMY_TURNS = 5  # Reduced from 10 to create trade pressure
         FOOD_PER_PERSON = 1.0
         ENERGY_PER_PERSON = 0.5
         
