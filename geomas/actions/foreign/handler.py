@@ -321,7 +321,11 @@ def clear_expired_proposals(world: 'WorldState') -> None:
     """Clear all proposals older than 1 turn. Call at start of each turn."""
     current_turn = world.turn
     for nation in world.nations.values():
+        proposals = nation.pending_proposals
+        # Log expired ones? We need the engine to log.
+        # For now, just clear them to prevent infinite growth.
+        
         nation.pending_proposals = [
-            p for p in nation.pending_proposals 
+            p for p in proposals 
             if current_turn - p["turn"] <= 1
         ]

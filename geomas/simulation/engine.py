@@ -9,6 +9,7 @@ from typing import Dict, List, Optional
 from geomas.agents.schemas import CountryEnvelope, GlobalStrategy
 from geomas.world import generate_world
 from geomas.actions import ActionEngine
+from geomas.actions.foreign import clear_expired_proposals
 from geomas.agents.nation_agent import NationAgent
 from geomas.agents.llm_client import LLMClient
 from geomas.simulation.phases import run_upkeep_phase, run_opinion_phase
@@ -222,6 +223,11 @@ class SimulationEngine:
         
         # 0. UPKEEP PHASE (resources, consumption, crisis)
         run_upkeep_phase(self.world, self.turn_logs)
+        
+        # 0b. DIPLOMACY PHASE (Clear expired proposals)
+        # Verify proposals from T-2 are removed before T start
+        clear_expired_proposals(self.world)
+        
         
         # 1. & 2. COMBINED SEQUENTIAL PHASE (Decision + Execution per Nation)
         # Shuffle nation IDs to ensure fairness in turn order
