@@ -29,6 +29,7 @@ class EconomicPayload(BaseModel):
     
     # Explicit fields for strong typing
     amount: Optional[float] = Field(None, description="Amount for INVEST_WELFARE")
+    message: Optional[str] = Field(None, description="Public message to citizens or diplomatic message to trade partner")
     trade_offer_give_type: Optional[str] = Field(None, description="Resource type to GIVE")
     trade_offer_give_amount: Optional[float] = Field(None, description="Amount to GIVE")
     trade_offer_want_type: Optional[str] = Field(None, description="Resource type DESIRED (food, energy, materials, budget)")

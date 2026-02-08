@@ -173,7 +173,10 @@ def run_opinion_phase(
                             gov_actions.append(f"Defense: {move.action_type.value if hasattr(move.action_type, 'value') else move.action_type}")
                 # Economy has single action_type
                 if env.economic_payload and hasattr(env.economic_payload, 'action_type') and env.economic_payload.action_type:
-                    gov_actions.append(f"Economy: {env.economic_payload.action_type.value if hasattr(env.economic_payload.action_type, 'value') else env.economic_payload.action_type}")
+                    action_str = f"Economy: {env.economic_payload.action_type.value if hasattr(env.economic_payload.action_type, 'value') else env.economic_payload.action_type}"
+                    if hasattr(env.economic_payload, 'message') and env.economic_payload.message:
+                        action_str += f" (Message to citizens: '{env.economic_payload.message}')"
+                    gov_actions.append(action_str)
                 # Foreign has single action_type
                 if env.foreign_payload and hasattr(env.foreign_payload, 'action_type') and env.foreign_payload.action_type:
                     gov_actions.append(f"Foreign: {env.foreign_payload.action_type.value if hasattr(env.foreign_payload.action_type, 'value') else env.foreign_payload.action_type}")

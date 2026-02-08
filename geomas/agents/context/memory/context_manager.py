@@ -163,15 +163,27 @@ class ContextManager:
         for envelope in envelopes:
             nation_id = envelope.sender_id
             
-            # Extract events from payloads
-            for payload in [envelope.defense_payload, envelope.economic_payload, envelope.foreign_payload]:
-                if payload is None:
-                    continue
-                for action in getattr(payload, 'actions', []):
-                    event = self._behavior_to_event(turn, nation_id, action, world)
+            # Defense: Multiple moves
+            if envelope.defense_payload:
+                for move in envelope.defense_payload.moves:
+                    event = self._behavior_to_event(turn, nation_id, move, world)
                     if event:
                         self.global_events.append(event)
                         self._add_event_to_relationships(turn, nation_id, event)
+            
+            # Economy: Single action
+            if envelope.economic_payload and envelope.economic_payload.action_type:
+                event = self._behavior_to_event(turn, nation_id, envelope.economic_payload, world)
+                if event:
+                    self.global_events.append(event)
+                    self._add_event_to_relationships(turn, nation_id, event)
+            
+            # Foreign: Single action
+            if envelope.foreign_payload and envelope.foreign_payload.action_type:
+                event = self._behavior_to_event(turn, nation_id, envelope.foreign_payload, world)
+                if event:
+                    self.global_events.append(event)
+                    self._add_event_to_relationships(turn, nation_id, event)
     
     def _behavior_to_event(
         self, 
@@ -290,11 +302,17 @@ class ContextManager:
         if "TRADE_PROPOSAL" in action_type:
             target_id = getattr(behavior, 'target_nation_id', None)
             target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
+            
+            message = getattr(behavior, 'message', None)
+            summary = f"{nation_name} established trade with {target_name}"
+            if message:
+                summary += f" (Message: '{message}')"
+                
             return NotableEvent(
                 turn=turn,
                 event_type=EventType.TRADE_DEAL,
                 actors=[nation_id, target_id] if target_id else [nation_id],
-                summary=f"{nation_name} established trade with {target_name}",
+                summary=summary,
                 relevance_to=None  # Global - all nations see trade deals
             )
         
@@ -366,14 +384,24 @@ class ContextManager:
             if nation_id not in self.nation_actions:
                 self.nation_actions[nation_id] = []
             
-            # Extract actions from payloads
-            for payload in [envelope.defense_payload, envelope.economic_payload, envelope.foreign_payload]:
-                if payload is None:
-                    continue
-                for action_item in getattr(payload, 'actions', []):
-                    action = self._behavior_to_action(turn, action_item)
+            # Defense: Multiple moves
+            if envelope.defense_payload:
+                for move in envelope.defense_payload.moves:
+                    action = self._behavior_to_action(turn, move)
                     if action:
                         self.nation_actions[nation_id].append(action)
+            
+            # Economy: Single action
+            if envelope.economic_payload and envelope.economic_payload.action_type:
+                action = self._behavior_to_action(turn, envelope.economic_payload)
+                if action:
+                    self.nation_actions[nation_id].append(action)
+            
+            # Foreign: Single action
+            if envelope.foreign_payload and envelope.foreign_payload.action_type:
+                action = self._behavior_to_action(turn, envelope.foreign_payload)
+                if action:
+                    self.nation_actions[nation_id].append(action)
     
     def _behavior_to_action(self, turn: int, behavior: Any) -> Optional[MyAction]:
         """Convert behavior to MyAction record."""
@@ -397,13 +425,17 @@ class ContextManager:
         
         # Get summary and outcome
         summary = getattr(behavior, 'description', action_type)
+        message = getattr(behavior, 'message', None)
+        if message:
+            summary += f" [Message: {message}]"
+            
         outcome = getattr(behavior, 'outcome', None)
         
         return MyAction(
             turn=turn,
             domain=domain,
             action_type=action_type,
-            action_summary=summary[:60] if len(summary) > 60 else summary,
+            action_summary=summary[:100] if len(summary) > 100 else summary, # Increased length slightly for message
             outcome=outcome
         )
     

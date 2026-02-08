@@ -53,9 +53,10 @@ def execute_economic(
                 100,
                 nation.public_satisfaction + satisfaction_gain
             )
+            msg_str = f" Message to citizens: '{payload.message}'" if payload.message else ""
             engine.logs.append(
                 f"[ECONOMY] Invested {amount:.0f} in Welfare. "
-                f"Satisfaction +{satisfaction_gain:.1f} (now {nation.public_satisfaction:.0f})"
+                f"Satisfaction +{satisfaction_gain:.1f} (now {nation.public_satisfaction:.0f}){msg_str}"
             )
     
     # --- RAISE_WAR_TAX ---
@@ -73,9 +74,10 @@ def execute_economic(
         nation.public_satisfaction -= WAR_TAX_SATISFACTION_PENALTY
         nation.public_satisfaction = max(0, nation.public_satisfaction)
         
+        msg_str = f" Message to citizens: '{payload.message}'" if payload.message else ""
         engine.logs.append(
             f"[ECONOMY] War Tax raised! Budget +{tax_boost:.0f}, "
-            f"Satisfaction -{WAR_TAX_SATISFACTION_PENALTY} (now {nation.public_satisfaction:.0f})"
+            f"Satisfaction -{WAR_TAX_SATISFACTION_PENALTY} (now {nation.public_satisfaction:.0f}){msg_str}"
         )
     
     # --- TRADE_PROPOSAL ---
@@ -142,6 +144,8 @@ def execute_economic(
             engine.adjust_trust(nation_id, target_id, trust_gain)
             engine.adjust_trust(target_id, nation_id, trust_gain)
             
-            engine.logs.append(f"[TRADE] ACCEPTED {nation_id} -> {target_id} (+{trust_gain:.0f} Trust): {explanation}")
+            msg_str = f" Message: '{payload.message}'" if payload.message else ""
+            engine.logs.append(f"[TRADE] ACCEPTED {nation_id} -> {target_id} (+{trust_gain:.0f} Trust): {explanation}{msg_str}")
         else:
-            engine.logs.append(f"[TRADE] REJECTED {nation_id} -> {target_id}: {explanation}")
+            msg_str = f" Message: '{payload.message}'" if payload.message else ""
+            engine.logs.append(f"[TRADE] REJECTED {nation_id} -> {target_id}: {explanation}{msg_str}")
