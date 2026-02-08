@@ -50,60 +50,94 @@ def execute_opinion(
         )
 
 
+def calculate_turn_satisfaction_delta(
+    nation: 'NationState',
+    world: 'WorldState',
+    events: List[str],
+    gov_actions: List[str],
+    at_war: bool
+) -> float:
+    """
+    Centralized satisfaction delta calculation.
+    Combines events, government actions, and state-based deltas.
+    Applies nation-specific LLM multipliers for increase/decrease.
+    """
+    pos_sum = 0.0
+    neg_sum = 0.0
+    
+    # 1. State-based impacts (War & Resources)
+    if at_war:
+        neg_sum += abs(DELTA_WAR_PENALTY)
+    else:
+        pos_sum += abs(DELTA_PEACE_BONUS)
+        
+    if nation.total_food < 50 or nation.total_energy < 50:
+        neg_sum += abs(DELTA_RESOURCE_DEFICIT)
+    elif nation.total_food > 150 and nation.total_energy > 150:
+        pos_sum += abs(DELTA_RESOURCE_SURPLUS)
+        
+    # 2. Event-based impacts
+    for event in events:
+        event_upper = event.upper()
+        if "ALLIANCE_FORMED" in event_upper:
+            pos_sum += 3.0
+        if "PEACE_SIGNED" in event_upper:
+            pos_sum += 5.0
+        if "TRADE_DEAL" in event_upper:
+            pos_sum += 2.0
+        if "TERRITORY_GAINED" in event_upper:
+            pos_sum += 4.0
+            
+        if "WAR_DECLARED" in event_upper and nation.name in event:
+            neg_sum += 5.0
+        if "ALLIANCE_BROKEN" in event_upper:
+            neg_sum += 3.0
+        if "TERRITORY_LOST" in event_upper:
+            neg_sum += 6.0
+        if "NUCLEAR_STRIKE" in event_upper:
+            neg_sum += 10.0
+
+    # 3. Action-based impacts
+    for action in gov_actions:
+        action_upper = action.upper()
+        if "INVEST_WELFARE" in action_upper:
+            pos_sum += 3.0
+        if "RAISE_WAR_TAX" in action_upper or "WAR_TAX" in action_upper:
+            neg_sum += 5.0
+
+    # 4. Apply Multipliers
+    final_pos = pos_sum * nation.population_multiplier_increase
+    final_neg = neg_sum * nation.population_multiplier_decrease
+    
+    return final_pos - final_neg
+
+
 def apply_satisfaction_deltas(engine: 'ActionEngine', nation_id: str, rng: random.Random = None) -> float:
     """
-    Calculate and apply base satisfaction deltas for a turn.
-    
-    Strategy:
-    1. Calculate all positive deltas, sum them → positive_total
-    2. Calculate all negative deltas, sum them → negative_total
-    3. Apply multipliers: positive_total * multiplier_increase
-    4. Apply multipliers: negative_total * multiplier_decrease
-    5. Final delta = positive_multiplied + negative_multiplied
-    
-    Returns the total final delta.
+    DEPRECATED: Use calculate_turn_satisfaction_delta from phases.py.
+    Left for compatibility with older tests if needed.
     """
     world = engine.world
     nation = world.nations.get(nation_id)
     if not nation:
         return 0.0
     
-    positive_deltas = 0.0
-    negative_deltas = 0.0
+    # Fallback to simple logic for legacy callers
+    at_war = any(
+        world.relationship_matrix.get(nation_id, {}).get(nid) == "WAR"
+        for nid in world.nations if nid != nation_id
+    )
     
-    # --- WAR/PEACE STATUS ---
-    at_war = False
-    for other_id in world.nations:
-        if other_id != nation_id:
-            rel = world.relationship_matrix.get(nation_id, {}).get(other_id, "PEACE")
-            if rel == "WAR":
-                at_war = True
-                negative_deltas += DELTA_WAR_PENALTY  # -3 per war
-    
-    # Peace bonus only if at peace with everyone
-    if not at_war:
-        positive_deltas += DELTA_PEACE_BONUS  # +1
-    
-    # --- RESOURCE CHECK ---
-    if nation.total_food < 0 or nation.total_energy < 0 or nation.total_materials < 0:
-        negative_deltas += DELTA_RESOURCE_DEFICIT  # -2
-    elif nation.total_food > 100 and nation.total_energy > 100:
-        positive_deltas += DELTA_RESOURCE_SURPLUS  # +1
-    
-    # --- APPLY MULTIPLIERS ---
-    positive_multiplied = positive_deltas * nation.population_multiplier_increase
-    negative_multiplied = negative_deltas * nation.population_multiplier_decrease
-    
-    final_delta = positive_multiplied + negative_multiplied
+    final_delta = calculate_turn_satisfaction_delta(
+        nation, world, [], [], at_war
+    )
     
     # Update satisfaction
     old_sat = nation.public_satisfaction
     nation.public_satisfaction = max(0, min(100, old_sat + final_delta))
     
     engine.logs.append(
-        f"[OPINION] {nation_id}: satisfaction {old_sat:.0f} -> {nation.public_satisfaction:.0f} "
-        f"(+{positive_deltas:+.1f}*{nation.population_multiplier_increase:.1f} "
-        f"{negative_deltas:+.1f}*{nation.population_multiplier_decrease:.1f} = {final_delta:+.1f})"
+        f"[OPINION] {nation_id}: satisfaction {old_sat:.0f} -> {nation.public_satisfaction:.0f} ({final_delta:+.1f})"
     )
     
     return final_delta

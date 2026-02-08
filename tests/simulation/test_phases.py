@@ -9,7 +9,6 @@ from geomas.world import generate_world
 from geomas.simulation.phases import (
     run_upkeep_phase,
     apply_population_loss,
-    apply_production_penalty,
 )
 
 
@@ -117,54 +116,4 @@ class TestApplyPopulationLoss:
             assert world.provinces[p_id].population >= 0
 
 
-class TestApplyProductionPenalty:
-    """Tests for apply_production_penalty function."""
-    
-    def test_reduces_all_production(self):
-        """Penalty reduces food, energy, materials production."""
-        world = generate_world(seed=42, n_cells=50, n_nations=2)
-        nation_id = list(world.nations.keys())[0]
-        nation = world.nations[nation_id]
-        
-        # Set known production values
-        for p_id in nation.province_ids:
-            world.provinces[p_id].food_production = 100.0
-            world.provinces[p_id].energy_production = 100.0
-            world.provinces[p_id].materials_production = 100.0
-        
-        apply_production_penalty(world, nation_id, penalty_multiplier=0.5)
-        
-        for p_id in nation.province_ids:
-            assert world.provinces[p_id].food_production == 50.0
-            assert world.provinces[p_id].energy_production == 50.0
-            assert world.provinces[p_id].materials_production == 50.0
-    
-    def test_penalty_of_one_no_change(self):
-        """Penalty of 1.0 = no change."""
-        world = generate_world(seed=42, n_cells=50, n_nations=2)
-        nation_id = list(world.nations.keys())[0]
-        nation = world.nations[nation_id]
-        
-        # Record initial values
-        initial_prod = {
-            p_id: world.provinces[p_id].food_production 
-            for p_id in nation.province_ids
-        }
-        
-        apply_production_penalty(world, nation_id, penalty_multiplier=1.0)
-        
-        for p_id in nation.province_ids:
-            assert world.provinces[p_id].food_production == initial_prod[p_id]
-    
-    def test_penalty_of_zero_stops_production(self):
-        """Penalty of 0.0 = no production."""
-        world = generate_world(seed=42, n_cells=50, n_nations=2)
-        nation_id = list(world.nations.keys())[0]
-        nation = world.nations[nation_id]
-        
-        apply_production_penalty(world, nation_id, penalty_multiplier=0.0)
-        
-        for p_id in nation.province_ids:
-            assert world.provinces[p_id].food_production == 0.0
-            assert world.provinces[p_id].energy_production == 0.0
-            assert world.provinces[p_id].materials_production == 0.0
+

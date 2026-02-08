@@ -9,9 +9,15 @@ FOOD_PER_PERSON = 1.0
 ENERGY_PER_PERSON = 0.5
 
 # Military maintenance costs per unit per turn
-MAINTENANCE_SOLDIER = 0.1  # materials
-MAINTENANCE_AIRCRAFT = 2.0 # materials
-MAINTENANCE_NAVY = 1.5     # materials
+# MATERIALS (Hardware)
+MAINTENANCE_SOLDIER = 0.1
+MAINTENANCE_AIRCRAFT = 2.0
+MAINTENANCE_NAVY = 1.5
+
+# BUDGET (Salaries/Operational)
+SALARY_SOLDIER = 0.2    # 0.2 budget per soldier
+SALARY_AIRCRAFT = 5.0   # 5.0 budget per aircraft
+SALARY_NAVY = 4.0       # 4.0 budget per ship
 
 
 def calculate_food_consumption(total_population: int) -> float:
@@ -34,4 +40,17 @@ def calculate_materials_consumption(
         total_soldiers * MAINTENANCE_SOLDIER +
         total_aircraft * MAINTENANCE_AIRCRAFT +
         total_navy * MAINTENANCE_NAVY
+    )
+
+
+def calculate_budget_upkeep(
+    total_soldiers: int,
+    total_aircraft: int,
+    total_navy: int
+) -> float:
+    """Calculate budget consumption for military salaries/upkeep."""
+    return (
+        total_soldiers * SALARY_SOLDIER +
+        total_aircraft * SALARY_AIRCRAFT +
+        total_navy * SALARY_NAVY
     )

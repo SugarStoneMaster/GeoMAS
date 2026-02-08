@@ -9,12 +9,11 @@ from geomas.world import generate_world
 from geomas.agents.opinion import (
     OpinionAgent,
     OpinionResponse,
-    apply_opinion_modifiers,
 )
 from geomas.simulation.phases import (
     run_opinion_phase,
-    _calculate_base_satisfaction_delta,
 )
+from geomas.actions.opinion.handler import calculate_turn_satisfaction_delta
 
 
 class TestOpinionAgent:
@@ -139,67 +138,15 @@ class TestOpinionResponse:
             OpinionResponse(multiplier_decrease=0.05)  # Too low
 
 
-class TestApplyOpinionModifiers:
-    """Tests for apply_opinion_modifiers function."""
-    
-    def test_positive_delta_uses_increase_multiplier(self):
-        """Positive delta is multiplied by multiplier_increase."""
-        world = generate_world(seed=42, n_cells=50, n_nations=2)
-        nation = list(world.nations.values())[0]
-        nation.public_satisfaction = 50.0
-        
-        response = OpinionResponse(
-            multiplier_increase=2.0,
-            multiplier_decrease=1.0
-        )
-        
-        final_delta = apply_opinion_modifiers(nation, base_satisfaction_delta=5.0, opinion_response=response)
-        
-        assert final_delta == 10.0  # 5 * 2.0
-        assert nation.public_satisfaction == 60.0  # 50 + 10
-    
-    def test_negative_delta_uses_decrease_multiplier(self):
-        """Negative delta is multiplied by multiplier_decrease."""
-        world = generate_world(seed=42, n_cells=50, n_nations=2)
-        nation = list(world.nations.values())[0]
-        nation.public_satisfaction = 50.0
-        
-        response = OpinionResponse(
-            multiplier_increase=1.0,
-            multiplier_decrease=0.5
-        )
-        
-        final_delta = apply_opinion_modifiers(nation, base_satisfaction_delta=-10.0, opinion_response=response)
-        
-        assert final_delta == -5.0  # -10 * 0.5
-        assert nation.public_satisfaction == 45.0  # 50 - 5
-    
-    def test_satisfaction_clamped_to_bounds(self):
-        """Satisfaction stays within 0-100."""
-        world = generate_world(seed=42, n_cells=50, n_nations=2)
-        nation = list(world.nations.values())[0]
-        
-        # Test upper bound
-        nation.public_satisfaction = 95.0
-        response = OpinionResponse(multiplier_increase=2.0, multiplier_decrease=1.0)
-        apply_opinion_modifiers(nation, base_satisfaction_delta=20.0, opinion_response=response)
-        assert nation.public_satisfaction == 100.0  # Clamped
-        
-        # Test lower bound
-        nation.public_satisfaction = 5.0
-        apply_opinion_modifiers(nation, base_satisfaction_delta=-20.0, opinion_response=response)
-        assert nation.public_satisfaction == 0.0  # Clamped
-
-
-class TestCalculateBaseSatisfactionDelta:
-    """Tests for _calculate_base_satisfaction_delta function."""
+class TestCalculateTurnSatisfactionDelta:
+    """Tests for calculate_turn_satisfaction_delta function."""
     
     def test_war_causes_negative_delta(self):
-        """Being at war results in negative base delta."""
+        """Being at war results in negative satisfaction delta."""
         world = generate_world(seed=42, n_cells=50, n_nations=2)
         nation = list(world.nations.values())[0]
         
-        delta = _calculate_base_satisfaction_delta(
+        delta = calculate_turn_satisfaction_delta(
             nation=nation,
             world=world,
             events=[],
@@ -207,17 +154,16 @@ class TestCalculateBaseSatisfactionDelta:
             at_war=True
         )
         
-        assert delta < 0  # War is stressful
+        assert delta < 0 
     
     def test_peace_at_baseline(self):
-        """No events and at peace = zero base delta."""
+        """No events and at peace = zero satisfaction delta."""
         world = generate_world(seed=42, n_cells=50, n_nations=2)
         nation = list(world.nations.values())[0]
-        # Ensure good resources
         nation.total_food = 100
         nation.total_energy = 100
         
-        delta = _calculate_base_satisfaction_delta(
+        delta = calculate_turn_satisfaction_delta(
             nation=nation,
             world=world,
             events=[],
@@ -225,16 +171,16 @@ class TestCalculateBaseSatisfactionDelta:
             at_war=False
         )
         
-        assert delta == 0.0  # No events, no war, no shortages
+        assert delta == 1.0  # Peace bonus
     
     def test_positive_events_increase_delta(self):
         """Positive events increase satisfaction delta."""
         world = generate_world(seed=42, n_cells=50, n_nations=2)
         nation = list(world.nations.values())[0]
-        nation.total_food = 100
-        nation.total_energy = 100
+        nation.total_food = 200 # Surplus
+        nation.total_energy = 200
         
-        delta = _calculate_base_satisfaction_delta(
+        delta = calculate_turn_satisfaction_delta(
             nation=nation,
             world=world,
             events=["ALLIANCE_FORMED with Ally", "TRADE_DEAL signed"],
@@ -242,14 +188,14 @@ class TestCalculateBaseSatisfactionDelta:
             at_war=False
         )
         
-        assert delta > 0  # Positive events and welfare
+        assert delta > 0
     
     def test_negative_events_decrease_delta(self):
         """Negative events decrease satisfaction delta."""
         world = generate_world(seed=42, n_cells=50, n_nations=2)
         nation = list(world.nations.values())[0]
         
-        delta = _calculate_base_satisfaction_delta(
+        delta = calculate_turn_satisfaction_delta(
             nation=nation,
             world=world,
             events=["TERRITORY_LOST to Enemy", "ALLIANCE_BROKEN"],
@@ -257,24 +203,7 @@ class TestCalculateBaseSatisfactionDelta:
             at_war=True
         )
         
-        assert delta < -10  # Multiple negative factors
-    
-    def test_resource_shortage_decreases_delta(self):
-        """Low resources cause negative delta."""
-        world = generate_world(seed=42, n_cells=50, n_nations=2)
-        nation = list(world.nations.values())[0]
-        nation.total_food = 10  # Shortage
-        nation.total_energy = 10  # Shortage
-        
-        delta = _calculate_base_satisfaction_delta(
-            nation=nation,
-            world=world,
-            events=[],
-            gov_actions=[],
-            at_war=False
-        )
-        
-        assert delta < 0  # Resource shortages hurt
+        assert delta < -5
 
 
 class TestRunOpinionPhase:

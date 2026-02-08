@@ -23,14 +23,19 @@ from geomas.calculators.consumption import (
     calculate_food_consumption,
     calculate_energy_consumption,
     calculate_materials_consumption,
+    calculate_budget_upkeep,
     FOOD_PER_PERSON,
     ENERGY_PER_PERSON,
     MAINTENANCE_SOLDIER,
     MAINTENANCE_AIRCRAFT,
-    MAINTENANCE_NAVY
+    MAINTENANCE_NAVY,
+    SALARY_SOLDIER,
+    SALARY_AIRCRAFT,
+    SALARY_NAVY
 )
 from geomas.calculators.production import (
     calculate_production_penalty,
+    calculate_nation_production_multiplier,
     calculate_tax_collection,
     MIN_WORKFORCE_RATIO
 )
@@ -48,12 +53,17 @@ __all__ = [
     "calculate_food_consumption",
     "calculate_energy_consumption",
     "calculate_materials_consumption",
+    "calculate_budget_upkeep",
     "FOOD_PER_PERSON",
     "ENERGY_PER_PERSON",
     "MAINTENANCE_SOLDIER",
     "MAINTENANCE_AIRCRAFT",
     "MAINTENANCE_NAVY",
+    "SALARY_SOLDIER",
+    "SALARY_AIRCRAFT",
+    "SALARY_NAVY",
     "calculate_production_penalty",
+    "calculate_nation_production_multiplier",
     "calculate_tax_collection",
     "MIN_WORKFORCE_RATIO",
     "calculate_nation_aggregates",

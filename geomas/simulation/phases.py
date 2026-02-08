@@ -15,10 +15,10 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
     
     1. Calculate aggregates from provinces
     2. Collect taxes
-    3. Calculate production
-    4. Calculate consumption
-    5. Apply resource changes
-    6. Handle deficits (starvation, energy penalties)
+    3. Calculate unified production multiplier (Elasticity + Energy + Workforce)
+    4. Add production to stockpiles (Non-destructive)
+    5. Calculate and apply consumption (Population + Military Maintenance)
+    6. Handle deficits (starvation)
     7. Update power projection
     """
     for nation_id, nation in world.nations.items():
@@ -34,12 +34,26 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
         tax_collected = economy.calculate_tax_collection(nation, world)
         nation.total_budget += tax_collected
         
-        # 3. Add production to resource stockpiles
-        nation.total_food += aggregates["total_food_production"]
-        nation.total_energy += aggregates["total_energy_production"]
-        nation.total_materials += aggregates["total_materials_production"]
+        # 3. Calculate unified production multiplier
+        # Check current energy balance to see if there's a deficit
+        # (Deficit from PREVIOUS turn's consumption)
+        energy_deficit = min(0.0, nation.total_energy)
+        prod_multiplier = economy.calculate_nation_production_multiplier(
+            nation, 
+            energy_deficit=energy_deficit
+        )
         
-        # 4. Calculate consumption
+        if prod_multiplier < 1.0:
+            turn_logs.append(
+                f"[ECONOMY] {nation_id}: Production efficiency at {prod_multiplier*100:.1f}%"
+            )
+        
+        # 4. Add production to resource stockpiles (Applying the multiplier on-the-fly)
+        nation.total_food += aggregates["total_food_production"] * prod_multiplier
+        nation.total_energy += aggregates["total_energy_production"] * prod_multiplier
+        nation.total_materials += aggregates["total_materials_production"] * prod_multiplier
+        
+        # 5. Calculate consumption & Upkeep
         food_consumed = economy.calculate_food_consumption(nation.total_population)
         energy_consumed = economy.calculate_energy_consumption(nation.total_population)
         materials_consumed = economy.calculate_materials_consumption(
@@ -47,11 +61,17 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
             nation.total_aircraft,
             nation.total_navy
         )
+        budget_consumed = economy.calculate_budget_upkeep(
+            nation.total_soldiers,
+            nation.total_aircraft,
+            nation.total_navy
+        )
         
-        # 5. Apply consumption (subtract from stockpiles)
+        # Apply consumption
         nation.total_food -= food_consumed
         nation.total_energy -= energy_consumed
         nation.total_materials -= materials_consumed
+        nation.total_budget -= budget_consumed
         
         # 6. Handle deficits
         if nation.total_food < 0:
@@ -64,22 +84,21 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
                 turn_logs.append(
                     f"[CRISIS] {nation_id}: {casualties} died from starvation!"
                 )
-            nation.total_food = 0  # Can't go negative
+            nation.total_food = 0 
         
+        # Energy and Materials can be negative at this point (representing missing services/upkeep)
+        # but we clamp them to zero for the next cycle after logging shortages
         if nation.total_energy < 0:
-            penalty = economy.calculate_energy_penalty(nation.total_energy)
-            turn_logs.append(
-                f"[CRISIS] {nation_id}: Energy shortage! Production penalty: {1 - penalty:.0%}"
-            )
-            # Apply penalty to next turn's production (stored in provinces)
-            apply_production_penalty(world, nation_id, penalty)
+            turn_logs.append(f"[CRISIS] {nation_id}: Energy shortage! Industry will suffer next turn.")
             nation.total_energy = 0
-        
+            
         if nation.total_materials < 0:
-            turn_logs.append(
-                f"[CRISIS] {nation_id}: Materials shortage! Military maintenance failing."
-            )
+            turn_logs.append(f"[CRISIS] {nation_id}: Materials shortage! Military maintenance failing.")
             nation.total_materials = 0
+
+        if nation.total_budget < 0:
+             turn_logs.append(f"[CRISIS] {nation_id}: Bankruptcy! Military salaries unpaid.")
+             nation.total_budget = 0
         
         # 7. Update power projection
         nation.power_projection = economy.calculate_power_projection(nation)
@@ -112,18 +131,6 @@ def apply_population_loss(world: WorldState, nation_id: str, casualties: int):
             province.tax_revenue = province.population * 0.1
 
 
-def apply_production_penalty(world: WorldState, nation_id: str, penalty_multiplier: float):
-    """Applies production penalty to all provinces of a nation."""
-    nation = world.nations[nation_id]
-    
-    for p_id in nation.province_ids:
-        province = world.provinces.get(p_id)
-        if province:
-            province.food_production *= penalty_multiplier
-            province.energy_production *= penalty_multiplier
-            province.materials_production *= penalty_multiplier
-
-
 def run_opinion_phase(
     world: WorldState,
     turn_logs: List[str],
@@ -134,59 +141,41 @@ def run_opinion_phase(
     """
     Runs the Opinion phase after government actions.
     
-    1. Calculate base satisfaction delta from events/actions
-    2. Run Opinion agent to get multipliers
-    3. Apply modifiers to satisfaction
-    
-    Args:
-        world: Current world state
-        turn_logs: Log list for this turn
-        opinion_agents: Dict[nation_id, OpinionAgent]
-        envelopes: Actions executed this turn
+    1. Runs Opinion agent to update multipliers (based on current state)
+    2. Calculates satisfaction delta using centralized logic
+    3. Triggers events (Strikes, Unrest)
     """
-    from geomas.agents.opinion import apply_opinion_modifiers
+    from geomas.actions.opinion.handler import calculate_turn_satisfaction_delta, check_triggers
     
     for nation_id, nation in world.nations.items():
-        # Skip if no opinion agent for this nation
         if nation_id not in opinion_agents:
             continue
         
         opinion_agent = opinion_agents[nation_id]
         
-        # Gather context
+        # --- 1. Agent Perception & Reaction ---
         at_war = any(
             status == "WAR" 
             for status in world.relationship_matrix.get(nation_id, {}).values()
         )
-        
-        # Get recent events from global events
         events = [e for e in world.global_events[-20:] if nation_id in e or nation.name in e]
         
-        # Get government actions from envelopes
         gov_actions = []
         for env in envelopes:
             if env.sender_id == nation_id:
-                # Defense has a list of moves
                 if env.defense_payload and env.defense_payload.moves:
                     for move in env.defense_payload.moves:
                         if hasattr(move, 'action_type') and move.action_type:
                             gov_actions.append(f"Defense: {move.action_type.value if hasattr(move.action_type, 'value') else move.action_type}")
-                # Economy has single action_type
                 if env.economic_payload and hasattr(env.economic_payload, 'action_type') and env.economic_payload.action_type:
                     action_str = f"Economy: {env.economic_payload.action_type.value if hasattr(env.economic_payload.action_type, 'value') else env.economic_payload.action_type}"
                     if hasattr(env.economic_payload, 'message') and env.economic_payload.message:
                         action_str += f" (Message to citizens: '{env.economic_payload.message}')"
                     gov_actions.append(action_str)
-                # Foreign has single action_type
                 if env.foreign_payload and hasattr(env.foreign_payload, 'action_type') and env.foreign_payload.action_type:
                     gov_actions.append(f"Foreign: {env.foreign_payload.action_type.value if hasattr(env.foreign_payload.action_type, 'value') else env.foreign_payload.action_type}")
         
-        # Calculate base satisfaction delta from this turn's events
-        base_delta = _calculate_base_satisfaction_delta(
-            nation, world, events, gov_actions, at_war
-        )
-        
-        # Get opinion reaction
+        # Opinion agent reacts to provide NEW multipliers
         opinion_response = opinion_agent.react(
             events=events,
             government_actions=gov_actions,
@@ -195,74 +184,31 @@ def run_opinion_phase(
             turn=turn
         )
         
-        # Apply modifiers
-        final_delta = apply_opinion_modifiers(nation, base_delta, opinion_response)
+        # Update nation multipliers
+        nation.population_multiplier_increase = opinion_response.multiplier_increase
+        nation.population_multiplier_decrease = opinion_response.multiplier_decrease
         
-        # Log
-        if abs(final_delta) > 0.1:
+        # --- 2. Satisfaction Delta (Centralized) ---
+        old_sat = nation.public_satisfaction
+        delta = calculate_turn_satisfaction_delta(
+            nation, world, events, gov_actions, at_war
+        )
+        
+        # Apply to nation
+        new_sat = max(0.0, min(100.0, old_sat + delta))
+        nation.public_satisfaction = new_sat
+        
+        if abs(delta) > 0.1:
             turn_logs.append(
-                f"[OPINION] {nation_id}: Satisfaction {final_delta:+.1f} "
-                f"(mult_inc={opinion_response.multiplier_increase:.1f}, "
-                f"mult_dec={opinion_response.multiplier_decrease:.1f})"
+                f"[OPINION] {nation_id}: Satisfaction {old_sat:.0f} -> {new_sat:.0f} (delta {delta:+.1f})"
             )
-
-
-def _calculate_base_satisfaction_delta(
-    nation,
-    world: WorldState,
-    events: List[str],
-    gov_actions: List[str],
-    at_war: bool
-) -> float:
-    """
-    Calculate base satisfaction change from events and actions.
-    
-    This is the raw delta before opinion multipliers are applied.
-    """
-    delta = 0.0
-    
-    # War impact
-    if at_war:
-        delta -= 2.0  # War is stressful
-    
-    # Event-based impacts
-    for event in events:
-        event_upper = event.upper()
+            
+        # --- 3. Triggers (Strikes, Unrest) ---
+        # Note: we use a mock engine interface or a simpler direct call
+        class MockEngine:
+            def __init__(self, world, logs):
+                self.world = world
+                self.logs = logs
         
-        # Positive events
-        if "ALLIANCE_FORMED" in event_upper:
-            delta += 3.0
-        if "PEACE_SIGNED" in event_upper:
-            delta += 5.0
-        if "TRADE_DEAL" in event_upper:
-            delta += 2.0
-        if "TERRITORY_GAINED" in event_upper:
-            delta += 4.0
-        
-        # Negative events
-        if "WAR_DECLARED" in event_upper and nation.name in event:
-            delta -= 5.0  # Someone declared war on us
-        if "ALLIANCE_BROKEN" in event_upper:
-            delta -= 3.0
-        if "TERRITORY_LOST" in event_upper:
-            delta -= 6.0
-        if "NUCLEAR_STRIKE" in event_upper:
-            delta -= 10.0  # Catastrophic
-    
-    # Action-based impacts
-    for action in gov_actions:
-        action_upper = action.upper()
-        
-        if "INVEST_WELFARE" in action_upper:
-            delta += 3.0  # Government is helping
-        if "RAISE_WAR_TAX" in action_upper or "WAR_TAX" in action_upper:
-            delta -= 5.0  # Hurts population
-    
-    # Resource shortages
-    if nation.total_food < 50:
-        delta -= 3.0
-    if nation.total_energy < 50:
-        delta -= 2.0
-    
-    return delta
+        check_triggers(MockEngine(world, turn_logs), nation_id)
 
