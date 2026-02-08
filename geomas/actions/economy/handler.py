@@ -133,10 +133,15 @@ def execute_economic(
             # Execute trade: transfer resources
             execute_trade(engine.world, offer)
             
-            # Boost trust slightly
-            engine.adjust_trust(nation_id, target_id, 2)
-            engine.adjust_trust(target_id, nation_id, 2)
+            # Boost trust dynamically
+            # Base +2, plus +1 for every 500 value exchanged. Cap at +10.
+            base_trust = 2.0
+            bonus_trust = int(total_value / 500)
+            trust_gain = min(10.0, base_trust + bonus_trust)
             
-            engine.logs.append(f"[TRADE] ACCEPTED {nation_id} -> {target_id}: {explanation}")
+            engine.adjust_trust(nation_id, target_id, trust_gain)
+            engine.adjust_trust(target_id, nation_id, trust_gain)
+            
+            engine.logs.append(f"[TRADE] ACCEPTED {nation_id} -> {target_id} (+{trust_gain:.0f} Trust): {explanation}")
         else:
             engine.logs.append(f"[TRADE] REJECTED {nation_id} -> {target_id}: {explanation}")

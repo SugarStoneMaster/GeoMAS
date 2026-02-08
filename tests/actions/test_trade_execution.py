@@ -166,3 +166,47 @@ def test_trade_fail_invalid_resource(setup_world):
     execute_economic(engine, "A", payload)
     
     assert any("Failed TRADE_PROPOSAL: Invalid resource" in log for log in engine.logs)
+
+
+def test_trade_dynamic_trust_gain(setup_world):
+    """
+    Test dynamic trust gain:
+    1. Small trade (100 value) -> Base 2 + 0 = +2
+    2. Medium trade (1000 value) -> Base 2 + 2 = +4
+    3. Large trade (5000 value) -> Base 2 + 10 = +12 -> Cap +10
+    """
+    engine, world = setup_world
+    
+    # Needs enough budget and materials
+    world.nations["A"].total_budget = 10000.0
+    world.nations["B"].total_materials = 10000.0
+    
+    # Case 1: Small Trade (100 Budget)
+    payload_small = EconomicPayload(
+        decision=Decision.APPROVE, action_type=EconomicActionType.TRADE_PROPOSAL,
+        target_nation_id="B", trade_offer_give_type="budget", trade_offer_give_amount=100.0,
+        trade_offer_want_type="materials"
+    )
+    execute_economic(engine, "A", payload_small)
+    # Trust starts at 50. Gain = 2. Now 52.
+    assert world.trust_matrix["A"]["B"] == 52.0
+    
+    # Case 2: Medium Trade (1000 Budget)
+    payload_med = EconomicPayload(
+        decision=Decision.APPROVE, action_type=EconomicActionType.TRADE_PROPOSAL,
+        target_nation_id="B", trade_offer_give_type="budget", trade_offer_give_amount=1000.0,
+        trade_offer_want_type="materials"
+    )
+    execute_economic(engine, "A", payload_med)
+    # Trust starts at 52. Gain = 2 + (1000/500)=2 = 4. Now 56.
+    assert world.trust_matrix["A"]["B"] == 56.0
+    
+    # Case 3: Large Trade (5000 Budget) -> Gain 2 + 10 = 12 -> Cap 10
+    payload_large = EconomicPayload(
+        decision=Decision.APPROVE, action_type=EconomicActionType.TRADE_PROPOSAL,
+        target_nation_id="B", trade_offer_give_type="budget", trade_offer_give_amount=5000.0,
+        trade_offer_want_type="materials"
+    )
+    execute_economic(engine, "A", payload_large)
+    # Trust starts at 56. Gain = 10. Now 66.
+    assert world.trust_matrix["A"]["B"] == 66.0
