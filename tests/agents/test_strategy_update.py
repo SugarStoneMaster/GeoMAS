@@ -55,7 +55,6 @@ def test_president_strategy_change(setup_agent, mock_client):
     mock_briefing.defense.payload = MagicMock()
     mock_briefing.defense.payload.moves = []
     mock_briefing.defense.intent = MagicMock()
-    mock_briefing.defense.urgency = 5
     mock_briefing.defense.intent.public_intent.value = "DETERRENCE"
     mock_briefing.defense.intent.private_intent.value = "DETERRENCE"
     mock_briefing.defense.intent.reasoning = "Test Reasoning"
@@ -65,7 +64,6 @@ def test_president_strategy_change(setup_agent, mock_client):
     mock_briefing.economy.payload.trade_offer_give_type = None
     mock_briefing.economy.payload.trade_offer_want_type = None
     mock_briefing.economy.intent = MagicMock()
-    mock_briefing.economy.projected_cost = 100.0
     mock_briefing.economy.intent.public_intent.value = "GROWTH"
     mock_briefing.economy.intent.private_intent.value = "GROWTH"
     mock_briefing.economy.intent.reasoning = "Test Reasoning"
@@ -75,7 +73,6 @@ def test_president_strategy_change(setup_agent, mock_client):
     mock_briefing.foreign.payload.diplomatic_message_type = None
     mock_briefing.foreign.payload.proposal_ref_type = None
     mock_briefing.foreign.intent = MagicMock()
-    mock_briefing.foreign.target_trust_impact = 0.0
     mock_briefing.foreign.intent.public_intent.value = "COOPERATION"
     mock_briefing.foreign.intent.private_intent.value = "COOPERATION"
     mock_briefing.foreign.intent.reasoning = "Test Reasoning"
@@ -165,7 +162,6 @@ def test_caching_efficiency(setup_agent, mock_client):
     mock_briefing.economy.payload.trade_offer_give_type = None
     mock_briefing.economy.payload.trade_offer_want_type = None
     mock_briefing.economy.intent = MagicMock()
-    mock_briefing.economy.projected_cost = 100.0
     mock_briefing.economy.intent.public_intent.value = "GROWTH"
     mock_briefing.economy.intent.private_intent.value = "GROWTH"
     mock_briefing.economy.intent.reasoning = "Test Reasoning"
@@ -175,7 +171,6 @@ def test_caching_efficiency(setup_agent, mock_client):
     mock_briefing.foreign.payload.diplomatic_message_type = None
     mock_briefing.foreign.payload.proposal_ref_type = None
     mock_briefing.foreign.intent = MagicMock()
-    mock_briefing.foreign.target_trust_impact = 0.0
     mock_briefing.foreign.intent.public_intent.value = "COOPERATION"
     mock_briefing.foreign.intent.private_intent.value = "COOPERATION"
     mock_briefing.foreign.intent.reasoning = "Test Reasoning"

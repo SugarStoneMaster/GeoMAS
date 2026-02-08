@@ -75,19 +75,16 @@ class DefenseProposal(BaseModel):
     """Defense minister's proposal to the president."""
     intent: DefenseIntent
     payload: DefensePayload
-    urgency: int = Field(..., ge=1, le=10, description="1=Routine, 10=Existential Threat")
 
 class EconomicProposal(BaseModel):
     """Economy minister's proposal to the president."""
     intent: EconomicIntent
     payload: EconomicPayload
-    projected_cost: float
 
 class ForeignProposal(BaseModel):
     """Foreign minister's proposal to the president."""
     intent: ForeignIntent
     payload: ForeignPayload
-    target_trust_impact: float
 
 
 class CabinetBriefing(BaseModel):

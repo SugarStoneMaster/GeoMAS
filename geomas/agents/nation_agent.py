@@ -208,7 +208,7 @@ class NationAgent:
         """Format defense proposal for President."""
         intent = proposal.intent
         payload = proposal.payload
-        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Urgency:** {proposal.urgency}/10\n**Actions:**"
+        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Actions:**"
         
         # Count action types from the generic 'moves' list
         move_count = 0
@@ -239,7 +239,7 @@ class NationAgent:
         """Format economic proposal for President."""
         intent = proposal.intent
         payload = proposal.payload
-        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Cost:** {proposal.projected_cost:.1f}\n**Action:**"
+        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Action:**"
         
         if payload.action_type:
             # Build details from explicit fields
@@ -258,7 +258,7 @@ class NationAgent:
         """Format foreign proposal for President."""
         intent = proposal.intent
         payload = proposal.payload
-        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Trust Impact:** {proposal.target_trust_impact:+.0f}\n**Action:**"
+        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Action:**"
         
         if payload.action_type:
             target = f" (Target: {payload.target_nation_id})" if payload.target_nation_id else ""

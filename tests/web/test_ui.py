@@ -59,7 +59,6 @@ class TestUIComponents:
         result = client.query_agent("", "", DefenseProposal)
         
         assert isinstance(result, DefenseProposal)
-        assert result.urgency == 1
     
     def test_mock_client_country_envelope(self):
         """Test that mock client returns valid CountryEnvelope."""

@@ -63,8 +63,7 @@ class TestDefenseMinister(TestMinisterBase):
             payload=DefensePayload(
                 decision=Decision.APPROVE,
                 moves=[]
-            ),
-            urgency=5
+            )
         )
         client.query_agent.return_value = mock_response
         
@@ -100,8 +99,7 @@ class TestDefenseMinister(TestMinisterBase):
             payload=DefensePayload(
                 decision=Decision.APPROVE,
                 moves=[]
-            ),
-            urgency=1
+            )
         )
         
         minister.propose(GlobalStrategy.ARMED_ISOLATIONISM, turn=1)
@@ -135,8 +133,7 @@ class TestEconomicMinister(TestMinisterBase):
                 decision=Decision.APPROVE,
                 action_type=EconomicActionType.INVEST_WELFARE,
                 amount=10.0
-            ),
-            projected_cost=100.0
+            )
         )
         client.query_agent.return_value = mock_response
         
@@ -172,8 +169,7 @@ class TestForeignMinister(TestMinisterBase):
                 decision=Decision.APPROVE,
                 action_type=ForeignActionType.PROPOSE_ALLIANCE,
                 target_nation_id="NationB"
-            ),
-            target_trust_impact=0.1
+            )
         )
         client.query_agent.return_value = mock_response
         
@@ -211,8 +207,7 @@ class TestForeignMinister(TestMinisterBase):
                 decision=Decision.APPROVE,
                 action_type=None,
                 target_nation_id=None
-            ),
-            target_trust_impact=0.0
+            )
         )
         
         minister.propose(GlobalStrategy.COALITION_BUILDER, turn=1)

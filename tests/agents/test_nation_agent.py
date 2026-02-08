@@ -44,8 +44,7 @@ class TestNationAgent:
                 reasoning="Defend"
             ),
             # Corrected DefensePayload (only has moves)
-            payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
-            urgency=1
+            payload=DefensePayload(decision=Decision.APPROVE, moves=[])
         )
         eco_prop = EconomicProposal(
             intent=EconomicIntent(
@@ -53,8 +52,7 @@ class TestNationAgent:
                 private_intent=EconomicIntentType.GROWTH,
                 reasoning="Grow"
             ),
-            payload=EconomicPayload(decision=Decision.APPROVE),
-            projected_cost=10
+            payload=EconomicPayload(decision=Decision.APPROVE)
         )
         for_prop = ForeignProposal(
             intent=ForeignIntent(
@@ -62,8 +60,7 @@ class TestNationAgent:
                 private_intent=ForeignIntentType.IDLE,
                 reasoning="Chill"
             ),
-            payload=ForeignPayload(decision=Decision.APPROVE),
-            target_trust_impact=0
+            payload=ForeignPayload(decision=Decision.APPROVE)
         )
         
         # 2. Setup President Decree (APPROVE ALL)

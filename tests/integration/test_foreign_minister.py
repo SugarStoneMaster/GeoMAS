@@ -155,9 +155,9 @@ def main():
         if usage:
             print(f"{usage}")
         print("-" * 60)
-        print(f"Intent: {result.intent.type.value}")
+        print(f"Public Intent: {result.intent.public_intent.value}")
+        print(f"Private Intent: {result.intent.private_intent.value}")
         print(f"Reasoning: {result.intent.reasoning}")
-        print(f"Trust Impact: {result.target_trust_impact}")
         
         if result.payload.action_type:
             print(f"Action: {result.payload.action_type.value}")

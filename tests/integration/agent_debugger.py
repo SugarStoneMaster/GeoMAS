@@ -154,9 +154,9 @@ def render_foreign_minister():
                 r_col1, r_col2 = st.columns(2)
                 with r_col1:
                     st.markdown("### Decision Breakdown")
-                    st.write(f"**Intent Type:** `{response.intent.type.value}`")
+                    st.write(f"**Public Intent:** `{response.intent.public_intent.value}`")
+                    st.write(f"**Private Intent:** `{response.intent.private_intent.value}`")
                     st.write(f"**Reasoning:** {response.intent.reasoning}")
-                    st.write(f"**Trust Impact:** {response.target_trust_impact}")
                 
                 with r_col2:
                     st.markdown("### Payload (Action)")

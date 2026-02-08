@@ -34,8 +34,7 @@ class UIMockLLM(LLMClient):
                     private_intent=DefenseIntentType.IDLE,
                     reasoning="Peace is good"
                 ),
-                payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
-                urgency=1
+                payload=DefensePayload(decision=Decision.APPROVE, moves=[])
             )
         
         elif response_model == EconomicProposal:
@@ -48,8 +47,7 @@ class UIMockLLM(LLMClient):
                 payload=EconomicPayload(
                     decision=Decision.APPROVE, 
                     action_type=EconomicActionType.INVEST_WELFARE
-                ),
-                projected_cost=50.0
+                )
             )
         
         elif response_model == ForeignProposal:
@@ -62,8 +60,7 @@ class UIMockLLM(LLMClient):
                 payload=ForeignPayload(
                     decision=Decision.APPROVE, 
                     action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE
-                ),
-                target_trust_impact=0.1
+                )
             )
         
         elif response_model == PresidentialDecree:

@@ -34,21 +34,30 @@ class SimMockLLM(LLMClient):
         # Return valid dummy objects
         if response_model == DefenseProposal:
             return DefenseProposal(
-                intent=DefenseIntent(type=DefenseIntentType.IDLE, reasoning="Peace"),
-                payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
-                urgency=1
+                intent=DefenseIntent(
+                    public_intent=DefenseIntentType.IDLE, 
+                    private_intent=DefenseIntentType.IDLE,
+                    reasoning="Peace"
+                ),
+                payload=DefensePayload(decision=Decision.APPROVE, moves=[])
             )
         elif response_model == EconomicProposal:
             return EconomicProposal(
-                intent=EconomicIntent(type=EconomicIntentType.GROWTH, reasoning="Grow"),
-                payload=EconomicPayload(decision=Decision.APPROVE, action_type=EconomicActionType.INVEST_WELFARE),
-                projected_cost=10.0
+                intent=EconomicIntent(
+                    public_intent=EconomicIntentType.GROWTH,
+                    private_intent=EconomicIntentType.GROWTH,
+                    reasoning="Grow"
+                ),
+                payload=EconomicPayload(decision=Decision.APPROVE, action_type=EconomicActionType.INVEST_WELFARE)
             )
         elif response_model == ForeignProposal:
             return ForeignProposal(
-                intent=ForeignIntent(type=ForeignIntentType.COOPERATION, reasoning="Coop"),
-                payload=ForeignPayload(decision=Decision.APPROVE, action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE),
-                target_trust_impact=0.1
+                intent=ForeignIntent(
+                    public_intent=ForeignIntentType.COOPERATION,
+                    private_intent=ForeignIntentType.COOPERATION,
+                    reasoning="Coop"
+                ),
+                payload=ForeignPayload(decision=Decision.APPROVE, action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE)
             )
         elif response_model == CountryEnvelope:
             return CountryEnvelope(

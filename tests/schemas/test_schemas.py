@@ -22,32 +22,7 @@ from geomas.actions.economy import EconomicPayload
 from geomas.actions.foreign import ForeignPayload
 
 
-def test_defense_proposal_validation():
-    """Test validation constraints on DefenseProposal."""
-    
-    # Valid
-    prop = DefenseProposal(
-        intent=DefenseIntent(
-            public_intent=DefenseIntentType.DEFENSE,
-            private_intent=DefenseIntentType.DEFENSE,
-            reasoning="Valid"
-        ),
-        payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
-        urgency=5
-    )
-    assert prop.urgency == 5
-    
-    # Invalid Urgency (Too high)
-    with pytest.raises(ValidationError):
-        DefenseProposal(
-            intent=DefenseIntent(
-                public_intent=DefenseIntentType.DEFENSE,
-                private_intent=DefenseIntentType.DEFENSE,
-                reasoning="Valid"
-            ),
-            payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
-            urgency=11 # Max is 10
-        )
+
 
 
 def test_envelope_structure():

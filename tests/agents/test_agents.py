@@ -45,8 +45,7 @@ class MockLLMClient(LLMClient):
                     private_intent=DefenseIntentType.DEFENSE,
                     reasoning="Mock Defense"
                 ),
-                payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
-                urgency=5
+                payload=DefensePayload(decision=Decision.APPROVE, moves=[])
             )
         elif response_model == EconomicProposal:
             return EconomicProposal(
@@ -55,8 +54,7 @@ class MockLLMClient(LLMClient):
                     private_intent=EconomicIntentType.GROWTH,
                     reasoning="Mock Eco"
                 ),
-                payload=EconomicPayload(decision=Decision.APPROVE),
-                projected_cost=100.0
+                payload=EconomicPayload(decision=Decision.APPROVE)
             )
         elif response_model == ForeignProposal:
             return ForeignProposal(
@@ -65,8 +63,7 @@ class MockLLMClient(LLMClient):
                     private_intent=ForeignIntentType.COOPERATION,
                     reasoning="Mock Foreign"
                 ),
-                payload=ForeignPayload(decision=Decision.APPROVE),
-                target_trust_impact=0.1
+                payload=ForeignPayload(decision=Decision.APPROVE)
             )
         elif response_model == PresidentialDecree:
             return PresidentialDecree(
@@ -125,7 +122,6 @@ def test_defense_minister_proposal():
     
     assert isinstance(proposal, DefenseProposal)
     assert proposal.intent is not None
-    assert proposal.urgency >= 1 and proposal.urgency <= 10
 
 
 def test_nation_agent_flow():
