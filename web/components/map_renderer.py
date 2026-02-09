@@ -172,8 +172,8 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None, show
     for rx, ry in revolt_coords:
         ax.scatter(rx, ry, s=80, c='red', marker='X', edgecolors='darkred', linewidths=1, zorder=11)
     
-    ax.set_xlim(-0.1, 1.1)
-    ax.set_ylim(-0.1, 1.1)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
     ax.set_aspect('equal')
     ax.axis('off')
     
