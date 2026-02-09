@@ -42,7 +42,7 @@ with ctrl_cols[1]:
     history_seed = st.number_input("History Seed", value=99, step=1, key="history_seed")
 
 with ctrl_cols[2]:
-    n_cells = st.number_input("Cells", value=1500, min_value=500, max_value=3000, step=100, key="n_cells")
+    n_cells = st.number_input("Cells", value=500, min_value=50, max_value=3000, step=50, key="n_cells")
     n_nations = st.slider("Nations", min_value=4, max_value=10, value=4, key="n_nations")
 
 # Initialize session state
