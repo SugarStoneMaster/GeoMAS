@@ -41,7 +41,8 @@ class TestNuclearValidation:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,
-                target_province_id=target_province
+                target_province_id=target_province,
+                target_nation_id=enemy_id
             )]
         )
         
@@ -67,14 +68,17 @@ class TestNuclearValidation:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,
-                target_province_id=own_province
+                target_province_id=own_province,
+                target_nation_id=nation_id # Targeting self should fail
             )]
         )
         
         envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
-        assert any("Cannot nuke own territory" in log for log in logs)
+        # Check logs for strict match or substring
+        # Since we check target_nation_id first, we expect "Cannot target SELF"
+        assert any("Cannot target SELF" in log for log in logs)
 
 
 class TestNuclearEffects:
@@ -105,7 +109,8 @@ class TestNuclearEffects:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,
-                target_province_id=target_province_id
+                target_province_id=target_province_id,
+                target_nation_id=enemy_id
             )]
         )
         
@@ -144,7 +149,8 @@ class TestNuclearEffects:
             moves=[DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.NUCLEAR_OPTION,
-                target_province_id=target_province
+                target_province_id=target_province,
+                target_nation_id=victim_id
             )]
         )
         

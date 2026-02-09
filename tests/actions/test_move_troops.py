@@ -39,7 +39,8 @@ class TestMoveTroopsValidation:
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
                 unit_type="SOLDIER", 
-                quantity=1
+                quantity=1,
+                target_nation_id=nation_id
             )]
         )
         
@@ -81,6 +82,7 @@ class TestMoveTroopsValidation:
                 quantity=10,
                 source_province_id=int(province_a),
                 target_province_id=int(province_b),
+                target_nation_id=nation_id
             )]
         )
         
@@ -121,6 +123,7 @@ class TestMoveTroopsValidation:
                 quantity=5,
                 source_province_id=int(province_a),
                 target_province_id=int(province_b),
+                target_nation_id=nation_id
             )]
         )
         
@@ -177,6 +180,7 @@ class TestMoveTroopsExecution:
                 quantity=3,
                 source_province_id=int(province_a),
                 target_province_id=int(province_b),
+                target_nation_id=nation_id
             )]
         )
         
@@ -232,6 +236,7 @@ class TestMoveTroopsExecution:
                 quantity=2,
                 source_province_id=int(start_province),
                 target_province_id=int(dest_province),
+                target_nation_id=nation_id
             )]
         )
         

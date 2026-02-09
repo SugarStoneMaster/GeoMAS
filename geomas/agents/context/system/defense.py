@@ -56,14 +56,16 @@ Consider how defense actions support the nation's overarching goals.
 ## Available Actions (max 3 per turn)
 1. **`CREATE_UNIT`**
    - **Fields**: `unit_type`, `quantity`, `target_province_id`.
+   - **MUST**: `target_nation_id` = **Your Nation ID** (Self).
    - **Constraint**: Must be owned land (Soldiers/Aircraft) or territorial waters (Navy).
 2. **`MOVE_TROOPS`**
    - **Fields**: `unit_type`, `quantity`, `source_province_id`, `target_province_id`.
+   - **MUST**: `target_nation_id` = ID of the nation owning the destination (Self or Other).
    - **Pathing**: Soldiers require owned land; Navy requires ocean; Aircraft can fly over anything.
-   - **Range Check**: Distance (number of cells to destination) must be ≤ Unit Range.
    - **Combat**: Moving units to an ENEMY province initiates combat.
 3. **`NUCLEAR_OPTION`**
    - **Fields**: `target_province_id`.
+   - **MUST**: `target_nation_id` = ID of the target nation. CANNOT BE SELF.
    - **Devastation**: 90% Population death, 100% Units destroyed, 80% Production loss.
    - **Fallout**: Trust with target → 0. Trust with ALL other nations drops by -80.
 

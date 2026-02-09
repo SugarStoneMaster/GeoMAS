@@ -72,6 +72,14 @@ def _execute_create_unit(
     unit_type = move.unit_type or UnitType.SOLDIER
     quantity = move.quantity or 1
     province_id = move.target_province_id
+    target_nation_id = move.target_nation_id
+    
+    # Validate target_nation_id is SELF
+    if target_nation_id != nation_id:
+        engine.logs.append(
+            f"[DEFENSE] CREATE_UNIT failed: target_nation_id {target_nation_id} must be {nation_id} (SELF)"
+        )
+        return
     
     # Validate unit type
     # unit_type is already an Enum or None, validated by Pydantic if parsed correctly
@@ -195,6 +203,17 @@ def _execute_move_troops(
     else:
         if from_province.owner_id != nation_id:
             engine.logs.append(f"[DEFENSE] MOVE_TROOPS: Source {from_province_id} not owned by {nation_id}")
+            return
+    
+    # Validate target_nation_id matches destination owner
+    # For Navy in ocean, we might not have an owner, so we skip if None
+    # But if owner exists, it MUST match.
+    if to_province and to_province.owner_id:
+        if move.target_nation_id != to_province.owner_id:
+            engine.logs.append(
+                f"[DEFENSE] MOVE_TROOPS: target_nation_id {move.target_nation_id} "
+                f"does not match destination owner {to_province.owner_id}"
+            )
             return
     
     # Validate units available in source
@@ -518,6 +537,16 @@ def _execute_nuclear_option(
     # Use explicit fields from DefenseActionItem
     target_province_id = move.target_province_id
     quantity = move.quantity or 1
+    target_nation_id = move.target_nation_id
+
+    # Validate target_nation_id (Input Check)
+    if target_nation_id is None:
+        engine.logs.append("[NUCLEAR] Missing target_nation_id")
+        return
+
+    if target_nation_id == nation_id:
+        engine.logs.append("[NUCLEAR] Cannot target SELF with nuclear option")
+        return
     
     if target_province_id is None:
         engine.logs.append("[NUCLEAR] Missing target_province_id")
@@ -536,12 +565,20 @@ def _execute_nuclear_option(
         engine.logs.append(f"[NUCLEAR] Target province {target_province_id} not found")
         return
     
-    # Validate: not own territory
-    if target_province.owner_id == nation_id:
-        engine.logs.append("[NUCLEAR] Cannot nuke own territory")
+    victim_id = target_province.owner_id
+
+    # Validate target_nation_id matches province owner (Consistency Check)
+    if target_nation_id != victim_id:
+        engine.logs.append(
+            f"[NUCLEAR] target_nation_id {target_nation_id} does not match "
+            f"province owner {victim_id}"
+        )
         return
     
-    victim_id = target_province.owner_id
+    # Validate: not own territory (Redundant but explicit safety)
+    if victim_id == nation_id:
+        engine.logs.append("[NUCLEAR] Cannot nuke own territory")
+        return
     
     # --- EXECUTE ---
     

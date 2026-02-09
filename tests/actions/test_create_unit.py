@@ -47,7 +47,8 @@ class TestCreateUnitValidation:
                 action_type=DefenseActionType.CREATE_UNIT,
                 unit_type=None,  # Should default to SOLDIER
                 quantity=1,
-                target_province_id=int(target_province)
+                target_province_id=int(target_province),
+                target_nation_id=nation_id
             )]
         )
         
@@ -81,7 +82,8 @@ class TestCreateUnitValidation:
                 action_type=DefenseActionType.CREATE_UNIT,
                 unit_type="SOLDIER", 
                 quantity=1, 
-                target_province_id=int(enemy_province)
+                target_province_id=int(enemy_province),
+                target_nation_id=nation_a
             )]
         )
         
@@ -116,7 +118,8 @@ class TestCreateUnitValidation:
                 action_type=DefenseActionType.CREATE_UNIT,
                 unit_type="SOLDIER", 
                 quantity=1, 
-                target_province_id=int(ocean_prov)
+                target_province_id=int(ocean_prov),
+                target_nation_id=nation_id
             )]
         )
         
@@ -164,7 +167,8 @@ class TestCreateUnitExecution:
                 action_type=DefenseActionType.CREATE_UNIT,
                 unit_type="SOLDIER", 
                 quantity=5, 
-                target_province_id=int(target_province)
+                target_province_id=int(target_province),
+                target_nation_id=nation_id
             )]
         )
         
@@ -207,7 +211,8 @@ class TestCreateUnitExecution:
                 action_type=DefenseActionType.CREATE_UNIT,
                 unit_type="AIRCRAFT", 
                 quantity=2, 
-                target_province_id=int(target_province)
+                target_province_id=int(target_province),
+                target_nation_id=nation_id
             )]
         )
         
@@ -253,7 +258,8 @@ class TestCreateUnitExecution:
                 action_type=DefenseActionType.CREATE_UNIT,
                 unit_type="NAVY", 
                 quantity=2, 
-                target_province_id=int(target_water)
+                target_province_id=int(target_water),
+                target_nation_id=nation_id
             )]
         )
         
@@ -286,7 +292,8 @@ class TestCreateUnitExecution:
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
                 unit_type="SOLDIER", 
-                quantity=1
+                quantity=1,
+                target_nation_id=nation_id
             )]
         )
         
