@@ -123,6 +123,8 @@ class SpatialTranslator:
         
         for p_id in border_provinces:
             prov = self.world.provinces[p_id]
+            if prov.terrain == TerrainType.VOID:
+                continue
             
             # Terrain-based risk modifier
             if prov.terrain == TerrainType.MOUNTAIN:

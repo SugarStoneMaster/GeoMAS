@@ -50,6 +50,24 @@ def create_provinces(
         nation_id = political_map[r_idx]
         neighbors = list(adjacency[r_idx])
         
+        # Determine if this should be a VOID border province
+        cx, cy = cell_centroids[r_idx]
+        margin = 0.02
+        if cx < margin or cx > 1-margin or cy < margin or cy > 1-margin:
+            # Border VOID provinces: Not actionable, no owner, white color
+            provinces_dict[r_idx] = ProvinceState(
+                id=r_idx,
+                owner_id=None,
+                terrain=TerrainType.VOID,
+                coordinates=(float(cx), float(cy)),
+                vertices=cell_vertices[r_idx],
+                neighbors=neighbors,
+                population=0,
+                workers=0,
+                soldiers=0
+            )
+            continue
+
         # Determine terrain
         is_coastal = any(n_idx in ocean_indices for n_idx in neighbors)
         terrain = _determine_terrain(is_coastal, rng)

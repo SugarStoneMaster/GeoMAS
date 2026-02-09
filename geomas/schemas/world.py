@@ -8,6 +8,7 @@ class TerrainType(str, Enum):
     LAND = "LAND"       # Generic flat land (Plains)
     COASTAL = "COASTAL" # Land touching Ocean
     MOUNTAIN = "MOUNTAIN" # High defense bonus, movement penalty
+    VOID = "VOID"       # Non-actionable border province (white)
 
 
 class RelationshipState(str, Enum):

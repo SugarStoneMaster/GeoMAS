@@ -79,9 +79,9 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None, show
     edge_widths = []
     revolt_coords = []  # Track provinces in civil unrest
     
-    # Draw Background Ocean (fills gaps at the edges)
-    bg_ocean = plt.Rectangle((0, 0), 1, 1, color="#b0c4de", zorder=0)
-    ax.add_patch(bg_ocean)
+    # Draw Background (White for non-actionable areas)
+    bg_void = plt.Rectangle((0, 0), 1, 1, color="white", zorder=0)
+    ax.add_patch(bg_void)
     
     for p_id, province in world.provinces.items():
         if province.vertices:
@@ -91,7 +91,10 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None, show
             # Determine if this province belongs to selected nation
             belongs_to_selected = (province_to_nation.get(p_id) == selected_nation_id) if selected_nation_id else False
             
-            if province.terrain == TerrainType.OCEAN:
+            if province.terrain == TerrainType.VOID:
+                colors.append("white")
+                hatches.append(None)
+            elif province.terrain == TerrainType.OCEAN:
                 # Check if this ocean cell is territorial water
                 owner_id = territorial_owners.get(p_id)
                 if owner_id:
@@ -157,6 +160,10 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None, show
     # Render Province IDs if requested
     if show_province_ids:
         for p_id, province in world.provinces.items():
+            # Skip numbering for VOID border provinces
+            if province.terrain == TerrainType.VOID:
+                continue
+                
             if province.coordinates:
                 cx, cy = province.coordinates
                 

@@ -43,10 +43,9 @@ def generate_voronoi(rng: np.random.RandomState, n_cells: int, relaxation_steps:
                 new_points.append(centroid)
         points = np.array(new_points)
     
-    # 4. Separate survivors [0.02, 0.98] from padding
-    # Using a safety margin to avoid degenerate border provinces
-    m = 0.02
-    mask = (points[:, 0] >= m) & (points[:, 0] <= 1-m) & (points[:, 1] >= m) & (points[:, 1] <= 1-m)
+    # 4. Separate survivors [0, 1] from padding
+    # Survivors are everything inside the simulation space.
+    mask = (points[:, 0] >= 0) & (points[:, 0] <= 1) & (points[:, 1] >= 0) & (points[:, 1] <= 1)
     survivors = points[mask]
     the_rest = points[~mask]
     

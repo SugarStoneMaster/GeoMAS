@@ -74,6 +74,7 @@ TERRAIN_DEFENSE_MULTIPLIER: dict[TerrainType, float] = {
     TerrainType.COASTAL: 0.9,    # Slight disadvantage (multiple attack vectors)
     TerrainType.MOUNTAIN: 1.5,   # Strong defensive advantage
     TerrainType.OCEAN: 1.0,      # Baseline for naval combat
+    TerrainType.VOID: 1.0,       # Neutral baseline for non-actionable zones
 }
 
 
