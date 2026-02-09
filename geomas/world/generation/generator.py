@@ -68,12 +68,12 @@ class MapGenerator:
     def generate(self, history_seed: int) -> WorldState:
         """Main generation pipeline."""
         # Step 1: Generate Voronoi geometry
-        vor = generate_voronoi(self.rng, self.n_cells, self.relaxation_steps)
-        adjacency = build_adjacency(vor)
+        vor, n_survivors = generate_voronoi(self.rng, self.n_cells, self.relaxation_steps)
+        adjacency = build_adjacency(vor, n_survivors)
         
         # Step 2: Generate geography (land/ocean)
         land_indices, ocean_indices, cell_centroids, cell_vertices = generate_geography(
-            vor, self.rng
+            vor, n_survivors, self.rng
         )
         
         # Step 3: Create and assign nations

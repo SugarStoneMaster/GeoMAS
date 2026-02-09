@@ -79,6 +79,10 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None, show
     edge_widths = []
     revolt_coords = []  # Track provinces in civil unrest
     
+    # Draw Background Ocean (fills gaps at the edges)
+    bg_ocean = plt.Rectangle((0, 0), 1, 1, color="#b0c4de", zorder=0)
+    ax.add_patch(bg_ocean)
+    
     for p_id, province in world.provinces.items():
         if province.vertices:
             poly = Polygon(province.vertices)

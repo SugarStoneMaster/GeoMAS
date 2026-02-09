@@ -12,10 +12,11 @@ from shapely.geometry import Polygon as ShapelyPolygon, box
 
 def generate_geography(
     vor: Voronoi,
+    n_survivors: int,
     rng: np.random.RandomState
 ) -> Tuple[List[int], List[int], Dict[int, np.ndarray], Dict[int, List[Tuple[float, float]]]]:
     """
-    Defines Land vs Ocean using Tectonic Plates logic.
+    Defines Land vs Ocean using Tectonic Plates logic for survivors only.
     """
     n_continents = rng.randint(4, 7)
     continent_centers = _generate_continent_centers(rng, n_continents)
@@ -29,7 +30,9 @@ def generate_geography(
     # Bounding box for clipping (0, 0) to (1, 1)
     boundary = box(0, 0, 1, 1)
     
-    for i, region_index in enumerate(vor.point_region):
+    # Only process the first n_survivors (the ones inside the box)
+    for i in range(n_survivors):
+        region_index = vor.point_region[i]
         region = vor.regions[region_index]
         centroid = vor.points[i]
         cell_centroids[i] = centroid
