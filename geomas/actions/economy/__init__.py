@@ -22,6 +22,7 @@ Trade System:
 from geomas.actions.economy.schemas import (
     EconomicActionType,
     EconomicPayload,
+    EconomicProposalPayload,
     Decision
 )
 from geomas.actions.economy.handler import execute_economic
@@ -35,6 +36,7 @@ from geomas.actions.economy.trade import (
 __all__ = [
     "EconomicActionType", 
     "EconomicPayload",
+    "EconomicProposalPayload",
     "execute_economic",
     "TradeOffer",
     "execute_trade",

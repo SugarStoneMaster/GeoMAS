@@ -106,12 +106,11 @@ class DefenseActionItem(BaseModel):
     # target_province_id (already exists) acts as Destination for MOVE, or Location for CREATE/NUKE
 
 
-class DefensePayload(BaseModel):
-    """Payload for Defense Minister actions."""
-    decision: Decision = Field(
-        default=Decision.PENDING,
-        description="FOR PRESIDENT ONLY. Ministers MUST leave as PENDING."
-    )
+class DefenseProposalPayload(BaseModel):
+    """
+    Payload for Defense Minister proposals (NO DECISION FIELD).
+    This is what the Minister generates.
+    """
     moves: List[DefenseActionItem] = Field(
         default_factory=list, 
         max_length=3,
@@ -124,6 +123,17 @@ class DefensePayload(BaseModel):
         if len(v) > 3:
             raise ValueError("Defense Minister can perform at most 3 actions per turn.")
         return v
+
+
+class DefensePayload(DefenseProposalPayload):
+    """
+    Payload for executon (INCLUDES DECISION FIELD).
+    This is what the President approves/vetoes and puts in the envelope.
+    """
+    decision: Decision = Field(
+        default=Decision.PENDING,
+        description="FOR PRESIDENT ONLY. Ministers MUST leave as PENDING."
+    )
 
 
 # --- VALIDATION HELPERS ---

@@ -79,7 +79,6 @@ Consider how alliances and communications serve the nation's strategic interests
    - No action. Cannot carry a message.
 
 ## Guidelines
-- **DECISION FIELD**: Your payload includes a `decision` field. You **MUST** leave this as `PENDING`. This field is reserved for the President to Approve or Veto your proposal.
 - **ACTION SELECTION**: You MUST choose exactly one action from the list above. 
 - **TARGET IDs**: Use the exact **Nation ID** (e.g., "OSTER", "ZENTORA") as provided in your context.
 - **STRICT ENUM**: You must strictly choose from the available nation IDs.

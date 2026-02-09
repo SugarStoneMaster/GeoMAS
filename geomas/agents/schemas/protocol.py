@@ -2,9 +2,9 @@ from enum import Enum
 from typing import List, Optional, Dict, Any, Literal
 from pydantic import BaseModel, Field
 from geomas.actions.common import Decision
-from geomas.actions.defense import DefensePayload
-from geomas.actions.economy import EconomicPayload
-from geomas.actions.foreign import ForeignPayload
+from geomas.actions.defense import DefensePayload, DefenseProposalPayload
+from geomas.actions.economy import EconomicPayload, EconomicProposalPayload
+from geomas.actions.foreign import ForeignPayload, ForeignProposalPayload
 
 # --- ENUMS ---
 
@@ -72,17 +72,17 @@ class ForeignIntent(BaseModel):
 class DefenseProposal(BaseModel):
     """Defense minister's proposal to the president."""
     intent: DefenseIntent
-    payload: DefensePayload
+    payload: DefenseProposalPayload
 
 class EconomicProposal(BaseModel):
     """Economy minister's proposal to the president."""
     intent: EconomicIntent
-    payload: EconomicPayload
+    payload: EconomicProposalPayload
 
 class ForeignProposal(BaseModel):
     """Foreign minister's proposal to the president."""
     intent: ForeignIntent
-    payload: ForeignPayload
+    payload: ForeignProposalPayload
 
 
 class CabinetBriefing(BaseModel):

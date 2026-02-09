@@ -7,6 +7,7 @@ Handles military/defense actions: CREATE_UNIT, MOVE_TROOPS, NUCLEAR_OPTION.
 from geomas.actions.defense.schemas import (
     DefenseActionType,
     DefensePayload,
+    DefenseProposalPayload,
     DefenseActionItem,
     UnitType,
     Decision,
@@ -25,6 +26,7 @@ from geomas.actions.defense.handler import execute_defense_waterfall
 __all__ = [
     "DefenseActionType",
     "DefensePayload",
+    "DefenseProposalPayload",
     "DefenseActionItem",
     "UnitType",
     "Decision",

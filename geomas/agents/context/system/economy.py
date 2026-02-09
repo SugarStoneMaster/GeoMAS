@@ -85,7 +85,6 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
   - **Materials**: **Military Decay**. Units cannot be maintained or built.
 
 ## Guidelines
-- **DECISION FIELD**: Your payload includes a `decision` field. You **MUST** leave this as `PENDING`. This field is reserved for the President to Approve or Veto your proposal.
 - **ACTION LIMIT**: You can propose at most **1 action**.
 - **TRADE PARAMETERS**: If proposing a trade, ensure amounts are realistic compared to your stockpiles/production.
 - **STRICT IDs**: When referring to other nations (e.g., in Trade), use the exact **Nation ID** provided in the context context.

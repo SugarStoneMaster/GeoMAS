@@ -18,12 +18,11 @@ class EconomicActionType(str, Enum):
     RAISE_WAR_TAX = "RAISE_WAR_TAX"
 
 
-class EconomicPayload(BaseModel):
-    """Payload for Economy Minister actions."""
-    decision: Decision = Field(
-        default=Decision.PENDING,
-        description="FOR PRESIDENT ONLY. Ministers MUST leave as PENDING."
-    )
+class EconomicProposalPayload(BaseModel):
+    """
+    Payload for Economy Minister proposals (NO DECISION FIELD).
+    This is what the Minister generates.
+    """
     action_type: Optional[EconomicActionType] = None
     target_nation_id: Optional[str] = None
     
@@ -33,4 +32,15 @@ class EconomicPayload(BaseModel):
     trade_offer_give_type: Optional[str] = Field(None, description="Resource type to GIVE")
     trade_offer_give_amount: Optional[float] = Field(None, description="Amount to GIVE")
     trade_offer_want_type: Optional[str] = Field(None, description="Resource type DESIRED (food, energy, materials, budget)")
+
+
+class EconomicPayload(EconomicProposalPayload):
+    """
+    Payload for execution (INCLUDES DECISION FIELD).
+    This is what the President approves/vetoes and puts in the envelope.
+    """
+    decision: Decision = Field(
+        default=Decision.PENDING,
+        description="FOR PRESIDENT ONLY. Ministers MUST leave as PENDING."
+    )
 

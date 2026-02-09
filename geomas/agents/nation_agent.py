@@ -174,8 +174,11 @@ class NationAgent:
         
         # --- DEFENSE ---
         if decree.defense.action == PresidentialDecision.APPROVE:
-            def_payload = briefing.defense.payload
-            def_payload.decision = Decision.APPROVE
+            # Create full payload from proposal + decision
+            def_payload = DefensePayload(
+                decision=Decision.APPROVE,
+                moves=briefing.defense.payload.moves
+            )
             def_pub_intent = briefing.defense.intent.public_intent
             def_priv_intent = briefing.defense.intent.private_intent
             def_reasoning = f"{briefing.defense.intent.reasoning} [President: {decree.defense.reasoning}]"
@@ -187,8 +190,18 @@ class NationAgent:
 
         # --- ECONOMY ---
         if decree.economy.action == PresidentialDecision.APPROVE:
-            eco_payload = briefing.economy.payload
-            eco_payload.decision = Decision.APPROVE
+            # Create full payload from proposal + decision
+            prop_payload = briefing.economy.payload
+            eco_payload = EconomicPayload(
+                decision=Decision.APPROVE,
+                action_type=prop_payload.action_type,
+                target_nation_id=prop_payload.target_nation_id,
+                amount=prop_payload.amount,
+                message=prop_payload.message,
+                trade_offer_give_type=prop_payload.trade_offer_give_type,
+                trade_offer_give_amount=prop_payload.trade_offer_give_amount,
+                trade_offer_want_type=prop_payload.trade_offer_want_type
+            )
             eco_pub_intent = briefing.economy.intent.public_intent
             eco_priv_intent = briefing.economy.intent.private_intent
             eco_reasoning = f"{briefing.economy.intent.reasoning} [President: {decree.economy.reasoning}]"
@@ -200,8 +213,16 @@ class NationAgent:
 
         # --- FOREIGN ---
         if decree.foreign.action == PresidentialDecision.APPROVE:
-            for_payload = briefing.foreign.payload
-            for_payload.decision = Decision.APPROVE
+            # Create full payload from proposal + decision
+            prop_payload = briefing.foreign.payload
+            for_payload = ForeignPayload(
+                decision=Decision.APPROVE,
+                action_type=prop_payload.action_type,
+                target_nation_id=prop_payload.target_nation_id,
+                message=prop_payload.message,
+                diplomatic_message_type=prop_payload.diplomatic_message_type,
+                proposal_ref_type=prop_payload.proposal_ref_type
+            )
             for_pub_intent = briefing.foreign.intent.public_intent
             for_priv_intent = briefing.foreign.intent.private_intent
             for_reasoning = f"{briefing.foreign.intent.reasoning} [President: {decree.foreign.reasoning}]"

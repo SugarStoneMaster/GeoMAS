@@ -34,7 +34,7 @@ class UIMockLLM(LLMClient):
                     private_intent=DefenseIntentType.IDLE,
                     reasoning="Peace is good"
                 ),
-                payload={"decision": Decision.APPROVE, "moves": []}
+                payload={"moves": []}  # No decision
             )
         
         elif issubclass(response_model, EconomicProposal):
@@ -45,9 +45,8 @@ class UIMockLLM(LLMClient):
                     reasoning="We need to grow"
                 ),
                 payload={
-                    "decision": Decision.APPROVE, 
                     "action_type": EconomicActionType.INVEST_WELFARE
-                }
+                } # No decision
             )
         
         elif issubclass(response_model, ForeignProposal):
@@ -58,9 +57,8 @@ class UIMockLLM(LLMClient):
                     reasoning="Friends are good"
                 ),
                 payload={
-                    "decision": Decision.APPROVE, 
                     "action_type": ForeignActionType.SEND_DIPLOMATIC_MESSAGE
-                }
+                } # No decision
             )
         
         elif issubclass(response_model, PresidentialDecree):

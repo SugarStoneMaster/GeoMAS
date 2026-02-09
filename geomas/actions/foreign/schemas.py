@@ -38,12 +38,11 @@ MESSAGE_TRUST_IMPACT: dict[DiplomaticMessageType, float] = {
 }
 
 
-class ForeignPayload(BaseModel):
-    """Payload for Foreign Minister actions."""
-    decision: Decision = Field(
-        default=Decision.PENDING,
-        description="FOR PRESIDENT ONLY. Ministers MUST leave as PENDING."
-    )
+class ForeignProposalPayload(BaseModel):
+    """
+    Payload for Foreign Minister proposals (NO DECISION FIELD).
+    This is what the Minister generates.
+    """
     action_type: Optional[ForeignActionType] = None
     target_nation_id: Optional[str] = None
     message: Optional[str] = Field(None, description="Diplomatic message to the target nation.")
@@ -56,4 +55,15 @@ class ForeignPayload(BaseModel):
     proposal_ref_type: Optional[str] = Field(
         None,
         description="Required for ACCEPT/REJECT_PROPOSAL. matches the type of proposal (e.g. ALLIANCE, PEACE)."
+    )
+
+
+class ForeignPayload(ForeignProposalPayload):
+    """
+    Payload for execution (INCLUDES DECISION FIELD).
+    This is what the President approves/vetoes and puts in the envelope.
+    """
+    decision: Decision = Field(
+        default=Decision.PENDING,
+        description="FOR PRESIDENT ONLY. Ministers MUST leave as PENDING."
     )

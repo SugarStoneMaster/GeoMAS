@@ -74,7 +74,6 @@ Consider how defense actions support the nation's overarching goals.
 - **Air Strikes**: Aircraft inflict damage but do not capture territory.
 
 ## Guidelines
-- **DECISION FIELD**: Your payload includes a `decision` field. You **MUST** leave this as `PENDING`. This field is reserved for the President to Approve or Veto your proposal.
 - **ACTION LIMIT**: Propose at most **3 actions** in `payload.moves`.
 - **WATERFALL LOGIC**: Actions are executed in order of priority (1 = highest). If one fails (e.g., budget), the rest are still attempted.
 - **STRICT IDs**: When referring to provinces, use the exact Province ID (integer). When referring to nations, use the exact **Nation ID**.
