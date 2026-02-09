@@ -146,24 +146,26 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None, show
             patch.set_hatch(hatches[i])
             ax.add_patch(patch)
             
+    # Draw a subtle border for the world box (0,1)
+    world_box = plt.Rectangle((0, 0), 1, 1, fill=False, edgecolor='gray', linestyle='--', alpha=0.5, linewidth=0.5)
+    ax.add_patch(world_box)
+            
     # Render Province IDs if requested
     if show_province_ids:
         for p_id, province in world.provinces.items():
             if province.coordinates:
                 cx, cy = province.coordinates
                 
-                # Filter out centroids that are way off-map (infinite/ghost regions)
-                if 0 <= cx <= 1 and 0 <= cy <= 1:
-                    ax.text(
-                        cx, cy, 
-                        str(p_id), 
-                        fontsize=6, 
-                        ha='center', 
-                        va='center', 
-                        color='black',
-                        clip_on=True, # Ensure it doesn't expand axes or show outside
-                        bbox=dict(facecolor='white', alpha=0.5, edgecolor='none', boxstyle='round,pad=0.1')
-                    )
+                ax.text(
+                    cx, cy, 
+                    str(p_id), 
+                    fontsize=6, 
+                    ha='center', 
+                    va='center', 
+                    color='black',
+                    clip_on=True, # Ensure it doesn't expand axes or show outside
+                    bbox=dict(facecolor='white', alpha=0.5, edgecolor='none', boxstyle='round,pad=0.1')
+                )
     
     
     # Draw revolt markers (red X) on provinces in civil unrest

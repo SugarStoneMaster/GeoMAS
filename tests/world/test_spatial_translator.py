@@ -48,7 +48,8 @@ def test_maginot_line_logic():
 
 def test_encirclement_warning():
     """Test encirclement risk reporting for nations with many neighbors."""
-    world = generate_world(seed=42, n_cells=200, n_nations=5)
+    # Use higher cell count and more nations to guarantee neighbors
+    world = generate_world(seed=42, n_cells=300, n_nations=8)
     translator = SpatialTranslator(world)
     
     # Find nation with most neighbors
@@ -60,8 +61,8 @@ def test_encirclement_warning():
             max_neighbors = len(neighbors)
             target_nation = n_id
     
-    if max_neighbors < 2:
-        pytest.skip("No nation with multiple neighbors")
+    if target_nation is None or max_neighbors < 2:
+        pytest.skip(f"No nation with 2+ neighbors found (max: {max_neighbors})")
     
     report = translator.generate_intelligence_report(target_nation)
     # Should mention neighbors in some form

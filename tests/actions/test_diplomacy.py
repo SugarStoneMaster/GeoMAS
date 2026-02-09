@@ -55,7 +55,9 @@ class TestDiplomaticMessages:
         sender_id = list(world.nations.keys())[0]
         target_id = list(world.nations.keys())[1]
         
-        initial_trust = world.trust_matrix[sender_id][target_id]
+        # Reset trust to ensuring clean baseline
+        world.trust_matrix[sender_id][target_id] = 50.0
+        initial_trust = 50.0
         
         payload = ForeignPayload(
             decision=Decision.APPROVE,
@@ -77,7 +79,9 @@ class TestDiplomaticMessages:
         sender_id = list(world.nations.keys())[0]
         target_id = list(world.nations.keys())[1]
         
-        initial_trust = world.trust_matrix[sender_id][target_id]
+        # Reset trust to ensuring clean baseline
+        world.trust_matrix[sender_id][target_id] = 50.0
+        initial_trust = 50.0
         
         payload = ForeignPayload(
             decision=Decision.APPROVE,

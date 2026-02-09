@@ -7,8 +7,8 @@ with continent centers and radii.
 
 import numpy as np
 from scipy.spatial import Voronoi
-from typing import Dict, List, Tuple, Set
-
+from typing import List, Dict, Tuple
+from shapely.geometry import Polygon as ShapelyPolygon, box
 
 def generate_geography(
     vor: Voronoi,
@@ -16,13 +16,6 @@ def generate_geography(
 ) -> Tuple[List[int], List[int], Dict[int, np.ndarray], Dict[int, List[Tuple[float, float]]]]:
     """
     Defines Land vs Ocean using Tectonic Plates logic.
-    
-    Args:
-        vor: Voronoi diagram
-        rng: Random state for determinism
-        
-    Returns:
-        Tuple of (land_indices, ocean_indices, cell_centroids, cell_vertices)
     """
     n_continents = rng.randint(4, 7)
     continent_centers = _generate_continent_centers(rng, n_continents)
@@ -33,24 +26,42 @@ def generate_geography(
     cell_centroids = {}
     cell_vertices = {}
     
+    # Bounding box for clipping (0, 0) to (1, 1)
+    boundary = box(0, 0, 1, 1)
+    
     for i, region_index in enumerate(vor.point_region):
         region = vor.regions[region_index]
+        centroid = vor.points[i]
+        cell_centroids[i] = centroid
         
-        if -1 in region or len(region) == 0:
-            ocean_indices.append(region_index)
-            continue
-        
-        # Extract geometry
-        polygon_verts = np.array([vor.vertices[v] for v in region])
-        cell_vertices[region_index] = [(float(v[0]), float(v[1])) for v in polygon_verts]
-        centroid = np.mean(polygon_verts, axis=0)
-        cell_centroids[region_index] = centroid
-        
-        # Land Check
-        if _is_land(centroid, continent_centers, continent_radii, rng):
-            land_indices.append(region_index)
+        # 1. Extract raw vertices (if any)
+        if -1 not in region and len(region) > 0:
+            polygon_verts = np.array([vor.vertices[v] for v in region])
+            poly = ShapelyPolygon(polygon_verts)
         else:
-            ocean_indices.append(region_index)
+            # For infinite or incomplete regions, we can't make a poly easily.
+            # But wait, Scipy sometimes has finite regions that are outside?
+            # We'll try to find any finite verts or just center it.
+            # Actually, a safer way to clip infinite regions is complex.
+            # For now, we'll try to use a "large" bounding box for infinite regions then clip.
+            poly = None
+
+        # 2. Clip to unit square
+        if poly and poly.is_valid:
+            clipped = poly.intersection(boundary)
+            if not clipped.is_empty and hasattr(clipped, 'exterior'):
+                cell_vertices[i] = list(clipped.exterior.coords)
+            else:
+                cell_vertices[i] = []
+        else:
+            # Fallback for infinite regions: we don't draw the fill, just label.
+            cell_vertices[i] = []
+        
+        # 3. Land Check
+        if _is_land(centroid, continent_centers, continent_radii, rng):
+            land_indices.append(i)
+        else:
+            ocean_indices.append(i)
     
     return land_indices, ocean_indices, cell_centroids, cell_vertices
 
