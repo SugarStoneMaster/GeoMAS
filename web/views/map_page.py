@@ -33,7 +33,8 @@ def render_map_page(world: WorldState) -> None:
             render_nation_stats(world, selected_nation_id)
     
     with col_map:
-        render_map(world, selected_nation_id)
+        show_ids = st.checkbox("Show Province IDs", value=False, key="map_show_ids")
+        render_map(world, selected_nation_id, show_province_ids=show_ids)
         # Trust matrix directly under the map
         render_trust_matrix(world)
     

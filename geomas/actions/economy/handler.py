@@ -163,3 +163,8 @@ def execute_economic(
         else:
             msg_str = f" Message: '{payload.message}'" if payload.message else ""
             engine.logs.append(f"[TRADE] REJECTED {nation_id} -> {target_id}: {explanation}{msg_str}")
+
+    # --- IDLE ---
+    elif payload.action_type == EconomicActionType.IDLE:
+        if payload.message:
+            engine.logs.append(f"[ECONOMY] IDLE: {payload.message}")

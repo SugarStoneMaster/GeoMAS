@@ -44,7 +44,7 @@ def blend_with_ocean(nation_hex: str, ocean_hex: str = "#b0c4de", ratio: float =
     return mcolors.to_hex(blended)
 
 
-def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> None:
+def render_map(world: WorldState, selected_nation_id: Optional[str] = None, show_province_ids: bool = False) -> None:
     """
     Renders the world map as a matplotlib figure in Streamlit.
     
@@ -145,6 +145,21 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None) -> N
             patch.set_linewidth(edge_widths[i])
             patch.set_hatch(hatches[i])
             ax.add_patch(patch)
+            
+    # Render Province IDs if requested
+    if show_province_ids:
+        for p_id, province in world.provinces.items():
+            if province.coordinates:
+                cx, cy = province.coordinates
+                ax.text(
+                    cx, cy, 
+                    str(p_id), 
+                    fontsize=6, 
+                    ha='center', 
+                    va='center', 
+                    color='black',
+                    bbox=dict(facecolor='white', alpha=0.5, edgecolor='none', boxstyle='round,pad=0.1')
+                )
     
     
     # Draw revolt markers (red X) on provinces in civil unrest
