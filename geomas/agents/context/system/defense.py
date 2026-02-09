@@ -68,6 +68,8 @@ Consider how defense actions support the nation's overarching goals.
    - **MUST**: `target_nation_id` = ID of the target nation. CANNOT BE SELF.
    - **Devastation**: 90% Population death, 100% Units destroyed, 80% Production loss.
    - **Fallout**: Trust with target → 0. Trust with ALL other nations drops by -80.
+   
+**IDLE**: If you choose NO action, return an empty `moves` list. Do NOT invent an "IDLE" action type.
 
 ## Combat Mechanics & Geography
 - **Defensive Bonuses**: Mountain (+50% Defense), Coastal (-10% Defense).

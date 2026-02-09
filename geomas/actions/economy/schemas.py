@@ -16,6 +16,7 @@ class EconomicActionType(str, Enum):
     INVEST_WELFARE = "INVEST_WELFARE"
     TRADE_PROPOSAL = "TRADE_PROPOSAL"
     RAISE_WAR_TAX = "RAISE_WAR_TAX"
+    IDLE = "IDLE"
 
 
 class EconomicProposalPayload(BaseModel):

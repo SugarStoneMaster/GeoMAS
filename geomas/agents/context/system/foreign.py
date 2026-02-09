@@ -83,7 +83,9 @@ Consider how alliances and communications serve the nation's strategic interests
    - **Fields**: `target_nation_id`, `message` (optional).
    - **Effect**: Sends a peace proposal.
 6. **`IDLE`**
-   - No action. Cannot carry a message.
+   - **Fields**: `message` (optional explanation).
+   - **Constraint**: `target_nation_id` and `diplomatic_message_type` MUST be null.
+   - **Usage**: Choose this to remain passive. Use `message` to explain why you are not acting.
 
 ## Guidelines
 - **ACTION SELECTION**: You CAN perform Inbox responses AND one Agenda action in the same turn. 

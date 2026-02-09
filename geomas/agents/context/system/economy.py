@@ -73,6 +73,11 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
    - **Mechanic**: Engine calculates fair `want_amount` based on market rates.
    - **Message**: Your `message` is a diplomatic note to the target nation's government.
 
+4. **`IDLE`**
+   - **Fields**: `message` (optional explanation).
+   - **Constraint**: All other fields MUST be null.
+   - **Usage**: Choose this to remain passive. Use `message` to explain why you are not acting.
+
 ## Mechanics & Consequences
 - **Public Satisfaction**:
   - **< 30**: DANGER. High risk of **Civil Unrest** and significant production loss.
