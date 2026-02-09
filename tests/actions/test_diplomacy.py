@@ -11,6 +11,8 @@ from geomas.actions.foreign import (
     ForeignActionType,
     ForeignPayload,
     DiplomaticMessageType,
+    ProposalResponse,
+    ForeignResponseAction,
     MESSAGE_TRUST_IMPACT,
     MESSAGE_COOLDOWN_TURNS,
     execute_foreign,
@@ -164,6 +166,7 @@ class TestProposeAlliance:
         assert len(target_nation.pending_proposals) == 1
         assert target_nation.pending_proposals[0]["type"] == "ALLIANCE"
         assert target_nation.pending_proposals[0]["from"] == proposer_id
+        p_id = target_nation.pending_proposals[0]["id"]
         
         # Still PEACE until accepted
         assert world.relationship_matrix[proposer_id][target_id] == "PEACE"
@@ -171,9 +174,13 @@ class TestProposeAlliance:
         # Step 2: Accept the proposal
         accept_payload = ForeignPayload(
             decision=Decision.APPROVE,
-            action_type=ForeignActionType.ACCEPT_PROPOSAL,
-            target_nation_id=proposer_id,
-            proposal_ref_type="ALLIANCE"
+            action_type=ForeignActionType.IDLE,
+            proposal_responses=[
+                ProposalResponse(
+                    proposal_id=p_id,
+                    response=ForeignResponseAction.ACCEPT
+                )
+            ]
         )
         execute_foreign(engine, target_id, accept_payload)
         
@@ -266,14 +273,19 @@ class TestProposalExpiry:
         # Proposal exists
         target_nation = world.nations[target_id]
         assert len(target_nation.pending_proposals) == 1
+        p_id = target_nation.pending_proposals[0]["id"]
         
         # Try to accept at turn 7 (expired)
         world.turn = 7
         accept_payload = ForeignPayload(
             decision=Decision.APPROVE,
-            action_type=ForeignActionType.ACCEPT_PROPOSAL,
-            target_nation_id=proposer_id,
-            proposal_ref_type="ALLIANCE"
+            action_type=ForeignActionType.IDLE,
+            proposal_responses=[
+                ProposalResponse(
+                    proposal_id=p_id,
+                    response=ForeignResponseAction.ACCEPT
+                )
+            ]
         )
         execute_foreign(engine, target_id, accept_payload)
         

@@ -2,7 +2,7 @@
 import pytest
 from geomas.schemas.world import WorldState, NationState
 from geomas.actions.engine import ActionEngine
-from geomas.actions.foreign.schemas import ForeignActionType, ForeignPayload, DiplomaticMessageType
+from geomas.actions.foreign.schemas import ForeignActionType, ForeignPayload, DiplomaticMessageType, ProposalResponse, ForeignResponseAction
 from geomas.actions.defense.schemas import DefensePayload
 from geomas.actions.economy.schemas import EconomicPayload
 from geomas.agents.context.memory import ContextManager
@@ -71,6 +71,7 @@ def test_respond_to_proposal_carries_message(world):
     # Setup pending proposal
     nat_b = world.nations["NAT_B"]
     nat_b.pending_proposals.append({
+        "id": "msg_test_id",
         "type": "ALLIANCE",
         "from": "NAT_A",
         "turn": 1,
@@ -78,11 +79,20 @@ def test_respond_to_proposal_carries_message(world):
     })
     
     engine = ActionEngine(world)
+    from geomas.actions.foreign.schemas import ForeignActionType, ForeignPayload, DiplomaticMessageType, ProposalResponse, ForeignResponseAction
+    from geomas.actions.common import Decision
+
+    # In the test function:
     payload = ForeignPayload(
-        action_type=ForeignActionType.REJECT_PROPOSAL,
-        target_nation_id="NAT_A",
-        proposal_ref_type="ALLIANCE",
-        message="Too early for that."
+        action_type=ForeignActionType.IDLE,
+        decision=Decision.APPROVE,
+        proposal_responses=[
+            ProposalResponse(
+                proposal_id="msg_test_id",
+                response=ForeignResponseAction.REJECT,
+                message="Too early for that."
+            )
+        ]
     )
     
     envelope = create_valid_envelope("NAT_B", 2, payload)

@@ -5,6 +5,7 @@ Executes diplomatic actions (one action per turn).
 """
 
 from typing import TYPE_CHECKING, Optional
+import uuid
 from geomas.actions.foreign.schemas import (
     ForeignActionType,
     ForeignPayload,
@@ -31,23 +32,36 @@ def execute_foreign(
     
     Note: Only ONE foreign action per turn.
     """
-    if not payload.action_type:
-        return
-    
-    if not payload.target_nation_id:
-        engine.logs.append(f"[FOREIGN] No target nation specified")
-        return
-    
-    target_id = payload.target_nation_id
     world = engine.world
     
-    # Validate target exists
-    if target_id not in world.nations:
+    # 1. PROCESS RESPONSES (Inbox)
+    if payload.proposal_responses:
+        for response in payload.proposal_responses:
+            respond_to_proposal(
+                engine, 
+                nation_id, 
+                response
+            )
+
+    # 2. PROCESS ACTIVE MEASURE (Agenda)
+    if not payload.action_type or payload.action_type == ForeignActionType.IDLE:
+        return
+
+    # Validate active target exists (if required by action)
+    if not payload.target_nation_id:
+        # IDLE doesn't need target, but others do
+        if payload.action_type != ForeignActionType.IDLE:
+             engine.logs.append(f"[FOREIGN] No target nation specified for {payload.action_type}")
+             return
+    
+    target_id = payload.target_nation_id
+    
+    if target_id and target_id not in world.nations:
         engine.logs.append(f"[FOREIGN] Target nation {target_id} not found")
         return
     
     # Dispatch to appropriate handler
-    elif payload.action_type == ForeignActionType.SEND_DIPLOMATIC_MESSAGE:
+    if payload.action_type == ForeignActionType.SEND_DIPLOMATIC_MESSAGE:
         _execute_send_message(engine, nation_id, target_id, payload.diplomatic_message_type, payload.message)
     
     elif payload.action_type == ForeignActionType.FORMAL_DECLARATION_OF_WAR:
@@ -61,14 +75,6 @@ def execute_foreign(
     
     elif payload.action_type == ForeignActionType.PROPOSE_ALLIANCE:
         _execute_propose_alliance(engine, nation_id, target_id, payload.message)
-    
-    elif payload.action_type == ForeignActionType.ACCEPT_PROPOSAL:
-        proposal_type = payload.proposal_ref_type or "ALLIANCE"
-        respond_to_proposal(engine, nation_id, target_id, proposal_type, accept=True, message=payload.message)
-    
-    elif payload.action_type == ForeignActionType.REJECT_PROPOSAL:
-        proposal_type = payload.proposal_ref_type or "ALLIANCE"
-        respond_to_proposal(engine, nation_id, target_id, proposal_type, accept=False, message=payload.message)
 
 
 def _execute_send_message(
@@ -197,6 +203,7 @@ def _execute_request_peace(
     # Add pending proposal to target nation
     target_nation = world.nations[target_id]
     target_nation.pending_proposals.append({
+        "id": str(uuid.uuid4())[:8],
         "type": "PEACE",
         "from": requester_id,
         "turn": world.turn,
@@ -253,6 +260,7 @@ def _execute_propose_alliance(
             return
     
     target_nation.pending_proposals.append({
+        "id": str(uuid.uuid4())[:8],
         "type": "ALLIANCE",
         "from": proposer_id,
         "turn": world.turn,
@@ -274,30 +282,32 @@ def _execute_propose_alliance(
 def respond_to_proposal(
     engine: 'ActionEngine',
     nation_id: str,
-    proposer_id: str,
-    proposal_type: str,
-    accept: bool,
-    message: Optional[str] = None
+    response: 'ProposalResponse'
 ) -> None:
     """
     Respond to a pending proposal (ACCEPT or REJECT).
-    Called when processing ACCEPT_PROPOSAL or REJECT_PROPOSAL actions.
     """
     world = engine.world
     nation = world.nations[nation_id]
+    accept = (response.response == "ACCEPT")
+    message = response.message
     
     # Find and remove the proposal
     proposal_found = None
     for i, prop in enumerate(nation.pending_proposals):
-        if prop["from"] == proposer_id and prop["type"] == proposal_type:
+        # Match by ID now
+        if prop.get("id") == response.proposal_id:
             proposal_found = nation.pending_proposals.pop(i)
             break
-    
+            
     if not proposal_found:
         engine.logs.append(
-            f"[FOREIGN] No pending {proposal_type} proposal from {proposer_id}"
+            f"[FOREIGN] No pending proposal found with ID {response.proposal_id}"
         )
         return
+
+    proposer_id = proposal_found["from"]
+    proposal_type = proposal_found["type"]
     
     # Check if proposal expired (only valid for 1 turn)
     if world.turn - proposal_found["turn"] > 1:

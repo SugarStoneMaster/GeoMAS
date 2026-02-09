@@ -6,7 +6,7 @@ Action types and payloads for diplomatic operations.
 
 from enum import Enum
 from pydantic import BaseModel, Field
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from geomas.actions.common import Decision
 
@@ -18,9 +18,14 @@ class ForeignActionType(str, Enum):
     FORMAL_DECLARATION_OF_WAR = "FORMAL_DECLARATION_OF_WAR"
     BREAK_TREATY = "BREAK_TREATY"
     REQUEST_PEACE = "REQUEST_PEACE"
-    ACCEPT_PROPOSAL = "ACCEPT_PROPOSAL"   # Accept pending alliance/peace
-    REJECT_PROPOSAL = "REJECT_PROPOSAL"   # Reject pending alliance/peace
+    # ACCEPT/REJECT are now handled via ProposalResponse
     IDLE = "IDLE"                         # No diplomatic action this turn
+
+
+class ForeignResponseAction(str, Enum):
+    """Actions for responding to pending proposals."""
+    ACCEPT = "ACCEPT"
+    REJECT = "REJECT"
 
 
 class DiplomaticMessageType(str, Enum):
@@ -38,11 +43,25 @@ MESSAGE_TRUST_IMPACT: dict[DiplomaticMessageType, float] = {
 }
 
 
+class ProposalResponse(BaseModel):
+    """Response to a specific pending proposal."""
+    proposal_id: str = Field(..., description="Unique ID of the proposal being responded to.")
+    response: ForeignResponseAction = Field(..., description="ACCEPT or REJECT.")
+    message: Optional[str] = Field(None, description="Explanation for the response.")
+
+
 class ForeignProposalPayload(BaseModel):
     """
     Payload for Foreign Minister proposals (NO DECISION FIELD).
     This is what the Minister generates.
     """
+    # 1. Responses to Incoming Proposals (Inbox)
+    proposal_responses: List[ProposalResponse] = Field(
+        default_factory=list,
+        description="List of responses to pending proposals. Can be empty."
+    )
+
+    # 2. Active Statistic Measure (Agenda)
     action_type: Optional[ForeignActionType] = None
     target_nation_id: Optional[str] = None
     message: Optional[str] = Field(None, description="Diplomatic message to the target nation.")
@@ -52,10 +71,7 @@ class ForeignProposalPayload(BaseModel):
         None, 
         description="Required for SEND_DIPLOMATIC_MESSAGE. Enum: PRAISE, THREAT, INSULT."
     )
-    proposal_ref_type: Optional[str] = Field(
-        None,
-        description="Required for ACCEPT/REJECT_PROPOSAL. matches the type of proposal (e.g. ALLIANCE, PEACE)."
-    )
+    # proposal_ref_type REMOVED from here, moved to ProposalResponse
 
 
 class ForeignPayload(ForeignProposalPayload):

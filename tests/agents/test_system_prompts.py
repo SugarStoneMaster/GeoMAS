@@ -146,17 +146,12 @@ class TestPromptActionSpecifications:
         assert "want" in prompt.lower() or "get" in prompt.lower()
         assert "target_nation_id" in prompt
     
-    def test_foreign_accept_proposal_includes_proposal_type(self):
-        """Foreign prompt specifies proposal_type for ACCEPT_PROPOSAL."""
+    def test_foreign_responses_include_format(self):
+        """Foreign prompt specifies format for INBOX responses."""
         prompt = ForeignSystemPrompt.generate("Test", GlobalStrategy.COALITION_BUILDER)
-        assert "ACCEPT_PROPOSAL" in prompt
-        assert "proposal_ref_type" in prompt
-        assert "ALLIANCE" in prompt
-        assert "PEACE" in prompt
-    
-    def test_foreign_reject_proposal_includes_proposal_type(self):
-        """Foreign prompt specifies proposal_type for REJECT_PROPOSAL."""
-        prompt = ForeignSystemPrompt.generate("Test", GlobalStrategy.COALITION_BUILDER)
-        assert "REJECT_PROPOSAL" in prompt
-        assert "proposal_ref_type" in prompt
+        assert "INBOX" in prompt
+        assert "proposal_responses" in prompt
+        assert "ACCEPT" in prompt
+        assert "REJECT" in prompt
+        assert "proposal_id" in prompt
 

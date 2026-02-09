@@ -217,17 +217,19 @@ class NationAgent:
             prop_payload = briefing.foreign.payload
             for_payload = ForeignPayload(
                 decision=Decision.APPROVE,
+                # Copy responses
+                proposal_responses=prop_payload.proposal_responses,
+                # Copy active action
                 action_type=prop_payload.action_type,
                 target_nation_id=prop_payload.target_nation_id,
                 message=prop_payload.message,
                 diplomatic_message_type=prop_payload.diplomatic_message_type,
-                proposal_ref_type=prop_payload.proposal_ref_type
             )
             for_pub_intent = briefing.foreign.intent.public_intent
             for_priv_intent = briefing.foreign.intent.private_intent
             for_reasoning = f"{briefing.foreign.intent.reasoning} [President: {decree.foreign.reasoning}]"
-        else: # VETO -> No action
-            for_payload = ForeignPayload(decision=Decision.VETO, action_type=None)
+        else: # VETO -> No action (clears responses too!)
+            for_payload = ForeignPayload(decision=Decision.VETO, action_type=None, proposal_responses=[])
             for_pub_intent = ForeignIntentType.IDLE
             for_priv_intent = ForeignIntentType.IDLE
             for_reasoning = f"VETOED: {decree.foreign.reasoning}"
@@ -308,16 +310,26 @@ class NationAgent:
         """Format foreign proposal for President."""
         intent = proposal.intent
         payload = proposal.payload
-        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Action:**"
+        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n"
         
+        parts = []
+        
+        # 1. Responses
+        if payload.proposal_responses:
+            res_strs = []
+            for r in payload.proposal_responses:
+                res_strs.append(f"{r.response} proposal (ID: {r.proposal_id})")
+            parts.append(f"**Responses:** {', '.join(res_strs)}")
+            
+        # 2. Active Action
         if payload.action_type:
             target = f" (Target: {payload.target_nation_id})" if payload.target_nation_id else ""
-            # Build details from explicit fields
             details_parts = []
             if payload.diplomatic_message_type:
                 details_parts.append(f"msg_type={payload.diplomatic_message_type.value}")
-            if payload.proposal_ref_type:
-                details_parts.append(f"ref={payload.proposal_ref_type}")
             details = " ".join(details_parts)
-            return f"{summary} {payload.action_type.value}{target} {details}"
-        return f"{summary} None"
+            parts.append(f"**Agenda:** {payload.action_type.value}{target} {details}")
+        else:
+            parts.append("**Agenda:** None")
+            
+        return summary + "\n".join(parts)

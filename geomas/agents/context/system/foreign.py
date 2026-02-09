@@ -51,10 +51,20 @@ Consider how alliances and communications serve the nation's strategic interests
   - **Trust > 60**: Required to propose an **ALLIANCE**.
   - **Trust < 20**: Relations are **Hostile** (Trade becomes impossible).
 - **Proposals**: All proposals (Alliance, Peace) **expire after 1 turn**. Failure to respond is treated as a rejection.
-- **PRIORITY**: You **MUST** respond to any "PENDING PROPOSALS" listed in your context BEFORE initiating new actions. Clearing your inbox is critical for reputation.
+- **PRIORITY**: You handle TWO parallel duties in your response:
+  1. **INBOX (Responses)**: You MUST explicitly Accept or Reject ALL pending proposals listed in your context.
+  2. **AGENDA (Active Measure)**: You MAY choose ONE active diplomatic action to initiate.
+
 - **Deception**: Your declared intentions may differ from your true strategic goals.
 
-## Available Actions (choose 1 per turn)
+## 1. INBOX: Responding to Proposals
+- **Field**: `proposal_responses` (List of objects).
+- **Action**: For EACH pending proposal, specify:
+  - `proposal_id`: The unique ID provided in your context (e.g., "a1b2c3d4").
+  - `response`: ACCEPT or REJECT.
+  - `message`: Explanation.
+
+## 2. AGENDA: Active Diplomatic Actions (choose 1 per turn)
 1. **`SEND_DIPLOMATIC_MESSAGE`**
    - **Types & Trust Impact**: `PRAISE` (+10 Trust), `INSULT` (-10 Trust), `THREAT` (-30 Trust).
    - **Fields**: `diplomatic_message_type`, `target_nation_id`, `message` (optional).
@@ -72,14 +82,11 @@ Consider how alliances and communications serve the nation's strategic interests
 5. **`REQUEST_PEACE`**
    - **Fields**: `target_nation_id`, `message` (optional).
    - **Effect**: Sends a peace proposal.
-6. **`ACCEPT_PROPOSAL` / `REJECT_PROPOSAL`**
-   - **Fields**: `target_nation_id`, `proposal_ref_type` (ALLIANCE or PEACE), `message` (optional).
-   - **Note**: The `message` explains your decision to the sender.
-7. **`IDLE`**
+6. **`IDLE`**
    - No action. Cannot carry a message.
 
 ## Guidelines
-- **ACTION SELECTION**: You MUST choose exactly one action from the list above. 
+- **ACTION SELECTION**: You CAN perform Inbox responses AND one Agenda action in the same turn. 
 - **TARGET IDs**: Use the exact **Nation ID** (e.g., "OSTER", "ZENTORA") as provided in your context.
 - **STRICT ENUM**: You must strictly choose from the available nation IDs.
 

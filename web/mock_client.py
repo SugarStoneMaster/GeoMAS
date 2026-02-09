@@ -15,7 +15,9 @@ from geomas.agents.schemas import (
 )
 from geomas.actions.defense import DefensePayload, Decision
 from geomas.actions.economy import EconomicPayload, EconomicActionType
-from geomas.actions.foreign import ForeignPayload, ForeignActionType
+from geomas.actions.foreign import (
+    ForeignPayload, ForeignActionType, ProposalResponse, ForeignResponseAction
+)
 
 
 class UIMockLLM(LLMClient):
@@ -57,6 +59,9 @@ class UIMockLLM(LLMClient):
                     reasoning="Friends are good"
                 ),
                 payload={
+                    "proposal_responses": [
+                    ProposalResponse(proposal_id="mock_test_id", response=ForeignResponseAction.ACCEPT)
+                ], # List of ProposalResponse objects
                     "action_type": ForeignActionType.SEND_DIPLOMATIC_MESSAGE
                 } # No decision
             )
