@@ -37,6 +37,22 @@ def generate_voronoi(rng: np.random.RandomState, n_cells: int, relaxation_steps:
                 centroid = np.mean(polygon, axis=0)
                 new_points.append(centroid)
         points = np.array(new_points)
+    
+    # Sort points spatially (left-to-right, top-to-bottom) to ensure ID coherence
+    # Normalized coordinates 0-1.
+    # Lexsort keys are (secondary, primary). Sort by Y then X.
+    # Actually, scanline order: Sort by Y (major) then X (minor) creates strips.
+    # But usually X then Y is better for reading.
+    # Let's do (y, x): Sort by x (secondary), y (primary)?
+    # np.lexsort((points[:, 0], points[:, 1])) -> Sort by X first, then Y?
+    # No, lexsort((B, A)) sorts by A then B.
+    # We want standard reading order: sort by Y (rows), then X (cols).
+    # Since Y is usually 0 at bottom in math, but 0 at top in images... 
+    # Let's just sort by X coordinate primarily to get left-to-right progression.
+    # Scanline order: Top-to-Bottom (y desc), then Left-to-Right (x asc)
+    # lexsort sorts by the last key primarily.
+    ind = np.lexsort((points[:, 0], -points[:, 1]))
+    points = points[ind]
         
     return Voronoi(points)
 

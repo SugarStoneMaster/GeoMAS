@@ -151,15 +151,19 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None, show
         for p_id, province in world.provinces.items():
             if province.coordinates:
                 cx, cy = province.coordinates
-                ax.text(
-                    cx, cy, 
-                    str(p_id), 
-                    fontsize=6, 
-                    ha='center', 
-                    va='center', 
-                    color='black',
-                    bbox=dict(facecolor='white', alpha=0.5, edgecolor='none', boxstyle='round,pad=0.1')
-                )
+                
+                # Filter out centroids that are way off-map (infinite/ghost regions)
+                if 0 <= cx <= 1 and 0 <= cy <= 1:
+                    ax.text(
+                        cx, cy, 
+                        str(p_id), 
+                        fontsize=6, 
+                        ha='center', 
+                        va='center', 
+                        color='black',
+                        clip_on=True, # Ensure it doesn't expand axes or show outside
+                        bbox=dict(facecolor='white', alpha=0.5, edgecolor='none', boxstyle='round,pad=0.1')
+                    )
     
     
     # Draw revolt markers (red X) on provinces in civil unrest
@@ -170,6 +174,9 @@ def render_map(world: WorldState, selected_nation_id: Optional[str] = None, show
     ax.set_ylim(-0.1, 1.1)
     ax.set_aspect('equal')
     ax.axis('off')
+    
+    # Minimize white space around the plot
+    fig.tight_layout(pad=0)
     
     st.pyplot(fig)
     plt.close(fig)
