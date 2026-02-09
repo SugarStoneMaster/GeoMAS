@@ -141,21 +141,24 @@ def test_execution_waterfall():
                 action_type=DefenseActionType.CREATE_UNIT,
                 unit_type="SOLDIER",
                 quantity=1,
-                target_province_id=int(target_prov)
+                target_province_id=int(target_prov),
+                target_nation_id=nation_id
             ),
             DefenseActionItem(
                 priority=2, 
                 action_type=DefenseActionType.CREATE_UNIT,
                 unit_type="SOLDIER",
                 quantity=1,
-                target_province_id=int(target_prov)
+                target_province_id=int(target_prov),
+                target_nation_id=nation_id
             ),
             DefenseActionItem(
                 priority=3, 
                 action_type=DefenseActionType.CREATE_UNIT,
                 unit_type="SOLDIER",
                 quantity=1,
-                target_province_id=int(target_prov)
+                target_province_id=int(target_prov),
+                target_nation_id=nation_id
             )
         ]
     )

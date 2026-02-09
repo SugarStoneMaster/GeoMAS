@@ -183,7 +183,8 @@ class TestIntegratedCombat:
                 source_province_id=int(own_province),
                 target_province_id=int(enemy_province),
                 unit_type="SOLDIER",
-                quantity=50
+                quantity=50,
+                target_nation_id=enemy_id
             )]
         )
         

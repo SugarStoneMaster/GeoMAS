@@ -80,7 +80,8 @@ class TestSequentialExecution(unittest.TestCase):
                     action_type=DefenseActionType.CREATE_UNIT,
                     quantity=100,
                     unit_type="SOLDIER",
-                    target_province_id=cap_id
+                    target_province_id=cap_id,
+                    target_nation_id=first_nation
                 )]
             ),
             defense_public_intent="DETERRENCE",
