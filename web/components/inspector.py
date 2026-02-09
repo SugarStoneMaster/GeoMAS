@@ -1,19 +1,37 @@
 import streamlit as st
 import json
+from geomas.agents.nation_agent import NationAgent
 
-def render_inspector(nation_id: str, agent_trace: dict):
+def render_inspector(nation_id: str, agent: NationAgent):
     """
     Renders the Inspector Panel for a selected nation's agents.
     
     Args:
         nation_id: The ID of the selected nation.
-        agent_trace: The 'last_trace' dictionary from the NationAgent.
+        agent: The NationAgent instance.
     """
-    if not agent_trace:
-        st.warning("No trace data available for this turn yet.")
+    history = getattr(agent, 'trace_history', {})
+    
+    if not history:
+        st.warning("No trace data available yet.")
         return
 
     st.subheader(f"🕵️ Agent Inspector: {nation_id}")
+    
+    # Turn Selector
+    available_turns = sorted(history.keys(), reverse=True)
+    if not available_turns:
+        st.info("No turns recorded.")
+        return
+        
+    selected_turn = st.selectbox(
+        "Select Turn to Inspect", 
+        available_turns, 
+        index=0,
+        format_func=lambda t: f"Turn {t} {'(Latest)' if t == available_turns[0] else ''}"
+    )
+    
+    agent_trace = history[selected_turn]
     
     # Tabs for each agent role
     tabs = st.tabs(["President", "Defense", "Economy", "Foreign"])
@@ -25,10 +43,10 @@ def render_inspector(nation_id: str, agent_trace: dict):
             return
             
         with st.expander("📝 System Prompt", expanded=False):
-            st.text_area("System Prompt", trace_data.get("system_prompt", ""), height=200, disabled=True)
+            st.text_area("System Prompt", trace_data.get("system_prompt", ""), height=200, disabled=True, key=f"sys_{title}_{selected_turn}")
             
         with st.expander("📥 User Prompt (Context)", expanded=False):
-            st.text_area("User Prompt", trace_data.get("user_prompt", ""), height=200, disabled=True)
+            st.text_area("User Prompt", trace_data.get("user_prompt", ""), height=400, disabled=True, key=f"user_{title}_{selected_turn}")
             
         with st.expander("📤 Output (JSON)", expanded=True):
             output = trace_data.get("proposal") or trace_data.get("decree")

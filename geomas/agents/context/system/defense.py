@@ -80,7 +80,8 @@ Consider how defense actions support the nation's overarching goals.
 ## Guidelines
 - **ACTION LIMIT**: Propose at most **3 actions** in `payload.moves`.
 - **WATERFALL LOGIC**: Actions are executed in order of priority (1 = highest). If one fails (e.g., budget), the rest are still attempted.
-- **STRICT IDs**: When referring to provinces, use the exact Province ID (integer). When referring to nations, use the exact **Nation ID**.
+- **STRICT IDs**: When creating units or moving troops, **ONLY use Province IDs listed in 'OWNED PROVINCES'** or validated enemy targets. Do NOT invent IDs like 0 or 1.
+- **Target Nation**: For `CREATE_UNIT`, `target_nation_id` MUST be your own ID ({effective_name}). For `MOVE_TROOPS`, it must be the owner of the destination.
 
 Your response will be automatically parsed into the `DefenseProposal` schema.
 

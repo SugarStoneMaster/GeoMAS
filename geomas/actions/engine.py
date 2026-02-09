@@ -19,6 +19,13 @@ from geomas.actions.economy.handler import (
 from geomas.actions.foreign import execute_foreign, ForeignActionType
 
 
+class LogList(list):
+    """Custom list that prints items as they are appended."""
+    def append(self, item):
+        print(f"📜 {item}")
+        super().append(item)
+
+
 class ActionEngine:
     """
     The Deterministic Rules Oracle & Executor.
@@ -34,7 +41,7 @@ class ActionEngine:
     def __init__(self, world: WorldState):
         self.world = world
         self.spatial = SpatialManager(world)
-        self.logs: List[str] = []
+        self.logs: List[str] = LogList()
 
     # --- VALIDATION DELEGATION ---
 
@@ -66,7 +73,7 @@ class ActionEngine:
         Executes all payloads in the envelope.
         Returns a list of execution logs.
         """
-        self.logs = []
+        self.logs = LogList()
         sender_id = envelope.sender_id
         
         # 1. Defense (Waterfall)

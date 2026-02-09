@@ -102,9 +102,9 @@ def execute_economic(
             return
         
         # 1. Extract Single-Resource Parameters
-        give_type = payload.trade_offer_give_type
+        give_type = payload.trade_offer_give_type.upper() if payload.trade_offer_give_type else None
         give_amount = payload.trade_offer_give_amount
-        want_type = payload.trade_offer_want_type
+        want_type = payload.trade_offer_want_type.upper() if payload.trade_offer_want_type else None
         
         if not give_type or not want_type or give_amount is None:
             engine.logs.append(f"[ECONOMY] Failed TRADE_PROPOSAL: Missing parameters (give_type, give_amount, or want_type)")

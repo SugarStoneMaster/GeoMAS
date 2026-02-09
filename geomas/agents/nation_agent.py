@@ -60,7 +60,9 @@ class NationAgent:
         self.memory: List[str] = []
         
         # Traces for analysis
+        # Traces for analysis
         self.last_trace: dict = {}
+        self.trace_history: dict = {} # turn -> trace
         self.last_president_trace: dict = {} 
 
     def act(self, turn: int) -> CountryEnvelope:
@@ -104,6 +106,9 @@ class NationAgent:
         
         # 5. TRACE FINAL
         self.last_trace["envelope"] = envelope
+        
+        # Save to history
+        self.trace_history[turn] = self.last_trace
         
         return envelope
 

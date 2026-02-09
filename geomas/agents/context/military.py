@@ -64,6 +64,10 @@ class MilitaryTranslator:
         options = self._generate_military_options(nation_id)
         if options:
             sections.append(options)
+            
+        # 6. Full Province List (Grounding for LLM)
+        provinces = self._generate_province_list(nation_id)
+        sections.append(provinces)
         
         return "\n\n".join(sections)
     
@@ -346,5 +350,34 @@ class MilitaryTranslator:
         
         if not lines:
             return "## 📊 MILITARY STATUS\n\nNo immediate attack options or reinforcement priorities."
+        
+        return "\n".join(lines)
+
+    def _generate_province_list(self, nation_id: str) -> str:
+        """Provide a complete list of owned province IDs for grounding actions."""
+        nation = self.world.nations.get(nation_id)
+        if not nation: return ""
+        
+        # Sort by ID for stability
+        p_ids = sorted(nation.province_ids)
+        
+        lines = ["## 🏳️ OWNED PROVINCES"]
+        lines.append("Use these IDs for CREATE_UNIT or MOVE_TROOPS source.")
+        
+        chunks = []
+        for p_id in p_ids:
+            prov = self.world.provinces.get(p_id)
+            if not prov: continue
+            
+            unit_strs = []
+            if prov.soldiers > 0: unit_strs.append(f"{prov.soldiers}S")
+            if prov.aircraft > 0: unit_strs.append(f"{prov.aircraft}A")
+            if prov.navy > 0: unit_strs.append(f"{prov.navy}N")
+            
+            units = f" ({', '.join(unit_strs)})" if unit_strs else ""
+            chunks.append(f"{p_id}{units}")
+            
+        # Join with commas for density
+        lines.append(", ".join(chunks))
         
         return "\n".join(lines)
