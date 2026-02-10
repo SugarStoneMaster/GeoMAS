@@ -45,7 +45,7 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
         
         if prod_multiplier < 1.0:
             turn_logs.append(
-                f"[ECONOMY] {nation_id}: Production efficiency at {prod_multiplier*100:.1f}%"
+                f"📉 [ECONOMY] {nation_id}: Production efficiency at {prod_multiplier*100:.1f}%"
             )
         
         # 4. Add production to resource stockpiles (Applying the multiplier on-the-fly)
@@ -86,22 +86,22 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
             if casualties > 0:
                 apply_population_loss(world, nation_id, casualties)
                 turn_logs.append(
-                    f"[CRISIS] {nation_id}: {casualties} died from starvation!"
+                    f"💀 [CRISIS] {nation_id}: {casualties} died from starvation!"
                 )
             nation.total_food = 0 
         
         # Energy and Materials can be negative at this point (representing missing services/upkeep)
         # but we clamp them to zero for the next cycle after logging shortages
         if nation.total_energy < 0:
-            turn_logs.append(f"[CRISIS] {nation_id}: Energy shortage! Industry will suffer next turn.")
+            turn_logs.append(f"📉 [CRISIS] {nation_id}: Energy shortage! Industry will suffer next turn.")
             nation.total_energy = 0
             
         if nation.total_materials < 0:
-            turn_logs.append(f"[CRISIS] {nation_id}: Materials shortage! Military maintenance failing.")
+            turn_logs.append(f"📉 [CRISIS] {nation_id}: Materials shortage! Military maintenance failing.")
             nation.total_materials = 0
 
         if nation.total_budget < 0:
-             turn_logs.append(f"[CRISIS] {nation_id}: Bankruptcy! Military salaries unpaid.")
+             turn_logs.append(f"💸 [CRISIS] {nation_id}: Bankruptcy! Military salaries unpaid.")
              nation.total_budget = 0
         
         # 7. Update power projection
@@ -109,7 +109,7 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
         
         # Log economy summary
         turn_logs.append(
-            f"[ECONOMY] {nation_id}: Budget={nation.total_budget:.0f}, "
+            f"💰 [ECONOMY] {nation_id}: Budget={nation.total_budget:.0f}, "
             f"Food={nation.total_food:.0f}, Energy={nation.total_energy:.0f}, "
             f"Materials={nation.total_materials:.0f}, Power={nation.power_projection:.1f}"
         )
@@ -204,7 +204,7 @@ def run_opinion_phase(
         
         if abs(delta) > 0.1:
             turn_logs.append(
-                f"[OPINION] {nation_id}: Satisfaction {old_sat:.0f} -> {new_sat:.0f} (delta {delta:+.1f})"
+                f"📊 [OPINION] {nation_id}: Satisfaction {old_sat:.0f} -> {new_sat:.0f} (delta {delta:+.1f})"
             )
             
         # --- 3. Triggers (Strikes, Unrest) ---
@@ -215,4 +215,3 @@ def run_opinion_phase(
                 self.logs = logs
         
         check_triggers(MockEngine(world, turn_logs), nation_id)
-

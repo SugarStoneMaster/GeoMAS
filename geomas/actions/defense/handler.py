@@ -38,11 +38,11 @@ def execute_defense_waterfall(
     moves = sorted(payload.moves, key=lambda x: x.priority)[:3]
     
     if len(payload.moves) > 3:
-        engine.logs.append(f"[DEFENSE] Warning: {nation_id} proposed {len(payload.moves)} actions. Truncating to 3 (highest priority).")
+        engine.logs.append(f"⚔️ [DEFENSE] Warning: {nation_id} proposed {len(payload.moves)} actions. Truncating to 3 (highest priority).")
     
     nation = engine.world.nations.get(nation_id)
     if not nation:
-        engine.logs.append(f"[DEFENSE] Unknown nation: {nation_id}")
+        engine.logs.append(f"⚔️ [DEFENSE] Unknown nation: {nation_id}")
         return
     
     for move in moves:
@@ -77,7 +77,7 @@ def _execute_create_unit(
     
     # Auto-correct target_nation_id to SELF for creation (robustness)
     if target_nation_id and target_nation_id != nation_id:
-        engine.logs.append(f"[DEFENSE] Warning: CREATE_UNIT target_nation_id {target_nation_id} ignored. Creating for SELF.")
+        engine.logs.append(f"⚔️ [DEFENSE] Warning: CREATE_UNIT target_nation_id {target_nation_id} ignored. Creating for SELF.")
     target_nation_id = nation_id
     
     # Validate unit type
@@ -86,29 +86,29 @@ def _execute_create_unit(
     
     # Validate province specified
     if province_id is None:
-        engine.logs.append(f"[DEFENSE] CREATE_UNIT failed: No province_id specified")
+        engine.logs.append(f"⚔️ [DEFENSE] CREATE_UNIT failed: No province_id specified")
         return
     
     # Validate province exists and is owned
     province = world.provinces.get(province_id)
     if not province:
-        engine.logs.append(f"[DEFENSE] Province {province_id} does not exist")
+        engine.logs.append(f"⚔️ [DEFENSE] Province {province_id} does not exist")
         return
     
     # For NAVY, check territorial waters; for others, check owned land
     if unit_type == UnitType.NAVY:
         if province_id not in nation.territorial_water_ids:
-            engine.logs.append(f"[DEFENSE] Province {province_id} is not in territorial waters")
+            engine.logs.append(f"⚔️ [DEFENSE] Province {province_id} is not in territorial waters")
             return
     else:
         if province.owner_id != nation_id:
-            engine.logs.append(f"[DEFENSE] Province {province_id} not owned by {nation_id}")
+            engine.logs.append(f"⚔️ [DEFENSE] Province {province_id} not owned by {nation_id}")
             return
     
     # Validate terrain constraint
     if not can_place_unit(unit_type, province.terrain):
         engine.logs.append(
-            f"[DEFENSE] Cannot place {unit_type.value} on {province.terrain.value} terrain"
+            f"⚔️ [DEFENSE] Cannot place {unit_type.value} on {province.terrain.value} terrain"
         )
         return
     
@@ -130,7 +130,7 @@ def _execute_create_unit(
     )
     
     if not can_afford:
-        engine.logs.append(f"[DEFENSE] CREATE_UNIT failed: {reason}")
+        engine.logs.append(f"⚔️ [DEFENSE] CREATE_UNIT failed: {reason}")
         return
     
     # --- EXECUTE: Deduct resources ---
@@ -151,7 +151,7 @@ def _execute_create_unit(
         nation.total_aircraft += quantity
     
     engine.logs.append(
-        f"[DEFENSE] Created {quantity}x {unit_type.value} in province {province_id}. "
+        f"🛠️ [DEFENSE] Created {quantity}x {unit_type.value} in province {province_id}. "
         f"Cost: {total_budget:.1f} budget, {total_materials:.1f} materials"
     )
 
@@ -180,7 +180,7 @@ def _execute_move_troops(
     
     # Validate provinces specified
     if from_province_id is None or to_province_id is None:
-        engine.logs.append(f"[DEFENSE] MOVE_TROOPS: Must specify from_province_id and to_province_id")
+        engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Must specify from_province_id and to_province_id")
         return
     
     # Validate provinces exist
@@ -188,20 +188,20 @@ def _execute_move_troops(
     to_province = world.provinces.get(to_province_id)
     
     if not from_province:
-        engine.logs.append(f"[DEFENSE] MOVE_TROOPS: Source province {from_province_id} does not exist")
+        engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Source province {from_province_id} does not exist")
         return
     if not to_province:
-        engine.logs.append(f"[DEFENSE] MOVE_TROOPS: Destination province {to_province_id} does not exist")
+        engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Destination province {to_province_id} does not exist")
         return
     
     # Validate ownership of source province
     if unit_type == UnitType.NAVY:
         if from_province_id not in nation.territorial_water_ids:
-            engine.logs.append(f"[DEFENSE] MOVE_TROOPS: Source {from_province_id} not in territorial waters")
+            engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Source {from_province_id} not in territorial waters")
             return
     else:
         if from_province.owner_id != nation_id:
-            engine.logs.append(f"[DEFENSE] MOVE_TROOPS: Source {from_province_id} not owned by {nation_id}")
+            engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Source {from_province_id} not owned by {nation_id}")
             return
     
     # Relaxed validation for target_nation_id in MOVE_TROOPS
@@ -215,7 +215,7 @@ def _execute_move_troops(
     available_units = _get_units_in_province(from_province, unit_type)
     if available_units < quantity:
         engine.logs.append(
-            f"[DEFENSE] MOVE_TROOPS: Not enough {unit_type.value} in province {from_province_id}. "
+            f"🚚 [DEFENSE] MOVE_TROOPS: Not enough {unit_type.value} in province {from_province_id}. "
             f"Have {available_units}, need {quantity}"
         )
         return
@@ -224,7 +224,7 @@ def _execute_move_troops(
     path = _find_valid_path(engine, nation_id, from_province_id, to_province_id, unit_type)
     if path is None:
         engine.logs.append(
-            f"[DEFENSE] MOVE_TROOPS: No valid path from {from_province_id} to {to_province_id} "
+            f"🚚 [DEFENSE] MOVE_TROOPS: No valid path from {from_province_id} to {to_province_id} "
             f"for {unit_type.value}"
         )
         return
@@ -236,7 +236,7 @@ def _execute_move_troops(
     max_range = MOVEMENT_RANGE[unit_type]
     if distance > max_range:
         engine.logs.append(
-            f"[DEFENSE] MOVE_TROOPS: Distance {distance} exceeds {unit_type.value} range of {max_range}"
+            f"🚚 [DEFENSE] MOVE_TROOPS: Distance {distance} exceeds {unit_type.value} range of {max_range}"
         )
         return
     
@@ -246,7 +246,7 @@ def _execute_move_troops(
     
     if nation.total_energy < total_energy_cost:
         engine.logs.append(
-            f"[DEFENSE] MOVE_TROOPS: Insufficient energy. Need {total_energy_cost:.1f}, have {nation.total_energy:.1f}"
+            f"🚚 [DEFENSE] MOVE_TROOPS: Insufficient energy. Need {total_energy_cost:.1f}, have {nation.total_energy:.1f}"
         )
         return
     
@@ -286,7 +286,7 @@ def _execute_move_troops(
         if defending_force > 0 and quantity < (effective_defense * 0.1):
             # Just warn, do NOT abort (User preference: let LLM makes its own mistakes)
             engine.logs.append(
-                f"[COMBAT] ⚠️ RISKY ATTACK: {quantity} {unit_type.value} vs {defending_force} defenders "
+                f"⚔️ [COMBAT] ⚠️ RISKY ATTACK: {quantity} {unit_type.value} vs {defending_force} defenders "
                 f"(Effective Defense: {int(effective_defense)}). High probability of defeat."
             )
             # Proceed with combat...
@@ -304,14 +304,14 @@ def _execute_move_troops(
             # Update attacker navy count
             nation.total_navy -= quantity
             
-            engine.logs.append(f"[COMBAT] {result.log_message}")
+            engine.logs.append(f"⚔️ [COMBAT] {result.log_message}")
             
             if result.attacker_wins:
                 engine.logs.append(
-                    f"[COMBAT] Naval landing successful at province {result.landing_province_id}"
+                    f"⚔️ [COMBAT] Naval landing successful at province {result.landing_province_id}"
                 )
             else:
-                engine.logs.append(f"[COMBAT] Naval assault failed - all ships lost")
+                engine.logs.append(f"⚔️ [COMBAT] Naval assault failed - all ships lost")
         
         elif unit_type == UnitType.SOLDIER:
             # Land combat
@@ -321,7 +321,7 @@ def _execute_move_troops(
                 rng=rng
             )
             
-            engine.logs.append(f"[COMBAT] {result.log_message}")
+            engine.logs.append(f"⚔️ [COMBAT] {result.log_message}")
             
             if result.attacker_wins:
                 # Conquer the province
@@ -333,19 +333,19 @@ def _execute_move_troops(
                 nation.total_soldiers += quantity  # They were removed but now added back
                 
                 engine.logs.append(
-                    f"[COMBAT] Province {to_province_id} conquered by {nation_id}"
+                    f"🚩 [COMBAT] Province {to_province_id} conquered by {nation_id}"
                 )
                 
                 # Trust impact: combat causes trust decrease
                 if old_owner:
                     engine.adjust_trust(nation_id, old_owner, -20)  # 0-100 scale
                     engine.adjust_trust(old_owner, nation_id, -20)
-                    engine.logs.append(f"[DIPLOMACY] Trust between {nation_id} and {old_owner} decreased")
+                    engine.logs.append(f"💔 [DIPLOMACY] Trust between {nation_id} and {old_owner} decreased")
             else:
                 # Attacker loses all soldiers
                 nation.total_soldiers -= quantity
                 engine.logs.append(
-                    f"[COMBAT] Attack failed - {quantity} soldiers lost"
+                    f"⚔️ [COMBAT] Attack failed - {quantity} soldiers lost"
                 )
                 
                 # Trust impact even on failed attack
@@ -366,7 +366,7 @@ def _execute_move_troops(
                 rng=rng
             )
             
-            engine.logs.append(f"[COMBAT] {result.log_message}")
+            engine.logs.append(f"⚔️ [COMBAT] {result.log_message}")
             
             if result.attacker_wins:
                 # Aircraft wins: kill all defenders and return to base
@@ -381,13 +381,13 @@ def _execute_move_troops(
                 # Return aircraft to source
                 _add_units_to_province(from_province, unit_type, quantity)
                 engine.logs.append(
-                    f"[COMBAT] Air strike successful! {quantity} aircraft return to base"
+                    f"⚔️ [COMBAT] Air strike successful! {quantity} aircraft return to base"
                 )
             else:
                 # Aircraft destroyed
                 nation.total_aircraft -= quantity
                 engine.logs.append(
-                    f"[COMBAT] Air strike failed - {quantity} aircraft shot down"
+                    f"⚔️ [COMBAT] Air strike failed - {quantity} aircraft shot down"
                 )
             
             # Trust impact
@@ -403,7 +403,7 @@ def _execute_move_troops(
         _add_units_to_province(from_province, unit_type, quantity)
         nation.total_energy += total_energy_cost  # Refund energy
         engine.logs.append(
-            f"[DEFENSE] MOVE_TROOPS: Cannot move {unit_type.value} to {to_province.terrain.value} terrain"
+            f"🚚 [DEFENSE] MOVE_TROOPS: Cannot move {unit_type.value} to {to_province.terrain.value} terrain"
         )
         return
     
@@ -411,7 +411,7 @@ def _execute_move_troops(
     _add_units_to_province(to_province, unit_type, quantity)
     
     engine.logs.append(
-        f"[DEFENSE] Moved {quantity}x {unit_type.value} from {from_province_id} to {to_province_id}. "
+        f"🚚 [DEFENSE] Moved {quantity}x {unit_type.value} from {from_province_id} to {to_province_id}. "
         f"Distance: {distance}, Energy: {total_energy_cost:.1f}"
     )
 
@@ -548,7 +548,7 @@ def _execute_nuclear_option(
     nation = world.nations.get(nation_id)
     
     if not nation:
-        engine.logs.append(f"[NUCLEAR] Nation {nation_id} not found")
+        engine.logs.append(f"☢️ [NUCLEAR] Nation {nation_id} not found")
         return
     
     # Use explicit fields from DefenseActionItem
@@ -558,28 +558,28 @@ def _execute_nuclear_option(
 
     # Validate target_nation_id (Input Check)
     if target_nation_id is None:
-        engine.logs.append("[NUCLEAR] Missing target_nation_id")
+        engine.logs.append("☢️ [NUCLEAR] Missing target_nation_id")
         return
 
     if target_nation_id == nation_id:
-        engine.logs.append("[NUCLEAR] Cannot target SELF with nuclear option")
+        engine.logs.append("☢️ [NUCLEAR] Cannot target SELF with nuclear option")
         return
     
     if target_province_id is None:
-        engine.logs.append("[NUCLEAR] Missing target_province_id")
+        engine.logs.append("☢️ [NUCLEAR] Missing target_province_id")
         return
     
     # Validate: has nukes
     if nation.nukes < quantity:
         engine.logs.append(
-            f"[NUCLEAR] Insufficient nukes. Have {nation.nukes}, need {quantity}"
+            f"☢️ [NUCLEAR] Insufficient nukes. Have {nation.nukes}, need {quantity}"
         )
         return
     
     # Validate: target exists
     target_province = world.provinces.get(target_province_id)
     if not target_province:
-        engine.logs.append(f"[NUCLEAR] Target province {target_province_id} not found")
+        engine.logs.append(f"☢️ [NUCLEAR] Target province {target_province_id} not found")
         return
     
     victim_id = target_province.owner_id
@@ -587,14 +587,14 @@ def _execute_nuclear_option(
     # Validate target_nation_id matches province owner (Consistency Check)
     if target_nation_id != victim_id:
         engine.logs.append(
-            f"[NUCLEAR] target_nation_id {target_nation_id} does not match "
+            f"☢️ [NUCLEAR] target_nation_id {target_nation_id} does not match "
             f"province owner {victim_id}"
         )
         return
     
     # Validate: not own territory (Redundant but explicit safety)
     if victim_id == nation_id:
-        engine.logs.append("[NUCLEAR] Cannot nuke own territory")
+        engine.logs.append("☢️ [NUCLEAR] Cannot nuke own territory")
         return
     
     # --- EXECUTE ---
@@ -627,7 +627,7 @@ def _execute_nuclear_option(
     target_province.energy_production *= 0.2
     
     engine.logs.append(
-        f"[NUCLEAR] ☢️ {nation_id} nukes province {target_province_id}! "
+        f"☢️ [NUCLEAR] {nation_id} nukes province {target_province_id}! "
         f"Casualties: {pre_soldiers} soldiers, {pre_aircraft} aircraft, {pre_navy} navy. "
         f"Population: {pre_pop} → {target_province.population}"
     )
@@ -638,12 +638,12 @@ def _execute_nuclear_option(
     if victim_id:
         engine.world.trust_matrix.setdefault(nation_id, {})[victim_id] = 0
         engine.world.trust_matrix.setdefault(victim_id, {})[nation_id] = 0
-        engine.logs.append(f"[DIPLOMACY] Trust between {nation_id} and {victim_id} → 0")
+        engine.logs.append(f"💔 [DIPLOMACY] Trust between {nation_id} and {victim_id} → 0")
     
     # ALL other nations: trust -= 80 toward attacker (high penalty)
     for other_nation_id in world.nations:
         if other_nation_id != nation_id and other_nation_id != victim_id:
             engine.adjust_trust(other_nation_id, nation_id, -80)
             engine.logs.append(
-                f"[DIPLOMACY] {other_nation_id}'s trust toward {nation_id} decreased by 0.8"
+                f"💔 [DIPLOMACY] {other_nation_id}'s trust toward {nation_id} decreased by 0.8"
             )

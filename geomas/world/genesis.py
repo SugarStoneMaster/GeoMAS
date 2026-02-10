@@ -169,7 +169,7 @@ class GenesisEngine:
                 self._update_trust(n_a, n_b, 20)  # +20 trust
                 self._log_event(
                     year, 
-                    f"Formal ALLIANCE signed between {self._name(n_a)} and {self._name(n_b)}.", 
+                    f"🤝 Formal ALLIANCE signed between {self._name(n_a)} and {self._name(n_b)}.", 
                     "ALLIANCE",
                     n_a, n_b
                 )
@@ -178,7 +178,7 @@ class GenesisEngine:
             del self.alliances[pair_key]
             self._log_event(
                 year, 
-                f"Alliance BROKEN between {self._name(n_a)} and {self._name(n_b)}.", 
+                f"💔 Alliance BROKEN between {self._name(n_a)} and {self._name(n_b)}.", 
                 "BETRAYAL",
                 n_a, n_b
             )
@@ -223,7 +223,7 @@ class GenesisEngine:
             self._update_trust(n_a, n_b, -self.config["conflict_penalty"] * 100)  # Scale penalty
             self._log_event(
                 year, 
-                f"Border skirmish between {self._name(n_a)} and {self._name(n_b)}.", 
+                f"⚔️ Border skirmish between {self._name(n_a)} and {self._name(n_b)}.", 
                 "CONFLICT",
                 n_a, n_b
             )
@@ -252,7 +252,7 @@ class GenesisEngine:
             if self.rng.rand() < 0.2: 
                 self._log_event(
                     year, 
-                    f"Trade agreement signed between {self._name(n_a)} and {self._name(n_b)}.", 
+                    f"📦 Trade agreement signed between {self._name(n_a)} and {self._name(n_b)}.", 
                     "TRADE",
                     n_a, n_b
                 )
@@ -279,7 +279,7 @@ class GenesisEngine:
 
     def _log_event(self, year: int, text: str, tag: str, nation_a: str = None, nation_b: str = None):
         """Log event to history and store structured data for DB."""
-        self.history_log.append(f"[Year {year}] [{tag}] {text}")
+        self.history_log.append(f"📜 [Year {year}] [{tag}] {text}")
         
         # Store structured event for DB persistence
         self._event_counter += 1

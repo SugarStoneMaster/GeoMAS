@@ -42,12 +42,12 @@ def execute_economic(
         # Check budget and materials
         can_afford_b, reason_b = ActionValidators.can_afford_budget(engine.world, nation_id, budget_amount)
         if not can_afford_b:
-            engine.logs.append(f"[ECONOMY] Failed INVEST_WELFARE: {reason_b}")
+            engine.logs.append(f"💰 [ECONOMY] Failed INVEST_WELFARE: {reason_b}")
             return
             
         can_afford_m, reason_m = ActionValidators.can_afford_materials(engine.world, nation_id, materials_amount)
         if not can_afford_m:
-            engine.logs.append(f"[ECONOMY] Failed INVEST_WELFARE: {reason_m}")
+            engine.logs.append(f"💰 [ECONOMY] Failed INVEST_WELFARE: {reason_m}")
             return
         
         # Deduct resources
@@ -63,7 +63,7 @@ def execute_economic(
             )
             msg_str = f" Message to citizens: '{payload.message}'" if payload.message else ""
             engine.logs.append(
-                f"[ECONOMY] Invested {budget_amount:.0f} Budget and {materials_amount:.0f} Materials in Welfare. "
+                f"💰 [ECONOMY] Invested {budget_amount:.0f} Budget and {materials_amount:.0f} Materials in Welfare. "
                 f"Satisfaction +{satisfaction_gain:.1f} (now {nation.public_satisfaction:.0f}){msg_str}"
             )
     
@@ -71,7 +71,7 @@ def execute_economic(
     elif payload.action_type == EconomicActionType.RAISE_WAR_TAX:
         allowed, reason = ActionValidators.can_raise_war_tax(engine.world, nation_id)
         if not allowed:
-            engine.logs.append(f"[ECONOMY] Failed RAISE_WAR_TAX: {reason}")
+            engine.logs.append(f"💰 [ECONOMY] Failed RAISE_WAR_TAX: {reason}")
             return
         
         # Calculate tax boost
@@ -90,7 +90,7 @@ def execute_economic(
         
         msg_str = f" Message to citizens: '{payload.message}'" if payload.message else ""
         engine.logs.append(
-            f"[ECONOMY] War Tax raised! Budget +{tax_boost:.0f}, "
+            f"💰 [ECONOMY] War Tax raised! Budget +{tax_boost:.0f}, "
             f"Satisfaction -{final_penalty:.0f} (now {nation.public_satisfaction:.0f}){msg_str}"
         )
     
@@ -98,7 +98,7 @@ def execute_economic(
     elif payload.action_type == EconomicActionType.TRADE_PROPOSAL:
         target_id = payload.target_nation_id
         if not target_id:
-            engine.logs.append("[ECONOMY] Failed TRADE_PROPOSAL: No target specified")
+            engine.logs.append("📦 [ECONOMY] Failed TRADE_PROPOSAL: No target specified")
             return
         
         # 1. Extract Single-Resource Parameters
@@ -107,13 +107,13 @@ def execute_economic(
         want_type = payload.trade_offer_want_type.lower() if payload.trade_offer_want_type else None
         
         if not give_type or not want_type or give_amount is None:
-            engine.logs.append(f"[ECONOMY] Failed TRADE_PROPOSAL: Missing parameters (give_type, give_amount, or want_type)")
+            engine.logs.append(f"📦 [ECONOMY] Failed TRADE_PROPOSAL: Missing parameters (give_type, give_amount, or want_type)")
             return
             
         if give_amount <= 0:
-            engine.logs.append(f"[ECONOMY] Failed TRADE_PROPOSAL: Amount must be positive")
+            engine.logs.append(f"📦 [ECONOMY] Failed TRADE_PROPOSAL: Amount must be positive")
             return
-
+            
         from geomas.actions.economy.trade import BASE_PRICES
         
         # Verify resource validity
@@ -121,7 +121,7 @@ def execute_economic(
         want_price = BASE_PRICES.get(want_type)
         
         if give_price is None or want_price is None:
-             engine.logs.append(f"[ECONOMY] Failed TRADE_PROPOSAL: Invalid resource '{give_type}' or '{want_type}'")
+             engine.logs.append(f"📦 [ECONOMY] Failed TRADE_PROPOSAL: Invalid resource '{give_type}' or '{want_type}'")
              return
 
         # 2. Calculate Value
@@ -159,12 +159,12 @@ def execute_economic(
             engine.adjust_trust(target_id, nation_id, trust_gain)
             
             msg_str = f" Message: '{payload.message}'" if payload.message else ""
-            engine.logs.append(f"[TRADE] ACCEPTED {nation_id} -> {target_id} (+{trust_gain:.0f} Trust): {explanation}{msg_str}")
+            engine.logs.append(f"📦 [TRADE] ACCEPTED {nation_id} -> {target_id} (+{trust_gain:.0f} Trust): {explanation}{msg_str}")
         else:
             msg_str = f" Message: '{payload.message}'" if payload.message else ""
-            engine.logs.append(f"[TRADE] REJECTED {nation_id} -> {target_id}: {explanation}{msg_str}")
+            engine.logs.append(f"📦 [TRADE] REJECTED {nation_id} -> {target_id}: {explanation}{msg_str}")
 
     # --- IDLE ---
     elif payload.action_type == EconomicActionType.IDLE:
         if payload.message:
-            engine.logs.append(f"[ECONOMY] IDLE: {payload.message}")
+            engine.logs.append(f"💰 [ECONOMY] IDLE: {payload.message}")

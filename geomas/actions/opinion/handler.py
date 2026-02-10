@@ -46,7 +46,7 @@ def execute_opinion(
     
     if payload.reasoning:
         engine.logs.append(
-            f"[OPINION] {nation_id} population mood: {payload.reasoning[:100]}..."
+            f"📊 [OPINION] {nation_id} population mood: {payload.reasoning[:100]}..."
         )
 
 
@@ -137,7 +137,7 @@ def apply_satisfaction_deltas(engine: 'ActionEngine', nation_id: str, rng: rando
     nation.public_satisfaction = max(0, min(100, old_sat + final_delta))
     
     engine.logs.append(
-        f"[OPINION] {nation_id}: satisfaction {old_sat:.0f} -> {nation.public_satisfaction:.0f} ({final_delta:+.1f})"
+        f"📊 [OPINION] {nation_id}: satisfaction {old_sat:.0f} -> {nation.public_satisfaction:.0f} ({final_delta:+.1f})"
     )
     
     return final_delta
@@ -183,7 +183,7 @@ def check_triggers(engine: 'ActionEngine', nation_id: str, rng: random.Random = 
                 prov.aircraft = 0
         
         engine.logs.append(
-            f"[OPINION] 🔥 CIVIL UNREST in {nation_id}! {len(revolting_provinces)} provinces in revolt."
+            f"🔥 [OPINION] CIVIL UNREST in {nation_id}! {len(revolting_provinces)} provinces in revolt."
         )
         world.global_events.append(
             f"[Turn {world.turn}] CIVIL UNREST: {nation_id} - {len(revolting_provinces)} provinces revolt!"
@@ -200,7 +200,7 @@ def check_triggers(engine: 'ActionEngine', nation_id: str, rng: random.Random = 
                 prov.in_revolt = False
         
         engine.logs.append(
-            f"[OPINION] ✅ {nation_id} civil unrest ended. Provinces restored."
+            f"✅ [OPINION] {nation_id} civil unrest ended. Provinces restored."
         )
     
     # --- GENERAL_STRIKE (sat < 20 but >= 10) ---
@@ -208,14 +208,14 @@ def check_triggers(engine: 'ActionEngine', nation_id: str, rng: random.Random = 
     if sat < THRESHOLD_GENERAL_STRIKE and sat >= THRESHOLD_CIVIL_UNREST:
         triggered.append(OpinionTrigger.GENERAL_STRIKE)
         engine.logs.append(
-            f"[OPINION] ⚠️ GENERAL STRIKE in {nation_id}! Efficiency is low."
+            f"⚠️ [OPINION] GENERAL STRIKE in {nation_id}! Efficiency is low."
         )
     
     # --- PRODUCTION DECAY LOGGING (starts earlier) ---
     if sat < THRESHOLD_PRODUCTION_DECAY_START and sat >= THRESHOLD_GENERAL_STRIKE:
         mult = get_production_multiplier(nation)
         engine.logs.append(
-            f"[OPINION] 📉 DECAYING PRODUCTIVITY in {nation_id}: {mult*100:.1f}% efficiency."
+            f"📉 [OPINION] DECAYING PRODUCTIVITY in {nation_id}: {mult*100:.1f}% efficiency."
         )
     
     return triggered

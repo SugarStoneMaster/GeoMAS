@@ -51,13 +51,13 @@ def execute_foreign(
     if not payload.target_nation_id:
         # IDLE doesn't need target, but others do
         if payload.action_type != ForeignActionType.IDLE:
-             engine.logs.append(f"[FOREIGN] No target nation specified for {payload.action_type}")
+             engine.logs.append(f"📜 [FOREIGN] No target nation specified for {payload.action_type}")
              return
     
     target_id = payload.target_nation_id
     
     if target_id and target_id not in world.nations:
-        engine.logs.append(f"[FOREIGN] Target nation {target_id} not found")
+        engine.logs.append(f"📜 [FOREIGN] Target nation {target_id} not found")
         return
     
     # Dispatch to appropriate handler
@@ -94,12 +94,12 @@ def _execute_send_message(
     if current_turn - last_msg_turn < MESSAGE_COOLDOWN_TURNS:
         turns_left = MESSAGE_COOLDOWN_TURNS - (current_turn - last_msg_turn)
         engine.logs.append(
-            f"[FOREIGN] Cannot message {target_id}: cooldown active ({turns_left} turns left)"
+            f"📜 [FOREIGN] Cannot message {target_id}: cooldown active ({turns_left} turns left)"
         )
         return
     
     if not message_type:
-        engine.logs.append(f"[FOREIGN] Missing message_type for SEND_DIPLOMATIC_MESSAGE")
+        engine.logs.append(f"📜 [FOREIGN] Missing message_type for SEND_DIPLOMATIC_MESSAGE")
         return
     
     msg_type = message_type
@@ -116,7 +116,7 @@ def _execute_send_message(
     
     msg_str = f" Message: '{message}'" if message else ""
     engine.logs.append(
-        f"[FOREIGN] {sender_id} sends {msg_type.value} to {target_id}. Trust impact: {trust_delta:+.1f}.{msg_str}"
+        f"📜 [FOREIGN] {sender_id} sends {msg_type.value} to {target_id}. Trust impact: {trust_delta:+.1f}.{msg_str}"
     )
 
 
@@ -132,7 +132,7 @@ def _execute_declare_war(
     current_rel = world.relationship_matrix.get(aggressor_id, {}).get(target_id, "PEACE")
     
     if current_rel == "WAR":
-        engine.logs.append(f"[FOREIGN] {aggressor_id} already at war with {target_id}")
+        engine.logs.append(f"⚔️ [FOREIGN] {aggressor_id} already at war with {target_id}")
         return
     
     # Set relationship to WAR (both directions)
@@ -145,12 +145,12 @@ def _execute_declare_war(
     
     msg_str = f" Message: '{message}'" if message else ""
     engine.logs.append(
-        f"[FOREIGN] ⚔️ {aggressor_id} DECLARES WAR on {target_id}!{msg_str}"
+        f"⚔️ [FOREIGN] {aggressor_id} DECLARES WAR on {target_id}!{msg_str}"
     )
     
     # Global notification
     engine.world.global_events.append(
-        f"[Turn {world.turn}] WAR DECLARED: {aggressor_id} vs {target_id}"
+        f"[Turn {world.turn}] ⚔️ WAR DECLARED: {aggressor_id} vs {target_id}"
     )
 
 
@@ -166,7 +166,7 @@ def _execute_break_treaty(
     current_rel = world.relationship_matrix.get(breaker_id, {}).get(target_id, "PEACE")
     
     if current_rel != "ALLIANCE":
-        engine.logs.append(f"[FOREIGN] No alliance exists with {target_id} to break")
+        engine.logs.append(f"💔 [FOREIGN] No alliance exists with {target_id} to break")
         return
     
     # Set relationship back to PEACE
@@ -178,7 +178,7 @@ def _execute_break_treaty(
     
     msg_str = f" Message: '{message}'" if message else ""
     engine.logs.append(
-        f"[FOREIGN] 💔 {breaker_id} BREAKS alliance with {target_id}. Trust penalty applied.{msg_str}"
+        f"💔 [FOREIGN] {breaker_id} BREAKS alliance with {target_id}. Trust penalty applied.{msg_str}"
     )
 
 
@@ -197,7 +197,7 @@ def _execute_request_peace(
     current_rel = world.relationship_matrix.get(requester_id, {}).get(target_id, "PEACE")
     
     if current_rel != "WAR":
-        engine.logs.append(f"[FOREIGN] Not at war with {target_id}, no peace needed")
+        engine.logs.append(f"🕊️ [FOREIGN] Not at war with {target_id}, no peace needed")
         return
     
     # Add pending proposal to target nation
@@ -211,8 +211,7 @@ def _execute_request_peace(
     })
     
     msg_str = f" Message: '{message}'" if message else ""
-    msg_str = f" Message: '{message}'" if message else ""
-    summary = f"[FOREIGN] 🕊️ {requester_id} requests peace with {target_id}. Awaiting response.{msg_str}"
+    summary = f"🕊️ [FOREIGN] {requester_id} requests peace with {target_id}. Awaiting response.{msg_str}"
     engine.logs.append(summary)
     
     # Global notification (Real Event)
@@ -235,18 +234,18 @@ def _execute_propose_alliance(
     current_rel = world.relationship_matrix.get(proposer_id, {}).get(target_id, "PEACE")
     
     if current_rel == "ALLIANCE":
-        engine.logs.append(f"[FOREIGN] Already allied with {target_id}")
+        engine.logs.append(f"🤝 [FOREIGN] Already allied with {target_id}")
         return
     
     if current_rel == "WAR":
-        engine.logs.append(f"[FOREIGN] Cannot propose alliance while at war with {target_id}")
+        engine.logs.append(f"🤝 [FOREIGN] Cannot propose alliance while at war with {target_id}")
         return
     
     # Check trust threshold (60 on 0-100 scale)
     trust = world.trust_matrix.get(proposer_id, {}).get(target_id, 50)
     if trust < 60:
         engine.logs.append(
-            f"[FOREIGN] Alliance proposal rejected: trust too low ({trust:.0f} < 60)"
+            f"🤝 [FOREIGN] Alliance proposal rejected: trust too low ({trust:.0f} < 60)"
         )
         return
     
@@ -256,7 +255,7 @@ def _execute_propose_alliance(
     # Check if already proposed to prevent spam
     for p in target_nation.pending_proposals:
         if p["from"] == proposer_id and p["type"] == "ALLIANCE":
-            engine.logs.append(f"[FOREIGN] Alliance proposal to {target_id} already pending")
+            engine.logs.append(f"🤝 [FOREIGN] Alliance proposal to {target_id} already pending")
             return
     
     target_nation.pending_proposals.append({
@@ -269,8 +268,7 @@ def _execute_propose_alliance(
 
     
     msg_str = f" Message: '{message}'" if message else ""
-    msg_str = f" Message: '{message}'" if message else ""
-    summary = f"[FOREIGN] 🤝 {proposer_id} proposes alliance to {target_id}. Awaiting response.{msg_str}"
+    summary = f"🤝 [FOREIGN] {proposer_id} proposes alliance to {target_id}. Awaiting response.{msg_str}"
     engine.logs.append(summary)
     
     # Global notification (Real Event)
@@ -302,7 +300,7 @@ def respond_to_proposal(
             
     if not proposal_found:
         engine.logs.append(
-            f"[FOREIGN] No pending proposal found with ID {response.proposal_id}"
+            f"📜 [FOREIGN] No pending proposal found with ID {response.proposal_id}"
         )
         return
 
@@ -312,14 +310,14 @@ def respond_to_proposal(
     # Check if proposal expired (only valid for 1 turn)
     if world.turn - proposal_found["turn"] > 1:
         engine.logs.append(
-            f"[FOREIGN] {proposal_type} proposal from {proposer_id} has expired"
+            f"📜 [FOREIGN] {proposal_type} proposal from {proposer_id} has expired"
         )
         return
     
     msg_str = f" Message: '{message}'" if message else ""
     if not accept:
         engine.logs.append(
-            f"[FOREIGN] {nation_id} REJECTS {proposal_type} proposal from {proposer_id}.{msg_str}"
+            f"📜 [FOREIGN] {nation_id} REJECTS {proposal_type} proposal from {proposer_id}.{msg_str}"
         )
         return
     
@@ -328,7 +326,7 @@ def respond_to_proposal(
         world.relationship_matrix[nation_id][proposer_id] = "PEACE"
         world.relationship_matrix[proposer_id][nation_id] = "PEACE"
         engine.logs.append(
-            f"[FOREIGN] 🕊️ Peace treaty signed between {nation_id} and {proposer_id}.{msg_str}"
+            f"🕊️ [FOREIGN] Peace treaty signed between {nation_id} and {proposer_id}.{msg_str}"
         )
     
     elif proposal_type == "ALLIANCE":
@@ -337,7 +335,7 @@ def respond_to_proposal(
         engine.adjust_trust(nation_id, proposer_id, 10)  # 0-100 scale
         engine.adjust_trust(proposer_id, nation_id, 10)
         engine.logs.append(
-            f"[FOREIGN] 🤝 ALLIANCE formed between {nation_id} and {proposer_id}!{msg_str}"
+            f"🤝 [FOREIGN] ALLIANCE formed between {nation_id} and {proposer_id}!{msg_str}"
         )
 
 
