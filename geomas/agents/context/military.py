@@ -283,6 +283,20 @@ class MilitaryTranslator:
         
         return "\n".join(lines)
 
+    def analyze_threats(self, nation_id: str) -> str:
+        """
+        Produce a high-level strategic threat analysis.
+        Used by DefenseInputBuilder for strategic assessment.
+        """
+        # Reuse existing components to build a summary
+        threat_text = self._generate_threat_assessment(nation_id)
+        border_text = self._generate_border_defense(nation_id)
+        
+        if not threat_text and not border_text:
+            return "No immediate external threats detected."
+            
+        return f"{threat_text}\n\n{border_text}"
+
     def _generate_military_options(self, nation_id: str) -> str:
         """Identify viable military options (attack targets, reinforcement needs)."""
         border_provinces = self.spatial.get_border_provinces(nation_id)

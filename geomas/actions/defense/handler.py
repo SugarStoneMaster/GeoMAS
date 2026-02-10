@@ -284,13 +284,12 @@ def _execute_move_troops(
         effective_defense = defending_force * defense_bonus
         
         if defending_force > 0 and quantity < (effective_defense * 0.1):
-            # Abort the attack to save units
-            _add_units_to_province(from_province, unit_type, quantity)
+            # Just warn, do NOT abort (User preference: let LLM makes its own mistakes)
             engine.logs.append(
-                f"[COMBAT] Suicide attack aborted! {quantity} {unit_type.value} vs {defending_force} defenders "
-                f"(Threshold: {int(effective_defense * 0.1)}). Units returned to base."
+                f"[COMBAT] ⚠️ RISKY ATTACK: {quantity} {unit_type.value} vs {defending_force} defenders "
+                f"(Effective Defense: {int(effective_defense)}). High probability of defeat."
             )
-            return
+            # Proceed with combat...
 
         if unit_type == UnitType.NAVY:
             # Naval landing logic

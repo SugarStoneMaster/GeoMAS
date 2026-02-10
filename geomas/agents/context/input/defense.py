@@ -56,17 +56,23 @@ class DefenseInputBuilder:
         military_report = self.military_translator.generate_military_report(nation_id)
         sections.append(military_report)
         
-        # 2. Budget for Military
+        # 2. Risk & Strategy Assessment
+        market_analysis = self.military_translator.analyze_threats(nation_id) 
+        # Note: analyze_threats returns a text block, we can use it or build a custom one.
+        # Let's add a specific "Attack Viability" section if we are at war.
+        sections.append(self._build_strategic_assessment(nation_id))
+
+        # 3. Budget for Military
         sections.append(self._build_budget_section(nation))
         
-        # 3. War/Peace Status
+        # 4. War/Peace Status
         sections.append(self._build_enemy_status(nation_id))
         
-        # 4. Satisfaction Warning (if relevant)
+        # 5. Satisfaction Warning (if relevant)
         if nation.public_satisfaction < 40:
             sections.append(self._build_morale_warning(nation))
         
-        # 5. Recent Military Actions
+        # 6. Recent Military Actions
         if recent_actions:
             sections.append(self._build_recent_actions(recent_actions))
         
@@ -137,6 +143,53 @@ class DefenseInputBuilder:
 **Public Satisfaction: {nation.public_satisfaction:.0f}%**
 
 {advice}"""
+
+    def _build_strategic_assessment(self, nation_id: str) -> str:
+        """Analyze improved strategic position."""
+        lines = ["## ⚔️ STRATEGIC ASSESSMENT"]
+        lines.append("Analysis of potential targets and win probability:")
+        
+        nation = self.world.nations[nation_id]
+        
+        # Simple analysis of neighbors
+        targets = []
+        for p_id in nation.province_ids:
+            prov = self.world.provinces.get(p_id)
+            if not prov: continue
+            
+            for n_id in prov.neighbors:
+                neighbor = self.world.provinces.get(n_id)
+                if not neighbor or neighbor.owner_id == nation_id:
+                    continue
+                
+                # It's a potential target (or threat)
+                enemy_force = neighbor.soldiers
+                my_force = prov.soldiers
+                
+                # Rough win calculation (assuming 1.5x defender advantage in terrain)
+                terrain_bonus = 1.5 if neighbor.terrain != 'plain' else 1.0 # Simplified
+                needed = int(enemy_force * terrain_bonus * 1.1) # 10% margin
+                
+                status = "UNKNOWN"
+                if my_force > needed:
+                    status = "✅ WININABLE"
+                    advice = "Attack viable"
+                elif my_force * 2 < enemy_force:
+                    status = "❌ SUICIDE"
+                    advice = "Do NOT attack (Force < 50% of enemy)"
+                else:
+                    status = "⚠️ RISKY"
+                    advice = "Reinforce first"
+                
+                targets.append(f"- From {p_id} -> {n_id} (Enemy: {enemy_force}): {status}. {advice}")
+        
+        if not targets:
+            lines.append("No immediate border threats.")
+        else:
+            # Show top 5 relevant ones
+            lines.extend(targets[:5])
+            
+        return "\n".join(lines)
 
     def _build_recent_actions(self, actions: List[str]) -> str:
         """Build recent military actions section."""

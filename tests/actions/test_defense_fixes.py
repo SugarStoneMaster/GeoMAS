@@ -114,10 +114,21 @@ class TestDefenseLogicFixes:
         envelope = create_test_envelope(attacker_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
-        # Verify abortion
-        assert any("Suicide attack aborted" in log for log in logs)
-        assert start_prov.soldiers == 100 # No change (refunded)
-        assert target_prov.soldiers == 200 # No damage
+        # Verify WARNING but NOT abortion
+        assert any("RISKY ATTACK" in log for log in logs)
+        
+        # Since 10 soldiers attack 200, they should likely be wiped out
+        # and defenders might take 0-1 damage depending on RNG (seeded)
+        # But crucially, start_prov.soldiers must NOT have the 10 returned if they died
+        # Or if they retreated/survived, logic handles it.
+        # With 10 vs 200, it's a total loss for attacker.
+        
+        # Check that the 10 soldiers were NOT simply refunded (as in the abortion case)
+        # Initial: 100. Moved 10 -> 90. If abortion: 100. If combat death: 90.
+        assert start_prov.soldiers == 90 # They left and died/fought
+        
+        # Check logs for combat result
+        assert any("Attack failed" in log or "conquered" in log for log in logs)
 
     def test_validate_target_is_not_self(self):
         """Test the validator directly."""
