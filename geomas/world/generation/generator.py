@@ -138,7 +138,7 @@ class MapGenerator:
             nation.total_aircraft = aggregates["total_aircraft"]
             nation.total_navy = aggregates["total_navy"]
             
-            # Calculate consumption-based stockpiles (10 turns of autonomy)
+            # Calculate consumption-based stockpiles (5 turns of autonomy)
             pop = nation.total_population
             food_consumption = pop * FOOD_PER_PERSON
             energy_consumption = pop * ENERGY_PER_PERSON
@@ -146,11 +146,21 @@ class MapGenerator:
                 nation.total_soldiers, nation.total_aircraft, nation.total_navy
             )
             
+            # Calculate base income (Tax Revenue) for budget baseline
+            base_tax_revenue = sum(
+                provinces_dict[p_id].tax_revenue 
+                for p_id in nation.province_ids
+            )
+            
             # Apply prosperity factor and autonomy buffer
             nation.total_food = food_consumption * AUTONOMY_TURNS * prosperity
             nation.total_energy = energy_consumption * AUTONOMY_TURNS * prosperity
             nation.total_materials = max(100, materials_consumption * AUTONOMY_TURNS * prosperity)
-            nation.total_budget = (1000 + pop * 0.01) * prosperity
+            
+            # --- FIX: Start with Autonomy Rounds of Budget (Consistent with Taxes) ---
+            # Old: (1000 + pop * 0.01) -> trivial amount compared to turn income
+            # New: Tax Revenue * Autonomy * Prosperity -> Consistent initial state
+            nation.total_budget = max(5000, base_tax_revenue * AUTONOMY_TURNS * prosperity)
             
             nation.power_projection = economy.calculate_power_projection(nation)
 
