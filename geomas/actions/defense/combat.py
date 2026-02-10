@@ -62,7 +62,18 @@ def resolve_land_combat(
     Resolve land combat between attacking soldiers and province defenders.
     
     Binary outcome: attacker wins → conquers, attacker loses → all soldiers lost.
+    Undefended provinces are captured automatically without combat roll.
     """
+    # Short-circuit: undefended province → automatic capture
+    if defender_province.soldiers == 0 and defender_province.aircraft == 0:
+        return CombatResult(
+            attacker_wins=True,
+            attacker_losses=0,
+            defender_losses=0,
+            province_conquered=True,
+            log_message=f"Province undefended! {attacker_soldiers} soldiers capture it without resistance."
+        )
+
     terrain_mod = TERRAIN_DEFENSE_MULTIPLIER.get(defender_province.terrain, 1.0)
     
     attacker_force = calculate_force(soldiers=attacker_soldiers)

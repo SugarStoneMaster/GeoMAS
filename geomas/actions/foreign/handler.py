@@ -36,12 +36,19 @@ def execute_foreign(
     
     # 1. PROCESS RESPONSES (Inbox)
     if payload.proposal_responses:
-        for response in payload.proposal_responses:
-            respond_to_proposal(
-                engine, 
-                nation_id, 
-                response
+        nation = world.nations[nation_id]
+        if not nation.pending_proposals:
+            # Guard: LLM hallucinated proposal responses when no proposals exist
+            engine.logs.append(
+                f"📜 [FOREIGN] {nation_id} tried to respond to proposals, but has no pending proposals. Skipping."
             )
+        else:
+            for response in payload.proposal_responses:
+                respond_to_proposal(
+                    engine, 
+                    nation_id, 
+                    response
+                )
 
     # 2. PROCESS ACTIVE MEASURE (Agenda)
     if not payload.action_type or payload.action_type == ForeignActionType.IDLE:

@@ -542,7 +542,7 @@ def _execute_nuclear_option(
     - Population × 0.1 (90% death)
     - Production × 0.2 (80% destroyed)
     - Trust with victim → 0
-    - Trust with ALL other nations -= 0.8
+    - Trust with ALL other nations -= 80 (0-100 scale)
     """
     world = engine.world
     nation = world.nations.get(nation_id)
@@ -582,6 +582,14 @@ def _execute_nuclear_option(
         engine.logs.append(f"☢️ [NUCLEAR] Target province {target_province_id} not found")
         return
     
+    # Validate: cannot nuke OCEAN or VOID terrain (no effect)
+    from geomas.schemas.world import TerrainType
+    if target_province.terrain in (TerrainType.OCEAN, TerrainType.VOID):
+        engine.logs.append(
+            f"☢️ [NUCLEAR] Cannot nuke {target_province.terrain.value} province {target_province_id}"
+        )
+        return
+
     victim_id = target_province.owner_id
 
     # Validate target_nation_id matches province owner (Consistency Check)
@@ -645,5 +653,5 @@ def _execute_nuclear_option(
         if other_nation_id != nation_id and other_nation_id != victim_id:
             engine.adjust_trust(other_nation_id, nation_id, -80)
             engine.logs.append(
-                f"💔 [DIPLOMACY] {other_nation_id}'s trust toward {nation_id} decreased by 0.8"
+                f"💔 [DIPLOMACY] {other_nation_id}'s trust toward {nation_id} decreased by 80"
             )

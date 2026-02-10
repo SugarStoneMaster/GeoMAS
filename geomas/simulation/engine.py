@@ -295,8 +295,6 @@ class SimulationEngine:
         self.cache.update_turn_envelopes(current_turn, turn_envelopes, self._calculate_behaviors(turn_envelopes))
         
         print(f"--- TURN {current_turn} COMPLETE ---")
-            
-        print(f"--- TURN {current_turn} COMPLETE ---")
         
 
 
