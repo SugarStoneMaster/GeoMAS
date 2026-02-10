@@ -384,6 +384,9 @@ class MilitaryTranslator:
             prov = self.world.provinces.get(p_id)
             if not prov: continue
             
+            # Terrain tag
+            terrain_tag = f"[{prov.terrain.value.upper()}]" if prov.terrain else ""
+            
             # Unit string
             unit_strs = []
             if prov.soldiers > 0: unit_strs.append(f"{prov.soldiers}S")
@@ -411,6 +414,6 @@ class MilitaryTranslator:
                 
                 neighbor_strs.append(n_info)
             
-            lines.append(f"- **{p_id}{units}** -> [{', '.join(neighbor_strs)}]")
+            lines.append(f"- **{p_id}** {terrain_tag}{units} -> [{', '.join(neighbor_strs)}]")
             
         return "\n".join(lines)

@@ -52,8 +52,8 @@ class TestDefenseStrictValidation:
         envelope = create_test_envelope(n1, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
-        # 1. Check for warning log
-        assert any("Warning: CREATE_UNIT target_nation_id" in log for log in logs)
+        # 1. Check for correction log
+        assert any("CREATE_UNIT: target_nation_id corrected" in log for log in logs)
         
         # 2. Check that unit WAS created (success)
         assert "Created 1x SOLDIER" in logs[-1]

@@ -56,7 +56,7 @@ Consider how defense actions support the nation's overarching goals.
 ## Available Actions (max 3 per turn)
 1. **`CREATE_UNIT`**
    - **Fields**: `unit_type`, `quantity`, `target_province_id`.
-   - **MUST**: `target_nation_id` = **Your Nation ID** (Self).
+   - **MUST**: `target_nation_id` = `"{effective_name}"` (your own nation ID).
    - **Constraint**: Must be owned land (Soldiers/Aircraft) or territorial waters (Navy).
 2. **`MOVE_TROOPS`**
    - **Fields**: `unit_type`, `quantity`, `source_province_id` (**REQUIRED** - the province your units are currently in), `target_province_id`.
@@ -86,7 +86,7 @@ Consider how defense actions support the nation's overarching goals.
 - **STRICT IDs**:
   - **`CREATE_UNIT`**: Target MUST be an ID from **'OWNED PROVINCES'**. You cannot spawn units in foreign lands.
   - **`MOVE_TROOPS`**: Source MUST be an **'OWNED PROVINCE'**. Destination can be Owned, Allied, or **Enemy** (triggers combat). Use IDs from 'THREAT ASSESSMENT' or 'ATTACK OPTIONS'.
-- **Target Nation**: For `CREATE_UNIT`, `target_nation_id` MUST be your own ID ({effective_name}). For `MOVE_TROOPS`, it must be the owner of the destination.
+- **Target Nation**: For `CREATE_UNIT`, `target_nation_id` MUST be `"{effective_name}"`. For `MOVE_TROOPS`, it must be the owner of the destination.
 
 Your response will be automatically parsed into the `DefenseProposal` schema.
 

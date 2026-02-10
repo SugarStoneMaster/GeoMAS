@@ -75,9 +75,11 @@ def _execute_create_unit(
     province_id = move.target_province_id
     target_nation_id = move.target_nation_id
     
-    # Auto-correct target_nation_id to SELF for creation (robustness)
+    # CREATE_UNIT always creates for SELF regardless of target_nation_id
     if target_nation_id and target_nation_id != nation_id:
-        engine.logs.append(f"⚔️ [DEFENSE] Warning: CREATE_UNIT target_nation_id {target_nation_id} ignored. Creating for SELF.")
+        engine.logs.append(
+            f"🛠️ [DEFENSE] CREATE_UNIT: target_nation_id corrected from {target_nation_id} to {nation_id}"
+        )
     target_nation_id = nation_id
     
     # Validate unit type
@@ -211,14 +213,19 @@ def _execute_move_troops(
             # Just a warning, proceed with the actual province owner
             pass
     
-    # Validate units available in source
+    # Validate units available in source — clamp to available if exceeds
     available_units = _get_units_in_province(from_province, unit_type)
-    if available_units < quantity:
+    if available_units <= 0:
         engine.logs.append(
-            f"🚚 [DEFENSE] MOVE_TROOPS: Not enough {unit_type.value} in province {from_province_id}. "
-            f"Have {available_units}, need {quantity}"
+            f"🚚 [DEFENSE] MOVE_TROOPS: No {unit_type.value} in province {from_province_id}"
         )
         return
+    if available_units < quantity:
+        engine.logs.append(
+            f"🚚 [DEFENSE] MOVE_TROOPS: Clamped {unit_type.value} from {quantity} to {available_units} "
+            f"(province {from_province_id} only has {available_units})"
+        )
+        quantity = available_units
     
     # Validate path exists and is valid for unit type
     path = _find_valid_path(engine, nation_id, from_province_id, to_province_id, unit_type)

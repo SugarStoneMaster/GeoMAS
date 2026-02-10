@@ -76,7 +76,7 @@ class TestDefenseMinister(TestMinisterBase):
         system_prompt, user_prompt, schema = args
         
         assert "Defense Minister" in system_prompt
-        assert schema == DefenseProposal
+        assert issubclass(schema, DefenseProposal)
         assert response == mock_response
     
     def test_includes_memory_context(self, setup):

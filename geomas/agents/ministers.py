@@ -94,7 +94,8 @@ class DefenseMinister(BaseMinister):
         user_prompt = self._add_memory_context(user_prompt, "Defense")
         
         # Dynamic Validation: Enforce valid nation IDs
-        valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
+        # Defense includes SELF because CREATE_UNIT requires target_nation_id = own ID
+        valid_targets = list(self.world.nations.keys())
         ResponseModel = get_dynamic_proposal_model(DefenseProposal, valid_targets)
         
         proposal = self.client.query_agent(

@@ -50,29 +50,37 @@ class TestMoveTroopsValidation:
         assert any("Must specify" in log for log in logs)
     
     def test_not_enough_units(self):
-        """Cannot move more units than available."""
+        """Moving more units than available should clamp to available quantity."""
         world = generate_world(seed=42, n_cells=100, n_nations=1)
         engine = ActionEngine(world)
         nation_id = list(world.nations.keys())[0]
         nation = world.nations[nation_id]
         
-        # Get two adjacent provinces
-        province_a = nation.province_ids[0]
+        # Get two adjacent non-ocean provinces
+        province_a = None
         province_b = None
-        for neighbor_id in world.provinces[province_a].neighbors:
-            prov = world.provinces.get(neighbor_id)
-            if prov and prov.owner_id == nation_id:
-                province_b = neighbor_id
+        for pid in nation.province_ids:
+            prov = world.provinces[pid]
+            if prov.terrain == TerrainType.OCEAN:
+                continue
+            for neighbor_id in prov.neighbors:
+                n_prov = world.provinces.get(neighbor_id)
+                if n_prov and n_prov.owner_id == nation_id and n_prov.terrain != TerrainType.OCEAN:
+                    province_a = pid
+                    province_b = neighbor_id
+                    break
+            if province_a:
                 break
         
-        if province_b is None:
-            pytest.skip("No adjacent owned province found")
+        if province_a is None or province_b is None:
+            pytest.skip("No adjacent owned non-ocean provinces found")
         
         # Set soldiers = 5 in province A
         world.provinces[province_a].soldiers = 5
+        world.provinces[province_b].soldiers = 0
         nation.total_energy = 100.0
         
-        # Try to move 10
+        # Try to move 10 (only 5 available)
         payload = DefensePayload(
             decision=Decision.APPROVE,
             moves=[DefenseActionItem(
@@ -89,7 +97,11 @@ class TestMoveTroopsValidation:
         envelope = create_test_envelope(nation_id, defense_payload=payload)
         logs = engine.execute_envelope(envelope)
         
-        assert any("Not enough" in log for log in logs)
+        # Should clamp to 5 and succeed
+        assert any("Clamped" in log for log in logs)
+        assert any("Moved 5x SOLDIER" in log for log in logs)
+        assert world.provinces[province_a].soldiers == 0
+        assert world.provinces[province_b].soldiers == 5
     
     def test_insufficient_energy(self):
         """Movement requires energy."""
