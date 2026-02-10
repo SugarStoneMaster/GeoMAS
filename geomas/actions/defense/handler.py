@@ -15,6 +15,7 @@ from geomas.actions.defense.schemas import (
     MOVEMENT_RANGE,
     can_afford_unit,
     can_place_unit,
+    get_terrain_defense_bonus,
 )
 from geomas.schemas.world import TerrainType
 
@@ -268,6 +269,29 @@ def _execute_move_troops(
         import random
         rng = random.Random(engine.world.turn + hash(nation_id))
         
+        # --- SUICIDE CHECK ---
+        # Prevent attacks with negligible forces (<10% of defenders)
+        defending_force = 0
+        if unit_type == UnitType.SOLDIER:
+            defending_force = to_province.soldiers
+        elif unit_type == UnitType.NAVY:
+            defending_force = to_province.navy
+        elif unit_type == UnitType.AIRCRAFT:
+            defending_force = to_province.aircraft
+            
+        # Apply terrain defense bonus to estimate effective defense strength
+        defense_bonus = get_terrain_defense_bonus(to_province.terrain)
+        effective_defense = defending_force * defense_bonus
+        
+        if defending_force > 0 and quantity < (effective_defense * 0.1):
+            # Abort the attack to save units
+            _add_units_to_province(from_province, unit_type, quantity)
+            engine.logs.append(
+                f"[COMBAT] Suicide attack aborted! {quantity} {unit_type.value} vs {defending_force} defenders "
+                f"(Threshold: {int(effective_defense * 0.1)}). Units returned to base."
+            )
+            return
+
         if unit_type == UnitType.NAVY:
             # Naval landing logic
             result = execute_naval_landing(

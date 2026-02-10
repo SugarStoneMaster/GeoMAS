@@ -102,9 +102,16 @@ class DefenseActionItem(BaseModel):
     
     # Explicit fields for strong typing
     unit_type: Optional[UnitType] = None
-    quantity: Optional[int] = None
+    quantity: Optional[int] = Field(None, gt=0, description="Must be a positive integer")
     source_province_id: Optional[int] = Field(None, description="Source province for MOVE_TROOPS")
     # target_province_id (already exists) acts as Destination for MOVE, or Location for CREATE/NUKE
+
+    @field_validator("source_province_id")
+    @classmethod
+    def validate_source_for_move(cls, v: Optional[int], info: Any) -> Optional[int]:
+        if info.data.get("action_type") == DefenseActionType.MOVE_TROOPS and v is None:
+            raise ValueError("source_province_id is required for MOVE_TROOPS")
+        return v
 
 
 class DefenseProposalPayload(BaseModel):

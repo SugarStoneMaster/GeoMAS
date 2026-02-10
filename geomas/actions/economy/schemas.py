@@ -5,7 +5,7 @@ Action types and payloads for economic operations.
 """
 
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Dict, Any, Optional
 
 from geomas.actions.common import Decision
@@ -33,6 +33,21 @@ class EconomicProposalPayload(BaseModel):
     trade_offer_give_type: Optional[str] = Field(None, description="Resource type to GIVE")
     trade_offer_give_amount: Optional[float] = Field(None, description="Amount to GIVE")
     trade_offer_want_type: Optional[str] = Field(None, description="Resource type DESIRED (food, energy, materials, budget)")
+
+    @model_validator(mode='after')
+    def validate_trade_proposal(self) -> 'EconomicProposalPayload':
+        if self.action_type == EconomicActionType.TRADE_PROPOSAL:
+            if not self.target_nation_id:
+                raise ValueError("TRADE_PROPOSAL requires target_nation_id")
+            if not self.trade_offer_give_type:
+                raise ValueError("TRADE_PROPOSAL requires trade_offer_give_type")
+            if self.trade_offer_give_amount is None:
+                raise ValueError("TRADE_PROPOSAL requires trade_offer_give_amount")
+            if self.trade_offer_give_amount <= 0:
+                raise ValueError("trade_offer_give_amount must be positive")
+            if not self.trade_offer_want_type:
+                raise ValueError("TRADE_PROPOSAL requires trade_offer_want_type")
+        return self
 
 
 class EconomicPayload(EconomicProposalPayload):

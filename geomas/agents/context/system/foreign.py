@@ -60,7 +60,7 @@ Consider how alliances and communications serve the nation's strategic interests
 ## 1. INBOX: Responding to Proposals
 - **Field**: `proposal_responses` (List of objects).
 - **Action**: For EACH pending proposal, specify:
-  - `proposal_id`: The unique ID provided in your context (e.g., "a1b2c3d4").
+  - `proposal_id`: The **EXACT ID** provided in your context (e.g., "prop_123_abc"). DO NOT HALLUCINATE IDs.
   - `response`: ACCEPT or REJECT.
   - `message`: Explanation.
 

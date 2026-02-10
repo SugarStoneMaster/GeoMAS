@@ -101,3 +101,19 @@ class ActionValidators:
             return True, "Satisfaction sufficient for war tax."
         else:
             return False, f"Satisfaction too low ({nation.public_satisfaction:.2f} < {ActionValidators.MIN_SATISFACTION_FOR_WAR_TAX})"
+
+    @staticmethod
+    def validate_target_is_not_self(
+        nation_id: str, 
+        target_id: str, 
+        action_type: str
+    ) -> Tuple[bool, str]:
+        """
+        Verify that an action does not target the actor itself, unless allowed.
+        """
+        # Actions that MUST target self are handled elsewhere or should use specific logic.
+        # This is for actions that implies interaction with OTHERS (Attack, Nuke, Trade, Alliance).
+        
+        if nation_id == target_id:
+            return False, f"Action {action_type} cannot target self ({nation_id})."
+        return True, "Target is valid (not self)."

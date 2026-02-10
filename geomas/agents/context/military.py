@@ -354,30 +354,48 @@ class MilitaryTranslator:
         return "\n".join(lines)
 
     def _generate_province_list(self, nation_id: str) -> str:
-        """Provide a complete list of owned province IDs for grounding actions."""
+        """Provide a complete list of owned provinces and their CONNECTIVITY for logistic planning."""
         nation = self.world.nations.get(nation_id)
         if not nation: return ""
         
         # Sort by ID for stability
         p_ids = sorted(nation.province_ids)
         
-        lines = ["## 🏳️ OWNED PROVINCES"]
-        lines.append("Use these IDs for CREATE_UNIT or MOVE_TROOPS source.")
+        lines = ["## 🚚 LOGISTICS & CONNECTIVITY"]
+        lines.append("Complete map of your territory and neighbors. Use this to find valid paths.")
+        lines.append("**Legend:** (S=Soldier, N=Navy, A=Aircraft) -> [Neighbors]")
         
-        chunks = []
         for p_id in p_ids:
             prov = self.world.provinces.get(p_id)
             if not prov: continue
             
+            # Unit string
             unit_strs = []
             if prov.soldiers > 0: unit_strs.append(f"{prov.soldiers}S")
             if prov.aircraft > 0: unit_strs.append(f"{prov.aircraft}A")
             if prov.navy > 0: unit_strs.append(f"{prov.navy}N")
-            
             units = f" ({', '.join(unit_strs)})" if unit_strs else ""
-            chunks.append(f"{p_id}{units}")
             
-        # Join with commas for density
-        lines.append(", ".join(chunks))
-        
+            # Neighbors string
+            neighbor_strs = []
+            for n_id in prov.neighbors:
+                n_prov = self.world.provinces.get(n_id)
+                if not n_prov: continue
+                
+                n_info = f"{n_id}"
+                if n_prov.owner_id == nation_id:
+                    n_info += "(Own)"
+                elif n_prov.owner_id:
+                    # Enemy/Other
+                    owner_name = self.world.nations[n_prov.owner_id].name[:3].upper() # Abbreviate
+                    n_info += f"(Enemy-{owner_name})"
+                elif n_prov.terrain == TerrainType.OCEAN:
+                    n_info += "(Sea)"
+                else:
+                    n_info += "(Neutral)"
+                
+                neighbor_strs.append(n_info)
+            
+            lines.append(f"- **{p_id}{units}** -> [{', '.join(neighbor_strs)}]")
+            
         return "\n".join(lines)
