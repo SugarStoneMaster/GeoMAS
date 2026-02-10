@@ -75,7 +75,7 @@ class ForeignInputBuilder:
         lines = ["## 📬 PENDING PROPOSALS (Require Response)"]
         
         if not nation.pending_proposals:
-            lines.append("No pending proposals.")
+            lines.append("**No pending proposals. DO NOT generate any `proposal_responses`. Leave `proposal_responses` as an EMPTY list `[]`.**")
             return "\n".join(lines)
         
         for proposal in nation.pending_proposals:
@@ -156,6 +156,7 @@ class ForeignInputBuilder:
             lines.append("\n**🟢 ALLIES:**")
             for e in allies:
                 lines.append(f"  - **{e['id']}**: Trust {e['trust']:.0f} ({e['trust_desc']})")
+            lines.append("\n> ⚠️ You are ALREADY allied with these nations. Do NOT propose alliance to them.")
         
         if neutral:
             lines.append("\n**⚪ NEUTRAL/PEACE:**")

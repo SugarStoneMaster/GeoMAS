@@ -378,6 +378,7 @@ class MilitaryTranslator:
         lines = ["## 🚚 LOGISTICS & CONNECTIVITY"]
         lines.append("Complete map of your territory and neighbors. Use this to find valid paths.")
         lines.append("**Legend:** (S=Soldier, N=Navy, A=Aircraft) -> [Neighbors]")
+        lines.append("**⚠️ RULE:** The numbers shown are the MAXIMUM units you can move FROM that province. You CANNOT move more than what is shown.")
         
         for p_id in p_ids:
             prov = self.world.provinces.get(p_id)

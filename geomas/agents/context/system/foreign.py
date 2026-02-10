@@ -67,7 +67,7 @@ Consider how alliances and communications serve the nation's strategic interests
 ## 2. AGENDA: Active Diplomatic Actions (choose 1 per turn)
 1. **`SEND_DIPLOMATIC_MESSAGE`**
    - **Types & Trust Impact**: `PRAISE` (+10 Trust), `INSULT` (-10 Trust), `THREAT` (-30 Trust).
-   - **Fields**: `diplomatic_message_type`, `target_nation_id`, `message` (optional).
+   - **Fields**: `diplomatic_message_type` (**REQUIRED** - must be PRAISE, INSULT, or THREAT), `target_nation_id`, `message` (optional).
    - **Cooldown**: 5-turn cooldown per nation.
 2. **`PROPOSE_ALLIANCE`**
    - **Fields**: `target_nation_id`, `message` (optional).

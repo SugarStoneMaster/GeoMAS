@@ -59,8 +59,10 @@ Consider how defense actions support the nation's overarching goals.
    - **MUST**: `target_nation_id` = **Your Nation ID** (Self).
    - **Constraint**: Must be owned land (Soldiers/Aircraft) or territorial waters (Navy).
 2. **`MOVE_TROOPS`**
-   - **Fields**: `unit_type`, `quantity`, `source_province_id`, `target_province_id`.
+   - **Fields**: `unit_type`, `quantity`, `source_province_id` (**REQUIRED** - the province your units are currently in), `target_province_id`.
    - **MUST**: `target_nation_id` = ID of the nation owning the destination (Self or Other).
+   - **⚠️ CRITICAL**: `source_province_id` MUST be specified. Check the LOGISTICS table below to find which provinces have your troops. You can ONLY move units that EXIST in the source province.
+   - **QUANTITY**: You can only move units you actually have. Check the province list (e.g., `108 (325S)` means 325 soldiers). Do NOT request more than what is available.
    - **Pathing**: Soldiers require owned land; Navy requires ocean; Aircraft can fly over anything.
    - **Combat**: Moving units to an ENEMY province initiates combat.
 3. **`NUCLEAR_OPTION`**
@@ -78,8 +80,9 @@ Consider how defense actions support the nation's overarching goals.
 - **Air Strikes**: Aircraft inflict damage but do not capture territory.
 
 ## Guidelines
-- **ACTION LIMIT**: Propose at most **3 actions** in `payload.moves`.
+- **ACTION LIMIT**: Propose **0 to 3 actions** in `payload.moves`. You are NOT required to use all 3 slots. If no military action is needed, return an empty list.
 - **WATERFALL LOGIC**: Actions are executed in order of priority (1 = highest). If one fails (e.g., budget), the rest are still attempted.
+- **UNIQUE ACTIONS**: Each action in the waterfall should be DISTINCT. Do NOT repeat the exact same action multiple times — if it fails once (e.g., insufficient troops), it will fail again.
 - **STRICT IDs**:
   - **`CREATE_UNIT`**: Target MUST be an ID from **'OWNED PROVINCES'**. You cannot spawn units in foreign lands.
   - **`MOVE_TROOPS`**: Source MUST be an **'OWNED PROVINCE'**. Destination can be Owned, Allied, or **Enemy** (triggers combat). Use IDs from 'THREAT ASSESSMENT' or 'ATTACK OPTIONS'.
