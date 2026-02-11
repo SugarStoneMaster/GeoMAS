@@ -479,7 +479,7 @@ class ContextManager:
             turn=turn,
             domain=domain,
             action_type=action_type_str,
-            action_summary=summary[:120] if len(summary) > 120 else summary,
+            action_summary=summary,
             outcome=outcome
         )
     

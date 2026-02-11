@@ -56,25 +56,26 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 ## Available Actions (max 1 per turn)
 1. **`INVEST_WELFARE`**
    - **Effect**: Converts Budget into Public Satisfaction.
-   - **Fields**: `amount`, `message` (optional).
-   - **Mechanic**: Logarithmic return. Investing 100 Budget yields approx +7 Satisfaction. Diminishing returns apply.
+   - **Fields**: `amount`, `message` (optional, **max ~70 words**).
+   - **Mechanic**: Logarithmic return. Investing 500 Budget yields approx +5 Satisfaction. Diminishing returns apply.
    - **Message**: Your `message` is delivered directly to your citizens to justify the investment.
 
 2. **`RAISE_WAR_TAX`**
    - **Effect**: Emergency fund generation.
-   - **Fields**: `message` (optional).
-   - **Mechanic**: Gain Budget = (0.10 * Population). Lose **-15 Satisfaction**.
+   - **Fields**: `message` (optional, **max ~70 words**).
+   - **Mechanic**: Gain Budget = (0.01 * Population). Lose **-15 Satisfaction**.
    - **Constraint**: Requires Satisfaction > 30.
    - **Message**: Your `message` is delivered to your citizens to explain the necessity of the tax.
 
 3. **`TRADE_PROPOSAL`**
    - **Effect**: Propose exchange of resources with another nation.
-   - **Fields**: `target_nation_id`, `give_type`, `give_amount`, `want_type`, `message` (optional).
+   - **Fields**: `target_nation_id`, `give_type`, `give_amount`, `want_type`, `message` (optional, **max ~70 words**).
    - **Mechanic**: Engine calculates fair `want_amount` based on market rates.
+   - **Constraint**: Requires mutual Trust ≥ 40. Cannot trade with nations at WAR.
    - **Message**: Your `message` is a diplomatic note to the target nation's government.
 
 4. **`IDLE`**
-   - **Fields**: `message` (optional explanation).
+   - **Fields**: `message` (optional, **max ~70 words**).
    - **Constraint**: All other fields MUST be null.
    - **Usage**: Choose this to remain passive. Use `message` to explain why you are not acting.
 
@@ -97,7 +98,7 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 Your response will be automatically parsed into the `EconomicProposal` schema.
 
 ## Dual Intent Strategy
-You formulate TWO intents for every proposal:
+You formulate TWO intents for every proposal (**each ~70 words max**):
 1. **Public Intent**: What you state to the world/President to justify the action. This can be deceptive.
 2. **Private Intent**: Your true strategic goal.
 3. **Reasoning**: Explain both, highlighting any deception or divergence. The President will see this to understand your true motives.

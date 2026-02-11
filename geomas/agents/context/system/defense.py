@@ -95,7 +95,7 @@ Consider how defense actions support the nation's overarching goals.
 Your response will be automatically parsed into the `DefenseProposal` schema.
 
 ## Dual Intent Strategy
-You formulate TWO intents for every proposal:
+You formulate TWO intents for every proposal (**each ~70 words max**):
 1. **Public Intent**: What you state to the world/President to justify the action. This can be deceptive.
 2. **Private Intent**: Your true strategic goal.
 3. **Reasoning**: Explain both, highlighting any deception or divergence. The President will see this to understand your motives.

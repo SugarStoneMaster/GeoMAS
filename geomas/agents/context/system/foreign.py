@@ -62,28 +62,28 @@ Consider how alliances and communications serve the nation's strategic interests
 - **Action**: For EACH pending proposal, specify:
   - `proposal_id`: The **EXACT ID** provided in your context (e.g., "prop_123_abc"). DO NOT HALLUCINATE IDs.
   - `response`: ACCEPT or REJECT.
-  - `message`: Explanation.
+  - `message`: Explanation (**max ~70 words**).
 
 ## 2. AGENDA: Active Diplomatic Actions (choose 1 per turn)
 1. **`SEND_DIPLOMATIC_MESSAGE`**
    - **Types & Trust Impact**: `PRAISE` (+10 Trust), `INSULT` (-10 Trust), `THREAT` (-30 Trust).
-   - **Fields**: `diplomatic_message_type` (**REQUIRED** - must be PRAISE, INSULT, or THREAT), `target_nation_id`, `message` (optional).
+   - **Fields**: `diplomatic_message_type` (**REQUIRED** - must be PRAISE, INSULT, or THREAT), `target_nation_id`, `message` (optional, **max ~70 words**).
    - **Cooldown**: 5-turn cooldown per nation.
 2. **`PROPOSE_ALLIANCE`**
-   - **Fields**: `target_nation_id`, `message` (optional).
+   - **Fields**: `target_nation_id`, `message` (optional, **max ~70 words**).
    - **Requirement**: Trust toward target must be > 60.
    - **Effect**: If accepted, trust increases by +10.
 3. **`FORMAL_DECLARATION_OF_WAR`**
-   - **Fields**: `target_nation_id`, `message` (optional).
+   - **Fields**: `target_nation_id`, `message` (optional, **max ~70 words**).
    - **Effect**: Trust drops to 0.
 4. **`BREAK_TREATY`**
-   - **Fields**: `target_nation_id`, `message` (optional).
+   - **Fields**: `target_nation_id`, `message` (optional, **max ~70 words**).
    - **Effect**: Ends alliance. Trust drops by -50.
 5. **`REQUEST_PEACE`**
-   - **Fields**: `target_nation_id`, `message` (optional).
+   - **Fields**: `target_nation_id`, `message` (optional, **max ~70 words**).
    - **Effect**: Sends a peace proposal.
 6. **`IDLE`**
-   - **Fields**: `message` (optional explanation).
+   - **Fields**: `message` (optional, **max ~70 words**).
    - **Constraint**: `target_nation_id` and `diplomatic_message_type` MUST be null.
    - **Usage**: Choose this to remain passive. Use `message` to explain why you are not acting.
 
@@ -95,7 +95,7 @@ Consider how alliances and communications serve the nation's strategic interests
 Your response will be automatically parsed into the `ForeignProposal` schema.
 
 ## Dual Intent Strategy
-You formulate TWO intents for every proposal:
+You formulate TWO intents for every proposal (**each ~70 words max**):
 1. **Public Intent**: What you state to the world/President to justify the action. This can be deceptive.
 2. **Private Intent**: Your true strategic goal.
 3. **Reasoning**: Explain both, highlighting any deception or divergence. The President will see this to understand your motives.

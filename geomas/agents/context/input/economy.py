@@ -97,9 +97,8 @@ class EconomyInputBuilder:
 **Estimated Income:** {income:,.0f}/turn (from taxes)
 
 **Key Costs:**
-- INVEST_WELFARE: ~500 budget → satisfaction boost (logarithmic)
-- CREATE_UNIT (soldier): 5 each
-- CREATE_UNIT (aircraft): 80 each"""
+- INVEST_WELFARE: ~500 budget → ~5 satisfaction (logarithmic, diminishing returns)
+- RAISE_WAR_TAX: +budget (0.01 × Population), -15 satisfaction"""
 
     def _build_resources_section(self, nation_id: str) -> str:
         """Build resource production section."""
@@ -163,7 +162,7 @@ class EconomyInputBuilder:
 {recommendation}
 
 **Your Tools:**
-- `INVEST_WELFARE`: Spend budget → satisfaction boost (logarithmic: 10*log(1+amount/100))
+- `INVEST_WELFARE`: Spend budget → satisfaction boost (logarithmic: 7*log(1+amount/500))
 - `RAISE_WAR_TAX`: +budget, -15 satisfaction (requires satisfaction > 30)"""
 
     def _build_trades_section(self, pending_trades: List[Dict[str, Any]]) -> str:
@@ -201,12 +200,14 @@ class EconomyInputBuilder:
             
             if status == "WAR":
                 trade_status = "❌ Cannot trade (at war)"
+            elif trust_level < 40:
+                trade_status = "❌ Cannot trade (trust < 40)"
             elif status == "ALLIANCE":
                 trade_status = "✅ Preferred partner"
             elif trust_level >= 50:
                 trade_status = "✅ Trade possible"
             else:
-                trade_status = "⚠️ Low trust - trade risky"
+                trade_status = "⚠️ Trade possible but low trust"
             
             lines.append(f"- **{other_id}**: {status}, Trust {trust_level:.0f} - {trade_status}")
         

@@ -17,7 +17,8 @@ WAR_TAX_SATISFACTION_PENALTY = 15  # Base penalty
 WAR_TAX_BUDGET_BOOST_RATIO = 0.01  # 1% of population (Rebalanced from 0.10)
 
 # INVEST_WELFARE constants
-WELFARE_LOG_CONSTANT = 100         # Divisor for diminishing returns
+WELFARE_LOG_CONSTANT = 500         # Divisor for diminishing returns (rebalanced from 100)
+WELFARE_MULTIPLIER = 7             # Satisfaction gain multiplier (rebalanced from 10)
 WELFARE_MATERIALS_RATIO = 0.2      # 20% of budget amount must be paid in materials
 
 
@@ -56,7 +57,7 @@ def execute_economic(
         
         # Logarithmic diminishing returns: gain = K * log(1 + amount / C)
         if budget_amount > 0:
-            satisfaction_gain = 10 * math.log(1 + budget_amount / WELFARE_LOG_CONSTANT)
+            satisfaction_gain = WELFARE_MULTIPLIER * math.log(1 + budget_amount / WELFARE_LOG_CONSTANT)
             nation.public_satisfaction = min(
                 100,
                 nation.public_satisfaction + satisfaction_gain
