@@ -33,6 +33,10 @@ class TestTokenObservability(unittest.TestCase):
         mock_instructor = MagicMock()
         client.client = mock_instructor
         
+        # Mock Async Client for NationAgent parallel execution
+        mock_instructor_async = MagicMock()
+        client.aclient = mock_instructor_async
+
         def mock_completion_create(*args, **kwargs):
             response_model = kwargs.get('response_model')
             
@@ -95,7 +99,15 @@ class TestTokenObservability(unittest.TestCase):
                 
             return res, mock_raw
 
+        # Sync mock
         mock_instructor.chat.completions.create_with_completion.side_effect = mock_completion_create
+        
+        # Async mock
+        from unittest.mock import AsyncMock
+        async def mock_acompletion_create(*args, **kwargs):
+            return mock_completion_create(*args, **kwargs)
+            
+        mock_instructor_async.chat.completions.create_with_completion = AsyncMock(side_effect=mock_acompletion_create)
 
         # Initialize engine
         sim = SimulationEngine(llm_client=client, n_cells=100)
