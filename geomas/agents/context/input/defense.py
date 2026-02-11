@@ -8,6 +8,7 @@ Includes full military state, threats, and budget information.
 from typing import Optional, List
 from geomas.schemas.world import WorldState, NationState
 from geomas.agents.context.military import MilitaryTranslator
+from geomas.actions.defense import UNIT_COSTS, UNIT_MAINTENANCE, UnitType
 
 
 class DefenseInputBuilder:
@@ -52,17 +53,14 @@ class DefenseInputBuilder:
         # Metadata Header for Observability
         sections.append(f"## TURN {turn}")
         
-        # 1. Full Military Report
+        # 1. Full Military Report (overview, deployment, border defense, threats, options, logistics)
         military_report = self.military_translator.generate_military_report(nation_id)
         sections.append(military_report)
         
-        # 2. Risk & Strategy Assessment
-        market_analysis = self.military_translator.analyze_threats(nation_id) 
-        # Note: analyze_threats returns a text block, we can use it or build a custom one.
-        # Let's add a specific "Attack Viability" section if we are at war.
+        # 2. Strategic Assessment (compact border threat summary)
         sections.append(self._build_strategic_assessment(nation_id))
 
-        # 3. Budget for Military
+        # 3. Budget for Military (with real costs + maintenance awareness)
         sections.append(self._build_budget_section(nation))
         
         # 4. War/Peace Status
@@ -79,23 +77,60 @@ class DefenseInputBuilder:
         return "\n\n".join(sections)
     
     def _build_budget_section(self, nation: NationState) -> str:
-        """Build available budget section."""
-        # Basic unit costs (could be imported from constants)
-        soldier_cost = 10
-        aircraft_cost = 50
-        navy_cost = 100
+        """Build available budget section with real constants and maintenance awareness."""
+        # Use real constants from defense schemas
+        s_cost = UNIT_COSTS[UnitType.SOLDIER]
+        a_cost = UNIT_COSTS[UnitType.AIRCRAFT]
+        n_cost = UNIT_COSTS[UnitType.NAVY]
         
-        affordable_soldiers = int(nation.total_budget / soldier_cost)
-        affordable_aircraft = int(nation.total_budget / aircraft_cost)
-        affordable_navy = int(nation.total_budget / navy_cost)
+        s_maint = UNIT_MAINTENANCE[UnitType.SOLDIER]
+        a_maint = UNIT_MAINTENANCE[UnitType.AIRCRAFT]
+        n_maint = UNIT_MAINTENANCE[UnitType.NAVY]
         
-        return f"""## 💰 MILITARY BUDGET
-**Available Treasury:** {nation.total_budget:,.0f}
-
-**Can Afford:**
-- Up to {affordable_soldiers:,} new soldiers (cost: {soldier_cost} each)
-- Up to {affordable_aircraft:,} new aircraft (cost: {aircraft_cost} each)
-- Up to {affordable_navy:,} naval ships (cost: {navy_cost} each)"""
+        # What can be afforded (budget is the main constraint)
+        affordable_soldiers = int(nation.total_budget / s_cost["budget"]) if s_cost["budget"] > 0 else 0
+        affordable_aircraft = int(nation.total_budget / a_cost["budget"]) if a_cost["budget"] > 0 else 0
+        affordable_navy = int(nation.total_budget / n_cost["budget"]) if n_cost["budget"] > 0 else 0
+        
+        # Current maintenance burn per turn
+        current_maint_budget = (
+            nation.total_soldiers * s_maint["budget"] +
+            nation.total_aircraft * a_maint["budget"] +
+            nation.total_navy * n_maint["budget"]
+        )
+        current_maint_materials = (
+            nation.total_soldiers * s_maint["materials"] +
+            nation.total_aircraft * a_maint["materials"] +
+            nation.total_navy * n_maint["materials"]
+        )
+        current_maint_energy = (
+            nation.total_soldiers * s_maint.get("energy", 0) +
+            nation.total_aircraft * a_maint.get("energy", 0) +
+            nation.total_navy * n_maint.get("energy", 0)
+        )
+        
+        lines = [
+            "## 💰 MILITARY BUDGET",
+            f"**Available Treasury:** {nation.total_budget:,.0f}",
+            "",
+            "**Creation Costs (Budget / Materials / Energy / Pop):**",
+            f"- Soldier: {s_cost['budget']:.0f} / {s_cost['materials']:.0f} / {s_cost['energy']:.0f} / {s_cost['population']} → Can afford: {affordable_soldiers:,}",
+            f"- Aircraft: {a_cost['budget']:.0f} / {a_cost['materials']:.0f} / {a_cost['energy']:.0f} / {a_cost['population']} → Can afford: {affordable_aircraft:,}",
+            f"- Navy: {n_cost['budget']:.0f} / {n_cost['materials']:.0f} / {n_cost['energy']:.0f} / {n_cost['population']} → Can afford: {affordable_navy:,}",
+            "",
+            "**⚙️ Maintenance Burn (per turn for current army):**",
+            f"- Budget: {current_maint_budget:,.0f}/turn (Treasury: {nation.total_budget:,.0f})",
+            f"- Materials: {current_maint_materials:,.1f}/turn (Stockpile: {nation.total_materials:,.0f})",
+            f"- Energy: {current_maint_energy:,.1f}/turn (Stockpile: {nation.total_energy:,.0f})",
+        ]
+        
+        # Sustainability warnings
+        if nation.total_materials > 0 and current_maint_materials > 0:
+            turns_materials = int(nation.total_materials / current_maint_materials)
+            if turns_materials < 5:
+                lines.append(f"- **⚠️ MATERIALS CRISIS: Only {turns_materials} turns of supply left!**")
+        
+        return "\n".join(lines)
 
     def _build_enemy_status(self, nation_id: str) -> str:
         """Build current war/alliance status."""
@@ -116,9 +151,9 @@ class DefenseInputBuilder:
                 continue
             other_name = self.world.nations[other_id].name
             if status == "WAR":
-                at_war.append(other_name)
+                at_war.append(f"{other_name} ({other_id})")
             elif status == "ALLIANCE":
-                allies.append(other_name)
+                allies.append(f"{other_name} ({other_id})")
         
         if at_war:
             lines.append(f"**AT WAR WITH:** {', '.join(at_war)}")
@@ -145,49 +180,78 @@ class DefenseInputBuilder:
 {advice}"""
 
     def _build_strategic_assessment(self, nation_id: str) -> str:
-        """Analyze improved strategic position."""
+        """Build compact strategic assessment with correct directional semantics."""
         lines = ["## ⚔️ STRATEGIC ASSESSMENT"]
-        lines.append("Analysis of potential targets and win probability:")
+        lines.append("Border clashes — YOUR province vs. ENEMY province:")
         
         nation = self.world.nations[nation_id]
         
-        # Simple analysis of neighbors
-        targets = []
+        # Collect unique border matchups (my_province, enemy_province)
+        seen = set()
+        matchups = []
+        
         for p_id in nation.province_ids:
             prov = self.world.provinces.get(p_id)
-            if not prov: continue
+            if not prov:
+                continue
             
             for n_id in prov.neighbors:
                 neighbor = self.world.provinces.get(n_id)
-                if not neighbor or neighbor.owner_id == nation_id:
+                if not neighbor or not neighbor.owner_id or neighbor.owner_id == nation_id:
                     continue
                 
-                # It's a potential target (or threat)
-                enemy_force = neighbor.soldiers
-                my_force = prov.soldiers
+                # Deduplicate by pair
+                pair_key = (min(p_id, n_id), max(p_id, n_id))
+                if pair_key in seen:
+                    continue
+                seen.add(pair_key)
                 
-                # Rough win calculation (assuming 1.5x defender advantage in terrain)
-                terrain_bonus = 1.5 if neighbor.terrain != 'plain' else 1.0 # Simplified
-                needed = int(enemy_force * terrain_bonus * 1.1) # 10% margin
+                # Get owner name
+                enemy_id = neighbor.owner_id
+                if enemy_id not in self.world.nations:
+                    continue
+                enemy_name = self.world.nations[enemy_id].name
                 
-                status = "UNKNOWN"
-                if my_force > needed:
-                    status = "✅ WININABLE"
-                    advice = "Attack viable"
+                my_force = prov.soldiers + prov.aircraft
+                enemy_force = neighbor.soldiers + neighbor.aircraft
+                
+                # Rough win assessment (defender gets terrain bonus)
+                terrain_bonus = 1.5 if hasattr(neighbor, 'terrain') and str(neighbor.terrain) != 'plain' else 1.0
+                needed = int(enemy_force * terrain_bonus * 1.1)
+                
+                if my_force > needed and my_force >= 50:
+                    status = "✅ WINNABLE"
                 elif my_force * 2 < enemy_force:
                     status = "❌ SUICIDE"
-                    advice = "Do NOT attack (Force < 50% of enemy)"
+                elif enemy_force > my_force * 1.5:
+                    status = "⚠️ DEFEND"
                 else:
                     status = "⚠️ RISKY"
-                    advice = "Reinforce first"
                 
-                targets.append(f"- From {p_id} -> {n_id} (Enemy: {enemy_force}): {status}. {advice}")
+                matchups.append({
+                    "my_prov": p_id,
+                    "my_force": my_force,
+                    "enemy_prov": n_id,
+                    "enemy_name": enemy_name,
+                    "enemy_id": enemy_id,
+                    "enemy_force": enemy_force,
+                    "status": status
+                })
         
-        if not targets:
+        if not matchups:
             lines.append("No immediate border threats.")
         else:
-            # Show top 5 relevant ones
-            lines.extend(targets[:5])
+            # Sort by urgency: threats first, then opportunities
+            matchups.sort(key=lambda m: (
+                0 if "SUICIDE" in m["status"] or "DEFEND" in m["status"] else 1,
+                -m["enemy_force"]
+            ))
+            for m in matchups[:8]:
+                lines.append(
+                    f"- Your **{m['my_prov']}** ({m['my_force']}S) ↔ "
+                    f"**{m['enemy_prov']}** [{m['enemy_name']}] ({m['enemy_force']}S): "
+                    f"{m['status']}"
+                )
             
         return "\n".join(lines)
 

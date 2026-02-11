@@ -108,10 +108,10 @@ def test_trade_proposal_message_in_context_manager(world):
             break
     assert found_event, "Message not found in global events"
     
-    # 2. Check Nation Actions
+    # 2. Check Nation Actions — verify descriptive summary
     found_action = False
     for action in cm.nation_actions["NAT_A"]:
-        if "Friendship through trade" in action.action_summary:
+        if "Trade with" in action.action_summary and "food" in action.action_summary:
             found_action = True
             break
-    assert found_action, "Message not found in nation actions"
+    assert found_action, f"Trade action not found in nation actions: {[a.action_summary for a in cm.nation_actions['NAT_A']]}"

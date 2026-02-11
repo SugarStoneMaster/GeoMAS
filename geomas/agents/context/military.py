@@ -368,52 +368,68 @@ class MilitaryTranslator:
         return "\n".join(lines)
 
     def _generate_province_list(self, nation_id: str) -> str:
-        """Provide a complete list of owned provinces and their CONNECTIVITY for logistic planning."""
+        """Generate compact logistics: only actionable provinces (with units or on borders)."""
         nation = self.world.nations.get(nation_id)
         if not nation: return ""
         
-        # Sort by ID for stability
+        border_provinces = set(self.spatial.get_border_provinces(nation_id))
         p_ids = sorted(nation.province_ids)
         
-        lines = ["## 🚚 LOGISTICS & CONNECTIVITY"]
-        lines.append("Complete map of your territory and neighbors. Use this to find valid paths.")
-        lines.append("**Legend:** (S=Soldier, N=Navy, A=Aircraft) -> [Neighbors]")
-        lines.append("**⚠️ RULE:** The numbers shown are the MAXIMUM units you can move FROM that province. You CANNOT move more than what is shown.")
+        # --- Section 1: TROOP POSITIONS (only provinces with units) ---
+        troop_lines = ["## 🚚 TROOP POSITIONS"]
+        troop_lines.append("**Legend:** S=Soldier, A=Aircraft, N=Navy. You can ONLY move units that EXIST here.")
         
+        has_troops = False
         for p_id in p_ids:
             prov = self.world.provinces.get(p_id)
             if not prov: continue
             
-            # Terrain tag
-            terrain_tag = f"[{prov.terrain.value.upper()}]" if prov.terrain else ""
-            
-            # Unit string
             unit_strs = []
             if prov.soldiers > 0: unit_strs.append(f"{prov.soldiers}S")
             if prov.aircraft > 0: unit_strs.append(f"{prov.aircraft}A")
             if prov.navy > 0: unit_strs.append(f"{prov.navy}N")
-            units = f" ({', '.join(unit_strs)})" if unit_strs else ""
+            if not unit_strs:
+                continue
             
-            # Neighbors string
+            has_troops = True
+            terrain_tag = f"[{prov.terrain.value.upper()}]" if prov.terrain else ""
+            location = "BORDER" if p_id in border_provinces else "INTERIOR"
+            lines_entry = f"- **{p_id}** {terrain_tag} ({', '.join(unit_strs)}) [{location}]"
+            troop_lines.append(lines_entry)
+        
+        if not has_troops:
+            troop_lines.append("- No troops deployed anywhere!")
+        
+        # --- Section 2: BORDER MAP (border provinces → enemy neighbors only) ---
+        border_lines = ["\n## 🗺️ BORDER MAP"]
+        border_lines.append("Your border provinces and their enemy/sea neighbors. Use for MOVE_TROOPS routing.")
+        
+        for p_id in sorted(border_provinces):
+            prov = self.world.provinces.get(p_id)
+            if not prov: continue
+            
+            terrain_tag = f"[{prov.terrain.value.upper()}]" if prov.terrain else ""
+            
+            # Only show non-own neighbors (enemies, sea, neutral)
             neighbor_strs = []
             for n_id in prov.neighbors:
                 n_prov = self.world.provinces.get(n_id)
                 if not n_prov: continue
                 
-                n_info = f"{n_id}"
                 if n_prov.owner_id == nation_id:
-                    n_info += "(Own)"
-                elif n_prov.owner_id:
-                    # Enemy/Other
-                    owner_name = self.world.nations[n_prov.owner_id].name[:3].upper() # Abbreviate
-                    n_info += f"(Enemy-{owner_name})"
-                elif n_prov.terrain == TerrainType.OCEAN:
-                    n_info += "(Sea)"
-                else:
-                    n_info += "(Neutral)"
+                    continue  # Skip own neighbors — not interesting for border map
                 
-                neighbor_strs.append(n_info)
+                if n_prov.owner_id and n_prov.owner_id in self.world.nations:
+                    owner_name = self.world.nations[n_prov.owner_id].name[:3].upper()
+                    n_units = []
+                    if n_prov.soldiers > 0: n_units.append(f"{n_prov.soldiers}S")
+                    if n_prov.aircraft > 0: n_units.append(f"{n_prov.aircraft}A")
+                    units_str = f" {','.join(n_units)}" if n_units else ""
+                    neighbor_strs.append(f"{n_id}({owner_name}{units_str})")
+                elif n_prov.terrain == TerrainType.OCEAN:
+                    neighbor_strs.append(f"{n_id}(Sea)")
             
-            lines.append(f"- **{p_id}** {terrain_tag}{units} -> [{', '.join(neighbor_strs)}]")
+            if neighbor_strs:
+                border_lines.append(f"- **{p_id}** {terrain_tag} → [{', '.join(neighbor_strs)}]")
             
-        return "\n".join(lines)
+        return "\n".join(troop_lines) + "\n" + "\n".join(border_lines)

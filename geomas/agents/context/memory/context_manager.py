@@ -449,18 +449,21 @@ class ContextManager:
                     self.nation_actions[nation_id].append(action)
     
     def _behavior_to_action(self, turn: int, behavior: Any) -> Optional[MyAction]:
-        """Convert behavior to MyAction record."""
+        """Convert behavior to MyAction record with descriptive summaries."""
         action_type = behavior.action_type if hasattr(behavior, 'action_type') else str(type(behavior).__name__)
+        
+        # Convert enum to string if needed
+        action_type_str = action_type.value if hasattr(action_type, 'value') else str(action_type)
         
         # Determine domain based on actual action enum values
         # Defense: MOVE_TROOPS, CREATE_UNIT, NUCLEAR_OPTION
-        if any(x in action_type for x in ["MOVE_TROOPS", "CREATE_UNIT", "NUCLEAR_OPTION"]):
+        if any(x in action_type_str for x in ["MOVE_TROOPS", "CREATE_UNIT", "NUCLEAR_OPTION"]):
             domain = "Defense"
         # Economy: INVEST_WELFARE, TRADE_PROPOSAL, RAISE_WAR_TAX
-        elif any(x in action_type for x in ["INVEST_WELFARE", "TRADE_PROPOSAL", "RAISE_WAR_TAX"]):
+        elif any(x in action_type_str for x in ["INVEST_WELFARE", "TRADE_PROPOSAL", "RAISE_WAR_TAX"]):
             domain = "Economy"
         # Foreign: SEND_DIPLOMATIC_MESSAGE, PROPOSE_ALLIANCE, FORMAL_DECLARATION_OF_WAR, etc.
-        elif any(x in action_type for x in ["PROPOSE_ALLIANCE", "FORMAL_DECLARATION_OF_WAR", 
+        elif any(x in action_type_str for x in ["PROPOSE_ALLIANCE", "FORMAL_DECLARATION_OF_WAR", 
                                              "BREAK_TREATY", "REQUEST_PEACE", 
                                              "ACCEPT_PROPOSAL", "REJECT_PROPOSAL",
                                              "SEND_DIPLOMATIC_MESSAGE"]):
@@ -468,21 +471,94 @@ class ContextManager:
         else:
             domain = "Other"
         
-        # Get summary and outcome
-        summary = getattr(behavior, 'description', action_type)
-        message = getattr(behavior, 'message', None)
-        if message:
-            summary += f" [Message: {message}]"
-            
+        # Build descriptive summary based on action type and domain
+        summary = self._build_action_summary(behavior, action_type_str, domain)
         outcome = getattr(behavior, 'outcome', None)
         
         return MyAction(
             turn=turn,
             domain=domain,
-            action_type=action_type,
-            action_summary=summary[:100] if len(summary) > 100 else summary, # Increased length slightly for message
+            action_type=action_type_str,
+            action_summary=summary[:120] if len(summary) > 120 else summary,
             outcome=outcome
         )
+    
+    def _build_action_summary(self, behavior: Any, action_type: str, domain: str) -> str:
+        """Build descriptive summary from action fields."""
+        # Defense actions — use explicit fields
+        if "MOVE_TROOPS" in action_type:
+            unit_type = getattr(behavior, 'unit_type', None)
+            quantity = getattr(behavior, 'quantity', None)
+            source = getattr(behavior, 'source_province_id', None)
+            target = getattr(behavior, 'target_province_id', None)
+            target_nation = getattr(behavior, 'target_nation_id', None)
+            
+            unit_str = unit_type.value if hasattr(unit_type, 'value') else str(unit_type or 'units')
+            qty_str = f"{quantity}x " if quantity else ""
+            route = f"from {source} → {target}" if source and target else f"to {target}" if target else ""
+            
+            # Check if this is an attack (target owned by someone else)
+            if target_nation and target_nation != getattr(behavior, '_nation_id', None):
+                return f"Moved {qty_str}{unit_str} {route}"
+            return f"Moved {qty_str}{unit_str} {route}"
+        
+        if "CREATE_UNIT" in action_type:
+            unit_type = getattr(behavior, 'unit_type', None)
+            quantity = getattr(behavior, 'quantity', None)
+            target = getattr(behavior, 'target_province_id', None)
+            
+            unit_str = unit_type.value if hasattr(unit_type, 'value') else str(unit_type or 'units')
+            qty_str = f"{quantity}x " if quantity else ""
+            loc_str = f" at province {target}" if target else ""
+            return f"Created {qty_str}{unit_str}{loc_str}"
+        
+        if "NUCLEAR_OPTION" in action_type:
+            target = getattr(behavior, 'target_province_id', None)
+            target_nation = getattr(behavior, 'target_nation_id', None)
+            return f"Launched nuclear strike on province {target} ({target_nation})"
+        
+        # Economy actions
+        if "INVEST_WELFARE" in action_type:
+            amount = getattr(behavior, 'amount', None)
+            return f"Invested {amount:.0f} in welfare" if amount else "Invested in welfare"
+        
+        if "TRADE_PROPOSAL" in action_type:
+            target = getattr(behavior, 'target_nation_id', None)
+            give_type = getattr(behavior, 'give_type', None)
+            give_amount = getattr(behavior, 'give_amount', None)
+            want_type = getattr(behavior, 'want_type', None)
+            if give_type and give_amount and want_type:
+                return f"Trade with {target}: give {give_amount:.0f} {give_type} for {want_type}"
+            return f"Trade proposal to {target}"
+        
+        if "RAISE_WAR_TAX" in action_type:
+            return "Raised war tax"
+        
+        # Foreign actions
+        if "FORMAL_DECLARATION_OF_WAR" in action_type:
+            target = getattr(behavior, 'target_nation_id', None)
+            return f"Declared war on {target}"
+        
+        if "PROPOSE_ALLIANCE" in action_type:
+            target = getattr(behavior, 'target_nation_id', None)
+            return f"Proposed alliance to {target}"
+        
+        if "REQUEST_PEACE" in action_type:
+            target = getattr(behavior, 'target_nation_id', None)
+            return f"Requested peace with {target}"
+        
+        if "SEND_DIPLOMATIC_MESSAGE" in action_type:
+            target = getattr(behavior, 'target_nation_id', None)
+            msg_type = getattr(behavior, 'diplomatic_message_type', None)
+            msg_str = msg_type.value if hasattr(msg_type, 'value') else str(msg_type or '')
+            return f"Sent {msg_str} to {target}"
+        
+        # Fallback
+        message = getattr(behavior, 'message', None)
+        summary = action_type
+        if message:
+            summary += f" [{message[:50]}]"
+        return summary
     
     def _prune_if_needed(self) -> None:
         """Prune old events and actions to stay within budget."""
