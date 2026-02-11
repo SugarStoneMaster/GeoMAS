@@ -204,7 +204,7 @@ class LLMClient:
             {"role": "user", "content": user_prompt}
         ]
 
-        max_rate_retries = 5
+        max_rate_retries = 3
         base_wait = 3.0
         
         for attempt in range(max_rate_retries):
