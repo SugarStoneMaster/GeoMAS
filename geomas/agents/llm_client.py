@@ -52,21 +52,25 @@ class LLMClient:
 
     def __init__(
         self, 
-        model_name: str = None,  # Will use AZURE_MODEL env var if not provided
+        model_name: str = None,  # Will use env vars if not provided
         temperature: float = 0.2,
         max_tokens: int = 1000,
         reasoning_effort: str = "minimal"
     ):
         """
         Args:
-            model_name: The LiteLLM model identifier. If None, uses AZURE_MODEL env var.
+            model_name: The LiteLLM model identifier. If None, auto-detects from env vars.
             temperature: Low temperature for deterministic reasoning.
             max_tokens: Maximum output tokens (default 1000, safety limit).
             reasoning_effort: For reasoning models - 'minimal', 'low', 'medium', 'high'.
         """
-        # Use env var if model_name not provided
+        # Auto-detect model from env vars if not provided
         if model_name is None:
-            model_name = os.environ.get("AZURE_MODEL", "azure/gpt-5-nano")
+            use_grok = os.environ.get("USE_GROK", "false").lower() == "true"
+            if use_grok:
+                model_name = self._setup_grok()
+            else:
+                model_name = os.environ.get("AZURE_MODEL", "azure/gpt-5-nano")
         
         self.model_name = model_name
         self.temperature = temperature
@@ -76,6 +80,20 @@ class LLMClient:
         
         # Track last usage for observability
         self.last_usage: Optional[LLMUsage] = None
+
+    @staticmethod
+    def _setup_grok() -> str:
+        """Configure LiteLLM env vars for Grok-4 via Azure OpenAI-compatible endpoint."""
+        grok_base = os.environ.get("GROK_API_BASE", "")
+        grok_model = os.environ.get("GROK_MODEL", "grok-4-fast-reasoning")
+        api_key = os.environ.get("AZURE_API_KEY", "")
+        
+        # Grok on Azure uses an OpenAI-compatible endpoint, not the Azure SDK endpoint.
+        # LiteLLM talks to it via the openai/ provider prefix.
+        os.environ["OPENAI_API_KEY"] = api_key
+        os.environ["OPENAI_API_BASE"] = grok_base
+        
+        return f"openai/{grok_model}"
 
     def query_agent(
         self, 
