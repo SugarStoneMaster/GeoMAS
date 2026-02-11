@@ -30,23 +30,23 @@ class EconomicProposalPayload(BaseModel):
     # Explicit fields for strong typing
     amount: Optional[float] = Field(None, description="Amount for INVEST_WELFARE")
     message: Optional[str] = Field(None, description="Public message to citizens or diplomatic message to trade partner")
-    trade_offer_give_type: Optional[str] = Field(None, description="Resource type to GIVE")
-    trade_offer_give_amount: Optional[float] = Field(None, description="Amount to GIVE")
-    trade_offer_want_type: Optional[str] = Field(None, description="Resource type DESIRED (food, energy, materials, budget)")
+    give_type: Optional[str] = Field(None, description="Resource type to GIVE (food, energy, materials, budget)")
+    give_amount: Optional[float] = Field(None, description="Amount to GIVE (must be positive)")
+    want_type: Optional[str] = Field(None, description="Resource type DESIRED (food, energy, materials, budget)")
 
     @model_validator(mode='after')
     def validate_trade_proposal(self) -> 'EconomicProposalPayload':
         if self.action_type == EconomicActionType.TRADE_PROPOSAL:
             if not self.target_nation_id:
                 raise ValueError("TRADE_PROPOSAL requires target_nation_id")
-            if not self.trade_offer_give_type:
-                raise ValueError("TRADE_PROPOSAL requires trade_offer_give_type")
-            if self.trade_offer_give_amount is None:
-                raise ValueError("TRADE_PROPOSAL requires trade_offer_give_amount")
-            if self.trade_offer_give_amount <= 0:
-                raise ValueError("trade_offer_give_amount must be positive")
-            if not self.trade_offer_want_type:
-                raise ValueError("TRADE_PROPOSAL requires trade_offer_want_type")
+            if not self.give_type:
+                raise ValueError("TRADE_PROPOSAL requires give_type")
+            if self.give_amount is None:
+                raise ValueError("TRADE_PROPOSAL requires give_amount")
+            if self.give_amount <= 0:
+                raise ValueError("give_amount must be positive")
+            if not self.want_type:
+                raise ValueError("TRADE_PROPOSAL requires want_type")
         return self
 
 

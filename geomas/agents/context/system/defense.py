@@ -55,7 +55,7 @@ Consider how defense actions support the nation's overarching goals.
 
 ## Available Actions (max 3 per turn)
 1. **`CREATE_UNIT`**
-   - **Fields**: `unit_type`, `quantity`, `target_province_id`.
+   - **Fields**: `unit_type`, `quantity`, `target_province_id` (**REQUIRED** - pick from your LOGISTICS table).
    - **MUST**: `target_nation_id` = `"{effective_name}"` (your own nation ID).
    - **Constraint**: Must be owned land (Soldiers/Aircraft) or territorial waters (Navy).
 2. **`MOVE_TROOPS`**

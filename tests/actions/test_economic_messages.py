@@ -89,9 +89,9 @@ def test_trade_proposal_message_in_context_manager(world):
     payload = EconomicPayload(
         action_type=EconomicActionType.TRADE_PROPOSAL,
         target_nation_id="NAT_B",
-        trade_offer_give_type="food",
-        trade_offer_give_amount=100,
-        trade_offer_want_type="energy",
+        give_type="food",
+        give_amount=100,
+        want_type="energy",
         message="Friendship through trade"
     )
     

@@ -185,6 +185,11 @@ def _execute_move_troops(
         engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Must specify from_province_id and to_province_id")
         return
     
+    # Guard: same-province move is a no-op
+    if from_province_id == to_province_id:
+        engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Source and destination are the same ({from_province_id}), skipping")
+        return
+    
     # Validate provinces exist
     from_province = world.provinces.get(from_province_id)
     to_province = world.provinces.get(to_province_id)

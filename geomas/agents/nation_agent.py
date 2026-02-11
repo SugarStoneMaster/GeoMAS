@@ -203,9 +203,9 @@ class NationAgent:
                 target_nation_id=prop_payload.target_nation_id,
                 amount=prop_payload.amount,
                 message=prop_payload.message,
-                trade_offer_give_type=prop_payload.trade_offer_give_type,
-                trade_offer_give_amount=prop_payload.trade_offer_give_amount,
-                trade_offer_want_type=prop_payload.trade_offer_want_type
+                give_type=prop_payload.give_type,
+                give_amount=prop_payload.give_amount,
+                want_type=prop_payload.want_type
             )
             eco_pub_intent = briefing.economy.intent.public_intent
             eco_priv_intent = briefing.economy.intent.private_intent
@@ -303,10 +303,10 @@ class NationAgent:
             details_parts = []
             if payload.amount is not None:
                 details_parts.append(f"amount={payload.amount:.0f}")
-            if payload.trade_offer_give_type:
-                details_parts.append(f"give={payload.trade_offer_give_amount} {payload.trade_offer_give_type}")
-            if payload.trade_offer_want_type:
-                details_parts.append(f"want={payload.trade_offer_want_type}")
+            if payload.give_type:
+                details_parts.append(f"give={payload.give_amount} {payload.give_type}")
+            if payload.want_type:
+                details_parts.append(f"want={payload.want_type}")
             details = " ".join(details_parts)
             return f"{summary} {payload.action_type.value} {details}"
         return f"{summary} None"

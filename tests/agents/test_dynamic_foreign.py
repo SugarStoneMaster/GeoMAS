@@ -38,9 +38,9 @@ def test_dynamic_economic_proposal():
             "decision": "PENDING",
             "action_type": "TRADE_PROPOSAL",
             "target_nation_id": "NATION_X",
-            "trade_offer_give_type": "calories",
-            "trade_offer_give_amount": 100.0,
-            "trade_offer_want_type": "energy"
+            "give_type": "calories",
+            "give_amount": 100.0,
+            "want_type": "energy"
         },
         "intent": {"public_intent": "GROWTH", "private_intent": "GROWTH", "reasoning": "Test"}
     }

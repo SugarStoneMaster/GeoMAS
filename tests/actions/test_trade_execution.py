@@ -58,9 +58,9 @@ def test_trade_success_budget_for_materials(setup_world):
         decision=Decision.APPROVE,
         action_type=EconomicActionType.TRADE_PROPOSAL,
         target_nation_id="B",
-        trade_offer_give_type="budget",
-        trade_offer_give_amount=300.0,
-        trade_offer_want_type="materials"
+        give_type="budget",
+        give_amount=300.0,
+        want_type="materials"
     )
     
     # Execute
@@ -90,9 +90,9 @@ def test_trade_fail_insufficient_giver(setup_world):
         decision=Decision.APPROVE,
         action_type=EconomicActionType.TRADE_PROPOSAL,
         target_nation_id="B",
-        trade_offer_give_type="budget",
-        trade_offer_give_amount=2000.0, # More than 1000
-        trade_offer_want_type="materials"
+        give_type="budget",
+        give_amount=2000.0, # More than 1000
+        want_type="materials"
     )
     
     execute_economic(engine, "A", payload)
@@ -117,9 +117,9 @@ def test_trade_fail_insufficient_receiver(setup_world):
         decision=Decision.APPROVE,
         action_type=EconomicActionType.TRADE_PROPOSAL,
         target_nation_id="B",
-        trade_offer_give_type="budget",
-        trade_offer_give_amount=3000.0,
-        trade_offer_want_type="materials"
+        give_type="budget",
+        give_amount=3000.0,
+        want_type="materials"
     )
     
     execute_economic(engine, "A", payload)
@@ -139,9 +139,9 @@ def test_trade_fail_low_trust(setup_world):
         decision=Decision.APPROVE,
         action_type=EconomicActionType.TRADE_PROPOSAL,
         target_nation_id="B",
-        trade_offer_give_type="budget",
-        trade_offer_give_amount=300.0,
-        trade_offer_want_type="materials"
+        give_type="budget",
+        give_amount=300.0,
+        want_type="materials"
     )
     
     execute_economic(engine, "A", payload)
@@ -158,9 +158,9 @@ def test_trade_fail_invalid_resource(setup_world):
         decision=Decision.APPROVE,
         action_type=EconomicActionType.TRADE_PROPOSAL,
         target_nation_id="B",
-        trade_offer_give_type="unicorns",
-        trade_offer_give_amount=100.0,
-        trade_offer_want_type="materials"
+        give_type="unicorns",
+        give_amount=100.0,
+        want_type="materials"
     )
     
     execute_economic(engine, "A", payload)
@@ -184,8 +184,8 @@ def test_trade_dynamic_trust_gain(setup_world):
     # Case 1: Small Trade (100 Budget)
     payload_small = EconomicPayload(
         decision=Decision.APPROVE, action_type=EconomicActionType.TRADE_PROPOSAL,
-        target_nation_id="B", trade_offer_give_type="budget", trade_offer_give_amount=100.0,
-        trade_offer_want_type="materials"
+        target_nation_id="B", give_type="budget", give_amount=100.0,
+        want_type="materials"
     )
     execute_economic(engine, "A", payload_small)
     # Trust starts at 50. Gain = 2. Now 52.
@@ -194,8 +194,8 @@ def test_trade_dynamic_trust_gain(setup_world):
     # Case 2: Medium Trade (1000 Budget)
     payload_med = EconomicPayload(
         decision=Decision.APPROVE, action_type=EconomicActionType.TRADE_PROPOSAL,
-        target_nation_id="B", trade_offer_give_type="budget", trade_offer_give_amount=1000.0,
-        trade_offer_want_type="materials"
+        target_nation_id="B", give_type="budget", give_amount=1000.0,
+        want_type="materials"
     )
     execute_economic(engine, "A", payload_med)
     # Trust starts at 52. Gain = 2 + (1000/500)=2 = 4. Now 56.
@@ -204,8 +204,8 @@ def test_trade_dynamic_trust_gain(setup_world):
     # Case 3: Large Trade (5000 Budget) -> Gain 2 + 10 = 12 -> Cap 10
     payload_large = EconomicPayload(
         decision=Decision.APPROVE, action_type=EconomicActionType.TRADE_PROPOSAL,
-        target_nation_id="B", trade_offer_give_type="budget", trade_offer_give_amount=5000.0,
-        trade_offer_want_type="materials"
+        target_nation_id="B", give_type="budget", give_amount=5000.0,
+        want_type="materials"
     )
     execute_economic(engine, "A", payload_large)
     # Trust starts at 56. Gain = 10. Now 66.

@@ -61,8 +61,8 @@ def test_president_strategy_change(setup_agent, mock_client):
     
     mock_briefing.economy.payload = MagicMock()
     mock_briefing.economy.payload.amount = 100.0
-    mock_briefing.economy.payload.trade_offer_give_type = None
-    mock_briefing.economy.payload.trade_offer_want_type = None
+    mock_briefing.economy.payload.give_type = None
+    mock_briefing.economy.payload.want_type = None
     mock_briefing.economy.intent = MagicMock()
     mock_briefing.economy.intent.public_intent.value = "GROWTH"
     mock_briefing.economy.intent.private_intent.value = "GROWTH"
@@ -159,8 +159,8 @@ def test_caching_efficiency(setup_agent, mock_client):
     
     mock_briefing.economy.payload = MagicMock()
     mock_briefing.economy.payload.amount = 100.0
-    mock_briefing.economy.payload.trade_offer_give_type = None
-    mock_briefing.economy.payload.trade_offer_want_type = None
+    mock_briefing.economy.payload.give_type = None
+    mock_briefing.economy.payload.want_type = None
     mock_briefing.economy.intent = MagicMock()
     mock_briefing.economy.intent.public_intent.value = "GROWTH"
     mock_briefing.economy.intent.private_intent.value = "GROWTH"
