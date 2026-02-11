@@ -85,7 +85,7 @@ class TestTokenCounter:
 class TestSystemPromptBudget:
     """Tests that system prompts stay within budget."""
     
-    SYSTEM_BUDGET = 1200
+    SYSTEM_BUDGET = 1300
     
     @pytest.fixture
     def counter(self):

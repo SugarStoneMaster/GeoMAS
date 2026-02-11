@@ -61,13 +61,17 @@ Consider how defense actions support the nation's overarching goals.
 2. **`MOVE_TROOPS`**
    - **Fields**: `unit_type`, `quantity`, `source_province_id` (**REQUIRED** - the province your units are currently in), `target_province_id`.
    - **MUST**: `target_nation_id` = ID of the nation owning the destination (Self or Other).
-   - **⚠️ CRITICAL**: `source_province_id` MUST be specified. Check the LOGISTICS table below to find which provinces have your troops. You can ONLY move units that EXIST in the source province.
-   - **QUANTITY**: You can only move units you actually have. Check the province list (e.g., `108 (325S)` means 325 soldiers). Do NOT request more than what is available.
-   - **Pathing**: Soldiers require owned land; Navy requires ocean; Aircraft can fly over anything.
+   - **⚠️ CRITICAL**: `source_province_id` MUST be specified. Check the TROOP POSITIONS below to find which provinces have your troops. You can ONLY move units that EXIST in the source province.
+   - **QUANTITY**: You can only move units you actually have. Check the troop list (e.g., `108 (325S)` means 325 soldiers). Do NOT request more than what is available.
+   - **🚫 TERRAIN RULES:**
+     - **Soldiers CANNOT enter OCEAN provinces.** Only land/coastal/mountain.
+     - **Navy can ONLY move through OCEAN/territorial waters.**
+     - **Aircraft can fly over ANY terrain.**
    - **Combat**: Moving units to an ENEMY province initiates combat.
 3. **`NUCLEAR_OPTION`**
    - **Fields**: `target_province_id`.
    - **MUST**: `target_nation_id` = ID of the target nation. CANNOT BE SELF.
+   - **🚫 LAND provinces ONLY** — Cannot nuke OCEAN or VOID provinces (no effect, action wasted).
    - **Devastation**: 90% Population death, 100% Units destroyed, 80% Production loss.
    - **Fallout**: Trust with target → 0. Trust with ALL other nations drops by -80.
    

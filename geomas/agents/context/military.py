@@ -144,13 +144,17 @@ class MilitaryTranslator:
         lines = ["## 🗺️ FORCE DEPLOYMENT"]
         
         if heavily_defended:
-            lines.append(f"\n**Fortified borders:** {len(heavily_defended)} provinces (100+ units each)")
+            hd_str = ", ".join(f"{p_id}({u})" for p_id, u in heavily_defended[:8])
+            lines.append(f"\n**Fortified borders ({len(heavily_defended)}):** {hd_str}")
         
         if lightly_defended:
-            lines.append(f"**Light defense:** {len(lightly_defended)} border provinces")
+            ld_str = ", ".join(f"{p_id}({u})" for p_id, u in lightly_defended[:8])
+            lines.append(f"**Light defense ({len(lightly_defended)}):** {ld_str}")
         
         if undefended:
-            lines.append(f"**⚠️ UNDEFENDED BORDERS:** {len(undefended)} provinces have NO troops!")
+            ud_str = ", ".join(str(p_id) for p_id in undefended[:10])
+            lines.append(f"**⚠️ UNDEFENDED BORDERS ({len(undefended)}):** {ud_str}")
+            lines.append("  → Consider CREATE_UNIT or MOVE_TROOPS to fill these gaps!")
         
         if interior_forces:
             total_interior = sum(u for _, u in interior_forces)
@@ -298,7 +302,8 @@ class MilitaryTranslator:
         return f"{threat_text}\n\n{border_text}"
 
     def _generate_military_options(self, nation_id: str) -> str:
-        """Identify viable military options (attack targets, reinforcement needs)."""
+        """Identify viable military options (attack targets, reinforcement needs, recruitment)."""
+        nation = self.world.nations[nation_id]
         border_provinces = self.spatial.get_border_provinces(nation_id)
         
         attack_options = []
@@ -362,8 +367,72 @@ class MilitaryTranslator:
                     f"only {need['current_forces']:,} troops vs {need['enemy_threat']:,} enemy threat"
                 )
         
+        # --- RECRUITMENT ADVICE (Fix B: encourage CREATE_UNIT) ---
+        recruit_lines = self._generate_recruitment_advice(nation_id, nation)
+        if recruit_lines:
+            lines.append(recruit_lines)
+        
         if not lines:
-            return "## 📊 MILITARY STATUS\n\nNo immediate attack options or reinforcement priorities."
+            lines.append("## 📊 MILITARY STATUS\n\nNo immediate attack options or reinforcement priorities.")
+        
+        return "\n".join(lines)
+    
+    def _generate_recruitment_advice(self, nation_id: str, nation) -> str:
+        """Suggest unit recruitment when army is weak or lacking specific unit types."""
+        lines = []
+        
+        # Calculate total neighbor force
+        total_enemy_force = 0
+        neighbors = self.spatial.get_neighboring_nations(nation_id)
+        for neighbor_id in neighbors:
+            if neighbor_id not in self.world.nations:
+                continue
+            n = self.world.nations[neighbor_id]
+            total_enemy_force += n.total_soldiers + n.total_aircraft + n.total_navy
+        
+        my_total = nation.total_soldiers + nation.total_aircraft + nation.total_navy
+        
+        # Suggest recruitment when outmatched
+        needs_troops = my_total < total_enemy_force * 0.8 if total_enemy_force > 0 else my_total < 50
+        
+        # Check if nation has ocean access but no navy
+        has_ocean = len(nation.territorial_water_ids) > 0
+        needs_navy = has_ocean and nation.total_navy == 0
+        
+        # Check if nation could benefit from aircraft
+        needs_aircraft = nation.total_aircraft == 0 and nation.total_budget >= 80
+        
+        # Find suitable provinces for recruitment
+        land_provinces = [
+            p_id for p_id in nation.province_ids
+            if p_id in self.world.provinces and 
+            self.world.provinces[p_id].terrain.value != "ocean"
+        ]
+        
+        if needs_troops or needs_navy or needs_aircraft:
+            lines.append("\n## 🏭 RECRUITMENT ADVICE")
+            lines.append("Use **CREATE_UNIT** to build more military strength:")
+            
+            if needs_troops:
+                spawn_at = land_provinces[0] if land_provinces else "?"
+                lines.append(
+                    f"- **SOLDIER**: Your army ({my_total:,}) is weak vs. neighbors ({total_enemy_force:,}). "
+                    f"Recruit at province {spawn_at}."
+                )
+            
+            if needs_navy:
+                water_ids = list(nation.territorial_water_ids)[:3]
+                lines.append(
+                    f"- **NAVY**: You have ocean access but 0 ships! "
+                    f"Create NAVY at territorial waters: {', '.join(str(w) for w in water_ids)}."
+                )
+            
+            if needs_aircraft:
+                spawn_at = land_provinces[0] if land_provinces else "?"
+                lines.append(
+                    f"- **AIRCRAFT**: No air force. Aircraft can strike ANY province. "
+                    f"Create at province {spawn_at}."
+                )
         
         return "\n".join(lines)
 
