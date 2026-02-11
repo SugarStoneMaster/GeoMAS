@@ -5,7 +5,7 @@ Action types and payloads for military/defense operations.
 """
 
 from enum import Enum
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Dict, Any, Optional, List
 
 from geomas.actions.common import Decision
@@ -112,6 +112,35 @@ class DefenseActionItem(BaseModel):
         if info.data.get("action_type") == DefenseActionType.MOVE_TROOPS and v is None:
             raise ValueError("source_province_id is required for MOVE_TROOPS")
         return v
+
+    @model_validator(mode='after')
+    def validate_action_requirements(self) -> 'DefenseActionItem':
+        """Ensure all required fields are present for the specific action type."""
+        action = self.action_type
+        
+        if action == DefenseActionType.MOVE_TROOPS:
+            if self.target_province_id is None:
+                raise ValueError("target_province_id is required for MOVE_TROOPS (destination)")
+            if self.source_province_id is None:
+                # Should be caught by field validator, but double check
+                raise ValueError("source_province_id is required for MOVE_TROOPS (origin)")
+                
+        elif action == DefenseActionType.CREATE_UNIT:
+            if self.target_province_id is None:
+                raise ValueError("target_province_id is required for CREATE_UNIT (location)")
+            if self.unit_type is None:
+                # Default to SOLDIER if missing? No, force LLM to specify
+                raise ValueError("unit_type is required for CREATE_UNIT")
+            if self.quantity is None:
+                raise ValueError("quantity is required for CREATE_UNIT")
+                
+        elif action == DefenseActionType.NUCLEAR_OPTION:
+            if self.target_province_id is None:
+                raise ValueError("target_province_id is required for NUCLEAR_OPTION")
+            if not self.target_nation_id:
+                raise ValueError("target_nation_id is required for NUCLEAR_OPTION")
+                
+        return self
 
 
 class DefenseProposalPayload(BaseModel):

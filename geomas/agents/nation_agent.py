@@ -130,7 +130,11 @@ class NationAgent:
     async def _safe_apropose_defense(self, turn: int) -> DefenseProposal:
         """Propose defense with fallback on failure."""
         try:
-            return await self.defense_minister.apropose(self.strategy, turn)
+            # Add 60s timeout to prevent hanging the simulation
+            return await asyncio.wait_for(
+                self.defense_minister.apropose(self.strategy, turn),
+                timeout=90.0
+            )
         except Exception as e:
             print(f"[WARN] Defense minister failed for {self.id}: {e}")
             return DefenseProposal(
@@ -145,31 +149,39 @@ class NationAgent:
     async def _safe_apropose_economy(self, turn: int) -> EconomicProposal:
         """Propose economy with fallback on failure."""
         try:
-            return await self.economy_minister.apropose(self.strategy, turn)
+            return await asyncio.wait_for(
+                self.economy_minister.apropose(self.strategy, turn),
+                timeout=90.0
+            )
         except Exception as e:
             print(f"[WARN] Economy minister failed for {self.id}: {e}")
             return EconomicProposal(
                 intent=EconomicIntent(
-                    public_intent=EconomicIntentType.IDLE,
-                    private_intent=EconomicIntentType.IDLE,
+                    public_intent=EconomicIntentType.STABILITY,
+                    private_intent=EconomicIntentType.STABILITY,
                     reasoning=f"Minister failure: {str(e)[:100]}"
                 ),
-                payload=EconomicProposalPayload(action_type=None)
+                payload=EconomicProposalPayload(action_type=EconomicActionType.IDLE),
+                projected_cost=0.0
             )
 
     async def _safe_apropose_foreign(self, turn: int) -> ForeignProposal:
         """Propose foreign with fallback on failure."""
         try:
-            return await self.foreign_minister.apropose(self.strategy, turn)
+            return await asyncio.wait_for(
+                self.foreign_minister.apropose(self.strategy, turn),
+                timeout=90.0
+            )
         except Exception as e:
             print(f"[WARN] Foreign minister failed for {self.id}: {e}")
             return ForeignProposal(
                 intent=ForeignIntent(
-                    public_intent=ForeignIntentType.IDLE,
-                    private_intent=ForeignIntentType.IDLE,
+                    public_intent=ForeignIntentType.NEUTRALITY,
+                    private_intent=ForeignIntentType.NEUTRALITY,
                     reasoning=f"Minister failure: {str(e)[:100]}"
                 ),
-                payload=ForeignProposalPayload(action_type=None, proposal_responses=[])
+                payload=ForeignProposalPayload(decision=Decision.IDLE),
+                target_trust_impact=0.0
             )
 
     def _presidential_decision(self, turn: int, briefing: CabinetBriefing) -> PresidentialDecree:

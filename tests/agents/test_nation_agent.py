@@ -124,7 +124,12 @@ class TestNationAgent:
             payload=DefensePayload(
                 decision=Decision.APPROVE, 
                 moves=[
-                    DefenseActionItem(priority=1, action_type=DefenseActionType.MOVE_TROOPS)
+                    DefenseActionItem(
+                        priority=1, 
+                        action_type=DefenseActionType.MOVE_TROOPS,
+                        source_province_id=1,
+                        target_province_id=2
+                    )
                 ]
             ), 
             urgency=10

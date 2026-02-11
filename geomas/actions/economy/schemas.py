@@ -38,15 +38,20 @@ class EconomicProposalPayload(BaseModel):
     def validate_trade_proposal(self) -> 'EconomicProposalPayload':
         if self.action_type == EconomicActionType.TRADE_PROPOSAL:
             if not self.target_nation_id:
-                raise ValueError("TRADE_PROPOSAL requires target_nation_id")
+                raise ValueError("TRADE_PROPOSAL requires 'target_nation_id' (Who are you trading with?)")
+            
             if not self.give_type:
-                raise ValueError("TRADE_PROPOSAL requires give_type")
+                raise ValueError("TRADE_PROPOSAL requires 'give_type' (What resource act you GIVING? e.g. 'food', 'budget', 'energy', 'materials')")
+            
             if self.give_amount is None:
-                raise ValueError("TRADE_PROPOSAL requires give_amount")
+                raise ValueError("TRADE_PROPOSAL requires 'give_amount' (How much are you giving? Must be a number > 0)")
+            
             if self.give_amount <= 0:
-                raise ValueError("give_amount must be positive")
+                raise ValueError("'give_amount' must be positive")
+            
             if not self.want_type:
-                raise ValueError("TRADE_PROPOSAL requires want_type")
+                raise ValueError("TRADE_PROPOSAL requires 'want_type' (What resource do you WANT in return?)")
+                
         return self
 
 
