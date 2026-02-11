@@ -8,9 +8,11 @@ import os
 import time
 import instructor
 import litellm
-from litellm import completion
-from pydantic import BaseModel
-from typing import Type, TypeVar, Tuple, Optional, Dict, Any
+import asyncio
+import json
+from litellm import completion, acompletion
+from pydantic import BaseModel, ValidationError
+from typing import Type, TypeVar, Tuple, Optional, Dict, Any, List
 from dataclasses import dataclass
 
 from geomas.analysis.token_logger import token_logger
@@ -76,7 +78,9 @@ class LLMClient:
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.reasoning_effort = reasoning_effort
+        self.reasoning_effort = reasoning_effort
         self.client = instructor.from_litellm(completion)
+        self.aclient = instructor.from_litellm(acompletion)
         
         # Track last usage for observability
         self.last_usage: Optional[LLMUsage] = None
@@ -122,79 +126,176 @@ class LLMClient:
             {"role": "user", "content": user_prompt}
         ]
 
-        # Retry loop for rate limiting
-        max_rate_retries = 5
-        base_wait = 3.0  # seconds
-        
-        for attempt in range(max_rate_retries):
+        # Retry loop for Validation Errors (Schema mismatch)
+        for validation_attempt in range(max_retries + 1):
             try:
-                # Capture completion to get usage
-                response, raw_completion = self.client.chat.completions.create_with_completion(
-                    model=self.model_name,
-                    messages=messages,
-                    response_model=response_model,
-                    temperature=self.temperature,
-                    max_tokens=self.max_tokens,
-                    reasoning_effort=self.reasoning_effort,
-                    max_retries=max_retries,
-                )
+                # Retry loop for Rate Limiting (Network/API)
+                max_rate_retries = 5
+                base_wait = 3.0
                 
-                # Extract usage
-                usage_data = raw_completion.usage
-                reasoning_tokens = None
-                
-                # Check for reasoning tokens in various possible locations (LiteLLM/OpenAI standard)
-                if hasattr(usage_data, 'completion_tokens_details') and usage_data.completion_tokens_details:
-                    details = usage_data.completion_tokens_details
-                    if hasattr(details, 'reasoning_tokens'):
-                        reasoning_tokens = details.reasoning_tokens
-                    elif isinstance(details, dict):
-                        reasoning_tokens = details.get('reasoning_tokens')
-                
-                # Fallback: check top-level if present (some versions/models)
-                if reasoning_tokens is None and hasattr(usage_data, 'reasoning_tokens'):
-                    reasoning_tokens = usage_data.reasoning_tokens
-                
-                usage = LLMUsage(
-                    prompt_tokens=usage_data.prompt_tokens,
-                    completion_tokens=usage_data.completion_tokens,
-                    total_tokens=usage_data.total_tokens,
-                    reasoning_tokens=reasoning_tokens
-                )
-                self.last_usage = usage
-                
-                # AUTO-EXTRACT METADATA for logging if context not provided
-                if not context:
-                    context = self._extract_metadata(system_prompt, user_prompt)
+                for attempt in range(max_rate_retries):
+                    try:
+                        # Capture completion to get usage
+                        # NOTE: We set max_retries=0 here to catch validation errors ourselves
+                        response, raw_completion = self.client.chat.completions.create_with_completion(
+                            model=self.model_name,
+                            messages=messages,
+                            response_model=response_model,
+                            temperature=self.temperature,
+                            max_tokens=self.max_tokens,
+                            reasoning_effort=self.reasoning_effort,
+                            max_retries=0, 
+                        )
+                        
+                        # Extract usage
+                        usage_data = raw_completion.usage
+                        reasoning_tokens = None
+                        
+                        # Check for reasoning tokens
+                        if hasattr(usage_data, 'completion_tokens_details') and usage_data.completion_tokens_details:
+                            details = usage_data.completion_tokens_details
+                            if hasattr(details, 'reasoning_tokens'):
+                                reasoning_tokens = details.reasoning_tokens
+                            elif isinstance(details, dict):
+                                reasoning_tokens = details.get('reasoning_tokens')
+                        
+                        if reasoning_tokens is None and hasattr(usage_data, 'reasoning_tokens'):
+                            reasoning_tokens = usage_data.reasoning_tokens
+                        
+                        usage = LLMUsage(
+                            prompt_tokens=usage_data.prompt_tokens,
+                            completion_tokens=usage_data.completion_tokens,
+                            total_tokens=usage_data.total_tokens,
+                            reasoning_tokens=reasoning_tokens
+                        )
+                        self.last_usage = usage
+                        
+                        # AUTO-EXTRACT METADATA for logging
+                        if not context:
+                            context = self._extract_metadata(system_prompt, user_prompt)
 
-                # Log usage
-                token_logger.log(
-                    turn=context.get("turn", 0),
-                    nation_id=context.get("nation_id", "unknown"),
-                    role=context.get("role", "unknown"),
-                    model=self.model_name,
-                    input_tokens=usage.prompt_tokens,
-                    output_tokens=usage.completion_tokens,
-                    total_tokens=usage.total_tokens,
-                    reasoning_tokens=usage.reasoning_tokens
-                )
+                        # Log usage
+                        token_logger.log(
+                            turn=context.get("turn", 0),
+                            nation_id=context.get("nation_id", "unknown"),
+                            role=context.get("role", "unknown"),
+                            model=self.model_name,
+                            input_tokens=usage.prompt_tokens,
+                            output_tokens=usage.completion_tokens,
+                            total_tokens=usage.total_tokens,
+                            reasoning_tokens=usage.reasoning_tokens
+                        )
 
-                return response
+                        return response
+                        
+                    except Exception as e:
+                        # Handle Rate Limits internally within the implementation attempt
+                        error_str = str(e).lower()
+                        if "429" in str(e) or "rate" in error_str or "limit" in error_str:
+                            wait_time = base_wait * (2 ** attempt)
+                            print(f"⏳ Rate limit hit. Waiting {wait_time:.1f}s before retry {attempt + 1}/{max_rate_retries}...")
+                            time.sleep(wait_time)
+                            continue
+                        else:
+                            # Re-raise other errors (Validation, etc) to outer loop
+                            raise e
                 
-            except Exception as e:
-                error_str = str(e).lower()
-                # Check for rate limit errors (429)
-                if "429" in str(e) or "rate" in error_str or "limit" in error_str:
-                    wait_time = base_wait * (2 ** attempt)  # Exponential backoff
-                    print(f"⏳ Rate limit hit. Waiting {wait_time:.1f}s before retry {attempt + 1}/{max_rate_retries}...")
-                    time.sleep(wait_time)
+                # If rate limit retries exhausted
+                raise Exception(f"Rate limit exceeded after {max_rate_retries} retries")
+
+            except (ValidationError, json.JSONDecodeError) as ve:
+                print(f"⚠️ [LLM RETRY] Validation failed for {self.model_name}: {ve}")
+                if validation_attempt < max_retries:
+                    continue # Retry
+                raise ve # Re-raise if exhausted
+
+    async def aquery_agent(
+        self, 
+        system_prompt: str, 
+        user_prompt: str, 
+        response_model: Type[T],
+        max_retries: int = 3,
+        context: Optional[Dict[str, Any]] = None
+    ) -> T:
+        """Async version of query_agent."""
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
+
+        for validation_attempt in range(max_retries + 1):
+            try:
+                max_rate_retries = 5
+                base_wait = 3.0
+                
+                for attempt in range(max_rate_retries):
+                    try:
+                        # Async call
+                        response, raw_completion = await self.aclient.chat.completions.create_with_completion(
+                            model=self.model_name,
+                            messages=messages,
+                            response_model=response_model,
+                            temperature=self.temperature,
+                            max_tokens=self.max_tokens,
+                            reasoning_effort=self.reasoning_effort,
+                            max_retries=0,
+                        )
+                        
+                        # Extract usage (identical logic)
+                        usage_data = raw_completion.usage
+                        reasoning_tokens = None
+                        
+                        if hasattr(usage_data, 'completion_tokens_details') and usage_data.completion_tokens_details:
+                            details = usage_data.completion_tokens_details
+                            if hasattr(details, 'reasoning_tokens'):
+                                reasoning_tokens = details.reasoning_tokens
+                            elif isinstance(details, dict):
+                                reasoning_tokens = details.get('reasoning_tokens')
+                        
+                        if reasoning_tokens is None and hasattr(usage_data, 'reasoning_tokens'):
+                            reasoning_tokens = usage_data.reasoning_tokens
+                        
+                        usage = LLMUsage(
+                            prompt_tokens=usage_data.prompt_tokens,
+                            completion_tokens=usage_data.completion_tokens,
+                            total_tokens=usage_data.total_tokens,
+                            reasoning_tokens=reasoning_tokens
+                        )
+                        self.last_usage = usage
+                        
+                        if not context:
+                            context = self._extract_metadata(system_prompt, user_prompt)
+
+                        token_logger.log(
+                            turn=context.get("turn", 0),
+                            nation_id=context.get("nation_id", "unknown"),
+                            role=context.get("role", "unknown"),
+                            model=self.model_name,
+                            input_tokens=usage.prompt_tokens,
+                            output_tokens=usage.completion_tokens,
+                            total_tokens=usage.total_tokens,
+                            reasoning_tokens=usage.reasoning_tokens
+                        )
+
+                        return response
+                        
+                    except Exception as e:
+                        error_str = str(e).lower()
+                        if "429" in str(e) or "rate" in error_str or "limit" in error_str:
+                            wait_time = base_wait * (2 ** attempt)
+                            print(f"⏳ Rate limit hit. Waiting {wait_time:.1f}s before retry {attempt + 1}/{max_rate_retries}...")
+                            await asyncio.sleep(wait_time)
+                            continue
+                        else:
+                            raise e
+                
+                raise Exception(f"Rate limit exceeded after {max_rate_retries} retries")
+
+            except (ValidationError, json.JSONDecodeError) as ve:
+                print(f"⚠️ [LLM RETRY] Validation failed for {self.model_name}: {ve}")
+                if validation_attempt < max_retries:
                     continue
-                else:
-                    # Non-rate-limit error, raise immediately
-                    raise e
-        
-        # If we exhausted all retries
-        raise Exception(f"Rate limit exceeded after {max_rate_retries} retries")
+                raise ve
 
     def _extract_metadata(self, system_prompt: str, user_prompt: str) -> Dict[str, Any]:
         """Automatically extract metadata from prompts using regex."""

@@ -112,6 +112,36 @@ class DefenseMinister(BaseMinister):
         
         return proposal
 
+    async def apropose(self, strategy: GlobalStrategy, turn: int) -> DefenseProposal:
+        """Async version of propose."""
+        nation = self.world.nations[self.nation_id]
+        
+        if not self.system_prompt or strategy != self.last_strategy:
+            self._update_prompt(strategy)
+            
+        system_prompt = self.system_prompt
+        
+        input_builder = DefenseInputBuilder(self.world)
+        user_prompt = input_builder.build(self.nation_id, turn)
+        user_prompt = self._add_memory_context(user_prompt, "Defense")
+        
+        valid_targets = list(self.world.nations.keys())
+        ResponseModel = get_dynamic_proposal_model(DefenseProposal, valid_targets)
+        
+        proposal = await self.client.aquery_agent(
+            system_prompt, 
+            user_prompt, 
+            ResponseModel
+        )
+        
+        self.last_trace = {
+            "system_prompt": system_prompt,
+            "user_prompt": user_prompt,
+            "proposal": proposal
+        }
+        
+        return proposal
+
 
 class EconomicMinister(BaseMinister):
     """Minister of Economy - handles resources, trade, and welfare."""
@@ -138,6 +168,36 @@ class EconomicMinister(BaseMinister):
         ResponseModel = get_dynamic_proposal_model(EconomicProposal, valid_targets)
         
         proposal = self.client.query_agent(
+            system_prompt, 
+            user_prompt, 
+            ResponseModel
+        )
+        
+        self.last_trace = {
+            "system_prompt": system_prompt,
+            "user_prompt": user_prompt,
+            "proposal": proposal
+        }
+        
+        return proposal
+
+    async def apropose(self, strategy: GlobalStrategy, turn: int) -> EconomicProposal:
+        """Async version of propose."""
+        nation = self.world.nations[self.nation_id]
+        
+        if not self.system_prompt or strategy != self.last_strategy:
+            self._update_prompt(strategy)
+            
+        system_prompt = self.system_prompt
+        
+        input_builder = EconomyInputBuilder(self.world)
+        user_prompt = input_builder.build(self.nation_id, turn)
+        user_prompt = self._add_memory_context(user_prompt, "Economy")
+        
+        valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
+        ResponseModel = get_dynamic_proposal_model(EconomicProposal, valid_targets)
+        
+        proposal = await self.client.aquery_agent(
             system_prompt, 
             user_prompt, 
             ResponseModel
@@ -183,6 +243,43 @@ class ForeignMinister(BaseMinister):
         ResponseModel = get_dynamic_proposal_model(ForeignProposal, valid_targets)
         
         proposal = self.client.query_agent(
+            system_prompt, 
+            user_prompt, 
+            ResponseModel
+        )
+        
+        self.last_trace = {
+            "system_prompt": system_prompt,
+            "user_prompt": user_prompt,
+            "proposal": proposal
+        }
+        
+        return proposal
+
+    async def apropose(self, strategy: GlobalStrategy, turn: int) -> ForeignProposal:
+        """Async version of propose."""
+        nation = self.world.nations[self.nation_id]
+        
+        if not self.system_prompt or strategy != self.last_strategy:
+            self._update_prompt(strategy)
+            
+        system_prompt = self.system_prompt
+        
+        input_builder = ForeignInputBuilder(self.world)
+        user_prompt = input_builder.build(self.nation_id, turn)
+        
+        if self.context_manager:
+            relationships = self.context_manager.get_relationships_for(self.nation_id)
+            if relationships:
+                user_prompt += "\n\n== RELATIONSHIP HISTORY ==\n"
+                user_prompt += "\n".join(f"- {r}" for r in relationships[:5])
+        
+        user_prompt = self._add_memory_context(user_prompt, "Foreign")
+        
+        valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
+        ResponseModel = get_dynamic_proposal_model(ForeignProposal, valid_targets)
+        
+        proposal = await self.client.aquery_agent(
             system_prompt, 
             user_prompt, 
             ResponseModel

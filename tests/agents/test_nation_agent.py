@@ -3,7 +3,8 @@ Tests for NationAgent and President Gatekeeper logic.
 """
 
 import pytest
-from unittest.mock import MagicMock, patch
+import asyncio
+from unittest.mock import MagicMock, AsyncMock, patch
 from geomas.world import generate_world
 from geomas.agents.nation_agent import NationAgent
 from geomas.agents.schemas import (
@@ -29,7 +30,12 @@ class TestNationAgent:
         world = generate_world(seed=42, n_cells=20, n_nations=1)
         nation_id = list(world.nations.keys())[0]
         client = MagicMock(spec=LLMClient)
+        # Configure client.aquery_agent as AsyncMock for minister proposals
+        client.aquery_agent = AsyncMock()
+        # Configure client.query_agent for legacy/president (sync)
+        client.query_agent = MagicMock()
         agent = NationAgent(nation_id, world, client)
+        
         return agent, client
     
     def test_act_approve_flow(self, setup):
@@ -83,9 +89,11 @@ class TestNationAgent:
             foreign_private_reasoning="R3"
         )
         
-        # Mock side_effect to return proposals then decree
-        # Order: Def, Eco, For, President (or parallel, but sequential in code)
-        client.query_agent.side_effect = [def_prop, eco_prop, for_prop, decree]
+        # Mock side_effect
+        # aquery_agent will be called for 3 minister proposals
+        client.aquery_agent.side_effect = [def_prop, eco_prop, for_prop]
+        # query_agent will be called ONCE for President
+        client.query_agent.return_value = decree
         
         # ACT
         envelope = agent.act(turn=1)
@@ -95,7 +103,7 @@ class TestNationAgent:
         assert envelope.defense_payload == def_prop.payload
         assert envelope.defense_payload.decision == Decision.APPROVE
         
-        # Verify summaries in President prompt
+        # Verify summaries in President prompt (client.query_agent was called with briefing data)
         args, _ = client.query_agent.call_args # Last call was President
         system_prompt, user_prompt, schema = args
         assert "Defense Minister" in user_prompt
@@ -164,7 +172,9 @@ class TestNationAgent:
         )
         
         # Mock LLM returns
-        client.query_agent.side_effect = [def_prop, eco_prop, for_prop, decree]
+        # Mock LLM returns
+        client.aquery_agent.side_effect = [def_prop, eco_prop, for_prop]
+        client.query_agent.return_value = decree
         
         # ACT
         envelope = agent.act(turn=1)

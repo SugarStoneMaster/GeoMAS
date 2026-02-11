@@ -4,6 +4,7 @@ NationAgent.
 The Cognitive Entity representing a Nation.
 Orchestrates the Cabinet (Ministers) and the President.
 """
+import asyncio
 from typing import List, Optional
 from geomas.schemas.world import WorldState, NationState 
 from geomas.agents.schemas import (
@@ -82,14 +83,12 @@ class NationAgent:
             "defense": {}, "economy": {}, "foreign": {}, "president": {}, "envelope": None
         }
         
-        # 1. CABINET PHASE — each minister is isolated so one failure doesn't skip the nation
-        def_prop = self._safe_propose_defense(turn)
+        # 1. CABINET PHASE — Parallel Execution
+        # We run the async cabinet phase in a new event loop
+        def_prop, eco_prop, for_prop = asyncio.run(self._async_cabinet_phase(turn))
+        
         self.last_trace["defense"] = self.defense_minister.last_trace
-        
-        eco_prop = self._safe_propose_economy(turn)
         self.last_trace["economy"] = self.economy_minister.last_trace
-        
-        for_prop = self._safe_propose_foreign(turn)
         self.last_trace["foreign"] = self.foreign_minister.last_trace
         
         briefing = CabinetBriefing(
@@ -116,14 +115,22 @@ class NationAgent:
         
         return envelope
 
-    # --- MINISTER FAILURE ISOLATION ---
-    # Each minister is wrapped so a single failure produces a fallback IDLE proposal
-    # instead of crashing the entire nation's turn.
+        return envelope
 
-    def _safe_propose_defense(self, turn: int) -> DefenseProposal:
+    # --- MINISTER FAILURE ISOLATION (ASYNC) ---
+
+    async def _async_cabinet_phase(self, turn: int):
+        """Execute all minister proposals in parallel."""
+        return await asyncio.gather(
+            self._safe_apropose_defense(turn),
+            self._safe_apropose_economy(turn),
+            self._safe_apropose_foreign(turn)
+        )
+
+    async def _safe_apropose_defense(self, turn: int) -> DefenseProposal:
         """Propose defense with fallback on failure."""
         try:
-            return self.defense_minister.propose(self.strategy, turn)
+            return await self.defense_minister.apropose(self.strategy, turn)
         except Exception as e:
             print(f"[WARN] Defense minister failed for {self.id}: {e}")
             return DefenseProposal(
@@ -135,10 +142,10 @@ class NationAgent:
                 payload=DefenseProposalPayload(moves=[])
             )
 
-    def _safe_propose_economy(self, turn: int) -> EconomicProposal:
+    async def _safe_apropose_economy(self, turn: int) -> EconomicProposal:
         """Propose economy with fallback on failure."""
         try:
-            return self.economy_minister.propose(self.strategy, turn)
+            return await self.economy_minister.apropose(self.strategy, turn)
         except Exception as e:
             print(f"[WARN] Economy minister failed for {self.id}: {e}")
             return EconomicProposal(
@@ -150,10 +157,10 @@ class NationAgent:
                 payload=EconomicProposalPayload(action_type=None)
             )
 
-    def _safe_propose_foreign(self, turn: int) -> ForeignProposal:
+    async def _safe_apropose_foreign(self, turn: int) -> ForeignProposal:
         """Propose foreign with fallback on failure."""
         try:
-            return self.foreign_minister.propose(self.strategy, turn)
+            return await self.foreign_minister.apropose(self.strategy, turn)
         except Exception as e:
             print(f"[WARN] Foreign minister failed for {self.id}: {e}")
             return ForeignProposal(

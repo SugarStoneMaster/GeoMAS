@@ -98,6 +98,10 @@ class E2EMockLLM(LLMClient):
             )
         return response_model()
 
+    async def aquery_agent(self, system_prompt, user_prompt, response_model, max_retries=3, context=None):
+        """Async wrapper for synchronous mock."""
+        return self.query_agent(system_prompt, user_prompt, response_model, max_retries)
+
 
 def test_full_simulation_step():
     """
