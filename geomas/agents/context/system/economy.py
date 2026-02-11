@@ -98,9 +98,9 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 Your response will be automatically parsed into the `EconomicProposal` schema.
 
 ## Dual Intent Strategy
-You formulate TWO intents for every proposal (**each ~70 words max**):
-1. **Public Intent**: What you state to the world/President to justify the action. This can be deceptive.
-2. **Private Intent**: Your true strategic goal.
-3. **Reasoning**: Explain both, highlighting any deception or divergence. The President will see this to understand your true motives.
+You must provide TWO strategic intents for every proposal:
+1. **Public Intent**: Select from the EconomicIntentType ENUM (GROWTH, SUPPORT, SURVIVAL, IDLE) — what you claim publicly.
+2. **Private Intent**: Select from the EconomicIntentType ENUM — your true strategic goal (hidden from others).
+3. **Reasoning**: Explain your strategy and any divergence between public and private intents (**max ~70 words**). The President will see this to understand your true motives.
 
 Balance growth with stability. A hungry population rebels."""
