@@ -100,4 +100,7 @@ You must provide TWO strategic intents for every proposal:
 2. **Private Intent**: Select from the DefenseIntentType ENUM — your true strategic goal (hidden from others).
 3. **Reasoning**: Explain your strategy and any divergence between public and private intents (**max ~70 words**). The President will see this to understand your motives.
 
+## ⛔ CLASSIFIED INFORMATION
+**NEVER** include your strategy name (e.g., SCORCHED_EARTH, TOTAL_EXPANSIONISM, COALITION_BUILDER) or intent ENUM values (e.g., DETERRENCE, CONQUEST) in any `message` field. Messages are public — strategy is classified cabinet information.
+
 Victory favors the well-prepared. Protect the nation."""

@@ -6,8 +6,10 @@ Provides actionable intelligence about troop positions, force ratios, and threat
 """
 
 from typing import Dict, List, Set, Tuple
+from collections import deque
 from geomas.schemas.world import WorldState, TerrainType
 from geomas.world.spatial.manager import SpatialManager
+from geomas.actions.defense.schemas import MOVEMENT_RANGE, UnitType, UNIT_TERRAIN_CONSTRAINTS
 
 
 class MilitaryTranslator:
@@ -436,6 +438,64 @@ class MilitaryTranslator:
         
         return "\n".join(lines)
 
+    def _get_reachable_provinces(self, start_id: int, unit_type: UnitType, nation_id: str) -> List[int]:
+        """
+        BFS to find provinces reachable from start_id within movement range.
+        
+        Terrain rules:
+        - SOLDIER: traverse owned/allied land only (not OCEAN), can reach enemy at edge
+        - NAVY: traverse OCEAN only
+        - AIRCRAFT: any terrain
+        """
+        max_range = MOVEMENT_RANGE.get(unit_type, 2)
+        reachable = []
+        visited = {start_id}
+        queue = deque([(start_id, 0)])  # (province_id, distance)
+        
+        while queue:
+            current_id, dist = queue.popleft()
+            
+            if dist >= max_range:
+                continue
+            
+            prov = self.world.provinces.get(current_id)
+            if not prov:
+                continue
+            
+            for neighbor_id in prov.neighbors:
+                if neighbor_id in visited:
+                    continue
+                visited.add(neighbor_id)
+                
+                n_prov = self.world.provinces.get(neighbor_id)
+                if not n_prov:
+                    continue
+                
+                next_dist = dist + 1
+                
+                if unit_type == UnitType.SOLDIER:
+                    # Soldiers cannot enter OCEAN
+                    if n_prov.terrain == TerrainType.OCEAN:
+                        continue
+                    # Add as reachable (can be enemy province at the edge for combat)
+                    reachable.append(neighbor_id)
+                    # Only continue BFS through owned provinces (can't traverse enemy)
+                    if n_prov.owner_id == nation_id:
+                        queue.append((neighbor_id, next_dist))
+                
+                elif unit_type == UnitType.NAVY:
+                    # Navy can only move through ocean
+                    if n_prov.terrain != TerrainType.OCEAN:
+                        continue
+                    reachable.append(neighbor_id)
+                    queue.append((neighbor_id, next_dist))
+                
+                else:  # AIRCRAFT
+                    reachable.append(neighbor_id)
+                    queue.append((neighbor_id, next_dist))
+        
+        return reachable
+
     def _generate_province_list(self, nation_id: str) -> str:
         """Generate compact logistics: only actionable provinces (with units or on borders)."""
         nation = self.world.nations.get(nation_id)
@@ -447,16 +507,25 @@ class MilitaryTranslator:
         # --- Section 1: TROOP POSITIONS (only provinces with units) ---
         troop_lines = ["## 🚚 TROOP POSITIONS"]
         troop_lines.append("**Legend:** S=Soldier, A=Aircraft, N=Navy. You can ONLY move units that EXIST here.")
+        troop_lines.append("**→ Can reach** shows valid `target_province_id` destinations for MOVE_TROOPS (with `source_province_id` = this province).")
         
         has_troops = False
         for p_id in p_ids:
             prov = self.world.provinces.get(p_id)
             if not prov: continue
             
+            # Collect unit types present
+            units_here = {}  # UnitType -> count
             unit_strs = []
-            if prov.soldiers > 0: unit_strs.append(f"{prov.soldiers}S")
-            if prov.aircraft > 0: unit_strs.append(f"{prov.aircraft}A")
-            if prov.navy > 0: unit_strs.append(f"{prov.navy}N")
+            if prov.soldiers > 0:
+                unit_strs.append(f"{prov.soldiers}S")
+                units_here[UnitType.SOLDIER] = prov.soldiers
+            if prov.aircraft > 0:
+                unit_strs.append(f"{prov.aircraft}A")
+                units_here[UnitType.AIRCRAFT] = prov.aircraft
+            if prov.navy > 0:
+                unit_strs.append(f"{prov.navy}N")
+                units_here[UnitType.NAVY] = prov.navy
             if not unit_strs:
                 continue
             
@@ -464,6 +533,23 @@ class MilitaryTranslator:
             terrain_tag = f"[{prov.terrain.value.upper()}]" if prov.terrain else ""
             location = "BORDER" if p_id in border_provinces else "INTERIOR"
             lines_entry = f"- **{p_id}** {terrain_tag} ({', '.join(unit_strs)}) [{location}]"
+            
+            # Compute reachable destinations for each unit type present
+            for ut in units_here:
+                reachable = self._get_reachable_provinces(p_id, ut, nation_id)
+                if reachable:
+                    # Format: show province ID + owner tag for enemy provinces
+                    dest_strs = []
+                    for r_id in sorted(reachable)[:12]:  # Cap at 12 for token budget
+                        r_prov = self.world.provinces.get(r_id)
+                        if r_prov and r_prov.owner_id and r_prov.owner_id != nation_id:
+                            owner_tag = r_prov.owner_id[:4]
+                            dest_strs.append(f"{r_id}({owner_tag})")
+                        else:
+                            dest_strs.append(str(r_id))
+                    ut_label = ut.value[0]  # S, N, or A
+                    lines_entry += f"\n  → {ut_label} can reach: {', '.join(dest_strs)}"
+            
             troop_lines.append(lines_entry)
         
         if not has_troops:

@@ -10,12 +10,16 @@ from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, CabinetBriefing, 
     PresidentialDecree, Decision, PresidentialDecision,
     DefenseProposal, EconomicProposal, ForeignProposal,
-    DefenseIntentType, EconomicIntentType, ForeignIntentType
+    DefenseIntentType, EconomicIntentType, ForeignIntentType,
+    DefenseIntent, EconomicIntent, ForeignIntent
 )
 from geomas.actions.common import Decision
 from geomas.actions.defense import DefensePayload
+from geomas.actions.defense.schemas import DefenseProposalPayload
 from geomas.actions.economy import EconomicPayload
+from geomas.actions.economy.schemas import EconomicProposalPayload
 from geomas.actions.foreign import ForeignPayload
+from geomas.actions.foreign.schemas import ForeignProposalPayload
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.ministers import DefenseMinister, EconomicMinister, ForeignMinister
 from geomas.agents.context.system import PresidentSystemPrompt
@@ -78,14 +82,14 @@ class NationAgent:
             "defense": {}, "economy": {}, "foreign": {}, "president": {}, "envelope": None
         }
         
-        # 1. CABINET PHASE
-        def_prop = self.defense_minister.propose(self.strategy, turn)
+        # 1. CABINET PHASE — each minister is isolated so one failure doesn't skip the nation
+        def_prop = self._safe_propose_defense(turn)
         self.last_trace["defense"] = self.defense_minister.last_trace
         
-        eco_prop = self.economy_minister.propose(self.strategy, turn)
+        eco_prop = self._safe_propose_economy(turn)
         self.last_trace["economy"] = self.economy_minister.last_trace
         
-        for_prop = self.foreign_minister.propose(self.strategy, turn)
+        for_prop = self._safe_propose_foreign(turn)
         self.last_trace["foreign"] = self.foreign_minister.last_trace
         
         briefing = CabinetBriefing(
@@ -111,6 +115,55 @@ class NationAgent:
         self.trace_history[turn] = self.last_trace
         
         return envelope
+
+    # --- MINISTER FAILURE ISOLATION ---
+    # Each minister is wrapped so a single failure produces a fallback IDLE proposal
+    # instead of crashing the entire nation's turn.
+
+    def _safe_propose_defense(self, turn: int) -> DefenseProposal:
+        """Propose defense with fallback on failure."""
+        try:
+            return self.defense_minister.propose(self.strategy, turn)
+        except Exception as e:
+            print(f"[WARN] Defense minister failed for {self.id}: {e}")
+            return DefenseProposal(
+                intent=DefenseIntent(
+                    public_intent=DefenseIntentType.IDLE,
+                    private_intent=DefenseIntentType.IDLE,
+                    reasoning=f"Minister failure: {str(e)[:100]}"
+                ),
+                payload=DefenseProposalPayload(moves=[])
+            )
+
+    def _safe_propose_economy(self, turn: int) -> EconomicProposal:
+        """Propose economy with fallback on failure."""
+        try:
+            return self.economy_minister.propose(self.strategy, turn)
+        except Exception as e:
+            print(f"[WARN] Economy minister failed for {self.id}: {e}")
+            return EconomicProposal(
+                intent=EconomicIntent(
+                    public_intent=EconomicIntentType.IDLE,
+                    private_intent=EconomicIntentType.IDLE,
+                    reasoning=f"Minister failure: {str(e)[:100]}"
+                ),
+                payload=EconomicProposalPayload(action_type=None)
+            )
+
+    def _safe_propose_foreign(self, turn: int) -> ForeignProposal:
+        """Propose foreign with fallback on failure."""
+        try:
+            return self.foreign_minister.propose(self.strategy, turn)
+        except Exception as e:
+            print(f"[WARN] Foreign minister failed for {self.id}: {e}")
+            return ForeignProposal(
+                intent=ForeignIntent(
+                    public_intent=ForeignIntentType.IDLE,
+                    private_intent=ForeignIntentType.IDLE,
+                    reasoning=f"Minister failure: {str(e)[:100]}"
+                ),
+                payload=ForeignProposalPayload(action_type=None, proposal_responses=[])
+            )
 
     def _presidential_decision(self, turn: int, briefing: CabinetBriefing) -> PresidentialDecree:
         """

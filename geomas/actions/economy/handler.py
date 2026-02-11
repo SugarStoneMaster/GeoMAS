@@ -20,6 +20,7 @@ WAR_TAX_BUDGET_BOOST_RATIO = 0.01  # 1% of population (Rebalanced from 0.10)
 WELFARE_LOG_CONSTANT = 500         # Divisor for diminishing returns (rebalanced from 100)
 WELFARE_MULTIPLIER = 7             # Satisfaction gain multiplier (rebalanced from 10)
 WELFARE_MATERIALS_RATIO = 0.2      # 20% of budget amount must be paid in materials
+WELFARE_MAX_BUDGET_RATIO = 0.25    # Max 25% of current budget per turn
 
 
 def execute_economic(
@@ -38,6 +39,14 @@ def execute_economic(
     # --- INVEST_WELFARE ---
     if payload.action_type == EconomicActionType.INVEST_WELFARE:
         budget_amount = payload.amount or 100.0
+        
+        # Cap at 25% of current budget to prevent treasury drain
+        max_welfare = nation.total_budget * WELFARE_MAX_BUDGET_RATIO
+        if budget_amount > max_welfare:
+            engine.logs.append(
+                f"💰 [ECONOMY] INVEST_WELFARE: Clamped {budget_amount:.0f} → {max_welfare:.0f} (max 25% of budget)"
+            )
+            budget_amount = max_welfare
         materials_amount = budget_amount * WELFARE_MATERIALS_RATIO
         
         # Check budget and materials

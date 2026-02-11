@@ -58,6 +58,7 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
    - **Effect**: Converts Budget into Public Satisfaction.
    - **Fields**: `amount`, `message` (optional, **max ~70 words**).
    - **Mechanic**: Logarithmic return. Investing 500 Budget yields approx +5 Satisfaction. Diminishing returns apply.
+   - **Maximum**: You can invest at most **25% of your current Budget** per turn (excess is clamped).
    - **Message**: Your `message` is delivered directly to your citizens to justify the investment.
 
 2. **`RAISE_WAR_TAX`**
@@ -102,5 +103,8 @@ You must provide TWO strategic intents for every proposal:
 1. **Public Intent**: Select from the EconomicIntentType ENUM (GROWTH, SUPPORT, SURVIVAL, IDLE) — what you claim publicly.
 2. **Private Intent**: Select from the EconomicIntentType ENUM — your true strategic goal (hidden from others).
 3. **Reasoning**: Explain your strategy and any divergence between public and private intents (**max ~70 words**). The President will see this to understand your true motives.
+
+## ⛔ CLASSIFIED INFORMATION
+**NEVER** include your strategy name (e.g., SCORCHED_EARTH, TOTAL_EXPANSIONISM, COALITION_BUILDER) or intent ENUM values (e.g., GROWTH, SURVIVAL) in any `message` field. Messages are public — strategy is classified cabinet information.
 
 Balance growth with stability. A hungry population rebels."""
