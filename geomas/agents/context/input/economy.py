@@ -236,6 +236,7 @@ class EconomyInputBuilder:
         lines.append(f"Global Averages: Food {avg_food:.0f}, Energy {avg_energy:.0f}, Materials {avg_materials:.0f}.")
         lines.append("- **SURPLUS**: > 120% of Avg. Ask them for this!")
         lines.append("- **DEFICIT**: < 80% of Avg. Sell this to them!")
+        lines.append("⚠️ **IMPORTANT**: Request CONSERVATIVE amounts (e.g. 50-70% of estimated surplus) to ensure acceptance. Do not drain their entire stock.")
         
         has_data = False
         
