@@ -99,6 +99,11 @@ class LLMClient:
         self.mode = instructor.Mode.TOOLS
         if self.model_name and "deepseek-reasoner" in self.model_name:
             self.mode = instructor.Mode.JSON
+            # R1 needs more tokens for reasoning + output. Default 1000 is too low.
+            # Only increase if default was used (1000)
+            if self.max_tokens == 1000:
+                self.max_tokens = 6000
+                print(f"[INFO] Auto-increased max_tokens to {self.max_tokens} for DeepSeek Reasoner")
             
         # Direct DeepSeek Client (Bypass LiteLLM)
         self.using_direct_client = False
