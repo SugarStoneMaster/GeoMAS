@@ -119,7 +119,33 @@ class LLMClient:
         os.environ["OPENAI_API_KEY"] = api_key
         os.environ["OPENAI_API_BASE"] = grok_base
         
+        # Return format: provider/model
         return f"openai/{grok_model}"
+
+    def _build_messages(self, system_prompt: str, user_prompt: str) -> List[Dict[str, Any]]:
+        """Constructs messages list, handling provider-specific optimizations like caching."""
+        if self.model_name and self.model_name.startswith("anthropic/"):
+            # Claude Prompt Caching: Mark system prompt as ephemeral cache block
+            # This significantly reduces costs for repeated large system prompts
+            return [
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": system_prompt,
+                            "cache_control": {"type": "ephemeral"}
+                        }
+                    ]
+                },
+                {"role": "user", "content": user_prompt}
+            ]
+        
+        # Standard format for other providers
+        return [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
 
     def query_agent(
         self, 
@@ -133,11 +159,8 @@ class LLMClient:
         Query the LLM with a system prompt and user prompt, expecting a structured response.
         Uses Instructor for schema validation and LiteLLM for model abstraction.
         """
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
-
+        messages = self._build_messages(system_prompt, user_prompt)
+        
         # Retry loop for Rate Limiting (Network/API)
         max_rate_retries = 5
         base_wait = 3.0
@@ -221,10 +244,7 @@ class LLMClient:
         context: Optional[Dict[str, Any]] = None
     ) -> T:
         """Async version of query_agent."""
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
+        messages = self._build_messages(system_prompt, user_prompt)
 
         max_rate_retries = 3
         base_wait = 3.0
@@ -339,10 +359,7 @@ class LLMClient:
         Returns:
             Tuple of (parsed_response, usage_stats)
         """
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
+        messages = self._build_messages(system_prompt, user_prompt)
 
         try:
             # Use raw litellm.completion to get full response with usage
