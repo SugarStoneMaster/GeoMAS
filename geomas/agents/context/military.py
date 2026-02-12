@@ -543,7 +543,7 @@ class MilitaryTranslator:
                     for r_id in sorted(reachable)[:12]:  # Cap at 12 for token budget
                         r_prov = self.world.provinces.get(r_id)
                         if r_prov and r_prov.owner_id and r_prov.owner_id != nation_id:
-                            owner_tag = r_prov.owner_id[:4]
+                            owner_tag = r_prov.owner_id  # FULL ID for valid target_nation_id
                             dest_strs.append(f"{r_id}({owner_tag})")
                         else:
                             dest_strs.append(str(r_id))
@@ -575,7 +575,7 @@ class MilitaryTranslator:
                     continue  # Skip own neighbors — not interesting for border map
                 
                 if n_prov.owner_id and n_prov.owner_id in self.world.nations:
-                    owner_name = self.world.nations[n_prov.owner_id].name[:3].upper()
+                    owner_name = n_prov.owner_id  # FULL ID for valid target_nation_id
                     n_units = []
                     if n_prov.soldiers > 0: n_units.append(f"{n_prov.soldiers}S")
                     if n_prov.aircraft > 0: n_units.append(f"{n_prov.aircraft}A")
