@@ -133,7 +133,7 @@ class NationAgent:
             # Add 60s timeout to prevent hanging the simulation
             return await asyncio.wait_for(
                 self.defense_minister.apropose(self.strategy, turn),
-                timeout=45.0
+                timeout=75.0
             )
         except Exception as e:
             print(f"[WARN] Defense minister failed for {self.id}: {repr(e)}")
@@ -151,7 +151,7 @@ class NationAgent:
         try:
             return await asyncio.wait_for(
                 self.economy_minister.apropose(self.strategy, turn),
-                timeout=45.0
+                timeout=75.0
             )
         except Exception as e:
             print(f"[WARN] Economy minister failed for {self.id}: {repr(e)}")
@@ -170,7 +170,7 @@ class NationAgent:
         try:
             return await asyncio.wait_for(
                 self.foreign_minister.apropose(self.strategy, turn),
-                timeout=45.0
+                timeout=75.0
             )
         except Exception as e:
             print(f"[WARN] Foreign minister failed for {self.id}: {repr(e)}")
