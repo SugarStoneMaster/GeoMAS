@@ -96,7 +96,36 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 - **TRADE PARAMETERS**: If proposing a trade, ensure amounts are realistic compared to your stockpiles/production.
 - **STRICT IDs**: When referring to other nations (e.g., in Trade), use the exact **Nation ID** provided in the context context.
 
-Your response will be automatically parsed into the `EconomicProposal` schema.
+## JSON Structure Examples (One-Shot Learning)
+
+**1. Trade Proposal (Exchange)**
+```json
+{{
+  "action_type": "TRADE_PROPOSAL",
+  "target_nation_id": "ALLY_ID",
+  "give_type": "food",
+  "give_amount": 500.0,
+  "want_type": "materials",
+  "message": "We offer surplus food in exchange for materials to build our infrastructure."
+}}
+```
+
+**2. Invest Welfare (Boost Satisfaction)**
+```json
+{{
+  "action_type": "INVEST_WELFARE",
+  "amount": 2000.0,
+  "message": "Citizens, we invest in your future."
+}}
+```
+
+**3. War Tax (Raise Funds)**
+```json
+{{
+  "action_type": "RAISE_WAR_TAX",
+  "message": "Sacrifice is necessary for victory."
+}}
+```
 
 ## Dual Intent Strategy
 You must provide TWO strategic intents for every proposal:

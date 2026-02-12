@@ -77,7 +77,43 @@ Consider how defense actions support the nation's overarching goals.
    
 **IDLE**: If you choose NO action, return an empty `moves` list. Do NOT invent an "IDLE" action type.
 
-## Combat Mechanics & Geography
+## JSON Structure Examples (One-Shot Learning)
+Use these patterns. Keys must be exact.
+
+**1. Move Troops (Attack/Reinforce)**
+```json
+{{
+  "priority": 1,
+  "action_type": "MOVE_TROOPS",
+  "unit_type": "SOLDIER",
+  "quantity": 100,
+  "source_province_id": 12,    // WHERE THEY ARE NOW
+  "target_province_id": 15,    // WHERE THEY ARE GOING
+  "target_nation_id": "KRELL"  // OWNER OF DESTINATION
+}}
+```
+
+**2. Create Unit (Recruit)**
+```json
+{{
+  "priority": 2,
+  "action_type": "CREATE_UNIT",
+  "unit_type": "AIRCRAFT",
+  "quantity": 5,
+  "target_province_id": 12,    // SPAWN LOCATION (Must be yours)
+  "target_nation_id": "{effective_name}"
+}}
+```
+
+**3. Nuclear Option (Last Resort)**
+```json
+{{
+  "priority": 1,
+  "action_type": "NUCLEAR_OPTION",
+  "target_province_id": 99,
+  "target_nation_id": "ENEMY_ID"
+}}
+```
 - **Defensive Bonuses**: Mountain (+50% Defense), Coastal (-10% Defense).
 - **Invasion**: Soldiers are required to conquer/conquer territory.
 - **Naval Support**: Navy is required to traverse oceans or initiate naval landings on remote islands.

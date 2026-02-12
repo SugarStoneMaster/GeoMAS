@@ -98,13 +98,12 @@ class DefenseActionItem(BaseModel):
     priority: int
     action_type: DefenseActionType
     target_nation_id: Optional[str] = None
-    target_province_id: Optional[int] = None
-    
+
     # Explicit fields for strong typing
-    unit_type: Optional[UnitType] = None
-    quantity: Optional[int] = Field(None, gt=0, description="Must be a positive integer")
-    source_province_id: Optional[int] = Field(None, description="Source province for MOVE_TROOPS")
-    # target_province_id (already exists) acts as Destination for MOVE, or Location for CREATE/NUKE
+    unit_type: Optional[UnitType] = Field(None, description="REQUIRED for CREATE_UNIT and MOVE_TROOPS.")
+    quantity: Optional[int] = Field(None, gt=0, description="REQUIRED for CREATE_UNIT and MOVE_TROOPS. Must be positive.")
+    source_province_id: Optional[int] = Field(None, description="REQUIRED for MOVE_TROOPS. The ID of the province WHERE THE TROOPS ARE NOW.")
+    target_province_id: Optional[int] = Field(None, description="REQUIRED for MOVE_TROOPS (Destination), CREATE_UNIT (Location), NUCLEAR_OPTION (Target).")
 
     @field_validator("source_province_id")
     @classmethod
