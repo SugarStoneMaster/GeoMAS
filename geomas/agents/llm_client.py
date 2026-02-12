@@ -105,6 +105,11 @@ class LLMClient:
                 self.max_tokens = 6000
                 print(f"[INFO] Auto-increased max_tokens to {self.max_tokens} for DeepSeek Reasoner")
             
+            # R1 requires higher temperature (0.5-0.7) to avoid repetition loops. 0.2 is too low.
+            if self.temperature < 0.5:
+                self.temperature = 0.6
+                print(f"[INFO] Auto-adjusted temperature to {self.temperature} for DeepSeek Reasoner (prevent loops)")
+            
         # Direct DeepSeek Client (Bypass LiteLLM)
         self.using_direct_client = False
         use_deepseek_direct = os.environ.get("USE_DEEPSEEK_DIRECT", "true").lower() == "true"
