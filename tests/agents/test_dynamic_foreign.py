@@ -38,9 +38,11 @@ def test_dynamic_economic_proposal():
             "decision": "PENDING",
             "action_type": "TRADE_PROPOSAL",
             "target_nation_id": "NATION_X",
-            "give_type": "calories",
+            "give_type": "food",
             "give_amount": 100.0,
-            "want_type": "energy"
+            "want_type": "energy",
+            "amount": 0, # Optional but good to be explicit
+            "message": "Trade"
         },
         "intent": {"public_intent": "GROWTH", "private_intent": "GROWTH", "reasoning": "Test"}
     }
@@ -67,7 +69,12 @@ def test_dynamic_defense_proposal():
                 {
                     "priority": 1,
                     "action_type": "MOVE_TROOPS",
-                    "target_nation_id": "ENEMY_1"
+                    "target_nation_id": "ENEMY_1",
+                    # Added required fields to pass strict schema validation
+                    "unit_type": "SOLDIER",
+                    "quantity": 10,
+                    "source_province_id": 1,
+                    "target_province_id": 2
                 }
             ]
         },
@@ -84,7 +91,12 @@ def test_dynamic_defense_proposal():
                 {
                     "priority": 1,
                     "action_type": "MOVE_TROOPS",
-                    "target_nation_id": "INVALID_ENEMY"
+                    "target_nation_id": "INVALID_ENEMY",
+                    # Added required fields
+                    "unit_type": "SOLDIER",
+                    "quantity": 10,
+                    "source_province_id": 1,
+                    "target_province_id": 2
                 }
             ]
         },

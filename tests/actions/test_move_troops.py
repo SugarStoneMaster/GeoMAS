@@ -28,26 +28,19 @@ class TestMoveTroopsValidation:
     """Tests for MOVE_TROOPS input validation."""
     
     def test_missing_provinces(self):
-        """Must specify both from and to provinces."""
+        """Must specify validation fails if source/target missing."""
         world = generate_world(seed=42, n_cells=50, n_nations=1)
-        engine = ActionEngine(world)
         nation_id = list(world.nations.keys())[0]
         
-        payload = DefensePayload(
-            decision=Decision.APPROVE,
-            moves=[DefenseActionItem(
+        # Should raise ValidationError due to missing source_province_id/target_province_id
+        with pytest.raises(ValueError):
+            DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.MOVE_TROOPS,
                 unit_type="SOLDIER", 
                 quantity=1,
                 target_nation_id=nation_id
-            )]
-        )
-        
-        envelope = create_test_envelope(nation_id, defense_payload=payload)
-        logs = engine.execute_envelope(envelope)
-        
-        assert any("Must specify" in log for log in logs)
+            )
     
     def test_not_enough_units(self):
         """Moving more units than available should clamp to available quantity."""

@@ -18,9 +18,9 @@ from geomas.actions.common import Decision
 from geomas.actions.defense import DefensePayload
 from geomas.actions.defense.schemas import DefenseProposalPayload
 from geomas.actions.economy import EconomicPayload
-from geomas.actions.economy.schemas import EconomicProposalPayload
+from geomas.actions.economy.schemas import EconomicProposalPayload, EconomicActionType
 from geomas.actions.foreign import ForeignPayload
-from geomas.actions.foreign.schemas import ForeignProposalPayload
+from geomas.actions.foreign.schemas import ForeignProposalPayload, ForeignActionType
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.ministers import DefenseMinister, EconomicMinister, ForeignMinister
 from geomas.agents.context.system import PresidentSystemPrompt
@@ -157,8 +157,8 @@ class NationAgent:
             print(f"[WARN] Economy minister failed for {self.id}: {e}")
             return EconomicProposal(
                 intent=EconomicIntent(
-                    public_intent=EconomicIntentType.STABILITY,
-                    private_intent=EconomicIntentType.STABILITY,
+                    public_intent=EconomicIntentType.IDLE,
+                    private_intent=EconomicIntentType.IDLE,
                     reasoning=f"Minister failure: {str(e)[:100]}"
                 ),
                 payload=EconomicProposalPayload(action_type=EconomicActionType.IDLE),
@@ -176,11 +176,11 @@ class NationAgent:
             print(f"[WARN] Foreign minister failed for {self.id}: {e}")
             return ForeignProposal(
                 intent=ForeignIntent(
-                    public_intent=ForeignIntentType.NEUTRALITY,
-                    private_intent=ForeignIntentType.NEUTRALITY,
+                    public_intent=ForeignIntentType.IDLE,
+                    private_intent=ForeignIntentType.IDLE,
                     reasoning=f"Minister failure: {str(e)[:100]}"
                 ),
-                payload=ForeignProposalPayload(decision=Decision.IDLE),
+                payload=ForeignProposalPayload(action_type=ForeignActionType.IDLE),
                 target_trust_impact=0.0
             )
 

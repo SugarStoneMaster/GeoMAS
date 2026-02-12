@@ -27,37 +27,22 @@ class TestCreateUnitValidation:
     """Tests for CREATE_UNIT input validation."""
     
     def test_invalid_unit_type(self):
-        """When unit_type is None, it should default to SOLDIER."""
+        """When unit_type is None, validation should fail (no default)."""
         world = generate_world(seed=42, n_cells=50, n_nations=1)
-        engine = ActionEngine(world)
         nation_id = list(world.nations.keys())[0]
         nation = world.nations[nation_id]
         
-        # Get a land province and setup resources
         target_province = nation.province_ids[0]
-        nation.total_budget = 100.0
-        nation.total_materials = 50.0
-        nation.total_workers = 10
-        initial_soldiers = nation.total_soldiers
         
-        payload = DefensePayload(
-            decision=Decision.APPROVE,
-            moves=[DefenseActionItem(
+        with pytest.raises(ValueError):
+            DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
-                unit_type=None,  # Should default to SOLDIER
+                unit_type=None,  # Should fail validation
                 quantity=1,
                 target_province_id=int(target_province),
                 target_nation_id=nation_id
-            )]
-        )
-        
-        envelope = create_test_envelope(nation_id, defense_payload=payload)
-        logs = engine.execute_envelope(envelope)
-        
-        # With None unit_type, handler defaults to SOLDIER
-        assert nation.total_soldiers == initial_soldiers + 1
-        assert any("Created 1x SOLDIER" in log for log in logs)
+            )
     
     def test_province_not_owned(self):
         """Cannot create units in provinces not owned by the nation."""
@@ -273,35 +258,19 @@ class TestCreateUnitExecution:
         assert any("Created 2x NAVY" in log for log in logs)
     
     def test_no_province_fails(self):
-        """If no province specified, creation should fail."""
+        """If no province specified, creation should fail validation."""
         world = generate_world(seed=42, n_cells=100, n_nations=1)
-        engine = ActionEngine(world)
         nation_id = list(world.nations.keys())[0]
         nation = world.nations[nation_id]
         
-        nation.total_budget = 100.0
-        nation.total_materials = 50.0
-        nation.total_workers = 10
-        
-        initial_total_soldiers = nation.total_soldiers
-        
-        # No province_id specified
-        payload = DefensePayload(
-            decision=Decision.APPROVE,
-            moves=[DefenseActionItem(
+        # Should raise ValidationError due to missing target_province_id
+        with pytest.raises(ValueError):
+            DefenseActionItem(
                 priority=1,
                 action_type=DefenseActionType.CREATE_UNIT,
                 unit_type="SOLDIER", 
                 quantity=1,
                 target_nation_id=nation_id
-            )]
-        )
-        
-        envelope = create_test_envelope(nation_id, defense_payload=payload)
-        logs = engine.execute_envelope(envelope)
-        
-        # Should NOT create anything
-        assert nation.total_soldiers == initial_total_soldiers
-        assert any("No province_id specified" in log for log in logs)
-
+                # Missing target_province_id
+            )
 

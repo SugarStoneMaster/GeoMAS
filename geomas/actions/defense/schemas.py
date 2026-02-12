@@ -97,7 +97,7 @@ class DefenseActionItem(BaseModel):
     """A single defense action in the waterfall priority queue."""
     priority: int
     action_type: DefenseActionType
-    target_nation_id: Optional[str] = None
+    target_nation_id: Optional[str] = Field(None, description="REQUIRED. For CREATE_UNIT: must be YOUR ID. For MOVE/NUKE: must be TARGET ID.")
 
     # Explicit fields for strong typing
     unit_type: Optional[UnitType] = Field(None, description="REQUIRED for CREATE_UNIT and MOVE_TROOPS.")
