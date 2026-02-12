@@ -6,6 +6,7 @@ Provides structured output validation, retries, and token observability.
 """
 import os
 import time
+import random
 import instructor
 import litellm
 import asyncio
@@ -54,7 +55,7 @@ class LLMClient:
 
     def __init__(
         self, 
-        model_name: str = None,  # Will use env vars if not provided
+        model_name: str = None,  # Will use wet vars if not provided
         temperature: float = 0.2,
         max_tokens: int = 1000,
         reasoning_effort: str = "minimal"
@@ -70,11 +71,14 @@ class LLMClient:
         if model_name is None:
             use_claude = os.environ.get("USE_CLAUDE", "false").lower() == "true"
             use_grok = os.environ.get("USE_GROK", "false").lower() == "true"
+            use_deepseek = os.environ.get("USE_DEEPSEEK", "false").lower() == "true"
             
             if use_claude:
                 model_name = self._setup_claude()
             elif use_grok:
                 model_name = self._setup_grok()
+            elif use_deepseek:
+                model_name = self._setup_deepseek()
             else:
                 model_name = os.environ.get("AZURE_MODEL", "azure/gpt-5-nano")
         
@@ -85,6 +89,10 @@ class LLMClient:
 
         # Claude: Strict output mode, disable any reasoning effort
         if self.model_name and self.model_name.startswith("anthropic/"):
+            self.reasoning_effort = None
+            
+        # DeepSeek: Disable reasoning effort (V3 is standard chat)
+        if self.model_name and self.model_name.startswith("deepseek/"):
             self.reasoning_effort = None
             
         self.client = instructor.from_litellm(completion)
@@ -122,11 +130,28 @@ class LLMClient:
         # Return format: provider/model
         return f"openai/{grok_model}"
 
+    @staticmethod
+    def _setup_deepseek() -> str:
+        """Configure LiteLLM env vars for DeepSeek-V3."""
+        api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+        # defaults to deepseek-chat (V3)
+        ds_model = os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
+        
+        # Set api key for litellm
+        os.environ["DEEPSEEK_API_KEY"] = api_key
+        
+        # Return format: provider/model
+        # Use deepseek/ prefix for LiteLLM
+        return f"deepseek/{ds_model}"
+
     def _build_messages(self, system_prompt: str, user_prompt: str) -> List[Dict[str, Any]]:
         """Constructs messages list, handling provider-specific optimizations like caching."""
-        if self.model_name and self.model_name.startswith("anthropic/"):
-            # Claude Prompt Caching: Mark system prompt as ephemeral cache block
-            # This significantly reduces costs for repeated large system prompts
+        if self.model_name and (
+            self.model_name.startswith("anthropic/") or 
+            self.model_name.startswith("deepseek/")
+        ):
+            # Prompt Caching: Mark system prompt as ephemeral cache block
+            # Works for Claude and DeepSeek (via LiteLLM/API)
             return [
                 {
                     "role": "system",
@@ -224,8 +249,9 @@ class LLMClient:
                 # Handle Rate Limits internally within the implementation attempt
                 error_str = str(e).lower()
                 if "429" in str(e) or "rate" in error_str or "limit" in error_str:
-                    wait_time = base_wait * (2 ** attempt)
-                    print(f"⏳ Rate limit hit. Waiting {wait_time:.1f}s before retry {attempt + 1}/{max_rate_retries}...")
+                    # Exponential backoff with jitter to prevent thundering herd
+                    wait_time = (base_wait * (2 ** attempt)) + random.uniform(0, 1.0)
+                    print(f"⏳ Rate limit hit. Waiting {wait_time:.1f}s before retry {attempt+1}/{max_rate_retries}...")
                     time.sleep(wait_time)
                     continue
                 else:
