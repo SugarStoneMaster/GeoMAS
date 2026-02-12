@@ -235,8 +235,8 @@ class LLMClient:
                 # Capture completion to get usage
                 import time
                 start_time = time.time()
-                print(f"[DEBUG] LLM Request Start: {self.model_name}")
-                
+                #print(f"[DEBUG] LLM Request Start: {self.model_name}")
+
                 # Normalize model name for Direct Client
                 model_arg = self.model_name
                 if self.using_direct_client and model_arg.startswith("deepseek/"):
@@ -254,7 +254,7 @@ class LLMClient:
                     **kwargs
                 )
                 duration = time.time() - start_time
-                print(f"[DEBUG] LLM Request Success: {duration:.2f}s")
+                #print(f"[DEBUG] LLM Request Success: {duration:.2f}s")
                 
                 # Extract usage
                 usage_data = raw_completion.usage
@@ -336,7 +336,7 @@ class LLMClient:
                 # Async call with instructor handling validation retries
                 import time
                 start_time = time.time()
-                print(f"[DEBUG] LLM Async Request Start: {self.model_name}")
+                #print(f"[DEBUG] LLM Async Request Start: {self.model_name}")
                 
                 # Normalize model name for Direct Client
                 model_arg = self.model_name
@@ -354,7 +354,7 @@ class LLMClient:
                     **kwargs
                 )
                 duration = time.time() - start_time
-                print(f"[DEBUG] LLM Async Request Success: {duration:.2f}s")
+                #print(f"[DEBUG] LLM Async Request Success: {duration:.2f}s")
                 
                 # Extract usage (identical logic)
                 usage_data = raw_completion.usage
