@@ -67,7 +67,10 @@ class EconomyInputBuilder:
         # 5. Trade Partners Status
         sections.append(self._build_trade_partners(nation_id))
         
-        # 6. Recent Economic Actions
+        # 6. Global Market Intelligence (NEW)
+        sections.append(self._build_global_market(nation_id))
+        
+        # 7. Recent Economic Actions
         if recent_actions:
             sections.append(self._build_recent_actions(recent_actions))
         
@@ -213,6 +216,57 @@ class EconomyInputBuilder:
         
         return "\n".join(lines)
     
+    def _build_global_market(self, nation_id: str) -> str:
+        """Build global market intelligence with dynamic thresholds."""
+        nations = [n for nid, n in self.world.nations.items() if nid != nation_id]
+        if not nations:
+            return "## 🌍 GLOBAL MARKET INTELLIGENCE\nNo other nations found."
+
+        # 1. Calculate Global Averages
+        total_food = sum(n.total_food for n in nations)
+        total_energy = sum(n.total_energy for n in nations)
+        total_materials = sum(n.total_materials for n in nations)
+        count = len(nations)
+        
+        avg_food = total_food / count if count > 0 else 0
+        avg_energy = total_energy / count if count > 0 else 0
+        avg_materials = total_materials / count if count > 0 else 0
+        
+        lines = ["## 🌍 GLOBAL MARKET INTELLIGENCE"]
+        lines.append(f"Global Averages: Food {avg_food:.0f}, Energy {avg_energy:.0f}, Materials {avg_materials:.0f}.")
+        lines.append("- **SURPLUS**: > 120% of Avg. Ask them for this!")
+        lines.append("- **DEFICIT**: < 80% of Avg. Sell this to them!")
+        
+        has_data = False
+        
+        for other in nations:
+            surpluses = []
+            deficits = []
+            
+            # Dynamic Thresholds
+            if other.total_food > avg_food * 1.2: surpluses.append("FOOD")
+            elif other.total_food < avg_food * 0.8: deficits.append("food")
+            
+            if other.total_energy > avg_energy * 1.2: surpluses.append("ENERGY")
+            elif other.total_energy < avg_energy * 0.8: deficits.append("energy")
+            
+            if other.total_materials > avg_materials * 1.2: surpluses.append("MATERIALS")
+            elif other.total_materials < avg_materials * 0.8: deficits.append("materials")
+            
+            if surpluses or deficits:
+                has_data = True
+                info = f"- **{other.name} ({other.id})**:"
+                if surpluses:
+                    info += f" HAS {', '.join(surpluses)}"
+                if deficits:
+                    info += f" NEEDS {', '.join(deficits)}"
+                lines.append(info)
+        
+        if not has_data:
+            lines.append("No significant market imbalances detected (everyone is near average).")
+            
+        return "\n".join(lines)
+
     def _build_recent_actions(self, actions: List[str]) -> str:
         """Build recent economic actions section."""
         lines = ["## 📋 RECENT ECONOMIC ACTIONS"]
