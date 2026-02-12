@@ -134,7 +134,7 @@ class EconomyInputBuilder:
         if shortages:
             lines.append(f"\n**Trade Priority:** Need {', '.join(shortages)}")
         if surpluses:
-            lines.append(f"**Trade Offer:** Can export {', '.join(surpluses)}")
+            lines.append(f"**Trade Offer:** Can export {', '.join(surpluses)} (Max export per trade: 15% of stock)")
         
         return "\n".join(lines)
     
@@ -236,7 +236,7 @@ class EconomyInputBuilder:
         lines.append(f"Global Averages: Food {avg_food:.0f}, Energy {avg_energy:.0f}, Materials {avg_materials:.0f}.")
         lines.append("- **SURPLUS**: > 120% of Avg. Ask them for this!")
         lines.append("- **DEFICIT**: < 80% of Avg. Sell this to them!")
-        lines.append("⚠️ **IMPORTANT**: Request CONSERVATIVE amounts (e.g. 50-70% of estimated surplus) to ensure acceptance. Do not drain their entire stock.")
+        lines.append("⚠️ **IMPORTANT**: Trades are CAPPED at 15% of the source nation's current stock. Requests > 15% will be automatically CLAMPED. Ask for CONSERVATIVE amounts (<15% of surplus) to ensure full value.")
         
         has_data = False
         
