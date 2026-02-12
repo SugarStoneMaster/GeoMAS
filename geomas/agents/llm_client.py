@@ -197,6 +197,10 @@ class LLMClient:
         
         for attempt in range(max_rate_retries):
             try:
+                kwargs = {}
+                if "deepseek-reasoner" in self.model_name:
+                    kwargs["response_format"] = {"type": "json_object"}
+
                 # Capture completion to get usage
                 # We trust instructor to handle validation retries via max_retries
                 response, raw_completion = self.client.chat.completions.create_with_completion(
@@ -206,7 +210,8 @@ class LLMClient:
                     temperature=self.temperature,
                     max_tokens=self.max_tokens,
                     reasoning_effort=self.reasoning_effort,
-                    max_retries=max_retries, 
+                    max_retries=max_retries,
+                    **kwargs
                 )
                 
                 # Extract usage
@@ -282,6 +287,10 @@ class LLMClient:
         
         for attempt in range(max_rate_retries):
             try:
+                kwargs = {}
+                if "deepseek-reasoner" in self.model_name:
+                    kwargs["response_format"] = {"type": "json_object"}
+
                 # Async call with instructor handling validation retries
                 response, raw_completion = await self.aclient.chat.completions.create_with_completion(
                     model=self.model_name,
@@ -291,6 +300,7 @@ class LLMClient:
                     max_tokens=self.max_tokens,
                     reasoning_effort=self.reasoning_effort,
                     max_retries=max_retries,
+                    **kwargs
                 )
                 
                 # Extract usage (identical logic)
@@ -427,6 +437,10 @@ class LLMClient:
             # Extract raw content
             raw_content = raw_response.choices[0].message.content
             
+            kwargs = {}
+            if "deepseek-reasoner" in self.model_name:
+                kwargs["response_format"] = {"type": "json_object"}
+
             # Parse with Pydantic (using instructor for structured parsing)
             parsed = self.client.chat.completions.create(
                 model=self.model_name,
@@ -436,11 +450,15 @@ class LLMClient:
                 max_tokens=self.max_tokens,
                 reasoning_effort=self.reasoning_effort,
                 max_retries=max_retries,
+                **kwargs
             )
             
             return parsed, usage
             
         except Exception as e:
+            # Debug: Print raw content if available for MD_JSON failures
+            if self.mode == instructor.Mode.MD_JSON and 'raw_content' in locals() and raw_content:
+                print(f"[DEBUG] Raw R1 Output: {raw_content[:200]}...")
             print(f"LLM Query Failed: {e}")
             raise e
 

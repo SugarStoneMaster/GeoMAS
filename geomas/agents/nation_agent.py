@@ -136,7 +136,7 @@ class NationAgent:
                 timeout=45.0
             )
         except Exception as e:
-            print(f"[WARN] Defense minister failed for {self.id}: {e}")
+            print(f"[WARN] Defense minister failed for {self.id}: {repr(e)}")
             return DefenseProposal(
                 intent=DefenseIntent(
                     public_intent=DefenseIntentType.IDLE,
@@ -154,7 +154,7 @@ class NationAgent:
                 timeout=45.0
             )
         except Exception as e:
-            print(f"[WARN] Economy minister failed for {self.id}: {e}")
+            print(f"[WARN] Economy minister failed for {self.id}: {repr(e)}")
             return EconomicProposal(
                 intent=EconomicIntent(
                     public_intent=EconomicIntentType.IDLE,
@@ -173,7 +173,7 @@ class NationAgent:
                 timeout=45.0
             )
         except Exception as e:
-            print(f"[WARN] Foreign minister failed for {self.id}: {e}")
+            print(f"[WARN] Foreign minister failed for {self.id}: {repr(e)}")
             return ForeignProposal(
                 intent=ForeignIntent(
                     public_intent=ForeignIntentType.IDLE,
