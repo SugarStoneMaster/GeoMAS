@@ -192,12 +192,18 @@ class LLMClient:
         
         for attempt in range(max_rate_retries):
             try:
+                # Check for DeepSeek Reasoner (R1) which doesn't support tools
+                mode = instructor.Mode.TOOLS
+                if "deepseek-reasoner" in self.model_name:
+                    mode = instructor.Mode.JSON
+
                 # Capture completion to get usage
                 # We trust instructor to handle validation retries via max_retries
                 response, raw_completion = self.client.chat.completions.create_with_completion(
                     model=self.model_name,
                     messages=messages,
                     response_model=response_model,
+                    mode=mode,
                     temperature=self.temperature,
                     max_tokens=self.max_tokens,
                     reasoning_effort=self.reasoning_effort,
@@ -277,11 +283,17 @@ class LLMClient:
         
         for attempt in range(max_rate_retries):
             try:
+                # Check for DeepSeek Reasoner (R1) which doesn't support tools
+                mode = instructor.Mode.TOOLS
+                if "deepseek-reasoner" in self.model_name:
+                    mode = instructor.Mode.JSON
+
                 # Async call with instructor handling validation retries
                 response, raw_completion = await self.aclient.chat.completions.create_with_completion(
                     model=self.model_name,
                     messages=messages,
                     response_model=response_model,
+                    mode=mode,
                     temperature=self.temperature,
                     max_tokens=self.max_tokens,
                     reasoning_effort=self.reasoning_effort,
@@ -422,11 +434,17 @@ class LLMClient:
             # Extract raw content
             raw_content = raw_response.choices[0].message.content
             
+            # Check for DeepSeek Reasoner (R1)
+            mode = instructor.Mode.TOOLS
+            if "deepseek-reasoner" in self.model_name:
+                mode = instructor.Mode.JSON
+
             # Parse with Pydantic (using instructor for structured parsing)
             parsed = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
                 response_model=response_model,
+                mode=mode,
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
                 reasoning_effort=self.reasoning_effort,
