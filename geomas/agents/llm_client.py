@@ -100,8 +100,34 @@ class LLMClient:
         if self.model_name and "deepseek-reasoner" in self.model_name:
             self.mode = instructor.Mode.JSON
             
-        self.client = instructor.from_litellm(completion, mode=self.mode)
-        self.aclient = instructor.from_litellm(acompletion, mode=self.mode)
+        # Direct DeepSeek Client (Bypass LiteLLM)
+        self.using_direct_client = False
+        use_deepseek_direct = os.environ.get("USE_DEEPSEEK_DIRECT", "true").lower() == "true"
+        
+        # Only use Direct Client for Reasoner (R1) as requested
+        if self.model_name and "deepseek-reasoner" in self.model_name and use_deepseek_direct:
+            import openai
+            self.using_direct_client = True
+            api_key = os.environ.get("DEEPSEEK_API_KEY")
+            base_url = "https://api.deepseek.com"
+            
+            print(f"[INFO] Using DIRECT DeepSeek Client (Mode: {self.mode})")
+            
+            # Synchronous Client
+            self.client = instructor.from_openai(
+                openai.OpenAI(api_key=api_key, base_url=base_url),
+                mode=self.mode
+            )
+            
+            # Async Client
+            self.aclient = instructor.from_openai(
+                openai.AsyncOpenAI(api_key=api_key, base_url=base_url),
+                mode=self.mode
+            )
+        else:
+            # Standard LiteLLM Client
+            self.client = instructor.from_litellm(completion, mode=self.mode)
+            self.aclient = instructor.from_litellm(acompletion, mode=self.mode)
         
         # Track last usage for observability
         self.last_usage: Optional[LLMUsage] = None
@@ -206,9 +232,14 @@ class LLMClient:
                 start_time = time.time()
                 print(f"[DEBUG] LLM Request Start: {self.model_name}")
                 
+                # Normalize model name for Direct Client
+                model_arg = self.model_name
+                if self.using_direct_client and model_arg.startswith("deepseek/"):
+                    model_arg = model_arg.replace("deepseek/", "")
+
                 # We trust instructor to handle validation retries via max_retries
                 response, raw_completion = self.client.chat.completions.create_with_completion(
-                    model=self.model_name,
+                    model=model_arg,
                     messages=messages,
                     response_model=response_model,
                     temperature=self.temperature,
@@ -302,8 +333,13 @@ class LLMClient:
                 start_time = time.time()
                 print(f"[DEBUG] LLM Async Request Start: {self.model_name}")
                 
+                # Normalize model name for Direct Client
+                model_arg = self.model_name
+                if self.using_direct_client and model_arg.startswith("deepseek/"):
+                    model_arg = model_arg.replace("deepseek/", "")
+
                 response, raw_completion = await self.aclient.chat.completions.create_with_completion(
-                    model=self.model_name,
+                    model=model_arg,
                     messages=messages,
                     response_model=response_model,
                     temperature=self.temperature,
@@ -453,9 +489,14 @@ class LLMClient:
             if "deepseek-reasoner" in self.model_name:
                 kwargs["response_format"] = {"type": "json_object"}
 
+            # Normalize model name for Direct Client
+            model_arg = self.model_name
+            if self.using_direct_client and model_arg.startswith("deepseek/"):
+                model_arg = model_arg.replace("deepseek/", "")
+
             # Parse with Pydantic (using instructor for structured parsing)
             parsed = self.client.chat.completions.create(
-                model=self.model_name,
+                model=model_arg,
                 messages=messages,
                 response_model=response_model,
                 temperature=self.temperature,
