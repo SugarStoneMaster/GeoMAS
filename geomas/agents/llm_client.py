@@ -202,6 +202,10 @@ class LLMClient:
                     kwargs["response_format"] = {"type": "json_object"}
 
                 # Capture completion to get usage
+                import time
+                start_time = time.time()
+                print(f"[DEBUG] LLM Request Start: {self.model_name}")
+                
                 # We trust instructor to handle validation retries via max_retries
                 response, raw_completion = self.client.chat.completions.create_with_completion(
                     model=self.model_name,
@@ -213,6 +217,8 @@ class LLMClient:
                     max_retries=max_retries,
                     **kwargs
                 )
+                duration = time.time() - start_time
+                print(f"[DEBUG] LLM Request Success: {duration:.2f}s")
                 
                 # Extract usage
                 usage_data = raw_completion.usage
@@ -292,6 +298,10 @@ class LLMClient:
                     kwargs["response_format"] = {"type": "json_object"}
 
                 # Async call with instructor handling validation retries
+                import time
+                start_time = time.time()
+                print(f"[DEBUG] LLM Async Request Start: {self.model_name}")
+                
                 response, raw_completion = await self.aclient.chat.completions.create_with_completion(
                     model=self.model_name,
                     messages=messages,
@@ -302,6 +312,8 @@ class LLMClient:
                     max_retries=max_retries,
                     **kwargs
                 )
+                duration = time.time() - start_time
+                print(f"[DEBUG] LLM Async Request Success: {duration:.2f}s")
                 
                 # Extract usage (identical logic)
                 usage_data = raw_completion.usage
