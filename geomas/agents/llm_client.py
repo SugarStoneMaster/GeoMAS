@@ -68,8 +68,12 @@ class LLMClient:
         """
         # Auto-detect model from env vars if not provided
         if model_name is None:
+            use_claude = os.environ.get("USE_CLAUDE", "false").lower() == "true"
             use_grok = os.environ.get("USE_GROK", "false").lower() == "true"
-            if use_grok:
+            
+            if use_claude:
+                model_name = self._setup_claude()
+            elif use_grok:
                 model_name = self._setup_grok()
             else:
                 model_name = os.environ.get("AZURE_MODEL", "azure/gpt-5-nano")
@@ -78,12 +82,30 @@ class LLMClient:
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.reasoning_effort = reasoning_effort
-        self.reasoning_effort = reasoning_effort
+
+        # Claude: Strict output mode, disable any reasoning effort
+        if self.model_name and self.model_name.startswith("anthropic/"):
+            self.reasoning_effort = None
+            
         self.client = instructor.from_litellm(completion)
         self.aclient = instructor.from_litellm(acompletion)
         
         # Track last usage for observability
         self.last_usage: Optional[LLMUsage] = None
+
+    @staticmethod
+    def _setup_claude() -> str:
+        """Configure LiteLLM env vars for Anthropic Claude."""
+        api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        # defaults to claude-3-5-sonnet if not specified
+        claude_model = os.environ.get("CLAUDE_MODEL", "claude-3-5-sonnet-20240620")
+        
+        # Set api key for litellm (anthropic provider uses ANTHROPIC_API_KEY env var automatically,
+        # but explicit setting is safer if running locally/different envs)
+        os.environ["ANTHROPIC_API_KEY"] = api_key
+        
+        # Return format: provider/model
+        return f"anthropic/{claude_model}"
 
     @staticmethod
     def _setup_grok() -> str:
