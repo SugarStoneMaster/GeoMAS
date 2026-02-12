@@ -58,7 +58,8 @@ class LLMClient:
         model_name: str = None,  # Will use wet vars if not provided
         temperature: float = 0.2,
         max_tokens: int = 1000,
-        reasoning_effort: str = "minimal"
+        reasoning_effort: str = "minimal",
+        top_p: Optional[float] = None
     ):
         """
         Args:
@@ -66,6 +67,7 @@ class LLMClient:
             temperature: Low temperature for deterministic reasoning.
             max_tokens: Maximum output tokens (default 1000, safety limit).
             reasoning_effort: For reasoning models - 'minimal', 'low', 'medium', 'high'.
+            top_p: Nucleus sampling parameter. None = use model default.
         """
         # Auto-detect model from env vars if not provided
         if model_name is None:
@@ -86,6 +88,7 @@ class LLMClient:
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.reasoning_effort = reasoning_effort
+        self.top_p = top_p
 
         # Claude: Strict output mode, disable any reasoning effort
         if self.model_name and self.model_name.startswith("anthropic/"):
@@ -105,10 +108,11 @@ class LLMClient:
                 self.max_tokens = 6000
                 print(f"[INFO] Auto-increased max_tokens to {self.max_tokens} for DeepSeek Reasoner")
             
-            # R1 requires higher temperature (0.5-0.7) to avoid repetition loops. 0.2 is too low.
-            if self.temperature < 0.5:
-                self.temperature = 0.6
-                print(f"[INFO] Auto-adjusted temperature to {self.temperature} for DeepSeek Reasoner (prevent loops)")
+            # R1 Tuning (User Requested): Temp=1.0, TopP=0.95
+            # This is specific for R1 to make thinking more efficient/less repetitive
+            self.temperature = 1.0
+            self.top_p = 0.95
+            print(f"[INFO] Auto-adjusted parameters for DeepSeek Reasoner: Temp={self.temperature}, TopP={self.top_p}")
             
         # Direct DeepSeek Client (Bypass LiteLLM)
         self.using_direct_client = False
@@ -247,6 +251,10 @@ class LLMClient:
                 if self.using_direct_client and model_arg.startswith("deepseek/"):
                     model_arg = model_arg.replace("deepseek/", "")
 
+                # Add top_p if specified
+                if self.top_p is not None:
+                    kwargs["top_p"] = self.top_p
+
                 # We trust instructor to handle validation retries via max_retries
                 response, raw_completion = self.client.chat.completions.create_with_completion(
                     model=model_arg,
@@ -347,6 +355,10 @@ class LLMClient:
                 model_arg = self.model_name
                 if self.using_direct_client and model_arg.startswith("deepseek/"):
                     model_arg = model_arg.replace("deepseek/", "")
+
+                # Add top_p if specified
+                if self.top_p is not None:
+                    kwargs["top_p"] = self.top_p
 
                 response, raw_completion = await self.aclient.chat.completions.create_with_completion(
                     model=model_arg,
@@ -503,6 +515,10 @@ class LLMClient:
             model_arg = self.model_name
             if self.using_direct_client and model_arg.startswith("deepseek/"):
                 model_arg = model_arg.replace("deepseek/", "")
+
+            # Add top_p if specified
+            if self.top_p is not None:
+                kwargs["top_p"] = self.top_p
 
             # Parse with Pydantic (using instructor for structured parsing)
             parsed = self.client.chat.completions.create(
