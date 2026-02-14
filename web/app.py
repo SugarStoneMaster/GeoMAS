@@ -48,6 +48,8 @@ with ctrl_cols[2]:
 # Initialize session state
 if "sim" not in st.session_state:
     st.session_state["sim"] = None
+if "is_running" not in st.session_state:
+    st.session_state["is_running"] = False
 
 with ctrl_cols[3]:
     st.markdown("&nbsp;")  # Spacer for alignment
@@ -59,15 +61,20 @@ with ctrl_cols[3]:
         except Exception as e:
             st.error(f"LLM Error: {e}")
             st.stop()
+        
+        # Ensure data directory exists
+        os.makedirs("data", exist_ok=True)
             
         sim = SimulationEngine(
             map_seed=int(map_seed),
             history_seed=int(history_seed),
             n_cells=int(n_cells),
             n_nations=int(n_nations),
-            llm_client=client
+            llm_client=client,
+            db_path="data/simulation.duckdb" # Always persist
         )
         st.session_state["sim"] = sim
+        st.session_state["is_running"] = False
         st.session_state["nation_index"] = 0
         st.rerun()
 
@@ -76,26 +83,30 @@ sim = st.session_state["sim"]
 with ctrl_cols[4]:
     if sim:
         st.markdown(f"**Turn: {sim.world.turn}**")
-        if st.button("▶️ Next Turn", use_container_width=True):
+        
+        # Start / Stop Toggle
+        if st.session_state["is_running"]:
+            if st.button("⏹️ Stop", use_container_width=True, type="primary"):
+                st.session_state["is_running"] = False
+                st.rerun()
+        else:
+            if st.button("▶️ Start Autoplay", use_container_width=True):
+                st.session_state["is_running"] = True
+                st.rerun()
+        
+        if st.button("⏭️ Step Once", use_container_width=True):
             with st.spinner("Thinking..."):
                 sim.step()
-            st.rerun()
-            
-        if st.button("⏩ Run 5 Turns", use_container_width=True):
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-            
-            for i in range(5):
-                status_text.text(f"Running Turn {sim.world.turn}...")
-                sim.step()
-                progress_bar.progress((i + 1) / 5)
-                
-            status_text.empty()
-            progress_bar.empty()
             st.rerun()
     else:
         st.markdown("&nbsp;")
         st.info("Click Init/Reset")
+
+# --- AUTO-RUN LOOP ---
+if st.session_state["is_running"] and sim:
+    # Perform one step
+    sim.step()
+    st.rerun()
 
 st.divider()
 
