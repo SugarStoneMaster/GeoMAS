@@ -42,6 +42,8 @@ class OpinionResponse(BaseModel):
         default="",
         description="Brief explanation of the population's reaction"
     )
+    last_system_prompt: Optional[str] = Field(None, exclude=True)
+    last_input_prompt: Optional[str] = Field(None, exclude=True)
 
 
 class OpinionAgent:
@@ -119,6 +121,12 @@ class OpinionAgent:
             user_prompt=input_prompt,
             response_model=OpinionResponse
         )
+        
+        # Capture prompts in agent AND response for persistence
+        self.last_system_prompt = system_prompt
+        self.last_input_prompt = input_prompt
+        response.last_system_prompt = system_prompt
+        response.last_input_prompt = input_prompt
         
         return response
     

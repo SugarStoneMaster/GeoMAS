@@ -205,9 +205,24 @@ class CountryEnvelope(BaseModel):
     # ═══════════════════════════════════════════════════════════════
     # PROMPT PERSISTENCE (Internal Use)
     # ═══════════════════════════════════════════════════════════════
+    # ═══════════════════════════════════════════════════════════════
+    # PROMPT PERSISTENCE (Internal Use)
+    # ═══════════════════════════════════════════════════════════════
     last_system_prompt: Optional[str] = Field(
-        None, description="The system prompt used for this decision."
+        None, exclude=True, description="The system prompt used for this decision."
     )
     last_input_prompt: Optional[str] = Field(
-        None, description="The user/input prompt used for this decision."
+        None, exclude=True, description="The user/input prompt used for this decision."
     )
+    
+    # Minister Prompts
+    defense_system_prompt: Optional[str] = Field(None, exclude=True)
+    defense_input_prompt: Optional[str] = Field(None, exclude=True)
+    economic_system_prompt: Optional[str] = Field(None, exclude=True)
+    economic_input_prompt: Optional[str] = Field(None, exclude=True)
+    foreign_system_prompt: Optional[str] = Field(None, exclude=True)
+    foreign_input_prompt: Optional[str] = Field(None, exclude=True)
+    
+    # Opinion Prompts
+    opinion_system_prompt: Optional[str] = Field(None, exclude=True)
+    opinion_input_prompt: Optional[str] = Field(None, exclude=True)

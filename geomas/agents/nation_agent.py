@@ -371,7 +371,15 @@ class NationAgent:
 
             # Capture Prompts for Explainability
             last_system_prompt=self.last_president_trace.get("system_prompt"),
-            last_input_prompt=self.last_president_trace.get("user_prompt")
+            last_input_prompt=self.last_president_trace.get("user_prompt"),
+            
+            # Minister Prompts
+            defense_system_prompt=self.defense_minister.last_trace.get("system_prompt"),
+            defense_input_prompt=self.defense_minister.last_trace.get("user_prompt"),
+            economic_system_prompt=self.economy_minister.last_trace.get("system_prompt"),
+            economic_input_prompt=self.economy_minister.last_trace.get("user_prompt"),
+            foreign_system_prompt=self.foreign_minister.last_trace.get("system_prompt"),
+            foreign_input_prompt=self.foreign_minister.last_trace.get("user_prompt")
         )
         return envelope
 

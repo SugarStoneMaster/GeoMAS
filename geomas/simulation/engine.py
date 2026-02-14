@@ -290,6 +290,7 @@ class SimulationEngine:
         self.context_manager.update_after_turn(current_turn, turn_envelopes, self.world)
         
         # 5. OPINION PHASE (Population reaction - post execution)
+        # We capture prompts from opinion_agents after they react
         run_opinion_phase(
             self.world,
             self.turn_logs,
@@ -297,6 +298,16 @@ class SimulationEngine:
             turn_envelopes,
             turn=current_turn
         )
+        
+        # Inject Opinion prompts into envelopes before persistence
+        for env in turn_envelopes:
+            o_agent = self.opinion_agents.get(env.sender_id)
+            if o_agent:
+                # Need to find a way to get the response prompts. 
+                # OpinionAgent currently doesn't store them in self.
+                # I'll update OpinionAgent to store last_trace like ministers.
+                env.opinion_system_prompt = getattr(o_agent, 'last_system_prompt', None)
+                env.opinion_input_prompt = getattr(o_agent, 'last_input_prompt', None)
         
         # 6. PERSIST PHASE (Database)
         # 6. PERSIST PHASE (Database & Cache)

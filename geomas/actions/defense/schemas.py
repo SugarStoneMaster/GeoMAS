@@ -108,6 +108,7 @@ class DefenseActionItem(BaseModel):
     # Internal execution field (not visible to LLM)
     execution_outcome: ExecutionOutcome = Field(
         default_factory=ExecutionOutcome,
+        exclude=True,
         description="INTERNAL USE ONLY. Tracks success/failure of this specific action."
     )
 
