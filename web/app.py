@@ -60,9 +60,17 @@ with ctrl_cols[3]:
         except Exception as e:
             st.error(f"LLM Error: {e}")
             st.stop()
-        
+
         # Ensure data directory exists
         os.makedirs("data", exist_ok=True)
+        
+        # Mandatory Overwrite: Delete existing DB if it exists
+        db_path = "data/simulation.duckdb"
+        if os.path.exists(db_path):
+            try:
+                os.remove(db_path)
+            except Exception as e:
+                st.warning(f"Could not overwrite old database: {e}. Check if it's open in another tool.")
             
         sim = SimulationEngine(
             map_seed=int(map_seed),
@@ -70,7 +78,7 @@ with ctrl_cols[3]:
             n_cells=int(n_cells),
             n_nations=int(n_nations),
             llm_client=client,
-            db_path="data/simulation.duckdb" # Always persist
+            db_path=db_path # Always persist
         )
         st.session_state["sim"] = sim
         st.session_state["remaining_turns"] = 0
