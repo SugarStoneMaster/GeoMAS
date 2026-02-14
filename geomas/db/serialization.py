@@ -6,8 +6,25 @@ handling numpy types and enums properly.
 """
 
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import numpy as np
+from pydantic import BaseModel
+
+def full_dump(obj):
+    """
+    Recursively dump a Pydantic model or other object into a dictionary,
+    preserving fields marked with exclude=True.
+    """
+    if isinstance(obj, BaseModel):
+        return {
+            k: full_dump(getattr(obj, k))
+            for k in type(obj).model_fields.keys()
+        }
+    elif isinstance(obj, list):
+        return [full_dump(i) for i in obj]
+    elif isinstance(obj, dict):
+        return {k: full_dump(v) for k, v in obj.items()}
+    return convert_numpy(obj)
 
 
 def convert_numpy(obj: Any) -> Any:
@@ -97,8 +114,7 @@ def serialize_envelope(envelope) -> str:
     Returns:
         JSON string
     """
-    data = envelope.model_dump(mode='json')
-    return json.dumps(convert_numpy(data))
+    return json.dumps(full_dump(envelope))
 
 
 def serialize_world_snapshot(world, memory=None) -> Dict[str, str]:
@@ -134,17 +150,27 @@ def serialize_memory(memory) -> str:
     """
     data = {
         "relationship_summaries": {
-            n_id: {o_id: summary.model_dump() for o_id, summary in rels.items()}
+            n_id: {o_id: full_dump(summary) for o_id, summary in rels.items()}
             for n_id, rels in memory.relationship_summaries.items()
         },
-        "global_events": [e.model_dump() for e in memory.global_events],
+        "global_events": [full_dump(e) for e in memory.global_events],
         "nation_actions": {
-            n_id: [a.model_dump() for a in actions]
+            n_id: [full_dump(a) for a in actions]
             for n_id, actions in memory.nation_actions.items()
         },
         "trust_history": memory._trust_history
     }
-    return json.dumps(convert_numpy(data))
+    return json.dumps(data)
+
+
+# --- ENVELOPE SERIALIZATION ---
+
+def serialize_envelopes(envelopes: List[Any]) -> List[str]:
+    """
+    Serialize a list of CountryEnvelopes to JSON strings,
+    preserving excluded fields for DB.
+    """
+    return [json.dumps(full_dump(e)) for e in envelopes]
 
 
 # --- DESERIALIZATION ---

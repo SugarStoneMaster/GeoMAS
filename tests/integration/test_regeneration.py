@@ -31,8 +31,18 @@ def mock_act_response():
             foreign_public_intent=ForeignIntentType.COOPERATION,
             foreign_private_intent=ForeignIntentType.COOPERATION,
             foreign_private_reasoning="Foreign reasoning",
-            last_system_prompt="System Prompt Content",
-            last_input_prompt="User Prompt Content"
+            
+            # Prompts
+            last_system_prompt="President System",
+            last_input_prompt="President Input",
+            defense_system_prompt="Defense System",
+            defense_input_prompt="Defense Input",
+            economic_system_prompt="Economic System",
+            economic_input_prompt="Economic Input",
+            foreign_system_prompt="Foreign System",
+            foreign_input_prompt="Foreign Input",
+            opinion_system_prompt="Opinion System",
+            opinion_input_prompt="Opinion Input"
         )
     return _mock
 
@@ -65,6 +75,9 @@ def test_simulation_regeneration_roundtrip(mock_act_response):
             mock_resp.multiplier_increase = 1.0
             mock_resp.multiplier_decrease = 1.0
             opinion_agent.react = MagicMock(return_value=mock_resp)
+            # Simulate prompt capture in agent
+            opinion_agent.last_system_prompt = "Opinion System"
+            opinion_agent.last_input_prompt = "Opinion Input"
 
         # 2. Run turn 1
         engine.step()
@@ -79,8 +92,16 @@ def test_simulation_regeneration_roundtrip(mock_act_response):
         envelopes = engine.db.load_envelopes(1)
         import json
         env_data = json.loads(envelopes[0][1])
-        assert "last_system_prompt" in env_data
-        assert env_data["last_system_prompt"] == "System Prompt Content"
+        
+        # Verify President
+        assert env_data["last_system_prompt"] == "President System"
+        
+        # Verify Minister
+        assert env_data["defense_system_prompt"] == "Defense System"
+        assert env_data["economic_system_prompt"] == "Economic System"
+        
+        # Verify Opinion (will only be present if SimulationEngine injected it properly)
+        assert env_data["opinion_system_prompt"] == "Opinion System"
         
         # 3. Create a NEW engine and load the state
         new_engine = SimulationEngine(
