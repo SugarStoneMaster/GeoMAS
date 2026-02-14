@@ -48,13 +48,12 @@ with ctrl_cols[2]:
 # Initialize session state
 if "sim" not in st.session_state:
     st.session_state["sim"] = None
-if "is_running" not in st.session_state:
-    st.session_state["is_running"] = False
+if "remaining_turns" not in st.session_state:
+    st.session_state["remaining_turns"] = 0
 
 with ctrl_cols[3]:
     st.markdown("&nbsp;")  # Spacer for alignment
     if st.button("🔄 Init/Reset (Real LLM)", use_container_width=True):
-        
         # Initialize Real LLM Client
         try:
             client = LLMClient()
@@ -74,9 +73,15 @@ with ctrl_cols[3]:
             db_path="data/simulation.duckdb" # Always persist
         )
         st.session_state["sim"] = sim
-        st.session_state["is_running"] = False
+        st.session_state["remaining_turns"] = 0
         st.session_state["nation_index"] = 0
         st.rerun()
+
+    if st.session_state["sim"]:
+        if st.button("🔓 Release DB Connection", use_container_width=True, help="Close DuckDB file lock to allow external access"):
+            if st.session_state["sim"].db:
+                st.session_state["sim"].db.close()
+                st.success("Database connection released.")
 
 sim = st.session_state["sim"]
 
@@ -84,28 +89,58 @@ with ctrl_cols[4]:
     if sim:
         st.markdown(f"**Turn: {sim.world.turn}**")
         
-        # Start / Stop Toggle
-        if st.session_state["is_running"]:
-            if st.button("⏹️ Stop", use_container_width=True, type="primary"):
-                st.session_state["is_running"] = False
+        # --- CONTROL PANEL ---
+        # If running, show Stop button
+        if st.session_state["remaining_turns"] != 0:
+            if st.button("⏹️ Stop Simulation", use_container_width=True, type="primary"):
+                st.session_state["remaining_turns"] = 0
+                if sim.db:
+                    sim.db.close()
                 st.rerun()
+            
+            status_desc = "Autoplay" if st.session_state["remaining_turns"] == -1 else f"{st.session_state['remaining_turns']} turns remaining"
+            st.caption(f"Status: **Running ({status_desc})**")
         else:
-            if st.button("▶️ Start Autoplay", use_container_width=True):
-                st.session_state["is_running"] = True
-                st.rerun()
-        
-        if st.button("⏭️ Step Once", use_container_width=True):
-            with st.spinner("Thinking..."):
-                sim.step()
-            st.rerun()
+            # Not running, show execution presets
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("⏭️ Step 1", use_container_width=True):
+                    st.session_state["remaining_turns"] = 1
+                    st.rerun()
+                if st.button("⏩ Run 5", use_container_width=True):
+                    st.session_state["remaining_turns"] = 5
+                    st.rerun()
+            with c2:
+                if st.button("🚀 Run 100", use_container_width=True):
+                    st.session_state["remaining_turns"] = 100
+                    st.rerun()
+                if st.button("▶️ Autoplay", use_container_width=True):
+                    st.session_state["remaining_turns"] = -1
+                    st.rerun()
+            
+            # DB Status bit
+            if sim.db and sim.db._conn is not None:
+                st.caption("🟢 Database Connected")
+            else:
+                st.caption("⚪ Database Released")
     else:
         st.markdown("&nbsp;")
         st.info("Click Init/Reset")
 
 # --- AUTO-RUN LOOP ---
-if st.session_state["is_running"] and sim:
+if st.session_state["remaining_turns"] != 0 and sim:
     # Perform one step
     sim.step()
+    
+    # Decrement if not Autoplay
+    if st.session_state["remaining_turns"] > 0:
+        st.session_state["remaining_turns"] -= 1
+    
+    # If we just reached zero (end of a run), release connection automatically
+    if st.session_state["remaining_turns"] == 0:
+        if sim.db:
+            sim.db.close()
+        
     st.rerun()
 
 st.divider()
