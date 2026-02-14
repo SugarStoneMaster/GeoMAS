@@ -29,7 +29,6 @@ Usage:
 """
 
 from geomas.agents.context.spatial import SpatialTranslator
-from geomas.agents.context.profile import NationProfileGenerator
 from geomas.agents.context.military import MilitaryTranslator
 
 # System prompts
@@ -69,7 +68,6 @@ from geomas.agents.context.tokens import (
 __all__ = [
     # Translators
     "SpatialTranslator",
-    "NationProfileGenerator",
     "MilitaryTranslator",
     # System prompts
     "PresidentSystemPrompt",
