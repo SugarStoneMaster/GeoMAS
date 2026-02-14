@@ -1,38 +1,30 @@
-# 🚀 Sprint Corrente: Synchronization, Memory & Persistence
+# 🚀 Sprint Corrente: Dashboard Visibility & Public Opinion Audit
 
-**Status:** Planning | **Priority:** High
+**Status:** In Progress | **Priority:** High
 
 ---
 
 ## 🎯 Obiettivo
-Sincronizzare l'esecuzione fisica (`ActionEngine`) con la memoria cognitiva (`ContextManager`) e garantire la persistenza totale dello stato per abilitare XAI e rigenerazione della simulazione.
+Migliorare la visibilità della simulazione rendendo tutti gli agenti (inclusa la Pubblica Opinione) osservabili nella dashboard e correggere il bug dei logs mancanti per l'agente opinione.
 
 ---
 
 ## 📋 Tasks
 
-### 1. Action-Outcome Synchronization
-- [x] **Payload Update:** Aggiunta `execution_outcome` a tutti gli schema di azione.
-- [x] **Handler Update:** Modificati gli handler per popolare l'outcome.
-- [x] **Context Integration:** Aggiornato `ContextManager` per usare outcome reali.
+### 1. Dashboard Enhancements (Observability)
+- [ ] **Public Opinion View:** Aggiungere una sezione dedicata nella dashboard per visualizzare System Prompt, Input Prompt e Structured Output della Pubblica Opinione (parità con Ministri/Presidente).
+- [ ] **Unified Agent Inspection:** Assicurarsi che ogni turno mostri i dettagli di tutti gli attori coinvolti per facilitare il debug XAI.
 
-### 2. Context Manager & Memory Refinement
-- [x] **Ego-Centric Memory:** Distinzione tra eventi globali e azioni private.
-- [x] **Trust Trend Logic:** Ottimizzato il calcolo e la persistenza dei trend.
-
-### 3. Full State Persistence (Explainability Base)
-- [x] **DB Schema Extension:** Salvataggio stato `ContextManager` (memory_json).
-- [x] **Simulation Forking Base:** Implementato `SimulationEngine.load_state(turn)` per ricostruzione totale dell'universo (mondo + memoria).
-- [x] **Token Observability:** Integrata tabella `token_usage` e calcolo costi automatico per turno.
-- [x] **Prompt Persistence:** Cattura e salvataggio di `system_prompt` e `input_prompt` per ogni decisione presidenziale nell'envelope (visibili in DB per analisi XAI).
-- [x] **Regression Testing:** Ripristinato test di integrazione (`tests/integration/test_regeneration.py`) con mock LLM per garantire la stabilità del ripristino stato.
+### 2. Public Opinion Debug & Logging
+- [ ] **Missing Logs Investigation:** Indagare perché, nonostante la chiamata avvenga, non ci sia traccia dei log/output della Pubblica Opinione nel ciclo di simulazione o nel DB in alcune condizioni.
+- [ ] **Persistence Verification:** Verificare che i campi `raw_opinion_response` e le metriche di opinione siano correttamente salvati ad ogni turno.
 
 ---
 
 ## 📌 Design Notes
 
-**Sincronizzazione Verità:**
-L'`ActionEngine` è l'unica fonte di verità. Il `ContextManager` deve diventare un consumatore passivo di outcome validati, eliminando la duplicazione della logica di validazione nel parser di eventi.
+**Trasparenza Totale:**
+La dashboard deve servire come "finestra" completa sul pensiero del MAS. Se un agente è attivo, il suo input/output deve essere ispezionabile immediatamente.
 
-**Explainability:**
-Ogni decisione dell'agente deve essere tracciabile non solo tramite il prompt, ma anche tramite la storia di successi/fallimenti che l'agente ha percepito nei turni precedenti.
+**Debug Deterministico:**
+Usare i dati salvati nel DB per riprodurre i turni in cui l'opinione sembra "silenziosa" e verificare se si tratta di un errore di logica di esecuzione o solo di un problema di visualizzazione/persistenza.

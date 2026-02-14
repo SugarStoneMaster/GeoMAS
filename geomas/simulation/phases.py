@@ -198,14 +198,25 @@ def run_opinion_phase(
             nation, world, events, gov_actions, at_war
         )
         
+        # Apply multipliers to delta
+        if delta > 0:
+            final_delta = delta * opinion_response.multiplier_increase
+        else:
+            final_delta = delta * opinion_response.multiplier_decrease
+            
         # Apply to nation
-        new_sat = max(0.0, min(100.0, old_sat + delta))
+        new_sat = max(0.0, min(100.0, old_sat + final_delta))
         nation.public_satisfaction = new_sat
         
-        if abs(delta) > 0.1:
-            turn_logs.append(
-                f"📊 [OPINION] {nation_id}: Satisfaction {old_sat:.0f} -> {new_sat:.0f} (delta {delta:+.1f})"
-            )
+        # ALWAYS log opinion mood for transparency
+        mood_icon = "😊" if new_sat > 70 else "😐" if new_sat > 40 else "😠"
+        reasoning_snippet = (opinion_response.reasoning[:75] + '...') if len(opinion_response.reasoning) > 75 else opinion_response.reasoning
+        
+        turn_logs.append(
+            f"{mood_icon} [OPINION] {nation_id}: Mood={opinion_response.mood} | "
+            f"Sat: {old_sat:.0f} -> {new_sat:.0f} ({final_delta:+.1f}) | "
+            f"Reasoning: {reasoning_snippet}"
+        )
             
         # --- 3. Triggers (Strikes, Unrest) ---
         # Note: we use a mock engine interface or a simpler direct call
