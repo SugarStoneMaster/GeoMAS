@@ -44,6 +44,7 @@ class OpinionResponse(BaseModel):
     )
     last_system_prompt: Optional[str] = Field(None, exclude=True)
     last_input_prompt: Optional[str] = Field(None, exclude=True)
+    raw_json: Optional[str] = Field(None, exclude=True)
 
 
 class OpinionAgent:
@@ -125,8 +126,10 @@ class OpinionAgent:
         # Capture prompts in agent AND response for persistence
         self.last_system_prompt = system_prompt
         self.last_input_prompt = input_prompt
+        self.last_response = response  # Store for SimulationEngine
         response.last_system_prompt = system_prompt
         response.last_input_prompt = input_prompt
+        response.raw_json = self.llm_client.last_raw_content
         
         return response
     

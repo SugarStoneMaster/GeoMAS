@@ -52,6 +52,9 @@ class LLMClient:
     A robust, type-safe wrapper for LLM interactions using Instructor and LiteLLM.
     Handles structured output validation, retries, and provides token observability.
     """
+    # Class-level attributes for easier mocking with spec=LLMClient
+    last_raw_content: Optional[str] = None
+    last_usage: Optional[LLMUsage] = None
 
     def __init__(
         self, 
@@ -144,7 +147,8 @@ class LLMClient:
             self.aclient = instructor.from_litellm(acompletion, mode=self.mode)
         
         # Track last usage for observability
-        self.last_usage: Optional[LLMUsage] = None
+        self.last_usage = None
+        self.last_raw_content = None
 
     @staticmethod
     def _setup_claude() -> str:
@@ -292,9 +296,11 @@ class LLMClient:
                 )
                 self.last_usage = usage
                 
-                # AUTO-EXTRACT METADATA for logging
                 if not context:
                     context = self._extract_metadata(system_prompt, user_prompt)
+
+                # Capture raw JSON for audit
+                self.last_raw_content = raw_completion.choices[0].message.content
 
                 # Log usage
                 token_logger.log(
@@ -397,6 +403,9 @@ class LLMClient:
                 
                 if not context:
                     context = self._extract_metadata(system_prompt, user_prompt)
+
+                # Capture raw JSON for audit
+                self.last_raw_content = raw_completion.choices[0].message.content
 
                 token_logger.log(
                     turn=context.get("turn", 0),

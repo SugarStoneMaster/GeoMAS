@@ -241,7 +241,8 @@ class NationAgent:
         self.last_president_trace = {
             "system_prompt": system_prompt,
             "user_prompt": user_prompt,
-            "decree": decree
+            "decree": decree,
+            "raw_json": self.client.last_raw_content
         }
         
         return decree
@@ -379,7 +380,18 @@ class NationAgent:
             economic_system_prompt=self.economy_minister.last_trace.get("system_prompt"),
             economic_input_prompt=self.economy_minister.last_trace.get("user_prompt"),
             foreign_system_prompt=self.foreign_minister.last_trace.get("system_prompt"),
-            foreign_input_prompt=self.foreign_minister.last_trace.get("user_prompt")
+            foreign_input_prompt=self.foreign_minister.last_trace.get("user_prompt"),
+
+            # Original Minister Proposals (Pre-Veto)
+            original_defense_proposal=briefing.defense,
+            original_economic_proposal=briefing.economy,
+            original_foreign_proposal=briefing.foreign,
+
+            # RAW JSON AUDIT
+            raw_president_response=self.last_president_trace.get("raw_json") or self.client.last_raw_content,
+            raw_defense_response=self.defense_minister.last_trace.get("raw_json"),
+            raw_economic_response=self.economy_minister.last_trace.get("raw_json"),
+            raw_foreign_response=self.foreign_minister.last_trace.get("raw_json")
         )
         return envelope
 

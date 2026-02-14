@@ -107,7 +107,8 @@ class DefenseMinister(BaseMinister):
         self.last_trace = {
             "system_prompt": system_prompt,
             "user_prompt": user_prompt,
-            "proposal": proposal
+            "proposal": proposal,
+            "raw_json": self.client.last_raw_content
         }
         
         return proposal
@@ -137,7 +138,8 @@ class DefenseMinister(BaseMinister):
         self.last_trace = {
             "system_prompt": system_prompt,
             "user_prompt": user_prompt,
-            "proposal": proposal
+            "proposal": proposal,
+            "raw_json": self.client.last_raw_content
         }
         
         return proposal
@@ -176,7 +178,8 @@ class EconomicMinister(BaseMinister):
         self.last_trace = {
             "system_prompt": system_prompt,
             "user_prompt": user_prompt,
-            "proposal": proposal
+            "proposal": proposal,
+            "raw_json": self.client.last_raw_content
         }
         
         return proposal
@@ -206,7 +209,8 @@ class EconomicMinister(BaseMinister):
         self.last_trace = {
             "system_prompt": system_prompt,
             "user_prompt": user_prompt,
-            "proposal": proposal
+            "proposal": proposal,
+            "raw_json": self.client.last_raw_content
         }
         
         return proposal
@@ -251,7 +255,8 @@ class ForeignMinister(BaseMinister):
         self.last_trace = {
             "system_prompt": system_prompt,
             "user_prompt": user_prompt,
-            "proposal": proposal
+            "proposal": proposal,
+            "raw_json": self.client.last_raw_content
         }
         
         return proposal
@@ -288,7 +293,8 @@ class ForeignMinister(BaseMinister):
         self.last_trace = {
             "system_prompt": system_prompt,
             "user_prompt": user_prompt,
-            "proposal": proposal
+            "proposal": proposal,
+            "raw_json": self.client.last_raw_content
         }
         
         return proposal

@@ -8,7 +8,9 @@ from geomas.agents.llm_client import LLMClient
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, 
     DefenseIntentType, EconomicIntentType, ForeignIntentType,
-    DefensePayload, EconomicPayload, ForeignPayload
+    DefensePayload, EconomicPayload, ForeignPayload,
+    DefenseProposal, EconomicProposal, ForeignProposal,
+    DefenseIntent, EconomicIntent, ForeignIntent
 )
 
 @pytest.fixture
@@ -42,7 +44,35 @@ def mock_act_response():
             foreign_system_prompt="Foreign System",
             foreign_input_prompt="Foreign Input",
             opinion_system_prompt="Opinion System",
-            opinion_input_prompt="Opinion Input"
+            # RAW & ORIGINAL (New XAI fields)
+            raw_president_response='{"mock": "president"}',
+            raw_defense_response='{"mock": "defense"}',
+            raw_economic_response='{"mock": "economy"}',
+            raw_foreign_response='{"mock": "foreign"}',
+            original_defense_proposal=DefenseProposal(
+                intent=DefenseIntent(
+                    public_intent=DefenseIntentType.DETERRENCE,
+                    private_intent=DefenseIntentType.DETERRENCE,
+                    reasoning="Minister reasoning"
+                ),
+                payload=DefensePayload(moves=[])
+            ),
+            original_economic_proposal=EconomicProposal(
+                intent=EconomicIntent(
+                    public_intent=EconomicIntentType.GROWTH,
+                    private_intent=EconomicIntentType.GROWTH,
+                    reasoning="Minister reasoning"
+                ),
+                payload=EconomicPayload()
+            ),
+            original_foreign_proposal=ForeignProposal(
+                intent=ForeignIntent(
+                    public_intent=ForeignIntentType.COOPERATION,
+                    private_intent=ForeignIntentType.COOPERATION,
+                    reasoning="Minister reasoning"
+                ),
+                payload=ForeignPayload()
+            )
         )
     return _mock
 
@@ -74,10 +104,14 @@ def test_simulation_regeneration_roundtrip(mock_act_response):
             mock_resp = MagicMock()
             mock_resp.multiplier_increase = 1.0
             mock_resp.multiplier_decrease = 1.0
+            mock_resp.mood = "NEUTRAL"
+            mock_resp.reasoning = "Population is content"
+            mock_resp.raw_json = '{"mock": "opinion"}'
             opinion_agent.react = MagicMock(return_value=mock_resp)
             # Simulate prompt capture in agent
             opinion_agent.last_system_prompt = "Opinion System"
             opinion_agent.last_input_prompt = "Opinion Input"
+            opinion_agent.last_response = mock_resp
 
         # 2. Run turn 1
         engine.step()
@@ -95,13 +129,18 @@ def test_simulation_regeneration_roundtrip(mock_act_response):
         
         # Verify President
         assert env_data["last_system_prompt"] == "President System"
+        assert env_data.get("raw_president_response") is not None
         
         # Verify Minister
         assert env_data["defense_system_prompt"] == "Defense System"
         assert env_data["economic_system_prompt"] == "Economic System"
+        assert env_data.get("raw_defense_response") is not None
+        assert env_data.get("original_defense_proposal") is not None
         
-        # Verify Opinion (will only be present if SimulationEngine injected it properly)
+        # Verify Opinion
         assert env_data["opinion_system_prompt"] == "Opinion System"
+        assert env_data.get("raw_opinion_response") is not None
+        assert env_data["opinion_mood"] == "NEUTRAL"
         
         # 3. Create a NEW engine and load the state
         new_engine = SimulationEngine(

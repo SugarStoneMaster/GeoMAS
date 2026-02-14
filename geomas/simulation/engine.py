@@ -303,11 +303,24 @@ class SimulationEngine:
         for env in turn_envelopes:
             o_agent = self.opinion_agents.get(env.sender_id)
             if o_agent:
-                # Need to find a way to get the response prompts. 
-                # OpinionAgent currently doesn't store them in self.
-                # I'll update OpinionAgent to store last_trace like ministers.
+                # Basic Prompts
                 env.opinion_system_prompt = getattr(o_agent, 'last_system_prompt', None)
                 env.opinion_input_prompt = getattr(o_agent, 'last_input_prompt', None)
+                
+                # Detailed Metrics from Nation State or Agent Perception
+                # (The Opinion Agent reaction results are already applied to NationState)
+                nation = self.world.nations.get(env.sender_id)
+                if nation:
+                    env.opinion_multiplier_increase = nation.population_multiplier_increase
+                    env.opinion_multiplier_decrease = nation.population_multiplier_decrease
+                
+                # We need to capture the mood/reasoning/raw_json from the last execution
+                # I'll update OpinionAgent to store the full LAST RESPONSE for easiest access.
+                last_resp = getattr(o_agent, 'last_response', None)
+                if last_resp:
+                    env.opinion_mood = last_resp.mood
+                    env.opinion_reasoning = last_resp.reasoning
+                    env.raw_opinion_response = last_resp.raw_json
         
         # 6. PERSIST PHASE (Database)
         # 6. PERSIST PHASE (Database & Cache)

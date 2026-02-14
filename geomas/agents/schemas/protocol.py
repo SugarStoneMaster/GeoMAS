@@ -223,6 +223,23 @@ class CountryEnvelope(BaseModel):
     foreign_system_prompt: Optional[str] = Field(None, exclude=True)
     foreign_input_prompt: Optional[str] = Field(None, exclude=True)
     
-    # Opinion Prompts
     opinion_system_prompt: Optional[str] = Field(None, exclude=True)
     opinion_input_prompt: Optional[str] = Field(None, exclude=True)
+
+    # Original Proposals (Minister recommendations)
+    original_defense_proposal: Optional[Any] = Field(None, exclude=True)
+    original_economic_proposal: Optional[Any] = Field(None, exclude=True)
+    original_foreign_proposal: Optional[Any] = Field(None, exclude=True)
+
+    # Opinion Detailed Metrics
+    opinion_multiplier_increase: Optional[float] = Field(None, exclude=True)
+    opinion_multiplier_decrease: Optional[float] = Field(None, exclude=True)
+    opinion_mood: Optional[str] = Field(None, exclude=True)
+    opinion_reasoning: Optional[str] = Field(None, exclude=True)
+
+    # RAW JSON AUDIT (Identity check)
+    raw_president_response: Optional[Any] = Field(None, exclude=True)
+    raw_defense_response: Optional[Any] = Field(None, exclude=True)
+    raw_economic_response: Optional[Any] = Field(None, exclude=True)
+    raw_foreign_response: Optional[Any] = Field(None, exclude=True)
+    raw_opinion_response: Optional[Any] = Field(None, exclude=True)
