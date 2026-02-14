@@ -1,30 +1,38 @@
-# 🚀 Sprint Corrente: Dashboard Visibility & Public Opinion Audit
+# 🚀 Sprint Corrente: Simulation Stability & Logic Refinement
 
-**Status:** In Progress | **Priority:** High
+**Status:** Planned | **Priority:** Critical
 
 ---
 
 ## 🎯 Obiettivo
-Migliorare la visibilità della simulazione rendendo tutti gli agenti (inclusa la Pubblica Opinione) osservabili nella dashboard e correggere il bug dei logs mancanti per l'agente opinione.
+Risolvere le criticità emerse dall'analisi dei log (Turn 1-15) per garantire una simulazione stabile, priva di errori di runtime e con agenti coerenti nelle loro decisioni spaziali e diplomatiche.
 
 ---
 
-## 📋 Tasks
-
-### 1. Dashboard Enhancements (Observability)
-- [ ] **Public Opinion View:** Aggiungere una sezione dedicata nella dashboard per visualizzare System Prompt, Input Prompt e Structured Output della Pubblica Opinione (parità con Ministri/Presidente).
-- [ ] **Unified Agent Inspection:** Assicurarsi che ogni turno mostri i dettagli di tutti gli attori coinvolti per facilitare il debug XAI.
-
-### 2. Public Opinion Debug & Logging
-- [ ] **Missing Logs Investigation:** Indagare perché, nonostante la chiamata avvenga, non ci sia traccia dei log/output della Pubblica Opinione nel ciclo di simulazione o nel DB in alcune condizioni.
-- [ ] **Persistence Verification:** Verificare che i campi `raw_opinion_response` e le metriche di opinione siano correttamente salvati ad ogni turno.
+## ✅ Completato (Dashboard Visibility)
+- [x] Aggiunta sezione Public Opinion nella dashboard.
+- [x] Implementata visualizzazione dei prompt (system/input/output).
+- [x] Risolto bug dei log mancanti per l'agente opinione.
+- [x] Aggiunta pulsantiera "Run N Turns" per controllo granulare.
 
 ---
 
-## 📌 Design Notes
+## 📋 Tasks (Nuovi)
 
-**Trasparenza Totale:**
-La dashboard deve servire come "finestra" completa sul pensiero del MAS. Se un agente è attivo, il suo input/output deve essere ispezionabile immediatamente.
+### 🛡️ Defense Context Overhaul (High Priority)
+1.  [ ] **Reachable Province Filter:**
+    -   Instead of showing all neighbors, calculating valid moves in Python (Distance <= Range, Terrain Valid).
+    -   The prompt will *only* list valid `target_province_id`s. This solves "VOID" and "Distance" errors at the source.
+2.  [ ] **Simplified Layout:**
+    -   Implement the user-provided "Turn 15" format.
+    -   Sections: Military Overview, Force Deployment (Grouped), Threat Assessment, Attack Options, Recruitment Advice.
+3.  [ ] **Logistics Section:** Explicitly list `→ Unit reaches: [A, B, C]` for every province with troops.
 
-**Debug Deterministico:**
-Usare i dati salvati nel DB per riprodurre i turni in cui l'opinione sembra "silenziosa" e verificare se si tratta di un errore di logica di esecuzione o solo di un problema di visualizzazione/persistenza.
+### 📉 Other Optimizations
+1.  [ ] **Trade Clamping Feedback:** Implement explicit feedback when trades are clamped.
+2.  [ ] **Trade Limits:** Clarify market capacity in Economy context.
+
+### 🚫 De-scoped / Ignored
+-   Fix VOID Terrain (Code-level) -> Solved by Context Filtering.
+-   Streamlit Warnings -> Ignore.
+-   Diplomatic Schizophrenia -> Ignore.

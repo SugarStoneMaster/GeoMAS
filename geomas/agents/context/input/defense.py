@@ -57,20 +57,17 @@ class DefenseInputBuilder:
         military_report = self.military_translator.generate_military_report(nation_id)
         sections.append(military_report)
         
-        # 2. Strategic Assessment (compact border threat summary)
-        sections.append(self._build_strategic_assessment(nation_id))
-
-        # 3. Budget for Military (with real costs + maintenance awareness)
+        # 2. Budget for Military (with real costs + maintenance awareness)
         sections.append(self._build_budget_section(nation))
         
-        # 4. War/Peace Status
+        # 3. War/Peace Status
         sections.append(self._build_enemy_status(nation_id))
         
-        # 5. Satisfaction Warning (if relevant)
+        # 4. Satisfaction Warning (if relevant)
         if nation.public_satisfaction < 40:
             sections.append(self._build_morale_warning(nation))
         
-        # 6. Recent Military Actions
+        # 5. Recent Military Actions
         if recent_actions:
             sections.append(self._build_recent_actions(recent_actions))
         

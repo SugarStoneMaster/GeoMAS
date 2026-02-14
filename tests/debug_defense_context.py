@@ -1,36 +1,86 @@
 
-from geomas.world import generate_world
-from geomas.agents.context.input.defense import DefenseInputBuilder
-from geomas.agents.context.military import MilitaryTranslator
-from geomas.schemas.world import TerrainType
+import sys
+import os
 
-def test_defense_context_output():
-    """
-    Generate and print the Defense Input Prompt for manual inspection.
-    """
-    # 1. Setup a world with some units
-    world = generate_world(seed=42, n_cells=20, n_nations=2)
-    nation_id = list(world.nations.keys())[0]
+# Add project root to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from geomas.world.generation.generator import MapGenerator
+from geomas.agents.context.input.defense import DefenseInputBuilder
+from geomas.schemas.world import TerrainType
+from geomas.actions.defense.schemas import UnitType
+
+def debug_defense_prompt():
+    print("--- 🛠️ DEBUGGING DEFENSE CONTEXT ---")
     
-    # Add some interior units to test aggregation
-    nation = world.nations[nation_id]
+    # 1. Setup minimal world
+    print("Generating world...")
+    generator = MapGenerator(seed=42, n_cells=500, n_nations=5, relaxation_steps=1)
+    world = generator.generate(history_seed=99)
     
-    # Mock some troops
+    # Pick a nation
+    nation_ids = list(world.nations.keys())
+    if not nation_ids:
+        print("No nations found!")
+        return
+
+    # Sort nations by unit count to get one with units
+    best_nation = None
+    max_units = -1
+    
+    for nid in nation_ids:
+        n = world.nations[nid]
+        u_count = n.total_soldiers + n.total_navy + n.total_aircraft
+        if u_count > max_units:
+            max_units = u_count
+            best_nation = nid
+            
+    target_nation_id = best_nation
+    print(f"Selected Nation: {target_nation_id} ({world.nations[target_nation_id].name})")
+    
+    # 2. Add some specific test scenarios
+    # Add a soldier near ocean
+    nation = world.nations[target_nation_id]
     p_ids = sorted(nation.province_ids)
-    if len(p_ids) > 3:
-        # Border
-        world.provinces[p_ids[0]].soldiers = 100
-        # Interior
-        world.provinces[p_ids[1]].soldiers = 50
-        world.provinces[p_ids[2]].soldiers = 50 # Should be aggregated
-        # Sea Neighbor setup (if possible in random gen, or mock it)
-        
-    builder = DefenseInputBuilder(world)
-    prompt = builder.build(nation_id=nation_id, turn=1)
     
-    print("\nXXX BEGIN PROMPT XXX\n")
+    # Find a coastal province
+    coastal_prov = None
+    for pid in p_ids:
+        p = world.provinces[pid]
+        if p.terrain == TerrainType.COASTAL:
+            coastal_prov = p
+            break
+            
+    if coastal_prov:
+        print(f"Injecting SOLDIER at Coastal Province {coastal_prov.id} to test Ocean filtering...")
+        coastal_prov.soldiers += 100
+        nation.total_soldiers += 100
+    
+    # 3. Generate Prompt
+    builder = DefenseInputBuilder(world)
+    prompt = builder.build(target_nation_id, turn=15, recent_actions=["Moved troops", "Recruited soldiers"])
+    
+    print("\n" + "="*40)
+    print("GENERATED PROMPT:")
+    print("="*40)
     print(prompt)
-    print("\nXXX END PROMPT XXX\n")
+    print("="*40)
+    
+    # 4. Analysis
+    print("\n--- ANALYSIS ---")
+    print(f"Total Length (chars): {len(prompt)}")
+    print(f"Est. Tokens: {len(prompt)/4:.0f}")
+    
+    if "❌SEA" in prompt:
+        print("✅ Found explicit SEA warnings (or old logic leftovers).")
+    else:
+        print("ℹ️ No explicit SEA warnings found (Clean filtering applied).")
+
+    # Check for VOID
+    if "VOID" in prompt:
+        print("❌ WARNING: 'VOID' keyword found in prompt!")
+    else:
+        print("✅ No 'VOID' references found.")
 
 if __name__ == "__main__":
-    test_defense_context_output()
+    debug_defense_prompt()
