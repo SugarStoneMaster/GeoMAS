@@ -165,11 +165,38 @@ def execute_economic(
              engine.logs.append(f"📦 [ECONOMY] Failed TRADE_PROPOSAL: Invalid resource '{give_type}' or '{want_type}'")
              return
 
+        # --- CLAMPING LOGIC (15% Cap) ---
+        nation = engine.world.nations[nation_id]
+        current_stock = getattr(nation, f"total_{give_type}", 0.0)
+        
+        # Max export is 15% of current stock
+        # Exception: budget can be traded more freely? No, keep 15% rule for safety.
+        max_export = current_stock * 0.15
+        
+        # Correction: If stock is very low, 15% might be tiny. Minimum 50 units floor?
+        # Let's stick to strict 15% to prevent draining.
+        
+        original_amount = give_amount
+        clamped = False
+        
+        if give_amount > max_export:
+            give_amount = max_export
+            clamped = True
+            
+        if give_amount <= 0:
+             payload.execution_outcome.status = "FAILED"
+             payload.execution_outcome.reason = f"Export amount clamped to zero (Stock {current_stock:.0f} is too low)"
+             engine.logs.append(f"📦 [ECONOMY] Failed TRADE_PROPOSAL: Stock too low to export")
+             return
+
         # 2. Calculate Value
         total_value = give_amount * give_price
         
         # 3. Calculate Receive Amount
         receive_amount = total_value / want_price
+        
+        if clamped:
+             engine.logs.append(f"📦 [TRADE] Clamped export {original_amount:.0f} -> {give_amount:.0f} (15% of {current_stock:.0f})")
         
         # Build strict single-resource dicts for internal TradeOffer
         give = {give_type: give_amount}

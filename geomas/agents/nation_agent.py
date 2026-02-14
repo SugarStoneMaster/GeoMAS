@@ -271,42 +271,6 @@ class NationAgent:
             # Create full payload from proposal + decision
             prop_payload = briefing.economy.payload
             
-            # --- TRADE CLAMPING LOGIC (Anti-Insufficiency) ---
-            if prop_payload.action_type == EconomicActionType.TRADE_PROPOSAL and prop_payload.target_nation_id:
-                from geomas.actions.economy.trade import BASE_PRICES
-                
-                target_id = prop_payload.target_nation_id
-                sender = self.world.nations.get(self.id)
-                receiver = self.world.nations.get(target_id)
-                
-                if sender and receiver and prop_payload.give_type and prop_payload.want_type and prop_payload.give_amount:
-                    g_type = prop_payload.give_type.lower()
-                    w_type = prop_payload.want_type.lower()
-                    
-                    g_price = BASE_PRICES.get(g_type, 1.0)
-                    w_price = BASE_PRICES.get(w_type, 1.0)
-                    exchange_ratio = g_price / w_price  # 1 Give = X Receive
-                    
-                    # 1. Clamp Sender (Self) to 15% of stock
-                    sender_stock = getattr(sender, f"total_{g_type}", 0.0)
-                    max_give_sender = sender_stock * 0.15
-                    
-                    # 2. Clamp Receiver (Target) to 15% of their stock
-                    receiver_stock = getattr(receiver, f"total_{w_type}", 0.0)
-                    max_receive_target = receiver_stock * 0.15
-                    
-                    # Convert receiver limit to giver terms: 
-                    # receive = give * ratio  =>  give = receive / ratio
-                    max_give_by_receiver = max_receive_target / exchange_ratio if exchange_ratio > 0 else 0
-                    
-                    # Determine final strict limit
-                    original_give = prop_payload.give_amount
-                    final_give = min(original_give, max_give_sender, max_give_by_receiver)
-                    
-                    if final_give < original_give:
-                        print(f"⚖️ Trade Clamped ({self.id}->{target_id}): {original_give:.1f} -> {final_give:.1f} {g_type} (Limit 15%)")
-                        prop_payload.give_amount = final_give
-
             eco_payload = EconomicPayload(
                 decision=Decision.APPROVE,
                 action_type=prop_payload.action_type,

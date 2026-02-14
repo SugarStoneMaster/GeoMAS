@@ -50,6 +50,17 @@ class EconomyInputBuilder:
         
         # Metadata Header for Observability
         sections.append(f"## TURN {turn}")
+
+        # 0. FEEDBACK WARNING (If previous trade was clamped)
+        # Scan recent actions for "Clamped" keyword
+        clamped_action = next((a for a in (recent_actions or []) if "Clamped export" in a), None)
+        if clamped_action:
+            # Extract details if possible or just warn
+            sections.append(f"""## ⚠️ FEEDBACK FROM PREVIOUS TURN
+**Your last trade was AUTOMATICALLY REDUCED because it exceeded 15% of your reserves.**
+- Log: "{clamped_action}"
+- **Correction:** Please offer smaller amounts (max 15% of surplus) to avoid this.
+""")
         
         # 1. Treasury and Budget
         sections.append(self._build_treasury_section(nation))
