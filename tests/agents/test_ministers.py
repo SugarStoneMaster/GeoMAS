@@ -28,7 +28,7 @@ from geomas.actions.economy.schemas import EconomicActionType
 from geomas.actions.foreign.schemas import ForeignActionType
 from geomas.actions.common import Decision
 from geomas.agents.llm_client import LLMClient
-from geomas.agents.context.memory import ContextManager
+from geomas.agents.context.events import ContextManager
 
 
 class TestMinisterBase:

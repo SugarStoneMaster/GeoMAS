@@ -293,7 +293,7 @@ def deserialize_memory_state(json_data: str) -> Dict[str, Any]:
     """
     Deserialize ContextManager JSON back to object state.
     """
-    from geomas.agents.context.memory.schemas import RelationshipSummary, NotableEvent, MyAction
+    from geomas.agents.context.events.schemas import RelationshipSummary, NotableEvent, MyAction
     
     data = json.loads(json_data)
     if not data:

@@ -2,8 +2,8 @@
 from geomas.world import generate_world
 from geomas.actions import ActionEngine
 from geomas.actions.foreign import ForeignPayload, ForeignActionType, execute_foreign
-from geomas.agents.context.memory.context_manager import ContextManager
-from geomas.agents.context.memory.schemas import EventType
+from geomas.agents.context.events.context_manager import ContextManager
+from geomas.agents.context.events.schemas import EventType
 
 def test_duplicate_proposals():
     print("--- TESTING DUPLICATE PROPOSALS ---")

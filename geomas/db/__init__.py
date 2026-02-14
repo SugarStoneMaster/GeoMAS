@@ -8,7 +8,7 @@ Modules:
     - schema: Table definitions and creation
     - repositories: Data access classes
     - serialization: Pydantic model serialization helpers
-    - cache: In-memory turn caching
+    - cache: In-events turn caching
     - genesis: Genesis historical events database
 
 Usage:

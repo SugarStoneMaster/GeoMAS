@@ -7,7 +7,7 @@ into natural language suitable for LLM agent consumption.
 Subpackages:
     - system/: Static system prompts for each agent type
     - input/: Dynamic input builders for each agent type
-    - memory/: Memory management (ContextManager, schemas)
+    - events/: Memory management (ContextManager, schemas)
 
 Modules:
     - spatial: Geographic/strategic intelligence (SpatialTranslator)
@@ -22,7 +22,7 @@ Usage:
     from geomas.agents.context.input import DefenseInputBuilder
     
     # Memory/Context management
-    from geomas.agents.context.memory import ContextManager
+    from geomas.agents.context.events import ContextManager
     
     # Translators (utilities)
     from geomas.agents.context import MilitaryTranslator
@@ -50,7 +50,7 @@ from geomas.agents.context.input import (
 )
 
 # Memory management
-from geomas.agents.context.memory import (
+from geomas.agents.context.events import (
     ContextManager,
     RelationshipSummary,
     NotableEvent,

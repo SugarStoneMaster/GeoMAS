@@ -5,7 +5,7 @@ from geomas.actions.engine import ActionEngine
 from geomas.actions.foreign.schemas import ForeignActionType, ForeignPayload, DiplomaticMessageType, ProposalResponse, ForeignResponseAction
 from geomas.actions.defense.schemas import DefensePayload
 from geomas.actions.economy.schemas import EconomicPayload
-from geomas.agents.context.memory import ContextManager
+from geomas.agents.context.events import ContextManager
 from geomas.agents.context.input.foreign import ForeignInputBuilder
 from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, EconomicIntentType, ForeignIntentType, DefenseIntentType
 

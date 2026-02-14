@@ -25,7 +25,7 @@ from geomas.agents.llm_client import LLMClient
 from geomas.agents.ministers import DefenseMinister, EconomicMinister, ForeignMinister
 from geomas.agents.context.system import PresidentSystemPrompt
 from geomas.agents.context.input import PresidentInputBuilder
-from geomas.agents.context.memory import ContextManager
+from geomas.agents.context.events import ContextManager
 
 
 class NationAgent:
@@ -218,7 +218,7 @@ class NationAgent:
             foreign_summary=foreign_summary
         )
         
-        # Add memory context
+        # Add events context
         if self.context_manager:
             relationships = self.context_manager.get_relationships_for(self.id)
             events = self.context_manager.get_events_for(self.id, max_events=10)

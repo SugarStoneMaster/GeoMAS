@@ -70,9 +70,9 @@ def test_action_persistence():
     # Check N2 state
     n2 = world.nations[n2_id]
     if len(n2.pending_proposals) == 1:
-        print("✅ SUCCESS: Proposal persisted in memory")
+        print("✅ SUCCESS: Proposal persisted in events")
     else:
-        print("❌ FAILURE: Proposal NOT in memory after execution")
+        print("❌ FAILURE: Proposal NOT in events after execution")
 
     # Verify ID match
     if id(engine.world) == id(world):

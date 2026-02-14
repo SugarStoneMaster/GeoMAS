@@ -1,1 +1,1 @@
-"""Tests for context memory subpackage."""
+"""Tests for context events subpackage."""

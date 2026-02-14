@@ -78,7 +78,7 @@ def mock_act_response():
 
 def test_simulation_regeneration_roundtrip(mock_act_response):
     """
-    Verifies that the simulation state (world, memory, and prompts) 
+    Verifies that the simulation state (world, events, and prompts)
     can be perfectly restored from a database snapshot.
     """
     with tempfile.TemporaryDirectory() as tmpdir:

@@ -22,7 +22,7 @@ from geomas.agents.context.input import (
     ForeignInputBuilder,
     OpinionInputBuilder,
 )
-from geomas.agents.context.memory import (
+from geomas.agents.context.events import (
     ContextManager,
     NotableEvent,
     MyAction,
@@ -166,11 +166,11 @@ class TestRealisticTokenBudget:
         nation = world.nations[nation_id]
         strategy = GlobalStrategy.COALITION_BUILDER
         
-        # Get memory data from ContextManager
+        # Get events data from ContextManager
         relationships = context_manager.get_relationships_for(nation_id)
         events = context_manager.get_events_for(nation_id, max_events=15)
         
-        # Format memory sections
+        # Format events sections
         relationships_text = "\n".join(f"- {r}" for r in relationships) if relationships else "No data"
         events_text = "\n".join(events) if events else "No recent events"
         

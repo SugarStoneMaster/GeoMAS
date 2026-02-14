@@ -11,7 +11,7 @@ Tests that verify token budget remains within limits under extreme conditions:
 import pytest
 from geomas.world import generate_world
 from geomas.agents.context.tokens import TokenCounter
-from geomas.agents.context.memory import ContextManager, NotableEvent, MyAction, EventType
+from geomas.agents.context.events import ContextManager, NotableEvent, MyAction, EventType
 from geomas.agents.context.system import ForeignSystemPrompt, DefenseSystemPrompt
 from geomas.agents.context.input import ForeignInputBuilder, DefenseInputBuilder
 from geomas.agents.schemas import GlobalStrategy
@@ -73,7 +73,7 @@ class TestStressBudget:
         return nation_id
     
     def _build_full_context(self, world, cm, nation_id, agent_type="Foreign"):
-        """Build complete context with all memory data."""
+        """Build complete context with all events data."""
         relationships = cm.get_relationships_for(nation_id)
         events = cm.get_events_for(nation_id, max_events=25)
         actions = cm.get_actions_for(nation_id, max_actions=30)

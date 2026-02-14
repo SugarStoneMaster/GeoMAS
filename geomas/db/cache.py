@@ -26,7 +26,7 @@ class TurnSnapshot:
 
 class TurnCache:
     """
-    In-memory cache for recent simulation turns.
+    In-events cache for recent simulation turns.
     
     Provides O(1) access to last N turns without DB queries.
     Used during simulation for quick context retrieval.

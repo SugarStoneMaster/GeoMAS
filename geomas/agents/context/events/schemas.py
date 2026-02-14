@@ -1,7 +1,7 @@
 """
 Memory Schemas.
 
-Pydantic models for agent memory:
+Pydantic models for agent events:
 - RelationshipSummary: Compact bilateral relationship for ~50 tokens per relation
 - NotableEvent: World events for ~20 tokens each
 - MyAction: Past actions for ~25 tokens each

@@ -17,7 +17,7 @@ from geomas.db import SimulationDB, TurnCache
 from geomas.db.serialization import serialize_world_snapshot, serialize_envelope
 from geomas.analysis import DeceptionAnalyzer, CoherenceAnalyzer
 from geomas.analysis.token_logger import token_logger
-from geomas.agents.context.memory import ContextManager
+from geomas.agents.context.events import ContextManager
 from geomas.agents.opinion import OpinionAgent
 
 
@@ -27,7 +27,7 @@ class SimulationEngine:
     
     Features:
     - Optional persistence via DuckDB when db_path is provided
-    - In-memory cache of recent turns for fast context access
+    - In-events cache of recent turns for fast context access
     """
 
     def __init__(
@@ -50,7 +50,7 @@ class SimulationEngine:
             n_nations: Number of nations (4-10)
             llm_client: Optional LLM client for agent decisions
             db_path: Optional path to DuckDB file for persistence
-            cache_size: Number of recent turns to keep in memory (default 20)
+            cache_size: Number of recent turns to keep in events (default 20)
         """
         self.map_seed = map_seed
         self.history_seed = history_seed
@@ -71,7 +71,7 @@ class SimulationEngine:
         # 3. Initialize In-Memory Cache
         self.cache = TurnCache(max_turns=cache_size)
         
-        # 4. Initialize Context Manager (for LLM agent memory)
+        # 4. Initialize Context Manager (for LLM agent events)
         self.context_manager = ContextManager()
         self.context_manager.initialize_from_world(self.world)
         
@@ -230,7 +230,7 @@ class SimulationEngine:
         self.db.save_snapshot(turn=turn, **snapshot)
 
     def _cache_turn(self, turn: int, envelopes: List[CountryEnvelope]) -> None:
-        """Add turn data to in-memory cache."""
+        """Add turn data to in-events cache."""
         behaviors = self._calculate_behaviors(envelopes)
         self.cache.add_turn(
             turn=turn,
@@ -286,7 +286,7 @@ class SimulationEngine:
         # 3. CACHE PHASE (See end of step for implementation)
         # self._cache_turn(current_turn, turn_envelopes)
         
-        # 4. CONTEXT PHASE (Update agent memory)
+        # 4. CONTEXT PHASE (Update agent events)
         self.context_manager.update_after_turn(current_turn, turn_envelopes, self.world)
         
         # 5. OPINION PHASE (Population reaction - post execution)
@@ -347,7 +347,7 @@ class SimulationEngine:
         
     def load_state(self, turn: int):
         """
-        Recreates simulation state (world, memory, cache) from a specific turn in DB.
+        Recreates simulation state (world, events, cache) from a specific turn in DB.
         Enables continuation or forking from history.
         """
         if not self.db:

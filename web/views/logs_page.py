@@ -10,7 +10,7 @@ from geomas.schemas.world import WorldState
 from geomas.agents.schemas import CountryEnvelope
 
 
-from geomas.agents.context.memory.schemas import NotableEvent
+from geomas.agents.context.events.schemas import NotableEvent
 
 def render_logs_page(world: WorldState, history: List[List[CountryEnvelope]], global_events: List[NotableEvent] = None) -> None:
     """

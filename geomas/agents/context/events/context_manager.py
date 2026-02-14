@@ -1,18 +1,18 @@
 """
 Context Manager.
 
-Central manager for LLM agent memory and context generation.
+Central manager for LLM agent events and context generation.
 Handles relationship tracking, event logging, action history, and pruning.
 """
 
 from typing import Dict, List, Optional, Any
 from geomas.schemas.world import WorldState
-from geomas.agents.context.memory.schemas import RelationshipSummary, NotableEvent, MyAction, EventType
+from geomas.agents.context.events.schemas import RelationshipSummary, NotableEvent, MyAction, EventType
 
 
 class ContextManager:
     """
-    Manages memory and generates context for LLM agents.
+    Manages events and generates context for LLM agents.
     
     Features:
     - Tracks bilateral relationships with trust trends
@@ -67,7 +67,7 @@ class ContextManager:
     
     def initialize_from_world(self, world: WorldState) -> None:
         """
-        Initialize memory from current world state.
+        Initialize events from current world state.
         
         Call this at simulation start to set up initial relationships.
         
@@ -111,7 +111,7 @@ class ContextManager:
         world: WorldState
     ) -> None:
         """
-        Update all memory stores after a turn completes.
+        Update all events stores after a turn completes.
         
         Args:
             turn: Current turn number

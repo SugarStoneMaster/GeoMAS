@@ -71,7 +71,7 @@ def get_foreign_prompts(
     input_builder = ForeignInputBuilder(world)
     user_prompt = input_builder.build(nation_id, turn=turn)
     
-    # Mock/Add memory context logic if needed (similar to Agent logic)
+    # Mock/Add events context logic if needed (similar to Agent logic)
     # The actual agent does this internally, but for prompt inspection we reconstruct it.
     # We can add a placeholder or verify what the builder returns.
     

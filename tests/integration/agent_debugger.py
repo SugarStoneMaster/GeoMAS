@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 from geomas.world import generate_world
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.ministers import ForeignMinister
-from geomas.agents.context.memory import ContextManager
+from geomas.agents.context.events import ContextManager
 from geomas.agents.schemas import GlobalStrategy
 from geomas.actions.common import Decision
 

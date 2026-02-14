@@ -21,7 +21,7 @@ class TokenUsageEntry(BaseModel):
 
 class TokenLogger:
     """
-    Accumulates token usage data in memory and flushes to CSV.
+    Accumulates token usage data in events and flushes to CSV.
     """
     def __init__(self, log_dir: str = "logs"):
         self.log_dir = log_dir
@@ -41,7 +41,7 @@ class TokenLogger:
         total_tokens: int,
         reasoning_tokens: Optional[int] = None
     ):
-        """Append an entry to the in-memory log."""
+        """Append an entry to the in-events log."""
         entry = TokenUsageEntry(
             turn=turn,
             nation_id=nation_id,

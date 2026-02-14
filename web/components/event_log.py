@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from typing import List
-from geomas.agents.context.memory.schemas import NotableEvent
+from geomas.agents.context.events.schemas import NotableEvent
 
 def render_event_log(global_events: List[NotableEvent]):
     """

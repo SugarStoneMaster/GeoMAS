@@ -15,7 +15,7 @@ load_dotenv()
 from geomas.world import generate_world
 from geomas.agents.context.system import DefenseSystemPrompt
 from geomas.agents.context.input import DefenseInputBuilder
-from geomas.agents.context.memory import ContextManager
+from geomas.agents.context.events import ContextManager
 from geomas.agents.context.tokens import TokenCounter
 from geomas.agents.schemas import GlobalStrategy, DefenseProposal
 
@@ -56,7 +56,7 @@ def main():
     input_builder = DefenseInputBuilder(world)
     user_prompt = input_builder.build(nation_id)
     
-    # Add memory context
+    # Add events context
     actions = cm.get_actions_for(nation_id, domain="Defense", max_actions=5)
     if actions:
         user_prompt += "\n\n== YOUR RECENT DEFENSE ACTIONS ==\n"

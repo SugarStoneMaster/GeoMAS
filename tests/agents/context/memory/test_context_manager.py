@@ -4,7 +4,7 @@ Tests for Memory Package.
 
 import pytest
 from geomas.world import generate_world
-from geomas.agents.context.memory import (
+from geomas.agents.context.events import (
     RelationshipSummary,
     NotableEvent,
     MyAction,

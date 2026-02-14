@@ -5,7 +5,7 @@ from geomas.actions.engine import ActionEngine
 from geomas.actions.economy.schemas import EconomicActionType, EconomicPayload
 from geomas.actions.defense.schemas import DefensePayload
 from geomas.actions.foreign.schemas import ForeignPayload
-from geomas.agents.context.memory import ContextManager
+from geomas.agents.context.events import ContextManager
 from geomas.simulation.phases import run_opinion_phase
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, 

@@ -11,7 +11,7 @@ from geomas.agents.schemas import DefenseProposal, EconomicProposal, ForeignProp
 from geomas.agents.schemas.dynamic import get_dynamic_proposal_model
 from geomas.agents.context.system import DefenseSystemPrompt, EconomySystemPrompt, ForeignSystemPrompt
 from geomas.agents.context.input import DefenseInputBuilder, EconomyInputBuilder, ForeignInputBuilder
-from geomas.agents.context.memory import ContextManager
+from geomas.agents.context.events import ContextManager
 
 
 class BaseMinister:
@@ -55,7 +55,7 @@ class BaseMinister:
         self.last_strategy = strategy
 
     def _add_memory_context(self, base_prompt: str, domain: str) -> str:
-        """Add memory context from ContextManager if available."""
+        """Add events context from ContextManager if available."""
         if not self.context_manager:
             return base_prompt
         
@@ -90,7 +90,7 @@ class DefenseMinister(BaseMinister):
         input_builder = DefenseInputBuilder(self.world)
         user_prompt = input_builder.build(self.nation_id, turn)
         
-        # Add memory context
+        # Add events context
         user_prompt = self._add_memory_context(user_prompt, "Defense")
         
         # Dynamic Validation: Enforce valid nation IDs
@@ -162,7 +162,7 @@ class EconomicMinister(BaseMinister):
         input_builder = EconomyInputBuilder(self.world)
         user_prompt = input_builder.build(self.nation_id, turn)
         
-        # Add memory context
+        # Add events context
         user_prompt = self._add_memory_context(user_prompt, "Economy")
         
         # Dynamic Validation: Enforce valid nation IDs
@@ -233,7 +233,7 @@ class ForeignMinister(BaseMinister):
         input_builder = ForeignInputBuilder(self.world)
         user_prompt = input_builder.build(self.nation_id, turn)
         
-        # Add memory context (relationships + actions)
+        # Add events context (relationships + actions)
         if self.context_manager:
             relationships = self.context_manager.get_relationships_for(self.nation_id)
             if relationships:
