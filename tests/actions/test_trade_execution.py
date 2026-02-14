@@ -27,7 +27,7 @@ def setup_world():
     )
     nation_b = NationState(
         id="B", name="Nation B", color="#0000FF", province_ids=[2],
-        total_budget=0.0, total_materials=500.0,
+        total_budget=0.0, total_materials=1000.0,
         total_food=100.0, total_energy=100.0,
         total_population=1000, power_projection=100.0, public_satisfaction=50
     )
@@ -74,12 +74,15 @@ def test_trade_success_budget_for_materials(setup_world):
     
     # Check Balances
     # A started with 5000 Budget, 0 Materials
+    # Trade: 300 Budget <-> 100 Materials.
+    # Receiver B has 1000 Materials. 15% = 150.
+    # 100 <= 150. No Receiver Clamp.
     assert nation_a.total_budget == 4700.0
     assert nation_a.total_materials == 100.0
     
-    # B started with 0 Budget, 500 Materials
+    # B started with 0 Budget, 1000 Materials
     assert nation_b.total_budget == 300.0
-    assert nation_b.total_materials == 400.0
+    assert nation_b.total_materials == 900.0
 
 
 def test_trade_clamped_instead_of_fail(setup_world):
@@ -107,7 +110,17 @@ def test_trade_clamped_instead_of_fail(setup_world):
     assert any("ACCEPTED" in log for log in engine.logs)
     
     # Check A's budget: 5000 - 750 = 4250
-    assert world.nations["A"].total_budget == 4250.0
+    # Wait, does receiver clamp affect this? 
+    # B has 1000 Materials (updated setup). 15% = 150.
+    # A offers 2000 Budget -> Clamped to 750 Budget.
+    # 750 Budget buys 250 Materials (Price 1/3). 
+    # Receiver B limit 150 Materials. 
+    # 250 > 150. So Receiver Clamps!
+    # Receiver Clamps to 150 Materials.
+    # 150 Materials costs 450 Budget.
+    # So Final Trade: 450 Budget <-> 150 Materials.
+    # A's budget: 5000 - 450 = 4550.
+    assert world.nations["A"].total_budget == 4550.0
 
 
 def test_trade_fail_insufficient_receiver(setup_world):
@@ -128,10 +141,25 @@ def test_trade_fail_insufficient_receiver(setup_world):
         want_type="materials"
     )
     
+    # A offers 3000 Budget.
+    # Receiver B has 1000 Materials. 15% = 150.
+    # 3000 Budget -> 1000 Materials (Price 1/3).
+    # 1000 > 150. Receiver Clamps to 150 Materials.
+    # 150 Materials costs 450 Budget.
+    # Trade becomes 450 Budget <-> 150 Materials.
+    # So it SUCCEEDS (clamped), it does NOT fail for insufficiency.
+    
     execute_economic(engine, "A", payload)
     
-    assert any("REJECTED" in log for log in engine.logs)
-    assert any("Receiver insufficiency" in log for log in engine.logs)
+    # Should SUCCEED clamped
+    assert any("ACCEPTED" in log for log in engine.logs)
+    assert any("Clamped by RECEIVER" in log for log in engine.logs)
+    
+    # Check balances
+    # A gives 450 Budget (Started 25000) -> 24550
+    assert world.nations["A"].total_budget == 24550.0
+    # B gives 150 Materials (Started 1000) -> 850
+    assert world.nations["B"].total_materials == 850.0
 
 
 def test_trade_fail_low_trust(setup_world):

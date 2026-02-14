@@ -180,6 +180,7 @@ def execute_economic(
         clamped = False
         
         if give_amount > max_export:
+            engine.logs.append(f"📦 [TRADE] Clamped export {original_amount:.0f} -> {max_export:.0f} (15% of sender's {current_stock:.0f})")
             give_amount = max_export
             clamped = True
             
@@ -195,8 +196,46 @@ def execute_economic(
         # 3. Calculate Receive Amount
         receive_amount = total_value / want_price
         
+        # --- RECEIVER CLAMPING (Double Protection) ---
+        # Ensure target doesn't pay more than 15% of their stock
+        target_nation = engine.world.nations.get(target_id)
+        if target_nation:
+            receiver_stock = getattr(target_nation, f"total_{want_type}", 0.0)
+            max_receiver_pay = receiver_stock * 0.15
+            
+            if receive_amount > max_receiver_pay:
+                # If receiver has 0 stock, max_pay is 0. Trade collapses to 0.
+                if max_receiver_pay <= 0:
+                    payload.execution_outcome.status = "FAILED"
+                    payload.execution_outcome.reason = f"Target {target_id} has no {want_type} to pay with (Stock {receiver_stock:.0f})"
+                    engine.logs.append(f"📦 [TRADE] Failed: Target {target_id} has insufficient {want_type}")
+                    return
+
+                scaling_factor = max_receiver_pay / receive_amount
+                
+                old_give = give_amount
+                old_receive = receive_amount
+                
+                # Scale everything down
+                give_amount = give_amount * scaling_factor
+                receive_amount = max_receiver_pay
+                
+                # Recalculate total value for trust math later
+                total_value = give_amount * give_price
+                
+                clamped = True
+                engine.logs.append(f"📦 [TRADE] Clamped by RECEIVER limit ({target_id}): Scaled down to {receive_amount:.0f} {want_type} (15% cap). Give: {old_give:.0f}->{give_amount:.0f}")
+
         if clamped:
-             engine.logs.append(f"📦 [TRADE] Clamped export {original_amount:.0f} -> {give_amount:.0f} (15% of {current_stock:.0f})")
+             # Avoid duplicate log if double clamped? 
+             # Actually good to see both or just the final?
+             # If sender clamped first, we saw that log. 
+             # If receiver ALSO clamps, we see this second log. That's fine.
+             
+             # Safely check recent logs for duplication
+             recent_logs = engine.logs[-5:] if engine.logs else []
+             if not any("RECEIVER limit" in l for l in recent_logs): 
+                 engine.logs.append(f"📦 [TRADE] Final Offer: {give_amount:.0f} {give_type} <-> {receive_amount:.0f} {want_type}")
         
         # Build strict single-resource dicts for internal TradeOffer
         give = {give_type: give_amount}

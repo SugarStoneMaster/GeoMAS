@@ -18,6 +18,8 @@ class TestTradeClamping(unittest.TestCase):
         self.world = WorldState()
         
         self.sender = NationState(id="SENDER", name="Sender", color="#FF0000", total_food=1000.0, total_materials=1000.0, total_budget=1000.0)
+        # Receiver needs enough materials to pay for 150 Food (Value 150) -> 50 Materials.
+        # Receiver needs stock > 50 / 0.15 = 333 to avoid clamping.
         self.receiver = NationState(id="TARGET", name="Target", color="#0000FF", total_food=1000.0, total_materials=1000.0)
         
         self.world.nations["SENDER"] = self.sender

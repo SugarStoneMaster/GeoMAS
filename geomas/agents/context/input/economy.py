@@ -52,12 +52,12 @@ class EconomyInputBuilder:
         sections.append(f"## TURN {turn}")
 
         # 0. FEEDBACK WARNING (If previous trade was clamped)
-        # Scan recent actions for "Clamped" keyword
-        clamped_action = next((a for a in (recent_actions or []) if "Clamped export" in a), None)
+        # Scan recent actions for "Clamped" keyword (covers both Sender and Receiver limits)
+        clamped_action = next((a for a in (recent_actions or []) if "Clamped" in a), None)
         if clamped_action:
             # Extract details if possible or just warn
             sections.append(f"""## ⚠️ FEEDBACK FROM PREVIOUS TURN
-**Your last trade was AUTOMATICALLY REDUCED because it exceeded 15% of your reserves.**
+**Your last trade was AUTOMATICALLY REDUCED because it exceeded 15% of reserves/capacity.**
 - Log: "{clamped_action}"
 - **Correction:** Please offer smaller amounts (max 15% of surplus) to avoid this.
 """)
