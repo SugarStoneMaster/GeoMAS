@@ -100,7 +100,9 @@ class EconomyInputBuilder:
 **Estimated Income:** {income:,.0f}/turn (from taxes)
 
 **Key Costs:**
-- INVEST_WELFARE: ~500 budget → ~5 satisfaction (logarithmic, diminishing returns)
+- INVEST_WELFARE: Cost is **Budget + Materials** (Materials = 20% of Budget amount).
+  * Example: 500 Budget investment requires 500 Budget AND 100 Materials.
+  * Gain: ~5 satisfaction (logarithmic).
 - RAISE_WAR_TAX: +budget (0.01 × Population), -15 satisfaction"""
 
     def _build_resources_section(self, nation_id: str) -> str:
