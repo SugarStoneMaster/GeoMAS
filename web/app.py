@@ -126,6 +126,15 @@ with ctrl_cols[4]:
                     st.session_state["remaining_turns"] = -1
                     st.rerun()
             
+            # Run specific number of turns
+            cols_n = st.columns([1, 2])
+            with cols_n[0]:
+                n_val = st.number_input("Turns", min_value=1, value=10, label_visibility="collapsed", key="run_n_val")
+            with cols_n[1]:
+                if st.button(f"▶️ Run {n_val}", use_container_width=True):
+                    st.session_state["remaining_turns"] = n_val
+                    st.rerun()
+            
             # DB Status bit
             if sim.db and sim.db._conn is not None:
                 st.caption("🟢 Database Connected")
