@@ -122,6 +122,10 @@ def test_foreign_message_in_context_manager(world):
     
     envelope = create_valid_envelope("NAT_A", 1, payload)
     
+    # Execute action through engine to set outcome to SUCCESS
+    engine = ActionEngine(world)
+    engine.execute_envelope(envelope)
+    
     # Update context manager
     cm.update_after_turn(turn=1, envelopes=[envelope], world=world)
     

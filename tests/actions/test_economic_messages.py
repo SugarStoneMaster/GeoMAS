@@ -15,8 +15,8 @@ from geomas.agents.schemas import (
 @pytest.fixture
 def world():
     w = WorldState(turn=1)
-    w.nations["NAT_A"] = NationState(id="NAT_A", name="Nation A", color="blue", total_budget=1000, total_materials=500, public_satisfaction=50)
-    w.nations["NAT_B"] = NationState(id="NAT_B", name="Nation B", color="red", total_budget=1000, total_materials=500, public_satisfaction=50)
+    w.nations["NAT_A"] = NationState(id="NAT_A", name="Nation A", color="blue", total_budget=1000, total_materials=500, total_food=500, total_energy=500, public_satisfaction=50)
+    w.nations["NAT_B"] = NationState(id="NAT_B", name="Nation B", color="red", total_budget=1000, total_materials=500, total_food=500, total_energy=500, public_satisfaction=50)
     return w
 
 def create_valid_envelope(nation_id, turn, economic_payload):
@@ -96,6 +96,10 @@ def test_trade_proposal_message_in_context_manager(world):
     )
     
     envelope = create_valid_envelope("NAT_A", 1, payload)
+    
+    # Execute action through engine to set outcome to SUCCESS
+    engine = ActionEngine(world)
+    engine.execute_envelope(envelope)
     
     # Update context manager
     cm.update_after_turn(turn=1, envelopes=[envelope], world=world)
