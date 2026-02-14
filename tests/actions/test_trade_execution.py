@@ -21,7 +21,7 @@ def setup_world():
     """Setup world with 2 nations (A and B)."""
     nation_a = NationState(
         id="A", name="Nation A", color="#FF0000", province_ids=[1],
-        total_budget=1000.0, total_materials=0.0,
+        total_budget=5000.0, total_materials=0.0,
         total_food=100.0, total_energy=100.0,
         total_population=1000, power_projection=100.0, public_satisfaction=50
     )
@@ -73,8 +73,8 @@ def test_trade_success_budget_for_materials(setup_world):
     nation_b = world.nations["B"]
     
     # Check Balances
-    # A started with 1000 Budget, 0 Materials
-    assert nation_a.total_budget == 700.0
+    # A started with 5000 Budget, 0 Materials
+    assert nation_a.total_budget == 4700.0
     assert nation_a.total_materials == 100.0
     
     # B started with 0 Budget, 500 Materials
@@ -82,26 +82,32 @@ def test_trade_success_budget_for_materials(setup_world):
     assert nation_b.total_materials == 400.0
 
 
-def test_trade_fail_insufficient_giver(setup_world):
-    """Test failure: A tries to give budget it doesn't have."""
+def test_trade_clamped_instead_of_fail(setup_world):
+    """
+    Test that asking to give more than you have (or >15%) now gets CLAMPED and SUCCEEDS 
+    (instead of failing for returning insufficiency), provided 15% is > 0.
+    """
     engine, world = setup_world
     
+    # A has 5000 budget (setup). 15% = 750.
+    # Try giving 2000.
     payload = EconomicPayload(
         decision=Decision.APPROVE,
         action_type=EconomicActionType.TRADE_PROPOSAL,
         target_nation_id="B",
         give_type="budget",
-        give_amount=2000.0, # More than 1000
+        give_amount=2000.0,
         want_type="materials"
     )
     
     execute_economic(engine, "A", payload)
     
-    assert any("REJECTED" in log for log in engine.logs)
-    assert any("Sender insufficiency" in log for log in engine.logs)
+    # Should SUCCEED but with clamped amount (750)
+    assert any("Clamped" in log for log in engine.logs)
+    assert any("ACCEPTED" in log for log in engine.logs)
     
-    # Balances unchanged
-    assert world.nations["A"].total_budget == 1000.0
+    # Check A's budget: 5000 - 750 = 4250
+    assert world.nations["A"].total_budget == 4250.0
 
 
 def test_trade_fail_insufficient_receiver(setup_world):
@@ -110,8 +116,8 @@ def test_trade_fail_insufficient_receiver(setup_world):
     
     # A offers 3000 Budget (Value 3000) -> Wants Materials (Price 3) -> Needs 1000 Materials
     # B only has 500 Materials.
-    # But wait, A only has 1000 Budget, so let's give A infinite budget first to isolate receiver check.
-    world.nations["A"].total_budget = 5000.0
+    # To offer 3000, A needs 3000 / 0.15 = 20000 Budget to avoid Clamp.
+    world.nations["A"].total_budget = 25000.0
     
     payload = EconomicPayload(
         decision=Decision.APPROVE,
@@ -178,8 +184,8 @@ def test_trade_dynamic_trust_gain(setup_world):
     engine, world = setup_world
     
     # Needs enough budget and materials
-    world.nations["A"].total_budget = 10000.0
-    world.nations["B"].total_materials = 10000.0
+    world.nations["A"].total_budget = 50000.0 # 15% = 7500 > 5000
+    world.nations["B"].total_materials = 50000.0
     
     # Case 1: Small Trade (100 Budget)
     payload_small = EconomicPayload(
