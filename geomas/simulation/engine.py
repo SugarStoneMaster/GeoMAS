@@ -199,10 +199,34 @@ class SimulationEngine:
                 coherence_score=coherence, global_strategy=envelope.global_strategy.value
             )
 
+    def _persist_token_usage(self, turn: int) -> None:
+        """Save token usage records for a turn to DB."""
+        if self.db is None: return
+        from geomas.analysis.token_logger import token_logger
+        
+        # Determine cost based on model (simplified)
+        for entry in token_logger.entries:
+            if entry.turn == turn:
+                # Mock cost calculation
+                rate_in = 0.00015 / 1000 # $0.15 per million
+                rate_out = 0.0006 / 1000 # $0.60 per million
+                cost = (entry.input_tokens * rate_in) + (entry.output_tokens * rate_out)
+                
+                self.db.save_token_usage(
+                    turn=entry.turn,
+                    nation_id=entry.nation_id,
+                    agent_type=entry.role,
+                    prompt_tokens=entry.input_tokens,
+                    completion_tokens=entry.output_tokens,
+                    total_tokens=entry.total_tokens,
+                    model=entry.model,
+                    cost=cost
+                )
+
     def _persist_snapshot(self, turn: int) -> None:
         """Save world snapshot for a turn."""
         if self.db is None: return
-        snapshot = serialize_world_snapshot(self.world)
+        snapshot = serialize_world_snapshot(self.world, self.context_manager)
         self.db.save_snapshot(turn=turn, **snapshot)
 
     def _cache_turn(self, turn: int, envelopes: List[CountryEnvelope]) -> None:
@@ -278,6 +302,7 @@ class SimulationEngine:
         # 6. PERSIST PHASE (Database & Cache)
         # Save Envelopes & Behavior for CURRENT turn (The actions taken)
         self._persist_envelopes(current_turn, turn_envelopes)
+        self._persist_token_usage(current_turn)
         
         # Increment Turn to Next State (Result of actions)
         self.world.turn += 1
@@ -295,6 +320,48 @@ class SimulationEngine:
         self.cache.update_turn_envelopes(current_turn, turn_envelopes, self._calculate_behaviors(turn_envelopes))
         
         print(f"--- TURN {current_turn} COMPLETE ---")
+        
+    def load_state(self, turn: int):
+        """
+        Recreates simulation state (world, memory, cache) from a specific turn in DB.
+        Enables continuation or forking from history.
+        """
+        if not self.db:
+            raise ValueError("No database connected to load state from")
+            
+        # 1. Load Snapshot
+        data = self.db.load_snapshot(turn)
+        if not data:
+            raise ValueError(f"Snapshot for turn {turn} not found in DB")
+            
+        # 2. Reconstruct World
+        from geomas.db.serialization import deserialize_world_snapshot, deserialize_memory_state
+        import json
+        
+        world_events = json.loads(data["world_events_json"])
+        self.world = deserialize_world_snapshot(
+            provinces_json=data["provinces_json"],
+            nations_json=data["nations_json"],
+            trust_matrix_json=data["trust_matrix"],
+            relationship_matrix_json=data["relationship_matrix"],
+            turn=turn,
+            global_events=world_events
+        )
+        
+        # 3. Reconstruct Memory
+        memory_state = deserialize_memory_state(data["memory_json"])
+        self.context_manager.load_state(memory_state)
+        
+        # 4. Re-initialize Engine and Agents
+        self.engine = ActionEngine(self.world)
+        self._init_agents()
+        self._init_opinion_agents()
+        
+        # 5. Sync Cache
+        self.cache.clear()
+        self.cache.add_turn(turn, self.world, [], {}) 
+        
+        print(f"🔄 [SYSTEM] Simulation state restored to turn {turn}")
         
 
 

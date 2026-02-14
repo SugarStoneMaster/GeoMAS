@@ -48,6 +48,22 @@ class ContextManager:
         
         # Trust history for trend calculation
         self._trust_history: Dict[str, Dict[str, List[float]]] = {}
+
+    def get_state(self) -> Dict[str, Any]:
+        """Get full internal state for serialization."""
+        return {
+            "relationship_summaries": self.relationship_summaries,
+            "global_events": self.global_events,
+            "nation_actions": self.nation_actions,
+            "trust_history": self._trust_history
+        }
+
+    def load_state(self, state: Dict[str, Any]) -> None:
+        """Load internal state from dictionary."""
+        self.relationship_summaries = state.get("relationship_summaries", {})
+        self.global_events = state.get("global_events", [])
+        self.nation_actions = state.get("nation_actions", {})
+        self._trust_history = state.get("trust_history", {})
     
     def initialize_from_world(self, world: WorldState) -> None:
         """
@@ -211,8 +227,12 @@ class ContextManager:
         
         # === IMMEDIATE WORLD NEWS EVENTS ===
         
-        # War declaration (always newsworthy)
+        # War declaration (always newsworthy on SUCCESS)
         if "FORMAL_DECLARATION_OF_WAR" in action_type:
+            outcome = getattr(behavior, "execution_outcome", None)
+            if outcome and outcome.status != "SUCCESS":
+                return None
+                
             target_id = getattr(behavior, 'target_nation_id', None)
             target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
             
@@ -246,6 +266,10 @@ class ContextManager:
         
         # Treaty broken (always newsworthy - trust implications)
         if "BREAK_TREATY" in action_type:
+            outcome = getattr(behavior, "execution_outcome", None)
+            if outcome and outcome.status != "SUCCESS":
+                return None
+
             target_id = getattr(behavior, 'target_nation_id', None)
             target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
             
@@ -264,6 +288,10 @@ class ContextManager:
         
         # Diplomatic messages
         if "SEND_DIPLOMATIC_MESSAGE" in action_type:
+            outcome = getattr(behavior, "execution_outcome", None)
+            if outcome and outcome.status != "SUCCESS":
+                return None
+
             target_id = str(getattr(behavior, 'target_nation_id', ''))
             if not target_id or target_id == 'None':
                 target_id = None
@@ -338,6 +366,10 @@ class ContextManager:
         
         # === TRADE (auto-accepted via oracle, so proposal = deal) ===
         if "TRADE_PROPOSAL" in action_type:
+            outcome = getattr(behavior, "execution_outcome", None)
+            if not outcome or outcome.status != "SUCCESS":
+                return None
+
             target_id = str(getattr(behavior, 'target_nation_id', ''))
             if not target_id or target_id == 'None':
                 target_id = None
@@ -361,6 +393,20 @@ class ContextManager:
                 relevance_to=None  # Global - all nations see trade deals
             )
         
+        # === NUCLEAR STRIKE ===
+        if "NUCLEAR_OPTION" in action_type:
+            outcome = getattr(behavior, "execution_outcome", None)
+            if outcome and outcome.status == "SUCCESS":
+                target_province_id = params.get('target_province_id')
+                target_nation_id = params.get('target_nation_id')
+                return NotableEvent(
+                    turn=turn,
+                    event_type=EventType.NUCLEAR_STRIKE,
+                    actors=[nation_id, target_nation_id] if target_nation_id else [nation_id],
+                    summary=f"☢️ CRITICAL: {nation_name} launched a nuclear strike on {target_nation_id}!",
+                    relevance_to=None # Global
+                )
+        
         # === MILITARY MOVEMENT (newsworthy only if attacking enemy) ===
         if "MOVE_TROOPS" in action_type:
             to_province_id = params.get('to_province_id')
@@ -370,6 +416,11 @@ class ContextManager:
                 
                 # Check if target is enemy (not own, not allied)
                 if target_owner and target_owner != nation_id:
+                    # NEW: Check if the action was actually successful
+                    outcome = getattr(behavior, "execution_outcome", None)
+                    if outcome and outcome.status != "SUCCESS":
+                        return None
+                        
                     relationship = world.relationship_matrix.get(nation_id, {}).get(target_owner, "PEACE")
                     
                     if relationship == "WAR":
@@ -473,14 +524,15 @@ class ContextManager:
         
         # Build descriptive summary based on action type and domain
         summary = self._build_action_summary(behavior, action_type_str, domain)
-        outcome = getattr(behavior, 'outcome', None)
+        execution_outcome = getattr(behavior, 'execution_outcome', None)
+        outcome_str = execution_outcome.status if execution_outcome else "SUCCESS"
         
         return MyAction(
             turn=turn,
             domain=domain,
             action_type=action_type_str,
             action_summary=summary,
-            outcome=outcome
+            outcome=outcome_str
         )
     
     def _build_action_summary(self, behavior: Any, action_type: str, domain: str) -> str:

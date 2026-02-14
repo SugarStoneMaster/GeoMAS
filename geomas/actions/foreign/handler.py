@@ -69,19 +69,33 @@ def execute_foreign(
     
     # Dispatch to appropriate handler
     if payload.action_type == ForeignActionType.SEND_DIPLOMATIC_MESSAGE:
-        _execute_send_message(engine, nation_id, target_id, payload.diplomatic_message_type, payload.message)
+        success, reason = _execute_send_message(engine, nation_id, target_id, payload.diplomatic_message_type, payload.message)
+        payload.execution_outcome.status = "SUCCESS" if success else "FAILED"
+        payload.execution_outcome.reason = reason
+        if success:
+            payload.execution_outcome.details = {"message_type": payload.diplomatic_message_type, "target": target_id}
     
     elif payload.action_type == ForeignActionType.FORMAL_DECLARATION_OF_WAR:
-        _execute_declare_war(engine, nation_id, target_id, payload.message)
+        success, reason = _execute_declare_war(engine, nation_id, target_id, payload.message)
+        payload.execution_outcome.status = "SUCCESS" if success else "FAILED"
+        payload.execution_outcome.reason = reason
+        if success:
+             payload.execution_outcome.details = {"target": target_id}
     
     elif payload.action_type == ForeignActionType.BREAK_TREATY:
-        _execute_break_treaty(engine, nation_id, target_id, payload.message)
+        success, reason = _execute_break_treaty(engine, nation_id, target_id, payload.message)
+        payload.execution_outcome.status = "SUCCESS" if success else "FAILED"
+        payload.execution_outcome.reason = reason
     
     elif payload.action_type == ForeignActionType.REQUEST_PEACE:
-        _execute_request_peace(engine, nation_id, target_id, payload.message)
+        success, reason = _execute_request_peace(engine, nation_id, target_id, payload.message)
+        payload.execution_outcome.status = "SUCCESS" if success else "FAILED"
+        payload.execution_outcome.reason = reason
     
     elif payload.action_type == ForeignActionType.PROPOSE_ALLIANCE:
-        _execute_propose_alliance(engine, nation_id, target_id, payload.message)
+        success, reason = _execute_propose_alliance(engine, nation_id, target_id, payload.message)
+        payload.execution_outcome.status = "SUCCESS" if success else "FAILED"
+        payload.execution_outcome.reason = reason
 
 
 def _execute_send_message(
@@ -100,14 +114,16 @@ def _execute_send_message(
     last_msg_turn = sender.message_cooldown.get(target_id, -999)
     if current_turn - last_msg_turn < MESSAGE_COOLDOWN_TURNS:
         turns_left = MESSAGE_COOLDOWN_TURNS - (current_turn - last_msg_turn)
+        # Outcome set in caller execute_foreign if possible, but here we can't easily reach payload
+        # Wait, the handlers are called with parameters. I should update signatures to pass payload.
         engine.logs.append(
             f"📜 [FOREIGN] Cannot message {target_id}: cooldown active ({turns_left} turns left)"
         )
-        return
+        return False, f"Cooldown active ({turns_left} turns left)"
     
     if not message_type:
         engine.logs.append(f"📜 [FOREIGN] Missing message_type for SEND_DIPLOMATIC_MESSAGE")
-        return
+        return False, "Missing message_type"
     
     msg_type = message_type
     
@@ -125,6 +141,7 @@ def _execute_send_message(
     engine.logs.append(
         f"📜 [FOREIGN] {sender_id} sends {msg_type.value} to {target_id}. Trust impact: {trust_delta:+.1f}.{msg_str}"
     )
+    return True, "Message sent"
 
 
 def _execute_declare_war(
@@ -140,7 +157,7 @@ def _execute_declare_war(
     
     if current_rel == "WAR":
         engine.logs.append(f"⚔️ [FOREIGN] {aggressor_id} already at war with {target_id}")
-        return
+        return False, "Already at war"
     
     # Set relationship to WAR (both directions)
     world.relationship_matrix.setdefault(aggressor_id, {})[target_id] = "WAR"
@@ -159,6 +176,7 @@ def _execute_declare_war(
     engine.world.global_events.append(
         f"[Turn {world.turn}] ⚔️ WAR DECLARED: {aggressor_id} vs {target_id}"
     )
+    return True, "War declared"
 
 
 def _execute_break_treaty(
@@ -174,7 +192,7 @@ def _execute_break_treaty(
     
     if current_rel != "ALLIANCE":
         engine.logs.append(f"💔 [FOREIGN] No alliance exists with {target_id} to break")
-        return
+        return False, "No alliance exists"
     
     # Set relationship back to PEACE
     world.relationship_matrix[breaker_id][target_id] = "PEACE"
@@ -187,6 +205,7 @@ def _execute_break_treaty(
     engine.logs.append(
         f"💔 [FOREIGN] {breaker_id} BREAKS alliance with {target_id}. Trust penalty applied.{msg_str}"
     )
+    return True, "Alliance broken"
 
 
 def _execute_request_peace(
@@ -205,7 +224,7 @@ def _execute_request_peace(
     
     if current_rel != "WAR":
         engine.logs.append(f"🕊️ [FOREIGN] Not at war with {target_id}, no peace needed")
-        return
+        return False, "Not at war"
     
     # Add pending proposal to target nation
     target_nation = world.nations[target_id]
@@ -223,6 +242,7 @@ def _execute_request_peace(
     
     # Global notification (Real Event)
     engine.world.global_events.append(summary)
+    return True, "Peace requested"
 
 
 def _execute_propose_alliance(
@@ -242,11 +262,11 @@ def _execute_propose_alliance(
     
     if current_rel == "ALLIANCE":
         engine.logs.append(f"🤝 [FOREIGN] Already allied with {target_id}")
-        return
+        return False, "Already allied"
     
     if current_rel == "WAR":
         engine.logs.append(f"🤝 [FOREIGN] Cannot propose alliance while at war with {target_id}")
-        return
+        return False, "Currently at war"
     
     # Check trust threshold (60 on 0-100 scale)
     trust = world.trust_matrix.get(proposer_id, {}).get(target_id, 50)
@@ -254,7 +274,7 @@ def _execute_propose_alliance(
         engine.logs.append(
             f"🤝 [FOREIGN] Alliance proposal rejected: trust too low ({trust:.0f} < 60)"
         )
-        return
+        return False, f"Trust too low ({trust:.0f} < 60)"
     
     # Add pending proposal to target nation
     target_nation = world.nations[target_id]
@@ -263,8 +283,8 @@ def _execute_propose_alliance(
     for p in target_nation.pending_proposals:
         if p["from"] == proposer_id and p["type"] == "ALLIANCE":
             engine.logs.append(f"🤝 [FOREIGN] Alliance proposal to {target_id} already pending")
-            return
-    
+            return False, "Proposal already pending"
+
     target_nation.pending_proposals.append({
         "id": str(uuid.uuid4())[:8],
         "type": "ALLIANCE",
@@ -272,6 +292,14 @@ def _execute_propose_alliance(
         "turn": world.turn,
         "message": message
     })
+
+    msg_str = f" Message: '{message}'" if message else ""
+    summary = f"🤝 [FOREIGN] {proposer_id} proposes alliance to {target_id}. Awaiting response.{msg_str}"
+    engine.logs.append(summary)
+    
+    # Global notification (Real Event)
+    engine.world.global_events.append(summary)
+    return True, "Alliance proposed"
 
     
     msg_str = f" Message: '{message}'" if message else ""

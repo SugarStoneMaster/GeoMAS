@@ -8,7 +8,7 @@ from enum import Enum
 from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Dict, Any, Optional, List
 
-from geomas.actions.common import Decision
+from geomas.actions.common import Decision, ExecutionOutcome
 
 
 class DefenseActionType(str, Enum):
@@ -104,6 +104,13 @@ class DefenseActionItem(BaseModel):
     quantity: Optional[int] = Field(None, gt=0, description="REQUIRED for CREATE_UNIT and MOVE_TROOPS. Must be positive.")
     source_province_id: Optional[int] = Field(None, description="REQUIRED for MOVE_TROOPS. The ID of the province WHERE THE TROOPS ARE NOW.")
     target_province_id: Optional[int] = Field(None, description="REQUIRED for MOVE_TROOPS (Destination), CREATE_UNIT (Location), NUCLEAR_OPTION (Target).")
+
+    # Internal execution field (not visible to LLM)
+    execution_outcome: ExecutionOutcome = Field(
+        default_factory=ExecutionOutcome,
+        exclude=True,
+        description="INTERNAL USE ONLY. Tracks success/failure of this specific action."
+    )
 
     @field_validator("source_province_id")
     @classmethod

@@ -88,27 +88,37 @@ def _execute_create_unit(
     
     # Validate province specified
     if province_id is None:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = "No province_id specified"
         engine.logs.append(f"⚔️ [DEFENSE] CREATE_UNIT failed: No province_id specified")
         return
     
     # Validate province exists and is owned
     province = world.provinces.get(province_id)
     if not province:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"Province {province_id} does not exist"
         engine.logs.append(f"⚔️ [DEFENSE] Province {province_id} does not exist")
         return
     
     # For NAVY, check territorial waters; for others, check owned land
     if unit_type == UnitType.NAVY:
         if province_id not in nation.territorial_water_ids:
+            move.execution_outcome.status = "FAILED"
+            move.execution_outcome.reason = f"Province {province_id} is not in territorial waters"
             engine.logs.append(f"⚔️ [DEFENSE] Province {province_id} is not in territorial waters")
             return
     else:
         if province.owner_id != nation_id:
+            move.execution_outcome.status = "FAILED"
+            move.execution_outcome.reason = f"Province {province_id} not owned by {nation_id}"
             engine.logs.append(f"⚔️ [DEFENSE] Province {province_id} not owned by {nation_id}")
             return
     
     # Validate terrain constraint
     if not can_place_unit(unit_type, province.terrain):
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"Cannot place {unit_type.value} on {province.terrain.value} terrain"
         engine.logs.append(
             f"⚔️ [DEFENSE] Cannot place {unit_type.value} on {province.terrain.value} terrain"
         )
@@ -132,6 +142,8 @@ def _execute_create_unit(
     )
     
     if not can_afford:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = reason
         engine.logs.append(f"⚔️ [DEFENSE] CREATE_UNIT failed: {reason}")
         return
     
@@ -152,6 +164,16 @@ def _execute_create_unit(
         province.aircraft += quantity
         nation.total_aircraft += quantity
     
+    # Final Success
+    move.execution_outcome.status = "SUCCESS"
+    move.execution_outcome.details = {
+        "unit_type": unit_type.value,
+        "quantity": quantity,
+        "province_id": province_id,
+        "budget_spent": total_budget,
+        "materials_spent": total_materials
+    }
+
     engine.logs.append(
         f"🛠️ [DEFENSE] Created {quantity}x {unit_type.value} in province {province_id}. "
         f"Cost: {total_budget:.1f} budget, {total_materials:.1f} materials"
@@ -182,11 +204,15 @@ def _execute_move_troops(
     
     # Validate provinces specified
     if from_province_id is None or to_province_id is None:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = "Source or destination province not specified"
         engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Must specify from_province_id and to_province_id")
         return
     
     # Guard: same-province move is a no-op
     if from_province_id == to_province_id:
+        move.execution_outcome.status = "SUCCESS"
+        move.execution_outcome.reason = "Source and destination are the same"
         engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Source and destination are the same ({from_province_id}), skipping")
         return
     
@@ -195,19 +221,27 @@ def _execute_move_troops(
     to_province = world.provinces.get(to_province_id)
     
     if not from_province:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"Source province {from_province_id} does not exist"
         engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Source province {from_province_id} does not exist")
         return
     if not to_province:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"Destination province {to_province_id} does not exist"
         engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Destination province {to_province_id} does not exist")
         return
     
     # Validate ownership of source province
     if unit_type == UnitType.NAVY:
         if from_province_id not in nation.territorial_water_ids:
+            move.execution_outcome.status = "FAILED"
+            move.execution_outcome.reason = f"Source {from_province_id} not in territorial waters"
             engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Source {from_province_id} not in territorial waters")
             return
     else:
         if from_province.owner_id != nation_id:
+            move.execution_outcome.status = "FAILED"
+            move.execution_outcome.reason = f"Source {from_province_id} not owned by {nation_id}"
             engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Source {from_province_id} not owned by {nation_id}")
             return
     
@@ -221,6 +255,8 @@ def _execute_move_troops(
     # Validate units available in source — clamp to available if exceeds
     available_units = _get_units_in_province(from_province, unit_type)
     if available_units <= 0:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"No {unit_type.value} in province {from_province_id}"
         engine.logs.append(
             f"🚚 [DEFENSE] MOVE_TROOPS: No {unit_type.value} in province {from_province_id}"
         )
@@ -235,6 +271,8 @@ def _execute_move_troops(
     # Validate path exists and is valid for unit type
     path = _find_valid_path(engine, nation_id, from_province_id, to_province_id, unit_type)
     if path is None:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"No valid path from {from_province_id} to {to_province_id} for {unit_type.value}"
         engine.logs.append(
             f"🚚 [DEFENSE] MOVE_TROOPS: No valid path from {from_province_id} to {to_province_id} "
             f"for {unit_type.value}"
@@ -247,6 +285,8 @@ def _execute_move_troops(
     # Validate range
     max_range = MOVEMENT_RANGE[unit_type]
     if distance > max_range:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"Distance {distance} exceeds {unit_type.value} range of {max_range}"
         engine.logs.append(
             f"🚚 [DEFENSE] MOVE_TROOPS: Distance {distance} exceeds {unit_type.value} range of {max_range}"
         )
@@ -257,6 +297,8 @@ def _execute_move_troops(
     total_energy_cost = energy_per_unit * quantity * distance
     
     if nation.total_energy < total_energy_cost:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"Insufficient energy: need {total_energy_cost:.1f}, have {nation.total_energy:.1f}"
         engine.logs.append(
             f"🚚 [DEFENSE] MOVE_TROOPS: Insufficient energy. Need {total_energy_cost:.1f}, have {nation.total_energy:.1f}"
         )
@@ -316,6 +358,16 @@ def _execute_move_troops(
             # Update attacker navy count
             nation.total_navy -= quantity
             
+            # Update outcome
+            move.execution_outcome.status = "SUCCESS" if result.attacker_wins else "FAILED"
+            move.execution_outcome.reason = "Landing successful" if result.attacker_wins else "Naval assault failed"
+            move.execution_outcome.details = {
+                "attacker_wins": result.attacker_wins,
+                "landing_province_id": result.landing_province_id,
+                "attacker_losses_navy": quantity,  # Navy is consumed on landing in this version
+                "defender_losses": result.defender_losses_navy if hasattr(result, 'defender_losses_navy') else 0
+            }
+            
             engine.logs.append(f"⚔️ [COMBAT] {result.log_message}")
             
             if result.attacker_wins:
@@ -333,6 +385,15 @@ def _execute_move_troops(
                 rng=rng
             )
             
+            # Update outcome
+            move.execution_outcome.status = "SUCCESS" if result.attacker_wins else "FAILED"
+            move.execution_outcome.reason = "Province conquered" if result.attacker_wins else "Attack failed"
+            move.execution_outcome.details = {
+                "attacker_wins": result.attacker_wins,
+                "attacker_losses": result.attacker_losses,
+                "defender_losses": result.defender_losses
+            }
+
             engine.logs.append(f"⚔️ [COMBAT] {result.log_message}")
             
             if result.attacker_wins:
@@ -378,6 +439,15 @@ def _execute_move_troops(
                 rng=rng
             )
             
+            # Update outcome
+            move.execution_outcome.status = "SUCCESS" if result.attacker_wins else "FAILED"
+            move.execution_outcome.reason = "Air strike successful" if result.attacker_wins else "Air strike failed"
+            move.execution_outcome.details = {
+                "attacker_wins": result.attacker_wins,
+                "attacker_losses": result.attacker_losses,
+                "defender_losses": result.defender_losses
+            }
+
             engine.logs.append(f"⚔️ [COMBAT] {result.log_message}")
             
             if result.attacker_wins:
@@ -414,6 +484,8 @@ def _execute_move_troops(
         # Refund - return units to source
         _add_units_to_province(from_province, unit_type, quantity)
         nation.total_energy += total_energy_cost  # Refund energy
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"Cannot move {unit_type.value} to {to_province.terrain.value} terrain"
         engine.logs.append(
             f"🚚 [DEFENSE] MOVE_TROOPS: Cannot move {unit_type.value} to {to_province.terrain.value} terrain"
         )
@@ -422,6 +494,17 @@ def _execute_move_troops(
     # --- EXECUTE: Move units to friendly territory ---
     _add_units_to_province(to_province, unit_type, quantity)
     
+    # Success Outcome
+    move.execution_outcome.status = "SUCCESS"
+    move.execution_outcome.reason = "Reinforcement arrived"
+    move.execution_outcome.details = {
+        "unit_type": unit_type.value,
+        "quantity": quantity,
+        "from": from_province_id,
+        "to": to_province_id,
+        "energy_spent": total_energy_cost
+    }
+
     engine.logs.append(
         f"🚚 [DEFENSE] Moved {quantity}x {unit_type.value} from {from_province_id} to {to_province_id}. "
         f"Distance: {distance}, Energy: {total_energy_cost:.1f}"
@@ -570,19 +653,27 @@ def _execute_nuclear_option(
 
     # Validate target_nation_id (Input Check)
     if target_nation_id is None:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = "Missing target_nation_id"
         engine.logs.append("☢️ [NUCLEAR] Missing target_nation_id")
         return
 
     if target_nation_id == nation_id:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = "Cannot target SELF"
         engine.logs.append("☢️ [NUCLEAR] Cannot target SELF with nuclear option")
         return
     
     if target_province_id is None:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = "Missing target_province_id"
         engine.logs.append("☢️ [NUCLEAR] Missing target_province_id")
         return
     
     # Validate: has nukes
     if nation.nukes < quantity:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"Insufficient nukes. Have {nation.nukes}, need {quantity}"
         engine.logs.append(
             f"☢️ [NUCLEAR] Insufficient nukes. Have {nation.nukes}, need {quantity}"
         )
@@ -591,12 +682,16 @@ def _execute_nuclear_option(
     # Validate: target exists
     target_province = world.provinces.get(target_province_id)
     if not target_province:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"Target province {target_province_id} not found"
         engine.logs.append(f"☢️ [NUCLEAR] Target province {target_province_id} not found")
         return
     
     # Validate: cannot nuke OCEAN or VOID terrain (no effect)
     from geomas.schemas.world import TerrainType
     if target_province.terrain in (TerrainType.OCEAN, TerrainType.VOID):
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"Cannot nuke {target_province.terrain.value} province"
         engine.logs.append(
             f"☢️ [NUCLEAR] Cannot nuke {target_province.terrain.value} province {target_province_id}"
         )
@@ -606,6 +701,8 @@ def _execute_nuclear_option(
 
     # Validate target_nation_id matches province owner (Consistency Check)
     if target_nation_id != victim_id:
+        move.execution_outcome.status = "FAILED"
+        move.execution_outcome.reason = f"target_nation_id {target_nation_id} mismatch with owner {victim_id}"
         engine.logs.append(
             f"☢️ [NUCLEAR] target_nation_id {target_nation_id} does not match "
             f"province owner {victim_id}"
@@ -645,6 +742,15 @@ def _execute_nuclear_option(
     target_province.food_production *= 0.2
     target_province.materials_production *= 0.2
     target_province.energy_production *= 0.2
+    
+    # Success Outcome
+    move.execution_outcome.status = "SUCCESS"
+    move.execution_outcome.reason = "Nuclear strike successful"
+    move.execution_outcome.details = {
+        "target_province": target_province_id,
+        "victim_id": victim_id,
+        "death_toll": pre_pop - target_province.population
+    }
     
     engine.logs.append(
         f"☢️ [NUCLEAR] {nation_id} nukes province {target_province_id}! "

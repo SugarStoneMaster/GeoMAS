@@ -1,50 +1,36 @@
-# 🚀 Sprint Corrente: Visual Testing & UI Integration
+# 🚀 Sprint Corrente: Synchronization, Memory & Persistence
 
 **Status:** Planning | **Priority:** High
 
 ---
 
 ## 🎯 Obiettivo
-Passare dal testing headless al **Testing Visuale** integrato nella UI esistente.
-Rimuovere tutti i mock/placeholders e abilitare le chiamate LLM reali per validare il comportamento degli agenti turno per turno.
+Sincronizzare l'esecuzione fisica (`ActionEngine`) con la memoria cognitiva (`ContextManager`) e garantire la persistenza totale dello stato per abilitare XAI e rigenerazione della simulazione.
 
 ---
 
 ## 📋 Tasks
 
-### 1. UI Integration (Real LLM)
-- [x] **Rimuovere Mock:** Sostituire i dati finti nella UI con dati reali dal `SimulationEngine`.
-- [x] **Manual Turn Control:** 
-    - [x] Disabilitare auto-play se presente.
-    - [x] Il bottone "Next Turn" deve eseguire un singolo step (`engine.step()`) e attendere.
-    - [x] Aggiornare lo stato della UI solo dopo il completamento del turno.
+### 1. Action-Outcome Synchronization
+- [ ] **Payload Update:** Aggiungere `ExecutionOutcome` (status, reason, details) a tutti gli schema di azione (`DefenseActionItem`, `EconomicPayload`, `ForeignPayload`).
+- [ ] **Handler Update:** Modificare gli handler in `actions/` affinché scrivano il risultato dell'esecuzione direttamente nel payload dell'envelope.
+- [ ] **Context Integration:** Aggiornare `ContextManager` per generare eventi e record d'azione basandosi sugli outcome reali invece che sulle pure intenzioni.
 
-### 2. Inspector View (Prompts & Context)
-- [x] **Agent Inspector Panel:**
-    - [x] Quando si seleziona una nazione, mostrare tab per ogni agente (Presidente, Esteri, Economia, Difesa, Opinione).
-    - [x] Per ogni agente mostrare:
-        - **System Prompt:** Il prompt statico/dinamico usato.
-        - **User/Input Prompt:** Il contesto fornito per quel turno.
-        - **Output Raw:** La risposta JSON dell'LLM.
+### 2. Context Manager & Memory Refinement
+- [ ] **Ego-Centric Memory:** Rafforzare la distinzione tra `GlobalEvents` (pubblici) e `NationActions` (audit privato con dettagli tecnici di successo/fallimento).
+- [ ] **Trust Trend Logic:** Ottimizzare il calcolo dei trend di trust basato sulla storia persistente.
 
-### 3. Event Log & History
-- [x] **Event Viewer:**
-    - [x] Sezione dedicata per consultare `ContextManager.global_events`.
-    - [x] Filtri per turno e nazione.
-    - [x] Visualizzazione chiara di come gli eventi vengono iniettati nel contesto (es. "Eventi Recenti").
+### 3. Full State Persistence (Explainability Base)
+- [ ] **DB Schema Extension:** Estendere `SimulationDB` per salvare lo stato interno del `ContextManager` (RelationshipSummaries, GlobalEvents, NationActions).
+- [ ] **Simulation Forking Base:** Implementare `SimulationEngine.load_state(turn)` che ricostruisce non solo il mondo, ma anche la memoria degli agenti per riprendere la simulazione in modo coerente.
+- [ ] **Token Observability:** Integrare i dati di consumo token nel record persistente del turno.
 
 ---
 
 ## 📌 Design Notes
 
-**Data Source:**
-- L'UI deve leggere direttamente da `engine.agents` e `engine.world`.
-- Per i prompt, useremo la struttura `last_trace` implementata in `NationAgent` e `Minister` (già pronta).
+**Sincronizzazione Verità:**
+L'`ActionEngine` è l'unica fonte di verità. Il `ContextManager` deve diventare un consumatore passivo di outcome validati, eliminando la duplicazione della logica di validazione nel parser di eventi.
 
-**UX Flow:**
-1. Setup Simulazione (Nazioni, Map Seed) -> Start.
-2. Dashboard visualizza Turno 0.
-3. User clicca "Next Turn".
-4. Spinner di caricamento (LLM in corso).
-5. Dashboard si aggiorna al Turno 1.
-6. User clicca su una Nazione -> Inspector apre i dettagli del ragionamento.
+**Explainability:**
+Ogni decisione dell'agente deve essere tracciabile non solo tramite il prompt, ma anche tramite la storia di successi/fallimenti che l'agente ha percepito nei turni precedenti.

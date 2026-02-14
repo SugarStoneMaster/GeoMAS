@@ -65,13 +65,17 @@ class TestSimulationDB:
         nations_json = '[{"id": "nation_1", "name": "Test Nation"}]'
         trust_json = '{"nation_1:nation_2": 50}'
         relations_json = '{"nation_1:nation_2": "PEACE"}'
+        world_events_json = '["Event 1"]'
+        memory_json = '{"relationship_summaries": {}}'
         
         initialized_db.save_snapshot(
             turn=1,
             provinces_json=provinces_json,
             nations_json=nations_json,
             trust_matrix_json=trust_json,
-            relationship_matrix_json=relations_json
+            relationship_matrix_json=relations_json,
+            world_events_json=world_events_json,
+            memory_json=memory_json
         )
         
         snapshot = initialized_db.load_snapshot(1)
@@ -79,6 +83,8 @@ class TestSimulationDB:
         assert snapshot is not None
         assert snapshot["provinces_json"] is not None
         assert snapshot["nations_json"] is not None
+        assert snapshot["world_events_json"] == '["Event 1"]'
+        assert snapshot["memory_json"] == '{"relationship_summaries": {}}'
     
     def test_save_and_load_envelope(self, initialized_db):
         """Envelopes can be saved and loaded."""
@@ -142,6 +148,29 @@ class TestSimulationDB:
         """Loading nonexistent snapshot returns None."""
         snapshot = initialized_db.load_snapshot(999)
         assert snapshot is None
+
+    def test_token_usage(self, initialized_db):
+        """Token usage can be saved and retrieved as DataFrame."""
+        initialized_db.save_token_usage(
+            turn=1,
+            nation_id="nation_1",
+            agent_type="President",
+            prompt_tokens=100,
+            completion_tokens=50,
+            total_tokens=150,
+            model="gpt-4",
+            cost=0.005
+        )
+        
+        df = initialized_db.get_token_timeline("nation_1")
+        assert len(df) == 1
+        assert df.iloc[0]["total_tokens"] == 150
+        assert df.iloc[0]["cost"] == pytest.approx(0.005)
+        
+        # Test global timeline
+        df_all = initialized_db.get_token_timeline()
+        assert len(df_all) == 1
+        assert df_all.iloc[0]["total_cost"] == pytest.approx(0.005)
 
 
 class TestSerialization:

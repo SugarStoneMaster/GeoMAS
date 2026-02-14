@@ -94,6 +94,8 @@ class SimulationDB:
                 nations_json JSON,
                 trust_matrix JSON,
                 relationship_matrix JSON,
+                world_events_json JSON,
+                memory_json JSON,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -134,6 +136,21 @@ class SimulationDB:
             n_cells,
             datetime.now()
         ])
+
+        # NEW: Token usage table
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS token_usage (
+                turn INTEGER,
+                nation_id VARCHAR,
+                agent_type VARCHAR,
+                prompt_tokens INTEGER,
+                completion_tokens INTEGER,
+                total_tokens INTEGER,
+                model VARCHAR,
+                cost FLOAT,
+                PRIMARY KEY (turn, nation_id, agent_type)
+            )
+        """)
     
     def save_snapshot(
         self,
@@ -141,7 +158,9 @@ class SimulationDB:
         provinces_json: str,
         nations_json: str,
         trust_matrix_json: str,
-        relationship_matrix_json: str
+        relationship_matrix_json: str,
+        world_events_json: str,
+        memory_json: str
     ) -> None:
         """
         Save world state snapshot for a turn.
@@ -152,12 +171,14 @@ class SimulationDB:
             nations_json: JSON string of nations list
             trust_matrix_json: JSON string of trust matrix
             relationship_matrix_json: JSON string of relationship matrix
+            world_events_json: JSON string of global events logs
+            memory_json: JSON string of ContextManager state
         """
         self.conn.execute("""
             INSERT OR REPLACE INTO snapshots 
-            (turn, provinces_json, nations_json, trust_matrix, relationship_matrix)
-            VALUES (?, ?::JSON, ?::JSON, ?::JSON, ?::JSON)
-        """, [turn, provinces_json, nations_json, trust_matrix_json, relationship_matrix_json])
+            (turn, provinces_json, nations_json, trust_matrix, relationship_matrix, world_events_json, memory_json)
+            VALUES (?, ?::JSON, ?::JSON, ?::JSON, ?::JSON, ?::JSON, ?::JSON)
+        """, [turn, provinces_json, nations_json, trust_matrix_json, relationship_matrix_json, world_events_json, memory_json])
         
         # Update total turns
         self.conn.execute("""
@@ -223,7 +244,7 @@ class SimulationDB:
             or None if turn not found.
         """
         result = self.conn.execute("""
-            SELECT provinces_json, nations_json, trust_matrix, relationship_matrix
+            SELECT provinces_json, nations_json, trust_matrix, relationship_matrix, world_events_json, memory_json
             FROM snapshots WHERE turn = ?
         """, [turn]).fetchone()
         
@@ -234,7 +255,9 @@ class SimulationDB:
             "provinces_json": result[0],
             "nations_json": result[1],
             "trust_matrix": result[2],
-            "relationship_matrix": result[3]
+            "relationship_matrix": result[3],
+            "world_events_json": result[4],
+            "memory_json": result[5]
         }
     
     def load_envelopes(self, turn: int) -> list:
@@ -290,6 +313,37 @@ class SimulationDB:
             WHERE nation_id = ?
             ORDER BY turn
         """, [nation_id]).df()
+
+    def save_token_usage(
+        self,
+        turn: int,
+        nation_id: str,
+        agent_type: str,
+        prompt_tokens: int,
+        completion_tokens: int,
+        total_tokens: int,
+        model: str,
+        cost: float
+    ) -> None:
+        """Save token usage for an agent."""
+        self.conn.execute("""
+            INSERT OR REPLACE INTO token_usage 
+            (turn, nation_id, agent_type, prompt_tokens, completion_tokens, total_tokens, model, cost)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, [turn, nation_id, agent_type, prompt_tokens, completion_tokens, total_tokens, model, cost])
+
+    def get_token_timeline(self, nation_id: Optional[str] = None):
+        """Get token usage over time."""
+        if nation_id:
+            return self.conn.execute("""
+                SELECT turn, agent_type, total_tokens, cost
+                FROM token_usage WHERE nation_id = ? ORDER BY turn ASC
+            """, [nation_id]).df()
+        else:
+             return self.conn.execute("""
+                SELECT turn, SUM(total_tokens) as total_tokens, SUM(cost) as total_cost
+                FROM token_usage GROUP BY turn ORDER BY turn ASC
+            """).df()
     
     def get_simulation_info(self) -> Optional[dict]:
         """Get simulation metadata."""

@@ -8,7 +8,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
 
-from geomas.actions.common import Decision
+from geomas.actions.common import Decision, ExecutionOutcome
 
 
 class ForeignActionType(str, Enum):
@@ -82,4 +82,11 @@ class ForeignPayload(ForeignProposalPayload):
     decision: Decision = Field(
         default=Decision.PENDING,
         description="FOR PRESIDENT ONLY. Ministers MUST leave as PENDING."
+    )
+
+    # Internal execution field (not visible to LLM)
+    execution_outcome: ExecutionOutcome = Field(
+        default_factory=ExecutionOutcome,
+        exclude=True,
+        description="INTERNAL USE ONLY. Tracks success/failure of this specific action."
     )

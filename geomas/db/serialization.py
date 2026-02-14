@@ -101,22 +101,50 @@ def serialize_envelope(envelope) -> str:
     return json.dumps(convert_numpy(data))
 
 
-def serialize_world_snapshot(world) -> Dict[str, str]:
+def serialize_world_snapshot(world, memory=None) -> Dict[str, str]:
     """
-    Serialize full WorldState to JSON strings for DB storage.
+    Serialize full WorldState and optional ContextManager to JSON strings.
     
     Args:
         world: WorldState instance
+        memory: Optional ContextManager instance
         
     Returns:
-        Dict with provinces_json, nations_json, trust_matrix_json, relationship_matrix_json
+        Dict with provinces_json, nations_json, trust_matrix_json, 
+        relationship_matrix_json, and memory_json
     """
-    return {
+    data = {
         'provinces_json': serialize_provinces(world.provinces),
         'nations_json': serialize_nations(world.nations),
         'trust_matrix_json': serialize_trust_matrix(world.trust_matrix),
-        'relationship_matrix_json': serialize_relationship_matrix(world.relationship_matrix)
+        'relationship_matrix_json': serialize_relationship_matrix(world.relationship_matrix),
+        'world_events_json': json.dumps(convert_numpy(world.global_events))
     }
+    if memory:
+        data['memory_json'] = serialize_memory(memory)
+    else:
+        data['memory_json'] = json.dumps({})
+        
+    return data
+
+
+def serialize_memory(memory) -> str:
+    """
+    Serialize ContextManager state to JSON string.
+    """
+    data = {
+        "relationship_summaries": {
+            n_id: {o_id: summary.model_dump() for o_id, summary in rels.items()}
+            for n_id, rels in memory.relationship_summaries.items()
+        },
+        "global_events": [e.model_dump() for e in memory.global_events],
+        "nation_actions": {
+            n_id: [a.model_dump() for a in actions]
+            for n_id, actions in memory.nation_actions.items()
+        },
+        "trust_history": memory._trust_history
+    }
+    return json.dumps(convert_numpy(data))
 
 
 # --- DESERIALIZATION ---
@@ -233,3 +261,28 @@ def deserialize_world_snapshot(
         relationship_matrix=deserialize_relationship_matrix(relationship_matrix_json),
         global_events=global_events or []
     )
+
+
+def deserialize_memory_state(json_data: str) -> Dict[str, Any]:
+    """
+    Deserialize ContextManager JSON back to object state.
+    """
+    from geomas.agents.context.memory.schemas import RelationshipSummary, NotableEvent, MyAction
+    
+    data = json.loads(json_data)
+    if not data:
+        return {}
+        
+    state = {
+        "relationship_summaries": {
+            n_id: {o_id: RelationshipSummary(**summary_dict) for o_id, summary_dict in rels.items()}
+            for n_id, rels in data.get("relationship_summaries", {}).items()
+        },
+        "global_events": [NotableEvent(**e_dict) for e_dict in data.get("global_events", [])],
+        "nation_actions": {
+            n_id: [MyAction(**a_dict) for a_dict in actions]
+            for n_id, actions in data.get("nation_actions", {}).items()
+        },
+        "trust_history": data.get("trust_history", {})
+    }
+    return state

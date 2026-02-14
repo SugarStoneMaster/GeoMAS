@@ -52,11 +52,15 @@ def execute_economic(
         # Check budget and materials
         can_afford_b, reason_b = ActionValidators.can_afford_budget(engine.world, nation_id, budget_amount)
         if not can_afford_b:
+            payload.execution_outcome.status = "FAILED"
+            payload.execution_outcome.reason = reason_b
             engine.logs.append(f"💰 [ECONOMY] Failed INVEST_WELFARE: {reason_b}")
             return
             
         can_afford_m, reason_m = ActionValidators.can_afford_materials(engine.world, nation_id, materials_amount)
         if not can_afford_m:
+            payload.execution_outcome.status = "FAILED"
+            payload.execution_outcome.reason = reason_m
             engine.logs.append(f"💰 [ECONOMY] Failed INVEST_WELFARE: {reason_m}")
             return
         
@@ -72,6 +76,15 @@ def execute_economic(
                 nation.public_satisfaction + satisfaction_gain
             )
             msg_str = f" Message to citizens: '{payload.message}'" if payload.message else ""
+            # Success Outcome
+            payload.execution_outcome.status = "SUCCESS"
+            payload.execution_outcome.reason = "Welfare investment completed"
+            payload.execution_outcome.details = {
+                "budget_spent": budget_amount,
+                "materials_spent": materials_amount,
+                "satisfaction_gain": satisfaction_gain
+            }
+
             engine.logs.append(
                 f"💰 [ECONOMY] Invested {budget_amount:.0f} Budget and {materials_amount:.0f} Materials in Welfare. "
                 f"Satisfaction +{satisfaction_gain:.1f} (now {nation.public_satisfaction:.0f}){msg_str}"
@@ -81,6 +94,8 @@ def execute_economic(
     elif payload.action_type == EconomicActionType.RAISE_WAR_TAX:
         allowed, reason = ActionValidators.can_raise_war_tax(engine.world, nation_id)
         if not allowed:
+            payload.execution_outcome.status = "FAILED"
+            payload.execution_outcome.reason = reason
             engine.logs.append(f"💰 [ECONOMY] Failed RAISE_WAR_TAX: {reason}")
             return
         
@@ -98,6 +113,14 @@ def execute_economic(
         nation.public_satisfaction -= final_penalty
         nation.public_satisfaction = max(0, nation.public_satisfaction)
         
+        # Success Outcome
+        payload.execution_outcome.status = "SUCCESS"
+        payload.execution_outcome.reason = "War tax raised"
+        payload.execution_outcome.details = {
+            "budget_gain": tax_boost,
+            "satisfaction_penalty": final_penalty
+        }
+
         msg_str = f" Message to citizens: '{payload.message}'" if payload.message else ""
         engine.logs.append(
             f"💰 [ECONOMY] War Tax raised! Budget +{tax_boost:.0f}, "
@@ -108,6 +131,8 @@ def execute_economic(
     elif payload.action_type == EconomicActionType.TRADE_PROPOSAL:
         target_id = payload.target_nation_id
         if not target_id:
+            payload.execution_outcome.status = "FAILED"
+            payload.execution_outcome.reason = "No target nation specified"
             engine.logs.append("📦 [ECONOMY] Failed TRADE_PROPOSAL: No target specified")
             return
         
@@ -117,10 +142,14 @@ def execute_economic(
         want_type = payload.want_type.lower() if payload.want_type else None
         
         if not give_type or not want_type or give_amount is None:
+            payload.execution_outcome.status = "FAILED"
+            payload.execution_outcome.reason = "Missing trade parameters"
             engine.logs.append(f"📦 [ECONOMY] Failed TRADE_PROPOSAL: Missing parameters (give_type, give_amount, or want_type)")
             return
             
         if give_amount <= 0:
+            payload.execution_outcome.status = "FAILED"
+            payload.execution_outcome.reason = "Trade amount must be positive"
             engine.logs.append(f"📦 [ECONOMY] Failed TRADE_PROPOSAL: Amount must be positive")
             return
             
@@ -131,6 +160,8 @@ def execute_economic(
         want_price = BASE_PRICES.get(want_type)
         
         if give_price is None or want_price is None:
+             payload.execution_outcome.status = "FAILED"
+             payload.execution_outcome.reason = f"Invalid resource: {give_type}/{want_type}"
              engine.logs.append(f"📦 [ECONOMY] Failed TRADE_PROPOSAL: Invalid resource '{give_type}' or '{want_type}'")
              return
 
@@ -155,6 +186,18 @@ def execute_economic(
         # Evaluate using Oracle (Trust & Balance Check)
         accepted, explanation = evaluate_trade(offer, engine.world)
         
+        # Update Outcome
+        payload.execution_outcome.status = "SUCCESS" if accepted else "REJECTED"
+        payload.execution_outcome.reason = explanation
+        payload.execution_outcome.details = {
+            "target_id": target_id,
+            "give_type": give_type,
+            "give_amount": give_amount,
+            "want_type": want_type,
+            "total_value": total_value,
+            "accepted": accepted
+        }
+
         if accepted:
             # Execute trade: transfer resources
             execute_trade(engine.world, offer)
