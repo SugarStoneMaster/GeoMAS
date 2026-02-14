@@ -69,6 +69,11 @@ class OpinionAgent:
         self.llm_client = llm_client
         self.world = world
         
+        # Traces for analysis
+        self.last_system_prompt: Optional[str] = None
+        self.last_input_prompt: Optional[str] = None
+        self.last_response: Optional[OpinionResponse] = None
+        self.trace_history: dict = {} # turn -> trace
         # Eager Initialization
         self.system_prompt = OpinionSystemPrompt.generate(nation_name, cultural_traits)
     
@@ -95,9 +100,16 @@ class OpinionAgent:
         """
         if not self.llm_client:
             # Fallback: deterministic reaction based on traits
-            return self._deterministic_reaction(
+            response = self._deterministic_reaction(
                 events, government_actions, current_satisfaction, at_war
             )
+            # Minimal trace for fallback
+            self.trace_history[turn] = {
+                "system_prompt": "Deterministic Fallback",
+                "user_prompt": f"Satisfaction: {current_satisfaction}%",
+                "proposal": response
+            }
+            return response
         
         # Build prompt using new architecture if world is available
         if self.world:
@@ -130,6 +142,13 @@ class OpinionAgent:
         response.last_system_prompt = system_prompt
         response.last_input_prompt = input_prompt
         response.raw_json = self.llm_client.last_raw_content
+        
+        # Save to trace history for Dashboard Inspector
+        self.trace_history[turn] = {
+            "system_prompt": system_prompt,
+            "user_prompt": input_prompt,
+            "proposal": response
+        }
         
         return response
     

@@ -52,7 +52,8 @@ def render_map_page(world: WorldState) -> None:
                 sim = st.session_state["sim"]
                 if selected_nation_id in sim.agents:
                     agent = sim.agents[selected_nation_id]
-                    render_inspector(selected_nation_id, agent)
+                    opinion_agent = sim.opinion_agents.get(selected_nation_id)
+                    render_inspector(selected_nation_id, agent, opinion_agent=opinion_agent)
 
 
 def render_nation_selector(world: WorldState) -> str:

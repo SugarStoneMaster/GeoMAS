@@ -2,13 +2,14 @@ import streamlit as st
 import json
 from geomas.agents.nation_agent import NationAgent
 
-def render_inspector(nation_id: str, agent: NationAgent):
+def render_inspector(nation_id: str, agent: NationAgent, opinion_agent=None):
     """
     Renders the Inspector Panel for a selected nation's agents.
     
     Args:
         nation_id: The ID of the selected nation.
         agent: The NationAgent instance.
+        opinion_agent: Optional OpinionAgent instance.
     """
     history = getattr(agent, 'trace_history', {})
     
@@ -34,7 +35,7 @@ def render_inspector(nation_id: str, agent: NationAgent):
     agent_trace = history[selected_turn]
     
     # Tabs for each agent role
-    tabs = st.tabs(["President", "Defense", "Economy", "Foreign"])
+    tabs = st.tabs(["President", "Defense", "Economy", "Foreign", "Public Opinion"])
     
     # helper to render a single agent's trace
     def _render_trace(trace_data, title):
@@ -82,3 +83,12 @@ def render_inspector(nation_id: str, agent: NationAgent):
     with tabs[3]:
         st.markdown("### 🤝 Foreign Minister")
         _render_trace(agent_trace.get("foreign"), "Foreign Minister")
+
+    # 5. PUBLIC OPINION TAB
+    with tabs[4]:
+        st.markdown("### 👥 Public Opinion")
+        if opinion_agent:
+            opinion_history = getattr(opinion_agent, 'trace_history', {})
+            _render_trace(opinion_history.get(selected_turn), "Public Opinion")
+        else:
+            st.info("Opinion agent details not available in this context.")
