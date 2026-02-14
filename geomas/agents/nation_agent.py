@@ -348,7 +348,7 @@ class NationAgent:
             for_priv_intent = ForeignIntentType.IDLE
             for_reasoning = f"VETOED: {decree.foreign.reasoning}"
 
-        return CountryEnvelope(
+        envelope = CountryEnvelope(
             turn=turn,
             sender_id=self.id,
             global_strategy=self.strategy, 
@@ -367,8 +367,13 @@ class NationAgent:
             foreign_payload=for_payload,
             foreign_public_intent=for_pub_intent,
             foreign_private_intent=for_priv_intent,
-            foreign_private_reasoning=for_reasoning
+            foreign_private_reasoning=for_reasoning,
+
+            # Capture Prompts for Explainability
+            last_system_prompt=self.last_president_trace.get("system_prompt"),
+            last_input_prompt=self.last_president_trace.get("user_prompt")
         )
+        return envelope
 
     def _summarize_defense(self, proposal: DefenseProposal) -> str:
         """Format defense proposal for President."""

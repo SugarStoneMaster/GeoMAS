@@ -12,18 +12,20 @@ Sincronizzare l'esecuzione fisica (`ActionEngine`) con la memoria cognitiva (`Co
 ## 📋 Tasks
 
 ### 1. Action-Outcome Synchronization
-- [ ] **Payload Update:** Aggiungere `ExecutionOutcome` (status, reason, details) a tutti gli schema di azione (`DefenseActionItem`, `EconomicPayload`, `ForeignPayload`).
-- [ ] **Handler Update:** Modificare gli handler in `actions/` affinché scrivano il risultato dell'esecuzione direttamente nel payload dell'envelope.
-- [ ] **Context Integration:** Aggiornare `ContextManager` per generare eventi e record d'azione basandosi sugli outcome reali invece che sulle pure intenzioni.
+- [x] **Payload Update:** Aggiunta `execution_outcome` a tutti gli schema di azione.
+- [x] **Handler Update:** Modificati gli handler per popolare l'outcome.
+- [x] **Context Integration:** Aggiornato `ContextManager` per usare outcome reali.
 
 ### 2. Context Manager & Memory Refinement
-- [ ] **Ego-Centric Memory:** Rafforzare la distinzione tra `GlobalEvents` (pubblici) e `NationActions` (audit privato con dettagli tecnici di successo/fallimento).
-- [ ] **Trust Trend Logic:** Ottimizzare il calcolo dei trend di trust basato sulla storia persistente.
+- [x] **Ego-Centric Memory:** Distinzione tra eventi globali e azioni private.
+- [x] **Trust Trend Logic:** Ottimizzato il calcolo e la persistenza dei trend.
 
 ### 3. Full State Persistence (Explainability Base)
-- [ ] **DB Schema Extension:** Estendere `SimulationDB` per salvare lo stato interno del `ContextManager` (RelationshipSummaries, GlobalEvents, NationActions).
-- [ ] **Simulation Forking Base:** Implementare `SimulationEngine.load_state(turn)` che ricostruisce non solo il mondo, ma anche la memoria degli agenti per riprendere la simulazione in modo coerente.
-- [ ] **Token Observability:** Integrare i dati di consumo token nel record persistente del turno.
+- [x] **DB Schema Extension:** Salvataggio stato `ContextManager` (memory_json).
+- [x] **Simulation Forking Base:** Implementato `SimulationEngine.load_state(turn)` per ricostruzione totale dell'universo (mondo + memoria).
+- [x] **Token Observability:** Integrata tabella `token_usage` e calcolo costi automatico per turno.
+- [x] **Prompt Persistence:** Cattura e salvataggio di `system_prompt` e `input_prompt` per ogni decisione presidenziale nell'envelope (visibili in DB per analisi XAI).
+- [x] **Regression Testing:** Ripristinato test di integrazione (`tests/integration/test_regeneration.py`) con mock LLM per garantire la stabilità del ripristino stato.
 
 ---
 

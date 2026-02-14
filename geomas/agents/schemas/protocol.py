@@ -201,3 +201,13 @@ class CountryEnvelope(BaseModel):
     foreign_private_reasoning: str = Field(
         ..., description="Internal reasoning for foreign decisions (XAI)."
     )
+    
+    # ═══════════════════════════════════════════════════════════════
+    # PROMPT PERSISTENCE (Internal Use)
+    # ═══════════════════════════════════════════════════════════════
+    last_system_prompt: Optional[str] = Field(
+        None, description="The system prompt used for this decision."
+    )
+    last_input_prompt: Optional[str] = Field(
+        None, description="The user/input prompt used for this decision."
+    )

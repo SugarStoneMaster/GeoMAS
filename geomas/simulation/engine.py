@@ -105,7 +105,7 @@ class SimulationEngine:
         )
         
         # Save initial world state (turn 1 - Genesis)
-        snapshot = serialize_world_snapshot(self.world)
+        snapshot = serialize_world_snapshot(self.world, self.context_manager)
         self.db.save_snapshot(
             turn=1,
             **snapshot
