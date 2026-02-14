@@ -125,7 +125,9 @@ class MilitaryTranslator:
         heavily_defended = []
         lightly_defended = []
         undefended = []
-        interior_forces = []
+        
+        interior_count = 0
+        interior_units = 0
         
         for p_id in nation.province_ids:
             prov = self.world.provinces[p_id]
@@ -141,7 +143,8 @@ class MilitaryTranslator:
                     undefended.append(p_id)
             else:
                 if total_units > 0:
-                    interior_forces.append((p_id, total_units))
+                    interior_count += 1
+                    interior_units += total_units
         
         lines = ["## 🗺️ FORCE DEPLOYMENT"]
         
@@ -158,16 +161,9 @@ class MilitaryTranslator:
             lines.append(f"**⚠️ UNDEFENDED BORDERS ({len(undefended)}):** {ud_str}")
             lines.append("  → Consider CREATE_UNIT or MOVE_TROOPS to fill these gaps!")
         
-        if interior_forces:
-            total_interior = sum(u for _, u in interior_forces)
-            lines.append(f"**Reserves:** {total_interior:,} units in {len(interior_forces)} interior provinces")
-        
-        # Calculate border coverage
-        total_border = len(border_provinces)
-        defended_border = len(heavily_defended) + len(lightly_defended)
-        if total_border > 0:
-            coverage = (defended_border / total_border) * 100
-            lines.append(f"\n**Border coverage:** {coverage:.0f}% of border provinces have troops")
+        # AGGREGATED INTERIOR FORCES (Less Verbosity)
+        if interior_units > 0:
+            lines.append(f"**Reserves (Interior):** {interior_units:,} units in {interior_count} provinces")
         
         return "\n".join(lines)
 
@@ -505,9 +501,13 @@ class MilitaryTranslator:
         p_ids = sorted(nation.province_ids)
         
         # --- Section 1: TROOP POSITIONS (only provinces with units) ---
-        troop_lines = ["## 🚚 TROOP POSITIONS"]
-        troop_lines.append("**Legend:** S=Soldier, A=Aircraft, N=Navy. You can ONLY move units that EXIST here.")
-        troop_lines.append("**→ Can reach** shows valid `target_province_id` destinations for MOVE_TROOPS (with `source_province_id` = this province).")
+        troop_lines = ["## 🚚 TROOP POSITIONS & LOGISTICS"]
+        
+        # Explicit Movement Rules
+        troop_lines.append("**Logistics Rules:**")
+        troop_lines.append("- **Ranges:** Soldier=2, Navy=4, Aircraft=6.")
+        troop_lines.append("- **Terrain:** Soldiers blocked by OCEAN. Navy only OCEAN.")
+        troop_lines.append("- **Valid Moves:** Only listed 'Can reach' destinations are valid.")
         
         has_troops = False
         for p_id in p_ids:
@@ -532,6 +532,8 @@ class MilitaryTranslator:
             has_troops = True
             terrain_tag = f"[{prov.terrain.value.upper()}]" if prov.terrain else ""
             location = "BORDER" if p_id in border_provinces else "INTERIOR"
+            
+            # Compact entry
             lines_entry = f"- **{p_id}** {terrain_tag} ({', '.join(unit_strs)}) [{location}]"
             
             # Compute reachable destinations for each unit type present
@@ -540,15 +542,25 @@ class MilitaryTranslator:
                 if reachable:
                     # Format: show province ID + owner tag for enemy provinces
                     dest_strs = []
-                    for r_id in sorted(reachable)[:12]:  # Cap at 12 for token budget
+                    for r_id in sorted(reachable)[:8]:  # Cap at 8 for verbosity
                         r_prov = self.world.provinces.get(r_id)
+                        
+                        # EXPLICIT TERRAIN WARNING FOR SOLDIERS
+                        if ut == UnitType.SOLDIER and r_prov and r_prov.terrain == TerrainType.OCEAN:
+                            # Skip listing Sea for soldiers entirely to avoid confusion? 
+                            # Or mark it as invalid? The validator blocks it.
+                            # Better to SKIP it so the LLM doesn't even see it as an option.
+                            continue
+                            
                         if r_prov and r_prov.owner_id and r_prov.owner_id != nation_id:
                             owner_tag = r_prov.owner_id  # FULL ID for valid target_nation_id
                             dest_strs.append(f"{r_id}({owner_tag})")
                         else:
                             dest_strs.append(str(r_id))
-                    ut_label = ut.value[0]  # S, N, or A
-                    lines_entry += f"\n  → {ut_label} can reach: {', '.join(dest_strs)}"
+                    
+                    if dest_strs:
+                        ut_label = ut.value[0]  # S, N, or A
+                        lines_entry += f"\n  → {ut_label} reaches: {', '.join(dest_strs)}"
             
             troop_lines.append(lines_entry)
         
@@ -557,7 +569,7 @@ class MilitaryTranslator:
         
         # --- Section 2: BORDER MAP (border provinces → enemy neighbors only) ---
         border_lines = ["\n## 🗺️ BORDER MAP"]
-        border_lines.append("Your border provinces and their enemy/sea neighbors. Use for MOVE_TROOPS routing.")
+        border_lines.append("Use for routing. ❌=Invalid for Soldiers.")
         
         for p_id in sorted(border_provinces):
             prov = self.world.provinces.get(p_id)
@@ -572,17 +584,17 @@ class MilitaryTranslator:
                 if not n_prov: continue
                 
                 if n_prov.owner_id == nation_id:
-                    continue  # Skip own neighbors — not interesting for border map
+                    continue  # Skip own neighbors
                 
                 if n_prov.owner_id and n_prov.owner_id in self.world.nations:
-                    owner_name = n_prov.owner_id  # FULL ID for valid target_nation_id
+                    owner_name = n_prov.owner_id
                     n_units = []
                     if n_prov.soldiers > 0: n_units.append(f"{n_prov.soldiers}S")
                     if n_prov.aircraft > 0: n_units.append(f"{n_prov.aircraft}A")
                     units_str = f" {','.join(n_units)}" if n_units else ""
                     neighbor_strs.append(f"{n_id}({owner_name}{units_str})")
                 elif n_prov.terrain == TerrainType.OCEAN:
-                    neighbor_strs.append(f"{n_id}(Sea)")
+                    neighbor_strs.append(f"{n_id}(❌SEA)") # Explicit warning
             
             if neighbor_strs:
                 border_lines.append(f"- **{p_id}** {terrain_tag} → [{', '.join(neighbor_strs)}]")

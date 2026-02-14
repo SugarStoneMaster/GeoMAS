@@ -180,80 +180,11 @@ class DefenseInputBuilder:
 {advice}"""
 
     def _build_strategic_assessment(self, nation_id: str) -> str:
-        """Build compact strategic assessment with correct directional semantics."""
-        lines = ["## ⚔️ STRATEGIC ASSESSMENT"]
-        lines.append("Border clashes — YOUR province vs. ENEMY province:")
-        
-        nation = self.world.nations[nation_id]
-        
-        # Collect unique border matchups (my_province, enemy_province)
-        seen = set()
-        matchups = []
-        
-        for p_id in nation.province_ids:
-            prov = self.world.provinces.get(p_id)
-            if not prov:
-                continue
-            
-            for n_id in prov.neighbors:
-                neighbor = self.world.provinces.get(n_id)
-                if not neighbor or not neighbor.owner_id or neighbor.owner_id == nation_id:
-                    continue
-                
-                # Deduplicate by pair
-                pair_key = (min(p_id, n_id), max(p_id, n_id))
-                if pair_key in seen:
-                    continue
-                seen.add(pair_key)
-                
-                # Get owner name
-                enemy_id = neighbor.owner_id
-                if enemy_id not in self.world.nations:
-                    continue
-                enemy_name = self.world.nations[enemy_id].name
-                
-                my_force = prov.soldiers + prov.aircraft
-                enemy_force = neighbor.soldiers + neighbor.aircraft
-                
-                # Rough win assessment (defender gets terrain bonus)
-                terrain_bonus = 1.5 if hasattr(neighbor, 'terrain') and str(neighbor.terrain) != 'plain' else 1.0
-                needed = int(enemy_force * terrain_bonus * 1.1)
-                
-                if my_force > needed and my_force >= 50:
-                    status = "✅ WINNABLE"
-                elif my_force * 2 < enemy_force:
-                    status = "❌ SUICIDE"
-                elif enemy_force > my_force * 1.5:
-                    status = "⚠️ DEFEND"
-                else:
-                    status = "⚠️ RISKY"
-                
-                matchups.append({
-                    "my_prov": p_id,
-                    "my_force": my_force,
-                    "enemy_prov": n_id,
-                    "enemy_name": enemy_name,
-                    "enemy_id": enemy_id,
-                    "enemy_force": enemy_force,
-                    "status": status
-                })
-        
-        if not matchups:
-            lines.append("No immediate border threats.")
-        else:
-            # Sort by urgency: threats first, then opportunities
-            matchups.sort(key=lambda m: (
-                0 if "SUICIDE" in m["status"] or "DEFEND" in m["status"] else 1,
-                -m["enemy_force"]
-            ))
-            for m in matchups[:8]:
-                lines.append(
-                    f"- Your **{m['my_prov']}** ({m['my_force']}S) ↔ "
-                    f"**{m['enemy_prov']}** [{m['enemy_name']}] ({m['enemy_force']}S): "
-                    f"{m['status']}"
-                )
-            
-        return "\n".join(lines)
+        """
+        Build compact strategic assessment.
+        Delegates to MilitaryTranslator to avoid duplication.
+        """
+        return self.military_translator.analyze_threats(nation_id)
 
     def _build_recent_actions(self, actions: List[str]) -> str:
         """Build recent military actions section."""
