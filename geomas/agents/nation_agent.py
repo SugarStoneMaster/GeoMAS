@@ -70,7 +70,7 @@ class NationAgent:
         self.trace_history: dict = {} # turn -> trace
         self.last_president_trace: dict = {} 
 
-    def act(self, turn: int) -> CountryEnvelope:
+    def act(self, turn: int, injections: Optional[List[dict]] = None) -> CountryEnvelope:
         """
         Main cognitive loop:
         1. Ministers Propose
@@ -83,9 +83,35 @@ class NationAgent:
             "defense": {}, "economy": {}, "foreign": {}, "president": {}, "envelope": None
         }
         
+        # Parse Injections used for Counterfactual Analysis
+        def_inj = None
+        eco_inj = None
+        for_inj = None
+        
+        if injections:
+            for inj in injections:
+                # Injection format: {nation_id, role, intent, type}
+                if inj.get("nation_id") == self.id:
+                    role = inj.get("role", "").upper()
+                    intent = inj.get("intent", "UNKNOWN")
+                    c_type = inj.get("type", "FORCE")
+                    
+                    instruction = ""
+                    if c_type == "FORCE":
+                        instruction = f"choose Intent {intent}"
+                    elif c_type == "FORBID":
+                        instruction = f"NOT choose Intent {intent}"
+                    
+                    if "DEFENSE" in role:
+                        def_inj = instruction
+                    elif "ECONOMY" in role:
+                        eco_inj = instruction
+                    elif "FOREIGN" in role:
+                        for_inj = instruction
+
         # 1. CABINET PHASE — Parallel Execution
         # We run the async cabinet phase in a new event loop
-        def_prop, eco_prop, for_prop = asyncio.run(self._async_cabinet_phase(turn))
+        def_prop, eco_prop, for_prop = asyncio.run(self._async_cabinet_phase(turn, def_inj, eco_inj, for_inj))
         
         self.last_trace["defense"] = self.defense_minister.last_trace
         self.last_trace["economy"] = self.economy_minister.last_trace
@@ -119,20 +145,20 @@ class NationAgent:
 
     # --- MINISTER FAILURE ISOLATION (ASYNC) ---
 
-    async def _async_cabinet_phase(self, turn: int):
+    async def _async_cabinet_phase(self, turn: int, def_inj: Optional[str] = None, eco_inj: Optional[str] = None, for_inj: Optional[str] = None):
         """Execute all minister proposals in parallel."""
         return await asyncio.gather(
-            self._safe_apropose_defense(turn),
-            self._safe_apropose_economy(turn),
-            self._safe_apropose_foreign(turn)
+            self._safe_apropose_defense(turn, def_inj),
+            self._safe_apropose_economy(turn, eco_inj),
+            self._safe_apropose_foreign(turn, for_inj)
         )
 
-    async def _safe_apropose_defense(self, turn: int) -> DefenseProposal:
+    async def _safe_apropose_defense(self, turn: int, injection: Optional[str] = None) -> DefenseProposal:
         """Propose defense with fallback on failure."""
         try:
             # Add 60s timeout to prevent hanging the simulation
             return await asyncio.wait_for(
-                self.defense_minister.apropose(self.strategy, turn),
+                self.defense_minister.apropose(self.strategy, turn, injection),
                 timeout=100.0
             )
         except Exception as e:
@@ -146,11 +172,11 @@ class NationAgent:
                 payload=DefenseProposalPayload(moves=[])
             )
 
-    async def _safe_apropose_economy(self, turn: int) -> EconomicProposal:
+    async def _safe_apropose_economy(self, turn: int, injection: Optional[str] = None) -> EconomicProposal:
         """Propose economy with fallback on failure."""
         try:
             return await asyncio.wait_for(
-                self.economy_minister.apropose(self.strategy, turn),
+                self.economy_minister.apropose(self.strategy, turn, injection),
                 timeout=100.0
             )
         except Exception as e:
@@ -165,11 +191,11 @@ class NationAgent:
                 projected_cost=0.0
             )
 
-    async def _safe_apropose_foreign(self, turn: int) -> ForeignProposal:
+    async def _safe_apropose_foreign(self, turn: int, injection: Optional[str] = None) -> ForeignProposal:
         """Propose foreign with fallback on failure."""
         try:
             return await asyncio.wait_for(
-                self.foreign_minister.apropose(self.strategy, turn),
+                self.foreign_minister.apropose(self.strategy, turn, injection),
                 timeout=100.0
             )
         except Exception as e:

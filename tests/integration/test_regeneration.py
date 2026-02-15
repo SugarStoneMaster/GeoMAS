@@ -97,7 +97,7 @@ def test_simulation_regeneration_roundtrip(mock_act_response):
         
         # Mock agents to avoid real LLM calls
         for n_id, agent in engine.agents.items():
-            agent.act = MagicMock(side_effect=lambda turn, nid=n_id: mock_act_response(nid, turn))
+            agent.act = MagicMock(side_effect=lambda turn, injections=None, nid=n_id: mock_act_response(nid, turn))
             
         # Mock Opinion Agents
         for opinion_agent in engine.opinion_agents.values():

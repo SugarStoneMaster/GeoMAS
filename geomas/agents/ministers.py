@@ -77,7 +77,7 @@ class DefenseMinister(BaseMinister):
     """Minister of Defense - handles military strategy and threats."""
     prompt_class = DefenseSystemPrompt
     
-    def propose(self, strategy: GlobalStrategy, turn: int) -> DefenseProposal:
+    def propose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> DefenseProposal:
         nation = self.world.nations[self.nation_id]
         
         # Generate/Update system prompt if needed
@@ -89,6 +89,9 @@ class DefenseMinister(BaseMinister):
         # Build input context using new architecture
         input_builder = DefenseInputBuilder(self.world)
         user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
+        
+        if injection:
+            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
         
         # Dynamic Validation: Enforce valid nation IDs
         # Defense includes SELF because CREATE_UNIT requires target_nation_id = own ID
@@ -110,7 +113,7 @@ class DefenseMinister(BaseMinister):
         
         return proposal
 
-    async def apropose(self, strategy: GlobalStrategy, turn: int) -> DefenseProposal:
+    async def apropose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> DefenseProposal:
         """Async version of propose."""
         nation = self.world.nations[self.nation_id]
         
@@ -121,6 +124,9 @@ class DefenseMinister(BaseMinister):
         
         input_builder = DefenseInputBuilder(self.world)
         user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
+        
+        if injection:
+            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
         
         valid_targets = list(self.world.nations.keys())
         ResponseModel = get_dynamic_proposal_model(DefenseProposal, valid_targets)
@@ -145,7 +151,7 @@ class EconomicMinister(BaseMinister):
     """Minister of Economy - handles resources, trade, and welfare."""
     prompt_class = EconomySystemPrompt
     
-    def propose(self, strategy: GlobalStrategy, turn: int) -> EconomicProposal:
+    def propose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> EconomicProposal:
         nation = self.world.nations[self.nation_id]
         
         # Generate/Update system prompt if needed
@@ -157,6 +163,9 @@ class EconomicMinister(BaseMinister):
         # Build input context using new architecture
         input_builder = EconomyInputBuilder(self.world)
         user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
+        
+        if injection:
+            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
         
         # Dynamic Validation: Enforce valid nation IDs
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
@@ -177,7 +186,7 @@ class EconomicMinister(BaseMinister):
         
         return proposal
 
-    async def apropose(self, strategy: GlobalStrategy, turn: int) -> EconomicProposal:
+    async def apropose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> EconomicProposal:
         """Async version of propose."""
         nation = self.world.nations[self.nation_id]
         
@@ -188,6 +197,9 @@ class EconomicMinister(BaseMinister):
         
         input_builder = EconomyInputBuilder(self.world)
         user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
+        
+        if injection:
+            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
         
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
         ResponseModel = get_dynamic_proposal_model(EconomicProposal, valid_targets)
@@ -212,7 +224,7 @@ class ForeignMinister(BaseMinister):
     """Minister of Foreign Affairs - handles diplomacy and alliances."""
     prompt_class = ForeignSystemPrompt
     
-    def propose(self, strategy: GlobalStrategy, turn: int) -> ForeignProposal:
+    def propose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> ForeignProposal:
         nation = self.world.nations[self.nation_id]
         
         # Generate/Update system prompt if needed
@@ -228,6 +240,9 @@ class ForeignMinister(BaseMinister):
             turn,
             context_manager=self.context_manager
         )
+        
+        if injection:
+            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
         
         # Dynamic Validation: Enforce valid nation IDs
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
@@ -248,7 +263,7 @@ class ForeignMinister(BaseMinister):
         
         return proposal
 
-    async def apropose(self, strategy: GlobalStrategy, turn: int) -> ForeignProposal:
+    async def apropose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> ForeignProposal:
         """Async version of propose."""
         nation = self.world.nations[self.nation_id]
         
@@ -263,6 +278,9 @@ class ForeignMinister(BaseMinister):
             turn,
             context_manager=self.context_manager
         )
+        
+        if injection:
+            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
         
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
         ResponseModel = get_dynamic_proposal_model(ForeignProposal, valid_targets)

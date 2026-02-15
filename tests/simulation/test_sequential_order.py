@@ -124,17 +124,18 @@ class TestSequentialExecution(unittest.TestCase):
              patch('geomas.simulation.engine.run_upkeep_phase'):
             
             # Manual wrap of agent.act
+            # Manual wrap of agent.act
             def create_mock_act(nid):
                 if nid == first_nation:
-                    return lambda turn: mock_envelope_1
+                    return lambda turn, injections=None: mock_envelope_1
                 if nid == second_nation:
-                    def act_with_capture(turn):
+                    def act_with_capture(turn, injections=None):
                         # Capture state: does Second see the 100 soldiers created by First?
                         captured_state['soldiers_seen_by_second'] = self.sim.world.provinces[cap_id].soldiers
                         return mock_envelope_2
                     return act_with_capture
                 # Default empty act
-                return lambda turn, nid=nid: CountryEnvelope(
+                return lambda turn, injections=None: CountryEnvelope(
                     turn=turn, sender_id=nid, global_strategy=GlobalStrategy.COALITION_BUILDER,
                     public_statement="Idle",
                     defense_payload=DefensePayload(decision=Decision.VETO, moves=[]),

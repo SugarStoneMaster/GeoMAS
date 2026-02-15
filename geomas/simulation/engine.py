@@ -268,7 +268,7 @@ class SimulationEngine:
             behaviors=behaviors
         )
 
-    def step(self):
+    def step(self, injections: Optional[List[dict]] = None):
         """Executes one full turn of the simulation."""
         
         current_turn = self.world.turn
@@ -298,7 +298,7 @@ class SimulationEngine:
             print(f"Agent {nation_id} is thinking and acting...")
             try:
                 # 1. Decision: Agent perceives the CURRENT world state
-                envelope = agent.act(current_turn)
+                envelope = agent.act(current_turn, injections)
                 turn_envelopes.append(envelope)
                 
                 # 2. Execution: Physical world changes are applied IMMEDIATELY
@@ -418,10 +418,10 @@ class SimulationEngine:
         
 
 
-    def run(self, steps: int = 1):
+    def run(self, steps: int = 1, injections: Optional[List[dict]] = None):
         """Runs the simulation for N steps."""
         for _ in range(steps):
-            self.step()
+            self.step(injections)
     
     # --- CACHE ACCESS METHODS ---
     

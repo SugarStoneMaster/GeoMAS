@@ -396,6 +396,11 @@ class SimulationDB:
             COPY behaviors TO '{path}' (HEADER, DELIMITER ',')
         """)
     
+    def get_max_turn(self) -> int:
+        """Get the latest turn number stored in DB."""
+        result = self.conn.execute("SELECT MAX(turn) FROM snapshots").fetchone()
+        return result[0] if result and result[0] is not None else 0
+
     def __enter__(self):
         """Context manager entry."""
         return self
