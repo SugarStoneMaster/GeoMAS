@@ -144,3 +144,68 @@ def test_foreign_message_in_context_manager(world):
             found_action = True
             break
     assert found_action, f"Diplomatic action not found in nation actions: {[a.action_summary for a in cm.nation_actions['NAT_A']]}"
+
+def test_message_soft_cooldown(world):
+    """
+    Test Soft Cooldown behavior:
+    1. Valid message -> Trust gain, Cooldown set.
+    2. Cooldown message -> No Trust gain, Cooldown NOT reset, Message allowed.
+    3. Post-cooldown message -> Trust gain, Cooldown reset.
+    """
+    engine = ActionEngine(world)
+    sender = "NAT_A"
+    target = "NAT_B"
+    
+    # 1. First Message (Turn 1)
+    payload1 = ForeignPayload(
+        action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE,
+        target_nation_id=target,
+        diplomatic_message_type=DiplomaticMessageType.PRAISE,
+        message="Message 1"
+    )
+    envelope1 = create_valid_envelope(sender, 1, payload1)
+    engine.execute_envelope(envelope1)
+    
+    # Verify trust increase (+10 for Praise from 50)
+    assert world.trust_matrix[sender][target] == 60.0
+    # Verify cooldown set to turn 1
+    assert world.nations[sender].message_cooldown[target] == 1
+    
+    # 2. Second Message (Turn 2 - Cooldown Active)
+    world.turn = 2
+    # Clear logs to check for new ones
+    engine.logs = []
+    
+    payload2 = ForeignPayload(
+        action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE,
+        target_nation_id=target,
+        diplomatic_message_type=DiplomaticMessageType.PRAISE,
+        message="Message 2 (Spam)"
+    )
+    envelope2 = create_valid_envelope(sender, 2, payload2)
+    engine.execute_envelope(envelope2)
+    
+    # Verify NO trust increase (still 60)
+    assert world.trust_matrix[sender][target] == 60.0
+    # Verify cooldown NOT reset (still 1)
+    assert world.nations[sender].message_cooldown[target] == 1
+    
+    # Verify specific log
+    assert any("Cooldown active" in log for log in engine.logs)
+    assert any("No trust impact" in log for log in engine.logs)
+    
+    # 3. Third Message (Turn 6 - Cooldown Expired: 1 + 5 = 6)
+    world.turn = 6
+    payload3 = ForeignPayload(
+        action_type=ForeignActionType.SEND_DIPLOMATIC_MESSAGE,
+        target_nation_id=target,
+        diplomatic_message_type=DiplomaticMessageType.PRAISE,
+        message="Message 3 (Valid)"
+    )
+    envelope3 = create_valid_envelope(sender, 6, payload3)
+    engine.execute_envelope(envelope3)
+    
+    # Verify trust increase (+10 -> 70)
+    assert world.trust_matrix[sender][target] == 70.0
+    # Verify cooldown reset to turn 6
+    assert world.nations[sender].message_cooldown[target] == 6

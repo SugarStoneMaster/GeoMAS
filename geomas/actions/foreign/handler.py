@@ -112,14 +112,7 @@ def _execute_send_message(
     
     # Check cooldown
     last_msg_turn = sender.message_cooldown.get(target_id, -999)
-    if current_turn - last_msg_turn < MESSAGE_COOLDOWN_TURNS:
-        turns_left = MESSAGE_COOLDOWN_TURNS - (current_turn - last_msg_turn)
-        # Outcome set in caller execute_foreign if possible, but here we can't easily reach payload
-        # Wait, the handlers are called with parameters. I should update signatures to pass payload.
-        engine.logs.append(
-            f"📜 [FOREIGN] Cannot message {target_id}: cooldown active ({turns_left} turns left)"
-        )
-        return False, f"Cooldown active ({turns_left} turns left)"
+    cooldown_active = (current_turn - last_msg_turn < MESSAGE_COOLDOWN_TURNS)
     
     if not message_type:
         engine.logs.append(f"📜 [FOREIGN] Missing message_type for SEND_DIPLOMATIC_MESSAGE")
@@ -127,15 +120,26 @@ def _execute_send_message(
     
     msg_type = message_type
     
-    trust_delta = MESSAGE_TRUST_IMPACT[msg_type]
+    if cooldown_active:
+        turns_left = MESSAGE_COOLDOWN_TURNS - (current_turn - last_msg_turn)
+        trust_delta = 0
+        update_cooldown = False
+        engine.logs.append(
+            f"📜 [FOREIGN] {sender_id} sends message to {target_id} (Cooldown active: {turns_left} turns left). No trust impact."
+        )
+    else:
+        trust_delta = MESSAGE_TRUST_IMPACT[msg_type]
+        update_cooldown = True
     
     # Apply trust change (bidirectional for PRAISE, unidirectional for negative)
-    engine.adjust_trust(sender_id, target_id, trust_delta)
-    if msg_type == DiplomaticMessageType.PRAISE:
-        engine.adjust_trust(target_id, sender_id, trust_delta)
+    if trust_delta != 0:
+        engine.adjust_trust(sender_id, target_id, trust_delta)
+        if msg_type == DiplomaticMessageType.PRAISE:
+            engine.adjust_trust(target_id, sender_id, trust_delta)
     
-    # Set cooldown
-    sender.message_cooldown[target_id] = current_turn
+    # Set cooldown ONLY if it wasn't active (do not reset timer if spamming)
+    if update_cooldown:
+        sender.message_cooldown[target_id] = current_turn
     
     msg_str = f" Message: '{message}'" if message else ""
     engine.logs.append(
