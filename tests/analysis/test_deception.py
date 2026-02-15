@@ -313,7 +313,7 @@ class TestCoherenceAnalyzer:
         # We give complete opposites
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.TOTAL_EXPANSIONISM,
-            DefenseIntentType.IDLE,             # Not expected
+            DefenseIntentType.DEFENSE,          # Wrong (was IDLE, now IDLE is valid)
             EconomicIntentType.SUPPORT,         # Not expected
             ForeignIntentType.COOPERATION       # Not expected
         )
@@ -321,9 +321,9 @@ class TestCoherenceAnalyzer:
         
     def test_partial_coherence(self):
         """Some matching intents -> partial coherence."""
-        # DOMESTIC_RECOVERY expects DEFENSE/IDLE, SURVIVAL/GROWTH, APPEASEMENT/IDLE
+        # ARMED_ISOLATIONISM expects DEFENSE/DETERRENCE, GROWTH/SURVIVAL, IDLE/APPEASEMENT
         score = CoherenceAnalyzer.calculate_score(
-            GlobalStrategy.DOMESTIC_RECOVERY,
+            GlobalStrategy.ARMED_ISOLATIONISM,
             DefenseIntentType.DEFENSE,          # Match
             EconomicIntentType.SURVIVAL,        # Match
             ForeignIntentType.COERCION          # No match

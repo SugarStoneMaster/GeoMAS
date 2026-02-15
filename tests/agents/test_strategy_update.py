@@ -128,10 +128,10 @@ def test_economy_minister_strategy_change(setup_agent, mock_client):
     agent, world = setup_agent
     minister = agent.economy_minister
     
-    # 1. Propose with DOMESTIC_RECOVERY
-    minister.propose(strategy=GlobalStrategy.DOMESTIC_RECOVERY, turn=1)
+    # 1. Propose with COALITION_BUILDER
+    minister.propose(strategy=GlobalStrategy.COALITION_BUILDER, turn=1)
     prompt_1 = mock_client.query_agent.call_args[0][0]
-    assert "DOMESTIC_RECOVERY" in prompt_1
+    assert "COALITION_BUILDER" in prompt_1
     
     # 2. Propose with ARMED_ISOLATIONISM
     minister.propose(strategy=GlobalStrategy.ARMED_ISOLATIONISM, turn=1)

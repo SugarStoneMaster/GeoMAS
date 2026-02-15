@@ -116,7 +116,7 @@ class TestSystemPromptBudget:
         """Economy system prompt is under 800 tokens."""
         prompt = EconomySystemPrompt.generate(
             nation_name="Valdoria",
-            strategy=GlobalStrategy.MERCANTILE_HEGEMONY
+            strategy=GlobalStrategy.COALITION_BUILDER
         )
         tokens = counter.count(prompt)
         

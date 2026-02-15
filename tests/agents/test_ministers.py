@@ -137,7 +137,7 @@ class TestEconomicMinister(TestMinisterBase):
         )
         client.query_agent.return_value = mock_response
         
-        strategy = GlobalStrategy.MERCANTILE_HEGEMONY
+        strategy = GlobalStrategy.COALITION_BUILDER
         response = minister.propose(strategy, turn=1)
         
         # Verify call

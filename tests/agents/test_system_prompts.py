@@ -50,7 +50,7 @@ class TestDefenseSystemPrompt:
         """Can generate a defense system prompt."""
         prompt = DefenseSystemPrompt.generate(
             nation_name="Testland",
-            strategy=GlobalStrategy.TOTAL_EXPANSIONISM
+            strategy=GlobalStrategy.COALITION_BUILDER # Changed from TOTAL_EXPANSIONISM
         )
         assert "Defense Minister" in prompt
         assert "Testland" in prompt
@@ -68,14 +68,14 @@ class TestEconomySystemPrompt:
         """Can generate an economy system prompt."""
         prompt = EconomySystemPrompt.generate(
             nation_name="Testland",
-            strategy=GlobalStrategy.MERCANTILE_HEGEMONY
+            strategy=GlobalStrategy.COALITION_BUILDER
         )
         assert "Economy Minister" in prompt
         assert "Testland" in prompt
     
     def test_includes_satisfaction_info(self):
         """Prompt mentions satisfaction management."""
-        prompt = EconomySystemPrompt.generate("Test", GlobalStrategy.DOMESTIC_RECOVERY)
+        prompt = EconomySystemPrompt.generate("Test", GlobalStrategy.ARMED_ISOLATIONISM)
         assert "satisfaction" in prompt.lower()
         assert "INVEST_IN_WELFARE" in prompt or "welfare" in prompt.lower()
 
@@ -140,7 +140,7 @@ class TestPromptActionSpecifications:
     
     def test_economy_trade_proposal_includes_format(self):
         """Economy prompt specifies give/receive format for TRADE_PROPOSAL."""
-        prompt = EconomySystemPrompt.generate("Test", GlobalStrategy.MERCANTILE_HEGEMONY)
+        prompt = EconomySystemPrompt.generate("Test", GlobalStrategy.COALITION_BUILDER)
         assert "TRADE_PROPOSAL" in prompt
         assert "give" in prompt.lower()
         assert "want" in prompt.lower() or "get" in prompt.lower()
