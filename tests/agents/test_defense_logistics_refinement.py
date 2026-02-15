@@ -48,9 +48,9 @@ def test_defense_logistics_refinement():
     assert "MOVEMENT RULES (STRICT)" in prompt, "Movement rules section missing"
     assert "S reaches:" not in prompt, "Old format reached list found"
     
-    # Check compaction
-    assert "Power: Much stronger" not in prompt, "Old power string found"
-    assert "Weaker -" in prompt, "Compacted power desc 'Weaker -' missing"
+    # Check compaction - REVERTED: Now expects verbose strings again
+    assert "Power: Much" in prompt or "Power: Equal" in prompt or "Power: Stronger" in prompt or "Power: Weaker" in prompt
+    assert "Stronger +" not in prompt, "Compacted power string should have been reverted"
     
     # Check Intent Grouping specifically
     assert "ATTACK: 3(N2)" in prompt
