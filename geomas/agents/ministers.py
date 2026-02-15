@@ -88,10 +88,7 @@ class DefenseMinister(BaseMinister):
         
         # Build input context using new architecture
         input_builder = DefenseInputBuilder(self.world)
-        user_prompt = input_builder.build(self.nation_id, turn)
-        
-        # Add events context
-        user_prompt = self._add_memory_context(user_prompt, "Defense")
+        user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
         
         # Dynamic Validation: Enforce valid nation IDs
         # Defense includes SELF because CREATE_UNIT requires target_nation_id = own ID
@@ -123,8 +120,7 @@ class DefenseMinister(BaseMinister):
         system_prompt = self.system_prompt
         
         input_builder = DefenseInputBuilder(self.world)
-        user_prompt = input_builder.build(self.nation_id, turn)
-        user_prompt = self._add_memory_context(user_prompt, "Defense")
+        user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
         
         valid_targets = list(self.world.nations.keys())
         ResponseModel = get_dynamic_proposal_model(DefenseProposal, valid_targets)
@@ -160,10 +156,7 @@ class EconomicMinister(BaseMinister):
         
         # Build input context using new architecture
         input_builder = EconomyInputBuilder(self.world)
-        user_prompt = input_builder.build(self.nation_id, turn)
-        
-        # Add events context
-        user_prompt = self._add_memory_context(user_prompt, "Economy")
+        user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
         
         # Dynamic Validation: Enforce valid nation IDs
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
@@ -194,8 +187,7 @@ class EconomicMinister(BaseMinister):
         system_prompt = self.system_prompt
         
         input_builder = EconomyInputBuilder(self.world)
-        user_prompt = input_builder.build(self.nation_id, turn)
-        user_prompt = self._add_memory_context(user_prompt, "Economy")
+        user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
         
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
         ResponseModel = get_dynamic_proposal_model(EconomicProposal, valid_targets)

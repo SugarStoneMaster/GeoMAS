@@ -30,17 +30,17 @@ class EconomyInputBuilder:
         turn: int,
         pending_trades: Optional[List[Dict[str, Any]]] = None,
         recent_actions: Optional[List[str]] = None,
+        context_manager: Optional['ContextManager'] = None,
     ) -> str:
         """
         Build the input context for the Economy Minister.
         
         Args:
             nation_id: Nation ID
+            turn: Current turn number
             pending_trades: List of pending trade offers
-            recent_actions: List of recent economic actions
-            
-        Returns:
-            Formatted input prompt (~1500 tokens max)
+            recent_actions: List of recent economic actions (legacy)
+            context_manager: Optional ContextManager for rich history
         """
         nation = self.world.nations.get(nation_id)
         if not nation:
@@ -48,47 +48,42 @@ class EconomyInputBuilder:
         
         sections = []
         
-        # Metadata Header for Observability
-        sections.append(f"## TURN {turn}")
-
-        # 0. FEEDBACK WARNING (If previous trade was clamped)
-        # Scan recent actions for "Clamped" keyword (covers both Sender and Receiver limits)
+        # 1. Month Header
+        sections.append(f"## Month {turn}")
+        
+        # 2. Common Layers (Relationships, Power, Events)
+        sections.append(self._build_relationships(nation_id))
+        sections.append(self._build_power_balance(nation_id))
+        
+        if context_manager:
+            sections.append(self._build_world_events(nation_id, context_manager))
+            sections.append(self._build_self_history(nation_id, context_manager))
+        
+        # 3. Feedback from Previous Turn (Clamped)
         clamped_action = next((a for a in (recent_actions or []) if "Clamped" in a), None)
         if clamped_action:
-            # Extract details if possible or just warn
-            sections.append(f"""## ⚠️ FEEDBACK FROM PREVIOUS TURN
-**Your last trade was AUTOMATICALLY REDUCED because it exceeded 15% of reserves/capacity.**
-- Log: "{clamped_action}"
-- **Correction:** Please offer smaller amounts (max 15% of surplus) to avoid this.
-""")
+            sections.append(f"## Feedback from previous turn\n**Your last trade was AUTOMATICALLY REDUCED because it exceeded 15% of reserves/capacity.**\n- Log: \"{clamped_action}\"\n- **Correction:** Please offer smaller amounts (max 15% of surplus) to avoid this.\n")
         
-        # 1. Treasury and Budget
+        # 4. Treasury (All Resources)
         sections.append(self._build_treasury_section(nation))
         
-        # 2. Resource Production
+        # 5. Resource Production
         sections.append(self._build_resources_section(nation_id))
         
-        # 3. Public Satisfaction (Economy can affect it)
+        # 6. Public Satisfaction
         sections.append(self._build_satisfaction_section(nation))
         
-        # 4. Pending Trade Offers
+        # 7. Pending Trade Offers
         if pending_trades:
             sections.append(self._build_trades_section(pending_trades))
         
-        # 5. Trade Partners Status
-        sections.append(self._build_trade_partners(nation_id))
-        
-        # 6. Global Market Intelligence (NEW)
+        # 8. Global Market Intelligence
         sections.append(self._build_global_market(nation_id))
-        
-        # 7. Recent Economic Actions
-        if recent_actions:
-            sections.append(self._build_recent_actions(recent_actions))
         
         return "\n\n".join(sections)
     
     def _build_treasury_section(self, nation: NationState) -> str:
-        """Build treasury and budget section."""
+        """Build treasury section with all resources."""
         # Calculate income (simplified - from tax revenue)
         income = sum(
             self.world.provinces[p_id].tax_revenue 
@@ -106,15 +101,13 @@ class EconomyInputBuilder:
         else:
             status = "CRITICAL"
         
-        return f"""## 💰 TREASURY
-**Current Budget:** {nation.total_budget:,.0f} ({status})
-**Estimated Income:** {income:,.0f}/turn (from taxes)
-
-**Key Costs:**
-- INVEST_WELFARE: Cost is **Budget + Materials** (Materials = 20% of Budget amount).
-  * Example: 500 Budget investment requires 500 Budget AND 100 Materials.
-  * Gain: ~5 satisfaction (logarithmic).
-- RAISE_WAR_TAX: +budget (0.01 × Population), -15 satisfaction"""
+        return f"""## Treasury
+**Treasury Status:** {status}
+- **Budget:** {nation.total_budget:,.0f} (Estimated Income: {income:,.0f}/turn)
+- **Food:** {nation.total_food:,.0f}
+- **Energy:** {nation.total_energy:,.0f}
+- **Materials:** {nation.total_materials:,.0f}
+"""
 
     def _build_resources_section(self, nation_id: str) -> str:
         """Build resource production section."""
@@ -127,7 +120,7 @@ class EconomyInputBuilder:
             "Materials": nation.total_materials
         }
         
-        lines = ["## 📊 RESOURCE PRODUCTION"]
+        lines = ["## Resource production"]
         
         shortages = []
         surpluses = []
@@ -172,18 +165,14 @@ class EconomyInputBuilder:
             status = "✅ HIGH"
             recommendation = "Excellent morale. War operations well-tolerated."
         
-        return f"""## 👥 PUBLIC SATISFACTION
+        return f"""## Public satisfaction
 **Current:** {sat:.0f}% {status}
 
-{recommendation}
-
-**Your Tools:**
-- `INVEST_WELFARE`: Spend budget → satisfaction boost (logarithmic: 7*log(1+amount/500))
-- `RAISE_WAR_TAX`: +budget, -15 satisfaction (requires satisfaction > 30)"""
+{recommendation}"""
 
     def _build_trades_section(self, pending_trades: List[Dict[str, Any]]) -> str:
         """Build pending trade offers section."""
-        lines = ["## 📬 PENDING TRADE OFFERS"]
+        lines = ["## Pending trade offers"]
         
         for trade in pending_trades:
             from_nation = trade.get("from", "Unknown")
@@ -196,36 +185,126 @@ class EconomyInputBuilder:
         
         return "\n".join(lines)
     
-    def _build_trade_partners(self, nation_id: str) -> str:
-        """Build potential trade partners status."""
-        lines = ["## 🤝 TRADE PARTNERS"]
+    def _build_relationships(self, nation_id: str) -> str:
+        """Build full relationship matrix."""
+        lines = ["## Diplomatic relationships"]
         
-        if nation_id not in self.world.relationship_matrix:
-            lines.append("No established relationships.")
-            return "\n".join(lines)
-        
-        relationships = self.world.relationship_matrix[nation_id]
+        relationships = self.world.relationship_matrix.get(nation_id, {})
         trust = self.world.trust_matrix.get(nation_id, {})
         
-        for other_id, status in relationships.items():
-            # Skip nations that were filtered out
-            if other_id not in self.world.nations:
+        # Group by relationship type
+        at_war = []
+        allies = []
+        neutral = []
+        
+        for other_id, other_nation in self.world.nations.items():
+            if other_id == nation_id:
                 continue
-            other = self.world.nations[other_id]
-            trust_level = trust.get(other_id, 50)
             
-            if status == "WAR":
-                trade_status = "❌ Cannot trade (at war)"
-            elif trust_level < 40:
-                trade_status = "❌ Cannot trade (trust < 40)"
-            elif status == "ALLIANCE":
-                trade_status = "✅ Preferred partner"
-            elif trust_level >= 50:
-                trade_status = "✅ Trade possible"
+            rel_status = relationships.get(other_id, "PEACE")
+            trust_level = trust.get(other_id, 50.0)
+            
+            if trust_level >= 80:
+                trust_desc = "Exceptional Trust"
+            elif trust_level >= 60:
+                trust_desc = "Friendly"
+            elif trust_level >= 40:
+                trust_desc = "Neutral"
+            elif trust_level >= 20:
+                trust_desc = "Distrustful"
             else:
-                trade_status = "⚠️ Trade possible but low trust"
+                trust_desc = "Hostile"
             
-            lines.append(f"- **{other_id}**: {status}, Trust {trust_level:.0f} - {trade_status}")
+            entry = {
+                "id": other_id,
+                "trust": trust_level,
+                "trust_desc": trust_desc,
+                "status": rel_status
+            }
+            
+            if rel_status == "WAR":
+                at_war.append(entry)
+            elif rel_status == "ALLIANCE":
+                allies.append(entry)
+            else:
+                neutral.append(entry)
+        
+        if at_war:
+            lines.append("\n**🔴 AT WAR:**")
+            for e in at_war:
+                lines.append(f"  - **{e['id']}**: Trust {e['trust']:.0f} ({e['trust_desc']})")
+        
+        if allies:
+            lines.append("\n**🟢 ALLIES:**")
+            for e in allies:
+                lines.append(f"  - **{e['id']}**: Trust {e['trust']:.0f} ({e['trust_desc']})")
+        
+        if neutral:
+            lines.append("\n**⚪ NEUTRAL/PEACE:**")
+            for e in sorted(neutral, key=lambda x: -x['trust']):
+                lines.append(f"  - **{e['id']}**: Trust {e['trust']:.0f} ({e['trust_desc']})")
+        
+        return "\n".join(lines)
+
+    def _build_power_balance(self, nation_id: str) -> str:
+        """Build power comparison with neighbors."""
+        lines = ["## Power balance"]
+        
+        my_power = self.world.nations[nation_id].power_projection
+        
+        for other_id, other_nation in self.world.nations.items():
+            if other_id == nation_id:
+                continue
+            
+            other_power = other_nation.power_projection
+            ratio = other_power / my_power if my_power > 0 else 1.0
+            
+            if ratio > 1.5:
+                comparison = "⚠️ Much stronger"
+            elif ratio > 1.1:
+                comparison = "Stronger"
+            elif ratio > 0.9:
+                comparison = "Equal"
+            elif ratio > 0.6:
+                comparison = "Weaker"
+            else:
+                comparison = "✅ Much weaker"
+            
+            lines.append(f"- **{other_nation.name}**: {comparison}")
+        
+        return "\n".join(lines)
+
+    def _build_world_events(self, nation_id: str, context_manager: 'ContextManager') -> str:
+        """Build world events (News)."""
+        lines = ["## World events"]
+        # Use CM method to get relevant events
+        events = context_manager.get_events_for(nation_id, max_events=15)
+        
+        if not events:
+            lines.append("No major world events.")
+        else:
+            for event_line in events:
+                lines.append(f"- {event_line}")
+        
+        return "\n".join(lines)
+
+    def _build_self_history(self, nation_id: str, context_manager: 'ContextManager') -> str:
+        """Build unified history for the nation (Economic focus)."""
+        lines = ["## Your history"]
+        
+        # Use CM methods for better filtering and consistency
+        actions = context_manager.get_actions_for(nation_id, domain="Economy", max_actions=10)
+        events = context_manager.get_events_for(nation_id, max_events=10)
+        
+        # Combine and sort (rough sort by turn if possible, but CM already returns chronologically)
+        # For simplicity, we just list them
+        history = sorted(actions + events, key=lambda x: x.split(":")[0]) # Rough Txx sort
+        
+        if not history:
+            lines.append("No recorded economic history.")
+        else:
+            for item in history[-15:]:
+                lines.append(f"- {item}")
         
         return "\n".join(lines)
     
@@ -245,7 +324,7 @@ class EconomyInputBuilder:
         avg_energy = total_energy / count if count > 0 else 0
         avg_materials = total_materials / count if count > 0 else 0
         
-        lines = ["## 🌍 GLOBAL MARKET INTELLIGENCE"]
+        lines = ["## Global market intelligence"]
         lines.append(f"Global Averages: Food {avg_food:.0f}, Energy {avg_energy:.0f}, Materials {avg_materials:.0f}.")
         lines.append("- **SURPLUS**: > 120% of Avg. Ask them for this!")
         lines.append("- **DEFICIT**: < 80% of Avg. Sell this to them!")
@@ -281,9 +360,3 @@ class EconomyInputBuilder:
             
         return "\n".join(lines)
 
-    def _build_recent_actions(self, actions: List[str]) -> str:
-        """Build recent economic actions section."""
-        lines = ["## 📋 RECENT ECONOMIC ACTIONS"]
-        for action in actions[-5:]:
-            lines.append(f"- {action}")
-        return "\n".join(lines)

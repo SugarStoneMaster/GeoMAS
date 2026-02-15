@@ -86,6 +86,7 @@ class TestDefenseMinister(TestMinisterBase):
         # Setup context manager with mock actions
         cm = MagicMock(spec=ContextManager)
         cm.get_actions_for.return_value = ["Action 1: Moved troops", "Action 2: Built fort"]
+        cm.get_events_for.return_value = []
         
         minister = DefenseMinister(nation_id, world, client, context_manager=cm)
         
@@ -110,7 +111,8 @@ class TestDefenseMinister(TestMinisterBase):
         # Check that prompt contains actions
         args, _ = client.query_agent.call_args
         user_prompt = args[1]
-        assert "== YOUR RECENT ACTIONS ==" in user_prompt
+        assert "## Your history" in user_prompt
+        assert "Action 1: Moved troops" in user_prompt
         assert "Moved troops" in user_prompt
 
 
@@ -148,6 +150,37 @@ class TestEconomicMinister(TestMinisterBase):
         assert "Economy Minister" in system_prompt
         assert schema == EconomicProposal
         assert response == mock_response
+    
+    def test_includes_memory_context(self, setup):
+        """Includes history and world events in prompt."""
+        world, nation_id, client = setup
+        
+        # Setup context manager with mock actions
+        cm = MagicMock(spec=ContextManager)
+        cm.get_actions_for.return_value = ["Welfare Boost"]
+        cm.get_events_for.return_value = []
+        
+        minister = EconomicMinister(nation_id, world, client, context_manager=cm)
+        
+        # Mock response
+        client.query_agent.return_value = EconomicProposal(
+            intent=EconomicIntent(
+                public_intent=EconomicIntentType.IDLE,
+                private_intent=EconomicIntentType.IDLE,
+                reasoning="Test"
+            ),
+            payload=EconomicPayload(decision=Decision.APPROVE, action_type=None),
+            projected_cost=0.0
+        )
+        
+        minister.propose(GlobalStrategy.COALITION_BUILDER, turn=1)
+        
+        # Check prompt
+        args, _ = client.query_agent.call_args
+        user_prompt = args[1]
+        
+        assert "## Your history" in user_prompt
+        assert "Welfare Boost" in user_prompt
 
 
 class TestForeignMinister(TestMinisterBase):

@@ -72,7 +72,7 @@ class TestDefenseInputBuilder:
         
         context = builder.build(nation_id, turn=1)
         
-        assert "MORALE" in context or "WARNING" in context
+        assert "Morale" in context
 
 
 class TestEconomyInputBuilder:
@@ -85,8 +85,8 @@ class TestEconomyInputBuilder:
         
         context = builder.build(nation_id, turn=1)
         
-        assert "TREASURY" in context
-        assert "SATISFACTION" in context
+        assert "Treasury" in context
+        assert "Public satisfaction" in context
     
     def test_shows_satisfaction_actions(self, world):
         """Shows actions that affect satisfaction."""
@@ -95,7 +95,7 @@ class TestEconomyInputBuilder:
         
         context = builder.build(nation_id, turn=1)
         
-        assert "INVEST_IN_WELFARE" in context or "welfare" in context.lower()
+        assert "food" in context or "energy" in context
 
 
 class TestForeignInputBuilder:

@@ -55,16 +55,20 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 
 ## Available Actions (max 1 per turn)
 1. **`INVEST_WELFARE`**
+   - **Cost**: **Budget + Materials** (Materials = 20% of Budget amount).
+     * Example: 500 Budget investment requires 500 Budget AND 100 Materials.
    - **Effect**: Converts Budget into Public Satisfaction.
    - **Fields**: `amount`, `message` (optional, **max ~70 words**).
-   - **Mechanic**: Logarithmic return. Investing 500 Budget yields approx +5 Satisfaction. Diminishing returns apply.
+   - **Mechanic**: Logarithmic boost: `7 * log(1 + amount/500)`.
+     * Gain: ~5 satisfaction for 500 budget investment. Diminishing returns apply.
    - **Maximum**: You can invest at most **25% of your current Budget** per turn (excess is clamped).
    - **Message**: Your `message` is delivered directly to your citizens to justify the investment.
 
 2. **`RAISE_WAR_TAX`**
+   - **Cost**: **-15 Public Satisfaction**.
    - **Effect**: Emergency fund generation.
    - **Fields**: `message` (optional, **max ~70 words**).
-   - **Mechanic**: Gain Budget = (0.01 * Population). Lose **-15 Satisfaction**.
+   - **Mechanic**: Gain Budget = **(0.01 * National Population)**.
    - **Constraint**: Requires Satisfaction > 30.
    - **Message**: Your `message` is delivered to your citizens to explain the necessity of the tax.
 
