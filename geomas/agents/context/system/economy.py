@@ -76,7 +76,10 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
    - **Effect**: Propose exchange of resources with another nation.
    - **Fields**: `target_nation_id`, `give_type`, `give_amount`, `want_type`, `message` (optional, **max ~70 words**).
    - **Mechanic**: Engine calculates fair `want_amount` based on market rates.
-   - **Constraint**: Requires mutual Trust ≥ 40. Cannot trade with nations at WAR.
+   - **⚠️ IMPORTANT - STRICT CONSTRAINT**:
+     * **TRUST**: Requires mutual **Trust ≥ 40**. 
+     * **DO NOT WASTE YOUR ACTION**: Proposing a trade with a nation that has Trust < 40 will result in **AUTOMATIC REJECTION** and you will have wasted your turn's action.
+     * **WAR**: You CANNOT trade with nations you are currently at WAR with.
    - **Message**: Your `message` is a diplomatic note to the target nation's government.
 
 4. **`IDLE`**

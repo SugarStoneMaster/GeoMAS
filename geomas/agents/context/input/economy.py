@@ -204,7 +204,10 @@ class EconomyInputBuilder:
             rel = self.world.relationship_matrix.get(nation_id, {}).get(other_id, "PEACE")
             trust_val = self.world.trust_matrix.get(nation_id, {}).get(other_id, 50.0)
             
-            line = f"- **{other_nation.name}** ({other_id}): {rel}, Trust {trust_val:.0f}"
+            # TRADE ELIGIBILITY TAG
+            trade_tag = "[TRADE ELIGIBLE]" if trust_val >= 40 and rel != "WAR" else "[NO TRADE - Trust too low or War]"
+            
+            line = f"- **{other_nation.name}** ({other_id}): {rel}, Trust {trust_val:.0f} {trade_tag}"
             
             if rel == "WAR":
                 at_war.append(line)
@@ -367,7 +370,14 @@ class EconomyInputBuilder:
             
             if surpluses or deficits:
                 has_data = True
-                info = f"- **{other.name} ({other.id})**:"
+                
+                # Trust and Eligibility check
+                trust_val = self.world.trust_matrix.get(nation_id, {}).get(other.id, 50.0)
+                rel = self.world.relationship_matrix.get(nation_id, {}).get(other.id, "PEACE")
+                is_eligible = trust_val >= 40 and rel != "WAR"
+                eligibility_tag = "✅ [TRADE ELIGIBLE]" if is_eligible else "❌ [NO TRADE - Trust too low or War]"
+                
+                info = f"- **{other.name} ({other.id})** {eligibility_tag}:"
                 if surpluses:
                     info += f" HAS {', '.join(surpluses)}"
                 if deficits:
