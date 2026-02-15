@@ -360,7 +360,7 @@ def _execute_move_troops(
             
             # Update outcome
             move.execution_outcome.status = "SUCCESS" if result.attacker_wins else "FAILED"
-            move.execution_outcome.reason = "Landing successful" if result.attacker_wins else "Naval assault failed"
+            move.execution_outcome.reason = result.log_message
             move.execution_outcome.details = {
                 "attacker_wins": result.attacker_wins,
                 "landing_province_id": result.landing_province_id,
@@ -387,7 +387,7 @@ def _execute_move_troops(
             
             # Update outcome
             move.execution_outcome.status = "SUCCESS" if result.attacker_wins else "FAILED"
-            move.execution_outcome.reason = "Province conquered" if result.attacker_wins else "Attack failed"
+            move.execution_outcome.reason = result.log_message
             move.execution_outcome.details = {
                 "attacker_wins": result.attacker_wins,
                 "attacker_losses": result.attacker_losses,
@@ -443,7 +443,7 @@ def _execute_move_troops(
             
             # Update outcome
             move.execution_outcome.status = "SUCCESS" if result.attacker_wins else "FAILED"
-            move.execution_outcome.reason = "Air strike successful" if result.attacker_wins else "Air strike failed"
+            move.execution_outcome.reason = result.log_message
             move.execution_outcome.details = {
                 "attacker_wins": result.attacker_wins,
                 "attacker_losses": result.attacker_losses,

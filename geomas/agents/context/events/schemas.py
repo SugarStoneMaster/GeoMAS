@@ -27,6 +27,7 @@ class EventType(str, Enum):
     
     # Military events (world news)
     ATTACK = "ATTACK"
+    COMBAT_RESULT = "COMBAT_RESULT"
     TERRITORY_LOST = "TERRITORY_LOST"
     TERRITORY_GAINED = "TERRITORY_GAINED"
     NUCLEAR_STRIKE = "NUCLEAR_STRIKE"
@@ -135,16 +136,25 @@ class MyAction(BaseModel):
     domain: str  # "Defense", "Economy", "Foreign"
     action_type: str  # "MOVE_TROOPS", "INVEST_WELFARE", "PROPOSE_ALLIANCE"
     action_summary: str  # "Moved 50 troops to Province 7"
-    outcome: Optional[str] = None  # "Success", "Failed", "Accepted", "Rejected"
+    outcome: Optional[str] = None  # "SUCCESS", "FAILED", "ACCEPTED", "REJECTED"
+    outcome_reason: Optional[str] = None # "Insufficient budget", "Trust too low", etc.
     reasoning: Optional[str] = None # Presidential or Ministerial reasoning
     
     def to_prompt_line(self) -> str:
         """
         Render as compact prompt line (~25 tokens).
         
-        Example: "Turn 24 [Defense]: Attacked Valdoria's Province 7 → Captured"
+        Example: "Turn 24 [Defense]: Attacked Valdoria's Province 7 → FAILED (Insufficient materials)"
         """
         line = f"Turn {self.turn} [{self.domain}]: {self.action_summary}"
+        
         if self.outcome:
             line += f" → {self.outcome}"
+            if self.outcome in ["FAILED", "REJECTED"] and self.outcome_reason:
+                line += f" ({self.outcome_reason})"
+        
+        # Optionally include reasoning if for the President (Ministers don't see their own reasoning, but President does)
+        if self.domain == "President" and self.reasoning:
+            line += f" | Reasoning: {self.reasoning[:60]}..."
+            
         return line

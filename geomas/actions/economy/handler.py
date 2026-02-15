@@ -254,7 +254,12 @@ def execute_economic(
         
         # Update Outcome
         payload.execution_outcome.status = "SUCCESS" if accepted else "REJECTED"
-        payload.execution_outcome.reason = explanation
+        
+        final_reason = explanation
+        if accepted and clamped:
+            final_reason = f"{explanation} (Note: Amounts were clamped to 15% stock limits)"
+            
+        payload.execution_outcome.reason = final_reason
         payload.execution_outcome.details = {
             "target_id": target_id,
             "give_type": give_type,

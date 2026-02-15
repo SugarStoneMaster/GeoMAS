@@ -445,6 +445,27 @@ class ContextManager:
                             summary=f"{nation_name} moved troops near {target_name} border",
                             relevance_to=target_owner  # Specifically concerning to neighbor
                         )
+            
+            # COMBAT_RESULT (if outcome has battle details)
+            outcome = getattr(behavior, "execution_outcome", None)
+            if outcome and hasattr(outcome, "details") and outcome.details:
+                details = outcome.details
+                if "attacker_wins" in details:
+                    winner = nation_name if details["attacker_wins"] else "Defender"
+                    msg = f"Battle Result: {winner} won!"
+                    if "attacker_losses" in details or "defender_losses" in details:
+                        a_loss = details.get("attacker_losses", 0)
+                        d_loss = details.get("defender_losses", 0)
+                        msg += f" (Losses: Attacker {a_loss}, Defender {d_loss})"
+                    
+                    target_id = getattr(behavior, 'target_nation_id', None)
+                    return NotableEvent(
+                        turn=turn,
+                        event_type=EventType.COMBAT_RESULT,
+                        actors=[nation_id, target_id] if target_id else [nation_id],
+                        summary=msg,
+                        relevance_to=None # Global
+                    )
         
         # === NO EVENT for internal actions ===
         # PROPOSE_ALLIANCE, REQUEST_PEACE, CREATE_UNIT, INVEST_WELFARE, etc.
@@ -622,13 +643,19 @@ class ContextManager:
         summary = self._build_action_summary(behavior, action_type_str, domain)
         execution_outcome = getattr(behavior, 'execution_outcome', None)
         outcome_str = execution_outcome.status if execution_outcome else "SUCCESS"
+        outcome_reason = execution_outcome.reason if execution_outcome else None
+        
+        # Capture reasoning from the payload if present (for Ministers)
+        reasoning = getattr(behavior, 'reasoning', None)
         
         return MyAction(
             turn=turn,
             domain=domain,
             action_type=action_type_str,
             action_summary=summary,
-            outcome=outcome_str
+            outcome=outcome_str,
+            outcome_reason=outcome_reason,
+            reasoning=reasoning
         )
     
     def _build_action_summary(self, behavior: Any, action_type: str, domain: str) -> str:
