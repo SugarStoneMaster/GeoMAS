@@ -31,6 +31,15 @@ from web.components.event_log import render_event_log
 st.set_page_config(page_title="GeoMAS Dashboard", layout="wide")
 st.title("👑 GeoMAS: Simulation Dashboard")
 
+# --- SESSION STATE INIT ---
+if "sim" not in st.session_state:
+    st.session_state["sim"] = None
+if "remaining_turns" not in st.session_state:
+    st.session_state["remaining_turns"] = 0
+if "injections" not in st.session_state:
+    st.session_state["injections"] = []
+
+
 
 # --- SIDEBAR CONTROLS ---
 with st.sidebar:
@@ -42,7 +51,8 @@ with st.sidebar:
     st.divider()
     
     if mode == "Analysis / Forking":
-        if st.session_state["sim"] and st.session_state["sim"].db:
+        sim = st.session_state.get("sim")
+        if sim and sim.db:
             st.markdown("### 🔍 Time Travel")
             max_turn = st.session_state["sim"].db.get_max_turn()
             current_turn = st.session_state["sim"].world.turn
@@ -112,7 +122,7 @@ with st.sidebar:
     
     else:
         # Live Simulation Info
-        if st.session_state["sim"]:
+        if st.session_state.get("sim"):
              st.markdown(f"### Current Turn: {st.session_state['sim'].world.turn}")
 
 
@@ -130,11 +140,8 @@ if not st.session_state["sim"] or mode == "Live Simulation":
         n_cells = st.number_input("Cells", value=300, min_value=50, max_value=3000, step=50, key="n_cells")
         n_nations = st.slider("Nations", min_value=4, max_value=10, value=4, key="n_nations")
 
-    # Initialize session state
-    if "sim" not in st.session_state:
-        st.session_state["sim"] = None
-    if "remaining_turns" not in st.session_state:
-        st.session_state["remaining_turns"] = 0
+    # Initialize session state (Already done at top)
+
 
     with ctrl_cols[3]:
         st.markdown("&nbsp;")  # Spacer for alignment
