@@ -104,29 +104,34 @@ class SimulationEngine:
         self.db.initialize()
         
         # Get or Create Simulation ID
-        if self.simulation_id is None:
+        is_new_sim = self.simulation_id is None
+        if is_new_sim:
             self.simulation_id = self.db.create_simulation(
                 genesis_seed=self.map_seed,
                 simulation_seed=self.history_seed,
-                n_cells=self.n_cells
+                n_cells=self.n_cells,
+                n_nations=self.n_nations
             )
             print(f"[DB] Saved as Simulation ID: {self.simulation_id}")
-        
-        # Save initial world state (turn 1 - Genesis)
-        snapshot = serialize_world_snapshot(self.world, self.context_manager)
-        self.db.save_snapshot(
-            simulation_id=self.simulation_id,
-            turn=1,
-            **snapshot
-        )
-        
-        # Also cache turn 1
-        self.cache.add_turn(
-            turn=1,
-            world_state=self.world,
-            envelopes=[],
-            behaviors={}
-        )
+            
+            # Save initial world state (turn 1 - Genesis) only for NEW simulations
+            snapshot = serialize_world_snapshot(self.world, self.context_manager)
+            self.db.save_snapshot(
+                simulation_id=self.simulation_id,
+                turn=1,
+                **snapshot
+            )
+            
+            # Also cache turn 1
+            self.cache.add_turn(
+                turn=1,
+                world_state=self.world,
+                envelopes=[],
+                behaviors={}
+            )
+        else:
+            # For existing simulations, we already have turn 1 in DB
+            pass
 
     def _init_agents(self):
         """Creates a NationAgent for each nation in the world."""
@@ -453,6 +458,7 @@ class SimulationEngine:
                             "system_prompt": envelope.last_system_prompt,
                             "user_prompt": envelope.last_input_prompt,
                             "raw_json": envelope.raw_president_response,
+                            "decree": envelope.raw_president_response,
                             "public_statement": envelope.public_statement
                         },
                         "defense": {
