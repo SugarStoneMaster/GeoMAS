@@ -205,3 +205,20 @@ class BaseInputBuilder:
         """Get instructions/feedback from the President for this domain."""
         feedback = cm.get_presidential_feedback(nation_id, domain)
         return feedback if feedback else ""
+    def _build_active_constraints(self, injections: Optional[List[str]] = None) -> str:
+        """
+        Build a section detailing active constraints (XAI Injections).
+        Used to inform the President of mandatory directives.
+        """
+        if not injections:
+            return ""
+            
+        lines = ["## ⚠️ ACTIVE STRATEGIC CONSTRAINTS (MANDATORY)"]
+        lines.append("The Supreme Council has imposed the following directives for this turn. As President, you MUST ensure your Cabinet follows these instructions:")
+        
+        for inj in injections:
+            if inj:
+                lines.append(f"- **DIRECTIVE**: {inj.upper()}")
+                
+        lines.append("\n**Presidential Override**: If a Minister proposes an action that violates these directives, you MUST use your **VETO** power.")
+        return "\n".join(lines)

@@ -96,7 +96,7 @@ class TestXAIForking:
         found = False
         for call_args in mock_client.aquery_agent.call_args_list:
             system_prompt, user_prompt, model = call_args[0]
-            if "SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST choose Intent CONQUEST." in user_prompt:
+            if "CRITICAL COUNTERFACTUAL DIRECTIVE" in user_prompt and "CHOOSE INTENT CONQUEST" in user_prompt:
                 found = True
                 break
         
@@ -140,7 +140,7 @@ class TestXAIForking:
         found_injection = False
         for call_args in mock_client.aquery_agent.call_args_list:
             _, user_prompt, _ = call_args[0]
-            if "choose Intent PACIFIST" in user_prompt:
+            if "CHOOSE INTENT PACIFIST" in user_prompt:
                 found_injection = True
                 break
         

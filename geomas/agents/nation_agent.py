@@ -87,6 +87,7 @@ class NationAgent:
         def_inj = None
         eco_inj = None
         for_inj = None
+        all_injections = []
         
         if injections:
             for inj in injections:
@@ -115,6 +116,9 @@ class NationAgent:
                         else: # FORBID
                             instruction = f"NOT choose Intent {intent}"
                     
+                    if instruction:
+                        all_injections.append(f"{role}: {instruction}")
+
                     if "DEFENSE" in role:
                         def_inj = instruction
                     elif "ECONOMY" in role:
@@ -137,7 +141,7 @@ class NationAgent:
         )
 
         # 2. PRESIDENTIAL PHASE
-        decree = self._presidential_decision(turn, briefing)
+        decree = self._presidential_decision(turn, briefing, all_injections)
         self.last_trace["president"] = self.last_president_trace
         
         # 3. ENFORCE DECREE (Construct Envelope)
@@ -223,7 +227,7 @@ class NationAgent:
                 target_trust_impact=0.0
             )
 
-    def _presidential_decision(self, turn: int, briefing: CabinetBriefing) -> PresidentialDecree:
+    def _presidential_decision(self, turn: int, briefing: CabinetBriefing, injections: Optional[List[str]] = None) -> PresidentialDecree:
         """
         The President reviews the briefing and issues a Decree.
         """
@@ -255,7 +259,8 @@ class NationAgent:
             context_manager=self.context_manager,
             defense_summary=defense_summary,
             economy_summary=economy_summary,
-            foreign_summary=foreign_summary
+            foreign_summary=foreign_summary,
+            injections=injections
         )
         
         # Call LLM expecting PresidentialDecree

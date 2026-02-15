@@ -32,6 +32,7 @@ class PresidentInputBuilder(BaseInputBuilder):
         defense_summary: Optional[str] = None,
         economy_summary: Optional[str] = None,
         foreign_summary: Optional[str] = None,
+        injections: Optional[List[str]] = None,
     ) -> str:
         """
         Build the input context for the President.
@@ -43,6 +44,7 @@ class PresidentInputBuilder(BaseInputBuilder):
             defense_summary: Summary from Defense Minister
             economy_summary: Summary from Economy Minister
             foreign_summary: Summary from Foreign Minister
+            injections: Optional list of active strategic constraints
             
         Returns:
             Formatted input prompt (~2800 tokens max)
@@ -55,6 +57,10 @@ class PresidentInputBuilder(BaseInputBuilder):
         
         # 1. Month Header
         sections.append(self._build_month_header(turn))
+        
+        # 1b. Active Constraints (XAI Injections)
+        if injections:
+            sections.append(self._build_active_constraints(injections))
         
         # 2. Common Layers
         sections.append(self._build_relationships(nation_id))

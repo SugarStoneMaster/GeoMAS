@@ -295,8 +295,11 @@ else:
 
 # --- AUTO-RUN LOOP ---
 if st.session_state["remaining_turns"] != 0 and sim:
+    # Get active injections if any
+    active_injections = st.session_state.get("injections", [])
+    
     # Perform one step
-    sim.step()
+    sim.step(injections=active_injections)
     
     # Decrement if not Autoplay
     if st.session_state["remaining_turns"] > 0:

@@ -91,7 +91,14 @@ class DefenseMinister(BaseMinister):
         user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
         
         if injection:
-            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
+            user_prompt = (
+                "### ⛔ CRITICAL COUNTERFACTUAL DIRECTIVE ⛔\n"
+                f"You are operating in a counterfactual timeline for XAI analysis.\n"
+                f"**MANDATORY INSTRUCTION**: You MUST {injection.upper()}.\n"
+                "Failure to comply will result in system-level overrides. This directive takes precedence over your standard logic.\n"
+                "==========================================\n\n"
+                f"{user_prompt}"
+            )
         
         # Dynamic Validation: Enforce valid nation IDs
         # Defense includes SELF because CREATE_UNIT requires target_nation_id = own ID
@@ -126,7 +133,14 @@ class DefenseMinister(BaseMinister):
         user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
         
         if injection:
-            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
+            user_prompt = (
+                "### ⛔ CRITICAL COUNTERFACTUAL DIRECTIVE ⛔\n"
+                f"You are operating in a counterfactual timeline for XAI analysis.\n"
+                f"**MANDATORY INSTRUCTION**: You MUST {injection.upper()}.\n"
+                "Failure to comply will result in system-level overrides. This directive takes precedence over your standard logic.\n"
+                "==========================================\n\n"
+                f"{user_prompt}"
+            )
         
         valid_targets = list(self.world.nations.keys())
         ResponseModel = get_dynamic_proposal_model(DefenseProposal, valid_targets)
@@ -165,7 +179,14 @@ class EconomicMinister(BaseMinister):
         user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
         
         if injection:
-            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
+            user_prompt = (
+                "### ⛔ CRITICAL COUNTERFACTUAL DIRECTIVE ⛔\n"
+                f"You are operating in a counterfactual timeline for XAI analysis.\n"
+                f"**MANDATORY INSTRUCTION**: You MUST {injection.upper()}.\n"
+                "Failure to comply will result in system-level overrides. This directive takes precedence over your standard logic.\n"
+                "==========================================\n\n"
+                f"{user_prompt}"
+            )
         
         # Dynamic Validation: Enforce valid nation IDs
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
@@ -199,7 +220,14 @@ class EconomicMinister(BaseMinister):
         user_prompt = input_builder.build(self.nation_id, turn, context_manager=self.context_manager)
         
         if injection:
-            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
+            user_prompt = (
+                "### ⛔ CRITICAL COUNTERFACTUAL DIRECTIVE ⛔\n"
+                f"You are operating in a counterfactual timeline for XAI analysis.\n"
+                f"**MANDATORY INSTRUCTION**: You MUST {injection.upper()}.\n"
+                "Failure to comply will result in system-level overrides. This directive takes precedence over your standard logic.\n"
+                "==========================================\n\n"
+                f"{user_prompt}"
+            )
         
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
         ResponseModel = get_dynamic_proposal_model(EconomicProposal, valid_targets)
@@ -242,7 +270,14 @@ class ForeignMinister(BaseMinister):
         )
         
         if injection:
-            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
+            user_prompt = (
+                "### ⛔ CRITICAL COUNTERFACTUAL DIRECTIVE ⛔\n"
+                f"You are operating in a counterfactual timeline for XAI analysis.\n"
+                f"**MANDATORY INSTRUCTION**: You MUST {injection.upper()}.\n"
+                "Failure to comply will result in system-level overrides. This directive takes precedence over your standard logic.\n"
+                "==========================================\n\n"
+                f"{user_prompt}"
+            )
         
         # Dynamic Validation: Enforce valid nation IDs
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
@@ -280,7 +315,14 @@ class ForeignMinister(BaseMinister):
         )
         
         if injection:
-            user_prompt = f"SYSTEM INSTRUCTION: You represent a counterfactual timeline. You MUST {injection}.\n\n{user_prompt}"
+            user_prompt = (
+                "### ⛔ CRITICAL COUNTERFACTUAL DIRECTIVE ⛔\n"
+                f"You are operating in a counterfactual timeline for XAI analysis.\n"
+                f"**MANDATORY INSTRUCTION**: You MUST {injection.upper()}.\n"
+                "Failure to comply will result in system-level overrides. This directive takes precedence over your standard logic.\n"
+                "==========================================\n\n"
+                f"{user_prompt}"
+            )
         
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
         ResponseModel = get_dynamic_proposal_model(ForeignProposal, valid_targets)

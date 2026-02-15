@@ -300,7 +300,16 @@ class LLMClient:
                     context = self._extract_metadata(system_prompt, user_prompt)
 
                 # Capture raw JSON for audit
-                self.last_raw_content = raw_completion.choices[0].message.content
+                msg = raw_completion.choices[0].message
+                content = msg.content
+                if not content and hasattr(msg, "tool_calls") and msg.tool_calls:
+                    # For TOOLS mode, extract arguments from the first tool call
+                    try:
+                        content = msg.tool_calls[0].function.arguments
+                    except (AttributeError, IndexError):
+                        content = str(msg)
+                
+                self.last_raw_content = content
 
                 # Log usage
                 token_logger.log(
@@ -405,7 +414,15 @@ class LLMClient:
                     context = self._extract_metadata(system_prompt, user_prompt)
 
                 # Capture raw JSON for audit
-                self.last_raw_content = raw_completion.choices[0].message.content
+                msg = raw_completion.choices[0].message
+                content = msg.content
+                if not content and hasattr(msg, "tool_calls") and msg.tool_calls:
+                    try:
+                        content = msg.tool_calls[0].function.arguments
+                    except (AttributeError, IndexError):
+                        content = str(msg)
+                
+                self.last_raw_content = content
 
                 token_logger.log(
                     turn=context.get("turn", 0),
