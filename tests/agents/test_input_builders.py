@@ -27,17 +27,23 @@ class TestPresidentInputBuilder:
         from unittest.mock import MagicMock
         from geomas.agents.context.events import ContextManager
         cm = MagicMock(spec=ContextManager)
-        cm.get_relationships_for.return_value = ["Enemy: WAR"]
+        
+        # Set up a WAR relationship in the world state
+        nation_id = list(world.nations.keys())[0]
+        other_id = list(world.nations.keys())[1]
+        if nation_id not in world.relationship_matrix:
+            world.relationship_matrix[nation_id] = {}
+        world.relationship_matrix[nation_id][other_id] = "WAR"
         
         builder = PresidentInputBuilder(world)
-        nation_id = list(world.nations.keys())[0]
         
         context = builder.build(nation_id, turn=1, context_manager=cm)
         
         assert "## Your nation status" in context
         assert "## Diplomatic relationships" in context
         assert "## Other nations" in context
-        assert "Enemy: WAR" in context
+        assert "WAR" in context
+        assert world.nations[other_id].name in context
     
     def test_includes_minister_briefings(self, world):
         """Minister briefings appear when provided."""

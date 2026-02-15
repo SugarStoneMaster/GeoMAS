@@ -5,11 +5,15 @@ Generates dynamic context for the President agent.
 Receives summaries from all ministers, relationships, and notable events.
 """
 
-from typing import Optional, List, Dict, Any
-from geomas.schemas.world import WorldState, NationState
+from typing import Optional, List, TYPE_CHECKING
+from geomas.schemas.world import NationState
+from geomas.agents.context.input.base import BaseInputBuilder
+
+if TYPE_CHECKING:
+    from geomas.agents.context.events import ContextManager
 
 
-class PresidentInputBuilder:
+class PresidentInputBuilder(BaseInputBuilder):
     """
     Builds dynamic input context for the President agent.
     
@@ -19,9 +23,6 @@ class PresidentInputBuilder:
     - Relationship summaries with all neighbors
     - Recent notable events
     """
-    
-    def __init__(self, world: WorldState):
-        self.world = world
     
     def build(
         self,
@@ -52,14 +53,11 @@ class PresidentInputBuilder:
         
         sections = []
         
-        # 0. Metadata Header
-        sections.append(f"## Month {turn}")
+        # 1. Month Header
+        sections.append(self._build_month_header(turn))
         
-        # 1. Cabinet Common: Relationships
-        if context_manager:
-            sections.append(self._build_diplomatic_relationships(nation_id, context_manager))
-        
-        # 2. Cabinet Common: Other Nations
+        # 2. Common Layers
+        sections.append(self._build_relationships(nation_id))
         sections.append(self._build_other_nations(nation_id))
         
         # 3. Your Nation Status (Detailed)
@@ -70,16 +68,12 @@ class PresidentInputBuilder:
             defense_summary, economy_summary, foreign_summary
         ))
         
-        # 5. World Events (Global News)
+        # 5. World Events & History
         if context_manager:
             sections.append(self._build_world_events(nation_id, context_manager))
-        
-        # 6. Your History (High-Level Events relevant to nation)
-        if context_manager:
-            sections.append(self._build_self_history(nation_id, context_manager))
+            sections.append(self._build_self_history(nation_id, context_manager)) # Domain=None for President
             
-        # 7. Your Recent Decisions (President's domain actions)
-        if context_manager:
+            # President-specific: Decision history
             sections.append(self._build_recent_decisions(nation_id, context_manager))
         
         return "\n\n".join(sections)
@@ -131,98 +125,6 @@ class PresidentInputBuilder:
         else:
             lines.append("\n**Foreign Minister:** No report available")
         
-        return "\n".join(lines)
-
-    def _build_diplomatic_relationships(self, nation_id: str, cm: 'ContextManager') -> str:
-        """Standardized relationship layer."""
-        lines = ["## Diplomatic relationships"]
-        rel_lines = cm.get_relationships_for(nation_id)
-        if rel_lines:
-            lines.extend(rel_lines)
-        else:
-            lines.append("- No established diplomatic records.")
-        return "\n".join(lines)
-
-    def _build_other_nations(self, nation_id: str) -> str:
-        """
-        Standardized other nations layer.
-        Compact pipe-separated format.
-        """
-        from geomas.world.spatial.manager import SpatialManager
-        
-        lines = ["## Other nations"]
-        my_nation = self.world.nations[nation_id]
-        my_power = max(0.1, my_nation.power_projection)
-        
-        spatial = SpatialManager(self.world)
-        neighbors = spatial.get_neighboring_nations(nation_id)
-        
-        # Calculate world averages for resources
-        n_nations = len(self.world.nations)
-        avg_food = sum(n.total_food for n in self.world.nations.values()) / n_nations
-        avg_energy = sum(n.total_energy for n in self.world.nations.values()) / n_nations
-        avg_materials = sum(n.total_materials for n in self.world.nations.values()) / n_nations
-        
-        from geomas.schemas.world import RelationshipState
-        
-        for other_id, other in self.world.nations.items():
-            if other_id == nation_id:
-                continue
-            
-            # Power
-            ratio = other.power_projection / my_power
-            if ratio > 1.5: power_desc = "Much stronger"
-            elif ratio > 1.1: power_desc = "Stronger"
-            elif ratio > 0.9: power_desc = "Equal"
-            elif ratio > 0.5: power_desc = "Weaker"
-            else: power_desc = "Much weaker"
-            
-            # Neighbors
-            is_neighbor = "Yes" if other_id in neighbors else "No"
-            
-            # Resources
-            res_tags = []
-            if other.total_food > avg_food * 1.5: res_tags.append("Abundant Food")
-            elif other.total_food < avg_food * 0.5: res_tags.append("Food Shortage")
-            if other.total_energy > avg_energy * 1.5: res_tags.append("Abundant Energy")
-            elif other.total_energy < avg_energy * 0.5: res_tags.append("Energy Shortage")
-            if other.total_materials > avg_materials * 1.5: res_tags.append("Abundant Materials")
-            elif other.total_materials < avg_materials * 0.5: res_tags.append("Materials Shortage")
-            res_desc = ", ".join(res_tags) if res_tags else "Balanced"
-            
-            # Alliances
-            allies = []
-            if other_id in self.world.relationship_matrix:
-                for target_id, rel in self.world.relationship_matrix[other_id].items():
-                    if rel == RelationshipState.ALLIANCE and target_id in self.world.nations:
-                        allies.append(self.world.nations[target_id].name)
-            allies_desc = ", ".join(allies) if allies else "None"
-            
-            lines.append(f"- **{other.name}** ({other_id}): Power: {power_desc} | Neighbor: {is_neighbor} | Resources: {res_desc} | Allies: {allies_desc}")
-            
-        return "\n".join(lines)
-
-    def _build_world_events(self, nation_id: str, cm: 'ContextManager') -> str:
-        """Standard world events layer."""
-        lines = ["## World events"]
-        event_lines = cm.get_events_for(nation_id, max_events=10)
-        if event_lines:
-            lines.extend(event_lines)
-        else:
-            lines.append("- No notable world events.")
-        return "\n".join(lines)
-
-    def _build_self_history(self, nation_id: str, cm: 'ContextManager') -> str:
-        """
-        High-level nation history.
-        Includes all relevant world events (not Domain filtered).
-        """
-        lines = ["## Your history"]
-        event_lines = cm.get_events_for(nation_id, max_events=15)
-        if event_lines:
-            lines.extend(event_lines)
-        else:
-            lines.append("- No significant historical events recorded.")
         return "\n".join(lines)
 
     def _build_recent_decisions(self, nation_id: str, cm: 'ContextManager') -> str:
