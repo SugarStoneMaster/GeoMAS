@@ -61,6 +61,7 @@ class SimulationDB:
                 genesis_seed INTEGER,
                 simulation_seed INTEGER,
                 n_cells INTEGER,
+                n_nations INTEGER,
                 created_at TIMESTAMP,
                 completed_at TIMESTAMP,
                 total_turns INTEGER DEFAULT 0,
@@ -137,6 +138,7 @@ class SimulationDB:
         genesis_seed: int, 
         simulation_seed: int, 
         n_cells: int,
+        n_nations: int,
         name: Optional[str] = None
     ) -> int:
         """
@@ -153,14 +155,15 @@ class SimulationDB:
         
         self.conn.execute("""
             INSERT INTO simulation 
-            (id, uuid, genesis_seed, simulation_seed, n_cells, created_at, name)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (id, uuid, genesis_seed, simulation_seed, n_cells, n_nations, created_at, name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, [
             next_id,
             sim_uuid,
             genesis_seed,
             simulation_seed,
             n_cells,
+            n_nations,
             datetime.now(),
             name or f"Simulation {next_id}"
         ])
@@ -330,7 +333,7 @@ class SimulationDB:
     def get_simulation_info(self, simulation_id: int) -> Optional[dict]:
         """Get metadata for a specific simulation."""
         result = self.conn.execute("""
-            SELECT id, genesis_seed, simulation_seed, n_cells, created_at, total_turns, name
+            SELECT id, genesis_seed, simulation_seed, n_cells, n_nations, created_at, total_turns, name
             FROM simulation WHERE id = ?
         """, [simulation_id]).fetchone()
         
@@ -342,9 +345,10 @@ class SimulationDB:
             "genesis_seed": result[1],
             "simulation_seed": result[2],
             "n_cells": result[3],
-            "created_at": result[4],
-            "total_turns": result[5],
-            "name": result[6]
+            "n_nations": result[4],
+            "created_at": result[5],
+            "total_turns": result[6],
+            "name": result[7]
         }
 
     def __enter__(self):

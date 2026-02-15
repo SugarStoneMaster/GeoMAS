@@ -73,11 +73,26 @@ with st.sidebar:
                 if not current_sim or current_sim.simulation_id != selected_sim_id:
                     if st.button(f"📥 Load Simulation {selected_sim_id}", type="primary"):
                         with st.spinner("Loading Simulation..."):
-                            # Initialize Engine with selected ID
-                            new_sim = SimulationEngine(
-                                db_path=db_path,
-                                simulation_id=selected_sim_id
-                            )
+                            # Fetch metadata from DB to ensure consistent engine params
+                            with SimulationDB(db_path) as db:
+                                info = db.get_simulation_info(selected_sim_id)
+                            
+                            if info:
+                                # Initialize Engine with original parameters
+                                new_sim = SimulationEngine(
+                                    map_seed=info['genesis_seed'],
+                                    history_seed=info['simulation_seed'],
+                                    n_cells=info['n_cells'],
+                                    n_nations=info.get('n_nations', 4), # Fallback for old DBs
+                                    db_path=db_path,
+                                    simulation_id=selected_sim_id
+                                )
+                            else:
+                                # Fallback
+                                new_sim = SimulationEngine(
+                                    db_path=db_path,
+                                    simulation_id=selected_sim_id
+                                )
                             # Load max turn state
                             max_turn = new_sim.db.get_max_turn(selected_sim_id)
                             if max_turn > 0:
