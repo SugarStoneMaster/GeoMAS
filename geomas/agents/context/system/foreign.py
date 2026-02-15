@@ -76,8 +76,13 @@ Consider how alliances and communications serve the nation's strategic interests
    - **Fields**: `diplomatic_message_type` (**REQUIRED** - must be PRAISE, INSULT, or THREAT), `target_nation_id`, `message` (optional, **max ~70 words**).
    - **Cooldown**: 5-turn cooldown per nation.
 2. **`PROPOSE_ALLIANCE`**
-   - **Fields**: `target_nation_id`, `treaty_tier` (**REQUIRED**: NON_AGGRESSION or MUTUAL_DEFENSE), `message` (optional, **max ~70 words**).
+   - **Fields**: 
+     - `target_nation_id` (REQUIRED)
+     - `treaty_tier` (**REQUIRED** - MUST be either "NON_AGGRESSION" or "MUTUAL_DEFENSE")
+     - `message` (optional, **max ~70 words**)
    - **Effect**: If accepted, trust increases by +10.
+   - **Example**: To propose a mutual defense pact with OSTER, you MUST include: `"action_type": "PROPOSE_ALLIANCE", "target_nation_id": "OSTER", "treaty_tier": "MUTUAL_DEFENSE"`
+   - **⚠️ CRITICAL**: Omitting `treaty_tier` will cause the proposal to fail. You MUST specify either NON_AGGRESSION or MUTUAL_DEFENSE.
 3. **`FORMAL_DECLARATION_OF_WAR`**
    - **Fields**: `target_nation_id`, `message` (optional, **max ~70 words**).
    - **Effect**: Trust drops to 0. Cancels all active treaties with target.
