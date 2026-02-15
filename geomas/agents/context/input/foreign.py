@@ -55,7 +55,11 @@ class ForeignInputBuilder:
         # Metadata Header for Observability
         sections.append(f"## TURN {turn}")
         
-        # 1. Pending Proposals (require response)
+        # 1. Incoming Messages (Recent communication)
+        if context_manager:
+            sections.append(self._build_incoming_messages(nation_id, turn, context_manager))
+            
+        # 2. Pending Proposals (require response)
         sections.append(self._build_pending_proposals(nation))
         
         # 2. Full Relationship Matrix
@@ -82,6 +86,49 @@ class ForeignInputBuilder:
             sections.append(self._build_sent_proposals(nation))
         
         return "\n\n".join(sections)
+
+    def _build_incoming_messages(self, nation_id: str, current_turn: int, cm: 'ContextManager') -> str:
+        """
+        Build list of recent diplomatic messages (Inbox).
+        Shows messages from the current turn and the immediately preceding turn.
+        """
+        from geomas.agents.context.events.schemas import EventType
+        
+        lines = ["## 📨 INBOX (Recent Messages)"]
+        
+        # Filter:
+        # 1. Event Type = DIPLOMATIC_MESSAGE
+        # 2. Actors include self (recipient)
+        # 3. Turn >= current_turn - 1
+        
+        events = cm.global_events
+        messages = []
+        
+        for e in events:
+            if e.event_type != EventType.DIPLOMATIC_MESSAGE:
+                continue
+                
+            if current_turn - e.turn > 1:
+                continue
+                
+            # Must be a participant
+            if not e.actors or nation_id not in e.actors:
+                continue
+                
+            # If self is the ONLY actor (talking to self?), skip.
+            # Usually actors=[sender, target].
+            # We want to know WHO sent it.
+            # Parse summary? "Nation A sent a PRAISE to Nation B"
+            
+            messages.append(e)
+            
+        if not messages:
+            return "" # Don't show empty section to save tokens
+            
+        for m in messages:
+            lines.append(f"- {m.to_prompt_line()}")
+            
+        return "\n".join(lines)
 
     def _build_world_events(self, nation_id: str, cm: 'ContextManager') -> str:
         """

@@ -144,6 +144,13 @@ def test_foreign_message_in_context_manager(world):
             found_action = True
             break
     assert found_action, f"Diplomatic action not found in nation actions: {[a.action_summary for a in cm.nation_actions['NAT_A']]}"
+    
+    # 3. Check Input Builder INBOX
+    ib = ForeignInputBuilder(world)
+    context = ib.build("NAT_B", 1, context_manager=cm)
+    
+    assert "## 📨 INBOX (Recent Messages)" in context
+    assert "Your mountains are beautiful" in context
 
 def test_message_soft_cooldown(world):
     """
