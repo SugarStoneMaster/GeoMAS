@@ -93,7 +93,7 @@ def execute_foreign(
         payload.execution_outcome.reason = reason
     
     elif payload.action_type == ForeignActionType.PROPOSE_ALLIANCE:
-        success, reason = _execute_propose_alliance(engine, nation_id, target_id, payload.message)
+        success, reason = _execute_propose_alliance(engine, nation_id, target_id, payload.treaty_tier, payload.message)
         payload.execution_outcome.status = "SUCCESS" if success else "FAILED"
         payload.execution_outcome.reason = reason
 
@@ -180,7 +180,29 @@ def _execute_declare_war(
     engine.world.global_events.append(
         f"[Turn {world.turn}] ⚔️ WAR DECLARED: {aggressor_id} vs {target_id}"
     )
+
+    # CALL TO ARMS: Notify allies of the victim
+    _generate_call_to_arms(engine, aggressor_id, target_id)
+
     return True, "War declared"
+
+
+def _generate_call_to_arms(
+    engine: 'ActionEngine',
+    aggressor_id: str,
+    victim_id: str
+) -> None:
+    """Generate specialized notification for nations with Mutual Defense pacts with the victim."""
+    world = engine.world
+    
+    for ally_id, relationship in world.relationship_matrix.get(victim_id, {}).items():
+        if relationship == RelationshipState.MUTUAL_DEFENSE:
+            # Check if the ally is already at war with the aggressor
+            current_ally_rel = world.relationship_matrix.get(ally_id, {}).get(aggressor_id, RelationshipState.PEACE)
+            if current_ally_rel != RelationshipState.WAR:
+                summary = f"🚨 [CALL_TO_ARMS] {ally_id}: Your ally {victim_id} was attacked by {aggressor_id}! You are summoned to honor your MUTUAL_DEFENSE pact."
+                engine.logs.append(summary)
+                world.global_events.append(summary)
 
 
 def _execute_break_treaty(
@@ -194,9 +216,9 @@ def _execute_break_treaty(
     
     current_rel = world.relationship_matrix.get(breaker_id, {}).get(target_id, "PEACE")
     
-    if current_rel != "ALLIANCE":
-        engine.logs.append(f"💔 [FOREIGN] No alliance exists with {target_id} to break")
-        return False, "No alliance exists"
+    if current_rel not in [RelationshipState.NON_AGGRESSION, RelationshipState.MUTUAL_DEFENSE]:
+        engine.logs.append(f"💔 [FOREIGN] No treaty exists with {target_id} to break")
+        return False, "No treaty exists"
     
     # Set relationship back to PEACE
     world.relationship_matrix[breaker_id][target_id] = "PEACE"
@@ -266,20 +288,25 @@ def _execute_propose_alliance(
     engine: 'ActionEngine',
     proposer_id: str,
     target_id: str,
+    tier: Optional['TreatyTier'] = None,
     message: Optional[str] = None
 ) -> None:
     """
     Propose alliance with target nation.
-    Requires minimum trust > 0.6.
+    Requires specifying a tier (NON_AGGRESSION or MUTUAL_DEFENSE).
     Creates a pending proposal that target must accept/reject next turn.
     """
     world = engine.world
     
-    current_rel = world.relationship_matrix.get(proposer_id, {}).get(target_id, "PEACE")
+    if not tier:
+        engine.logs.append(f"🤝 [FOREIGN] Alliance proposal failed: must specify a tier (NON_AGGRESSION or MUTUAL_DEFENSE)")
+        return False, "Missing tier"
+
+    current_rel = world.relationship_matrix.get(proposer_id, {}).get(target_id, RelationshipState.PEACE)
     
-    if current_rel == "ALLIANCE":
-        engine.logs.append(f"🤝 [FOREIGN] Already allied with {target_id}")
-        return False, "Already allied"
+    if current_rel in [RelationshipState.NON_AGGRESSION, RelationshipState.MUTUAL_DEFENSE]:
+        engine.logs.append(f"🤝 [FOREIGN] Already have a treaty with {target_id} ({current_rel})")
+        return False, "Already has treaty"
     
     if current_rel == "WAR":
         engine.logs.append(f"🤝 [FOREIGN] Cannot propose alliance while at war with {target_id}")
@@ -304,7 +331,8 @@ def _execute_propose_alliance(
         "type": "ALLIANCE",
         "from": proposer_id,
         "turn": world.turn,
-        "message": message
+        "message": message,
+        "tier": tier
     })
 
     msg_str = f" Message: '{message}'" if message else ""
@@ -318,6 +346,7 @@ def _execute_propose_alliance(
     world.nations[proposer_id].sent_proposals.append({
         "id": proposal_id,
         "type": "ALLIANCE",
+        "tier": tier,
         "to": target_id,
         "turn": world.turn,
         "message": message,
@@ -385,8 +414,10 @@ def respond_to_proposal(
             f"🕊️ [FOREIGN] Peace treaty signed between {nation_id} and {proposer_id}.{msg_str}"
         )
     elif proposal_type == "ALLIANCE" and accept:
-        world.relationship_matrix[nation_id][proposer_id] = "ALLIANCE"
-        world.relationship_matrix[proposer_id][nation_id] = "ALLIANCE"
+        tier = proposal_found.get("tier", RelationshipState.MUTUAL_DEFENSE)
+        
+        world.relationship_matrix[nation_id][proposer_id] = tier
+        world.relationship_matrix[proposer_id][nation_id] = tier
         
         # Check for Risky Alliance (Bidirectional) - Check BEFORE trust boost
         target_trusts_proposer = world.trust_matrix.get(nation_id, {}).get(proposer_id, 50)
@@ -394,19 +425,19 @@ def respond_to_proposal(
         
         if target_trusts_proposer < 50:
             engine.logs.append(
-                f"⚠️ [FOREIGN] RISKY ALLIANCE for {nation_id}: trust in {proposer_id} is low ({target_trusts_proposer:.0f} < 50)!"
+                f"⚠️ [FOREIGN] RISKY treaty for {nation_id}: trust in {proposer_id} is low ({target_trusts_proposer:.0f} < 50)!"
             )
             
         if proposer_trusts_target < 50:
              engine.logs.append(
-                f"⚠️ [FOREIGN] RISKY ALLIANCE for {proposer_id}: trust in {nation_id} is low ({proposer_trusts_target:.0f} < 50)!"
+                f"⚠️ [FOREIGN] RISKY treaty for {proposer_id}: trust in {nation_id} is low ({proposer_trusts_target:.0f} < 50)!"
             )
 
         engine.adjust_trust(nation_id, proposer_id, 10)  # 0-100 scale
         engine.adjust_trust(proposer_id, nation_id, 10)
             
         engine.logs.append(
-            f"🤝 [FOREIGN] ALLIANCE formed between {nation_id} and {proposer_id}!{msg_str}"
+            f"🤝 [FOREIGN] {tier} formed between {nation_id} and {proposer_id}!{msg_str}"
         )
     elif not accept:
          engine.logs.append(

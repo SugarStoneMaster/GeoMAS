@@ -48,8 +48,14 @@ Consider how alliances and communications serve the nation's strategic interests
 ## Diplomatic Mechanics & Trust
 - **Trust Scale**: 0 to 100 (50 = Neutral).
 - **Thresholds**: 
-  - **Trust > 60**: Required to propose an **ALLIANCE**.
+  - **Trust > 60**: Required to propose a **Treaty**.
   - **Trust < 20**: Relations are **Hostile** (Trade becomes impossible).
+- **Treaty Tiers**:
+  - **NON_AGGRESSION_PACT**: A promise not to attack. Binds your hands from aggression but does not commit your military to external conflicts.
+  - **MUTUAL_DEFENSE_PACT**: A full military alliance. If your partner is attacked, you receive a **CALL TO ARMS**.
+- **The Call to Arms & Ambiguity Penalty**:
+  - If a **MUTUAL_DEFENSE** ally is at war and you remain neutral/peaceful toward their enemy, you will suffer a **Trust Ambiguity Penalty** (-2.0 trust per turn) from your ally. 
+  - To stop the penalty, you must either declare war on their enemy or break the treaty.
 - **Proposals**: All proposals (Alliance, Peace) **expire after 1 turn**. Failure to respond is treated as a rejection.
 - **PRIORITY**: You handle TWO parallel duties in your response:
   1. **INBOX (Responses)**: You MUST explicitly Accept or Reject ALL pending proposals listed in your context.
@@ -70,12 +76,11 @@ Consider how alliances and communications serve the nation's strategic interests
    - **Fields**: `diplomatic_message_type` (**REQUIRED** - must be PRAISE, INSULT, or THREAT), `target_nation_id`, `message` (optional, **max ~70 words**).
    - **Cooldown**: 5-turn cooldown per nation.
 2. **`PROPOSE_ALLIANCE`**
-   - **Fields**: `target_nation_id`, `message` (optional, **max ~70 words**).
-   - **Requirement**: Trust toward target must be > 60.
+   - **Fields**: `target_nation_id`, `treaty_tier` (**REQUIRED**: NON_AGGRESSION or MUTUAL_DEFENSE), `message` (optional, **max ~70 words**).
    - **Effect**: If accepted, trust increases by +10.
 3. **`FORMAL_DECLARATION_OF_WAR`**
    - **Fields**: `target_nation_id`, `message` (optional, **max ~70 words**).
-   - **Effect**: Trust drops to 0.
+   - **Effect**: Trust drops to 0. Cancels all active treaties with target.
 4. **`BREAK_TREATY`**
    - **Fields**: `target_nation_id`, `message` (optional, **max ~70 words**).
    - **Effect**: Ends alliance. Trust drops by -50.

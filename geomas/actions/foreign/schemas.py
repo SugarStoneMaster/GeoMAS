@@ -49,6 +49,12 @@ class ProposalResponse(BaseModel):
     message: Optional[str] = Field(None, description="Explanation for the response.")
 
 
+class TreatyTier(str, Enum):
+    """Levels of commitment for an alliance."""
+    NON_AGGRESSION = "NON_AGGRESSION"
+    MUTUAL_DEFENSE = "MUTUAL_DEFENSE"
+
+
 class ForeignProposalPayload(BaseModel):
     """
     Payload for Foreign Minister proposals (NO DECISION FIELD).
@@ -70,7 +76,10 @@ class ForeignProposalPayload(BaseModel):
         None, 
         description="Required for SEND_DIPLOMATIC_MESSAGE. Enum: PRAISE, THREAT, INSULT."
     )
-    # proposal_ref_type REMOVED from here, moved to ProposalResponse
+    treaty_tier: Optional[TreatyTier] = Field(
+        None,
+        description="Required for PROPOSE_ALLIANCE. Enum: NON_AGGRESSION, MUTUAL_DEFENSE."
+    )
 
 
 class ForeignPayload(ForeignProposalPayload):

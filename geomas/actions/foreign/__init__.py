@@ -8,9 +8,10 @@ from geomas.actions.foreign.schemas import (
     ForeignActionType,
     ForeignPayload,
     ForeignProposalPayload,
-    ForeignResponseAction,  # New
-    ProposalResponse,       # New
+    ForeignResponseAction,
+    ProposalResponse,
     DiplomaticMessageType,
+    TreatyTier,
     MESSAGE_TRUST_IMPACT,
 )
 from geomas.actions.foreign.handler import (
@@ -27,6 +28,7 @@ __all__ = [
     "ForeignResponseAction",
     "ProposalResponse",
     "DiplomaticMessageType",
+    "TreatyTier",
     "MESSAGE_TRUST_IMPACT",
     "execute_foreign",
     "respond_to_proposal",

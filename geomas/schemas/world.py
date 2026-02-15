@@ -13,9 +13,10 @@ class TerrainType(str, Enum):
 
 class RelationshipState(str, Enum):
     """Diplomatic relationship state between two nations."""
-    PEACE = "PEACE"       # Default, can trade normally
-    WAR = "WAR"           # Cannot trade, combat enabled
-    ALLIANCE = "ALLIANCE" # Mutual defense, preferred trade
+    PEACE = "PEACE"              # Default, can trade normally
+    WAR = "WAR"                  # Cannot trade, combat enabled
+    NON_AGGRESSION = "NON_AGGRESSION"  # Pact of non-aggression
+    MUTUAL_DEFENSE = "MUTUAL_DEFENSE"  # Full military alliance (NATO Style)
 
 
 class ProvinceState(BaseModel):

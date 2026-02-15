@@ -46,14 +46,14 @@ class BaseInputBuilder:
             if other_id == nation_id:
                 continue
                 
-            rel = self.world.relationship_matrix.get(nation_id, {}).get(other_id, "PEACE")
+            rel = self.world.relationship_matrix.get(nation_id, {}).get(other_id, RelationshipState.PEACE)
             trust = self.world.trust_matrix.get(nation_id, {}).get(other_id, 50.0)
             
             line = f"- **{other_nation.name}** ({other_id}): {rel}, Trust {trust:.0f}"
             
-            if rel == "WAR":
+            if rel == RelationshipState.WAR:
                 at_war.append(line)
-            elif rel == "ALLIANCE":
+            elif rel in [RelationshipState.NON_AGGRESSION, RelationshipState.MUTUAL_DEFENSE]:
                 allies.append(line)
             else:
                 neutral.append(line)
@@ -62,7 +62,7 @@ class BaseInputBuilder:
             lines.append("### AT WAR")
             lines.extend(at_war)
         if allies:
-            lines.append("### ALLIES")
+            lines.append("### TREATIES")
             lines.extend(allies)
         if neutral:
             lines.append("### NEUTRAL")
@@ -119,16 +119,16 @@ class BaseInputBuilder:
             
             res_desc = ", ".join(res_tags) if res_tags else "Balanced"
             
-            # 4. Alliances (Find who they are allied with)
-            allies = []
+            # 4. Treaties (Find who they are allied with)
+            treaties = []
             if other_id in self.world.relationship_matrix:
                 for target_id, rel in self.world.relationship_matrix[other_id].items():
-                    if rel == RelationshipState.ALLIANCE and target_id in self.world.nations:
-                        allies.append(self.world.nations[target_id].name)
+                    if rel in [RelationshipState.NON_AGGRESSION, RelationshipState.MUTUAL_DEFENSE] and target_id in self.world.nations:
+                        treaties.append(f"{self.world.nations[target_id].name} ({rel})")
             
-            allies_desc = ", ".join(allies) if allies else "None"
+            treaties_desc = ", ".join(treaties) if treaties else "None"
             
-            lines.append(f"- **{other.name}** ({other_id}): Power: {power_desc} | Neighbor: {is_neighbor} | Resources: {res_desc} | Allies: {allies_desc}")
+            lines.append(f"- **{other.name}** ({other_id}): Power: {power_desc} | Neighbor: {is_neighbor} | Resources: {res_desc} | Treaties: {treaties_desc}")
             
         return "\n".join(lines)
 

@@ -289,6 +289,34 @@ class SimulationEngine:
             behaviors=behaviors
         )
 
+    def _apply_ambiguity_penalty(self):
+        """
+        Applies a trust penalty to nations that have a MUTUAL_DEFENSE pact 
+        but remain neutral while their ally is at war.
+        """
+        from geomas.schemas.world import RelationshipState
+        
+        for nation_id, relationships in self.world.relationship_matrix.items():
+            # X is at war with someone (Z)
+            enemies = [target_id for target_id, rel in relationships.items() if rel == RelationshipState.WAR]
+            if not enemies:
+                continue
+                
+            # Check allies of X
+            for ally_id, rel_with_ally in relationships.items():
+                if rel_with_ally == RelationshipState.MUTUAL_DEFENSE:
+                    # Ally Y is NOT at war with ANY of X's enemies
+                    ally_relationships = self.world.relationship_matrix.get(ally_id, {})
+                    is_helping = any(ally_relationships.get(enemy_id) == RelationshipState.WAR for enemy_id in enemies)
+                    
+                    if not is_helping:
+                        # Penalty: X trusts Y less because Y is being ambiguous/cowardly
+                        penalty = -2.0
+                        self.engine.adjust_trust(nation_id, ally_id, penalty)
+                        self.turn_logs.append(
+                            f"📉 [DIPLOMACY] {nation_id} trust in {ally_id} decreased by {penalty:+.1f} (Ambiguity Penalty: ally not joined in war)."
+                        )
+
     def step(self, injections: Optional[List[dict]] = None):
         """Executes one full turn of the simulation."""
         
@@ -333,8 +361,8 @@ class SimulationEngine:
         # Store envelopes in history
         self.history.append(turn_envelopes)
         
-        # 3. CACHE PHASE (See end of step for implementation)
-        # self._cache_turn(current_turn, turn_envelopes)
+        # 3. DIPLOMATIC DECAY (Ambiguity Penalty)
+        self._apply_ambiguity_penalty()
         
         # 4. CONTEXT PHASE (Update agent events)
         self.context_manager.update_after_turn(current_turn, turn_envelopes, self.world)

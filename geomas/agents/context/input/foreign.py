@@ -54,6 +54,12 @@ class ForeignInputBuilder(BaseInputBuilder):
         
         # 1. Month Header
         sections.append(self._build_month_header(turn))
+
+        # 1b. CRITICAL: Call to Arms (Priority notification)
+        if context_manager:
+            cta = self._build_call_to_arms_header(nation_id, context_manager)
+            if cta:
+                sections.append(cta)
         
         # 2. Common Layers
         sections.append(self._build_relationships(nation_id))
@@ -81,6 +87,20 @@ class ForeignInputBuilder(BaseInputBuilder):
         
         return "\n\n".join(sections)
 
+    def _build_call_to_arms_header(self, nation_id: str, cm: 'ContextManager') -> str:
+        """Scan for CALL_TO_ARMS targeting this nation and create a loud header."""
+        events = cm.get_events_for(nation_id, max_events=10)
+        cta_events = [e for e in events if "[CALL_TO_ARMS]" in e and nation_id in e]
+        
+        if not cta_events:
+            return ""
+            
+        lines = ["# 🚨 CRITICAL: CALL TO ARMS 🚨"]
+        lines.append("You have been formally summoned by an ally to join a war. Failing to honor a MUTUAL_DEFENSE pact will result in severe trust penalties.")
+        for e in cta_events:
+            lines.append(f"- **{e}**")
+        return "\n".join(lines)
+
     def _build_incoming_messages(self, nation_id: str, current_turn: int, cm: 'ContextManager') -> str:
         """
         Build list of recent diplomatic messages (Inbox).
@@ -91,9 +111,9 @@ class ForeignInputBuilder(BaseInputBuilder):
         lines = ["## Inbox"]
         
         # Filter:
-        # 1. Event Type = DIPLOMATIC_MESSAGE
-        # 2. Actors include self (recipient)
-        # 3. Turn >= current_turn - 1
+        # 1. Turn >= current_turn - 1
+        # 2. Event Type = DIPLOMATIC_MESSAGE
+        # 3. Actors include self (recipient)
         
         events = cm.global_events
         messages = []
@@ -143,13 +163,15 @@ class ForeignInputBuilder(BaseInputBuilder):
                 p_type = p.get("type", "UNKNOWN")
                 to_id = p.get("to", "UNKNOWN")
                 turn = p.get("turn", "?")
+                tier = p.get("tier")
                 
                 # Get target name
                 to_name = self.world.nations.get(to_id, {})
                 if hasattr(to_name, 'name'): to_name = to_name.name
                 else: to_name = to_id
                 
-                lines.append(f"- ⏳ **{p_type} to {to_name}** (Sent Turn {turn}). Status: **PENDING**")
+                tier_str = f" ({tier})" if tier else ""
+                lines.append(f"- ⏳ **{p_type}{tier_str} to {to_name}** (Sent Turn {turn}). Status: **PENDING**")
         
         # 2. Proposal History
         if history:
@@ -160,6 +182,7 @@ class ForeignInputBuilder(BaseInputBuilder):
                 turn = p.get("turn", "?")
                 status = p.get("status", "UNKNOWN")
                 resolved_turn = p.get("resolved_turn", "?")
+                tier = p.get("tier")
                 
                 icon = "❓"
                 if status == "ACCEPTED": icon = "✅"
@@ -171,7 +194,8 @@ class ForeignInputBuilder(BaseInputBuilder):
                 if hasattr(to_name, 'name'): to_name = to_name.name
                 else: to_name = to_id
                 
-                lines.append(f"- {icon} **{p_type} to {to_name}** (Sent T{turn}, Resolved T{resolved_turn}): **{status}**")
+                tier_str = f" ({tier})" if tier else ""
+                lines.append(f"- {icon} **{p_type}{tier_str} to {to_name}** (Sent T{turn}, Resolved T{resolved_turn}): **{status}**")
             
         return "\n".join(lines)
 
@@ -187,6 +211,7 @@ class ForeignInputBuilder(BaseInputBuilder):
             p_type = proposal.get("type", "Unknown")
             from_nation = proposal.get("from", "Unknown")
             turn = proposal.get("turn", "?")
+            tier = proposal.get("tier")
             
             from_name = self.world.nations.get(from_nation, {})
             if hasattr(from_name, 'name'):
@@ -194,7 +219,8 @@ class ForeignInputBuilder(BaseInputBuilder):
             else:
                 from_name = from_nation
             
-            lines.append(f"\n**{p_type} proposal from {from_name}** (Turn {turn})")
+            tier_str = f" [{tier}]" if tier else ""
+            lines.append(f"\n**{p_type}{tier_str} proposal from {from_name}** (Turn {turn})")
             p_id = proposal.get("id", "MISSING_ID")
             lines.append(f"  [ID: {p_id}]")
             message = proposal.get("message")

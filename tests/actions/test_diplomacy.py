@@ -13,8 +13,9 @@ from geomas.actions.foreign import (
     DiplomaticMessageType,
     ProposalResponse,
     ForeignResponseAction,
-    MESSAGE_TRUST_IMPACT,
+    respond_to_proposal,
     MESSAGE_COOLDOWN_TURNS,
+    TreatyTier,
     execute_foreign,
     clear_expired_proposals,
 )
@@ -29,7 +30,8 @@ class TestRelationshipStates:
         """RelationshipState has correct values."""
         assert RelationshipState.PEACE.value == "PEACE"
         assert RelationshipState.WAR.value == "WAR"
-        assert RelationshipState.ALLIANCE.value == "ALLIANCE"
+        assert RelationshipState.NON_AGGRESSION.value == "NON_AGGRESSION"
+        assert RelationshipState.MUTUAL_DEFENSE.value == "MUTUAL_DEFENSE"
     
     def test_default_relationship_is_peace(self):
         """All nations start at PEACE."""
@@ -139,6 +141,7 @@ class TestProposeAlliance:
             decision=Decision.APPROVE,
             action_type=ForeignActionType.PROPOSE_ALLIANCE,
             target_nation_id=target_id,
+            treaty_tier=TreatyTier.MUTUAL_DEFENSE
         )
         
         execute_foreign(engine, proposer_id, payload)
@@ -162,6 +165,7 @@ class TestProposeAlliance:
             decision=Decision.APPROVE,
             action_type=ForeignActionType.PROPOSE_ALLIANCE,
             target_nation_id=target_id,
+            treaty_tier=TreatyTier.MUTUAL_DEFENSE
         )
         execute_foreign(engine, proposer_id, propose_payload)
         
@@ -188,9 +192,9 @@ class TestProposeAlliance:
         )
         execute_foreign(engine, target_id, accept_payload)
         
-        # Now should be ALLIANCE
-        assert world.relationship_matrix[proposer_id][target_id] == "ALLIANCE"
-        assert world.relationship_matrix[target_id][proposer_id] == "ALLIANCE"
+        # Now should be MUTUAL_DEFENSE
+        assert world.relationship_matrix[proposer_id][target_id] == RelationshipState.MUTUAL_DEFENSE
+        assert world.relationship_matrix[target_id][proposer_id] == RelationshipState.MUTUAL_DEFENSE
 
 
 class TestMessageCooldown:
@@ -271,6 +275,7 @@ class TestProposalExpiry:
             decision=Decision.APPROVE,
             action_type=ForeignActionType.PROPOSE_ALLIANCE,
             target_nation_id=target_id,
+            treaty_tier=TreatyTier.MUTUAL_DEFENSE
         )
         execute_foreign(engine, proposer_id, propose_payload)
         
