@@ -434,15 +434,18 @@ class MilitaryTranslator:
         
         return "\n".join(lines)
 
-    def _get_reachable_provinces(self, start_id: int, unit_type: UnitType, nation_id: str) -> List[int]:
+    def _get_reachable_provinces(self, start_id: int, unit_type: UnitType, nation_id: str) -> Dict[str, List[int]]:
         """
         BFS to find GENUINELY reachable provinces within range.
-        STRICTLY filters out invalid moves (e.g. Soldiers to Ocean).
+        Returns categorized destinations: {'ATTACK': [], 'REINFORCE': [], 'TRANSFER': []}
         """
         max_range = MOVEMENT_RANGE.get(unit_type, 2)
-        reachable = []
+        results = {"ATTACK": [], "REINFORCE": [], "TRANSFER": []}
+        
         visited = {start_id}
         queue = deque([(start_id, 0)])  # (province_id, distance)
+        
+        border_provinces = set(self.spatial.get_border_provinces(nation_id))
         
         while queue:
             current_id, dist = queue.popleft()
@@ -453,7 +456,6 @@ class MilitaryTranslator:
             prov = self.world.provinces.get(current_id)
             if not prov: continue
             
-            # Check all neighbors
             for neighbor_id in prov.neighbors:
                 if neighbor_id in visited:
                     continue
@@ -461,38 +463,47 @@ class MilitaryTranslator:
                 n_prov = self.world.provinces.get(neighbor_id)
                 if not n_prov: continue
                 
-                # --- STRICT TERRAIN & OWNER CHECKS ---
                 is_valid_step = False
                 
                 if unit_type == UnitType.SOLDIER:
-                    # Soldiers can NEVER be on OCEAN
                     if n_prov.terrain == TerrainType.OCEAN:
                         continue 
                     
-                    # Can move to owned land
                     if n_prov.owner_id == nation_id:
                         is_valid_step = True
-                    # Can ATTACK enemy land (but stops movement)
+                        if neighbor_id in border_provinces:
+                            results["REINFORCE"].append(neighbor_id)
+                        else:
+                            results["TRANSFER"].append(neighbor_id)
                     elif n_prov.owner_id and n_prov.owner_id != nation_id:
-                        reachable.append(neighbor_id)
+                        results["ATTACK"].append(neighbor_id)
                         visited.add(neighbor_id)
-                        continue # Add to reachable but STOP BFS here (attack ends move)
+                        continue # Attack ends move
                     
                 elif unit_type == UnitType.NAVY:
-                    # Navy ONLY Ocean
                     if n_prov.terrain == TerrainType.OCEAN:
                         is_valid_step = True
+                        # Navy destinations are slightly different, but let's keep it simple for now
+                        results["TRANSFER"].append(neighbor_id)
                         
                 elif unit_type == UnitType.AIRCRAFT:
-                    # Aircraft can go anywhere
                     is_valid_step = True
+                    if n_prov.owner_id == nation_id:
+                        if neighbor_id in border_provinces:
+                            results["REINFORCE"].append(neighbor_id)
+                        else:
+                            results["TRANSFER"].append(neighbor_id)
+                    elif n_prov.owner_id:
+                        results["ATTACK"].append(neighbor_id)
                 
                 if is_valid_step:
                     visited.add(neighbor_id)
-                    reachable.append(neighbor_id)
                     queue.append((neighbor_id, dist + 1))
-                    
-        return sorted(list(set(reachable)))
+        
+        # Deduplicate and sort
+        for key in results:
+            results[key] = sorted(list(set(results[key])))
+        return results
 
     def _generate_province_list(self, nation_id: str) -> str:
         """
@@ -551,24 +562,40 @@ class MilitaryTranslator:
             
             # List VALID reachable destinations
             for u_type, amount in units_here:
-                valid_moves = self._get_reachable_provinces(p_id, u_type, nation_id)
-                if valid_moves:
-                    # Format moves with context (e.g. "To 123(ENEMY)")
-                    move_strs = []
-                    sorted_moves = sorted(valid_moves)
-                    display_limit = 12  # Cap detailed reachability list
+                reachable_map = self._get_reachable_provinces(p_id, u_type, nation_id)
+                
+                if u_type == UnitType.AIRCRAFT:
+                    total_reach = len(reachable_map["ATTACK"]) + len(reachable_map["REINFORCE"]) + len(reachable_map["TRANSFER"])
+                    if total_reach > 0:
+                        lines.append(f"  → A reaches: {total_reach} total provinces (Range {MOVEMENT_RANGE[UnitType.AIRCRAFT]})")
+                        # Show only immediate ATTACK targets for aircraft
+                        if reachable_map["ATTACK"]:
+                            targets = [f"{m_id}({self.world.provinces[m_id].owner_id})" for m_id in reachable_map["ATTACK"][:5]]
+                            lines.append(f"    * Key Attack Targets: {', '.join(targets)}")
+                else:
+                    # Soldiers/Navy: Intent-based grouping
+                    move_sections = []
+                    for intent, targets in reachable_map.items():
+                        if not targets: continue
+                        
+                        display_targets = []
+                        for m_id in targets[:8]:
+                            m_prov = self.world.provinces[m_id]
+                            if intent == "ATTACK":
+                                display_targets.append(f"{m_id}({m_prov.owner_id})")
+                            else:
+                                display_targets.append(str(m_id))
+                        
+                        res_str = ", ".join(display_targets)
+                        if len(targets) > 8:
+                            res_str += f" (+{len(targets)-8})"
+                        
+                        move_sections.append(f"{intent}: {res_str}")
                     
-                    for m_id in sorted_moves[:display_limit]:
-                        m_prov = self.world.provinces.get(m_id)
-                        if m_prov.owner_id and m_prov.owner_id != nation_id:
-                            move_strs.append(f"{m_id}({m_prov.owner_id})")
-                        else:
-                            move_strs.append(str(m_id))
-                    
-                    if len(sorted_moves) > display_limit:
-                        move_strs.append(f"...(+{len(sorted_moves)-display_limit})")
-                    
-                    lines.append(f"  → {u_type.value[0]} reaches: {', '.join(move_strs)}")
+                    if move_sections:
+                        lines.append(f"  → {u_type.value[0]} moves:")
+                        for section in move_sections:
+                            lines.append(f"    - {section}")
 
         if skipped_interior > 0:
             lines.append(f"\n*(Hid {skipped_interior} small interior garrisons totaling {skipped_troops} units to simplify logistics)*")

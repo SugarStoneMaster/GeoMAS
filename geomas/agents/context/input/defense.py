@@ -81,7 +81,18 @@ class DefenseInputBuilder:
         if nation.public_satisfaction < 40:
             sections.append(self._build_morale_warning(nation))
         
+        # 7. Logistics Reminder (Repeat rules near the end for recency)
+        sections.append(self._build_logistics_reminder())
+        
         return "\n\n".join(sections)
+
+    def _build_logistics_reminder(self) -> str:
+        """Reinforce movement rules at the end of the prompt."""
+        return """## 👮 MOVEMENT RULES (STRICT)
+- **MOVE_TROOPS** is ONLY valid for destinations listed in the 'moves' section above.
+- **SOLDIERS** cannot cross cross distance > 2. They are BLOCKED by OCEAN.
+- **NAVY** can only be in OCEAN.
+- **AIRCRAFT** can strike any target but are expensive to use for simple troop transfers."""
     
     def _build_budget_section(self, nation: NationState) -> str:
         """Build available budget section with real constants and maintenance awareness."""
@@ -204,40 +215,24 @@ class DefenseInputBuilder:
             if other_id == nation_id:
                 continue
             
-            # 1. Power projection
             ratio = other.power_projection / my_power
-            if ratio > 1.5: power_desc = "Much stronger"
-            elif ratio > 1.1: power_desc = "Stronger"
+            if ratio > 1.5: power_desc = "Stronger +"
             elif ratio > 0.9: power_desc = "Equal"
-            elif ratio > 0.5: power_desc = "Weaker"
-            else: power_desc = "Much weaker"
+            else: power_desc = "Weaker -"
             
-            # 2. Neighbors
             is_neighbor = "Yes" if other_id in neighbors else "No"
             
-            # 3. Resources (Identify significant surplus/deficit)
+            # Identify CRITICAL resource issues only
             res_tags = []
-            if other.total_food > avg_food * 1.5: res_tags.append("Abundant Food")
-            elif other.total_food < avg_food * 0.5: res_tags.append("Food Shortage")
+            if other.total_food < avg_food * 0.3: res_tags.append("Food Crisis")
+            if other.total_materials < avg_materials * 0.3: res_tags.append("Mat Crisis")
+            res_desc = ", ".join(res_tags) if res_tags else "OK"
             
-            if other.total_energy > avg_energy * 1.5: res_tags.append("Abundant Energy")
-            elif other.total_energy < avg_energy * 0.5: res_tags.append("Energy Shortage")
+            allies = [self.world.nations[t_id].name for t_id, rel in self.world.relationship_matrix.get(other_id, {}).items() 
+                     if rel == RelationshipState.ALLIANCE and t_id in self.world.nations]
+            allies_desc = ", ".join(allies[:2]) if allies else "None"
             
-            if other.total_materials > avg_materials * 1.5: res_tags.append("Abundant Materials")
-            elif other.total_materials < avg_materials * 0.5: res_tags.append("Materials Shortage")
-            
-            res_desc = ", ".join(res_tags) if res_tags else "Balanced"
-            
-            # 4. Alliances (Find who they are allied with)
-            allies = []
-            if other_id in self.world.relationship_matrix:
-                for target_id, rel in self.world.relationship_matrix[other_id].items():
-                    if rel == RelationshipState.ALLIANCE and target_id in self.world.nations:
-                        allies.append(self.world.nations[target_id].name)
-            
-            allies_desc = ", ".join(allies) if allies else "None"
-            
-            lines.append(f"- **{other.name}** ({other_id}): Power: {power_desc} | Neighbor: {is_neighbor} | Resources: {res_desc} | Allies: {allies_desc}")
+            lines.append(f"- **{other.name}** ({other_id}): {power_desc} | Neighbor: {is_neighbor} | Res: {res_desc} | Allies: {allies_desc}")
             
         return "\n".join(lines)
 
@@ -256,7 +251,7 @@ class DefenseInputBuilder:
             rel = self.world.relationship_matrix.get(nation_id, {}).get(other_id, "PEACE")
             trust = self.world.trust_matrix.get(nation_id, {}).get(other_id, 50.0)
             
-            line = f"- **{other_nation.name}** ({other_id}): {rel}, Trust {trust:.0f}"
+            line = f"- {other_nation.name} ({other_id}): {rel}, Trust {trust:.0f}"
             
             if rel == "WAR":
                 at_war.append(line)
@@ -266,14 +261,11 @@ class DefenseInputBuilder:
                 neutral.append(line)
         
         if at_war:
-            lines.append("### AT WAR")
-            lines.extend(at_war)
+            lines.append("**AT WAR:** " + ", ".join(at_war))
         if allies:
-            lines.append("### ALLIES")
-            lines.extend(allies)
+            lines.append("**ALLIES:** " + ", ".join(allies))
         if neutral:
-            lines.append("### NEUTRAL")
-            lines.extend(neutral)
+            lines.append("**NEUTRAL:** " + ", ".join(neutral))
             
         return "\n".join(lines)
 
