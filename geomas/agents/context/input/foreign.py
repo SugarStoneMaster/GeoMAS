@@ -170,7 +170,9 @@ class ForeignInputBuilder(BaseInputBuilder):
                 if hasattr(to_name, 'name'): to_name = to_name.name
                 else: to_name = to_id
                 
-                tier_str = f" ({tier})" if tier else ""
+                # Extract tier value if it's an enum
+                tier_value = tier.value if hasattr(tier, 'value') else tier
+                tier_str = f" ({tier_value})" if tier else ""
                 lines.append(f"- ⏳ **{p_type}{tier_str} to {to_name}** (Sent Turn {turn}). Status: **PENDING**")
         
         # 2. Proposal History
@@ -194,7 +196,9 @@ class ForeignInputBuilder(BaseInputBuilder):
                 if hasattr(to_name, 'name'): to_name = to_name.name
                 else: to_name = to_id
                 
-                tier_str = f" ({tier})" if tier else ""
+                # Extract tier value if it's an enum
+                tier_value = tier.value if hasattr(tier, 'value') else tier
+                tier_str = f" ({tier_value})" if tier else ""
                 lines.append(f"- {icon} **{p_type}{tier_str} to {to_name}** (Sent T{turn}, Resolved T{resolved_turn}): **{status}**")
             
         return "\n".join(lines)
@@ -219,7 +223,9 @@ class ForeignInputBuilder(BaseInputBuilder):
             else:
                 from_name = from_nation
             
-            tier_str = f" [{tier}]" if tier else ""
+            # Extract tier value if it's an enum
+            tier_value = tier.value if hasattr(tier, 'value') else tier
+            tier_str = f" [{tier_value}]" if tier else ""
             lines.append(f"\n**{p_type}{tier_str} proposal from {from_name}** (Turn {turn})")
             p_id = proposal.get("id", "MISSING_ID")
             lines.append(f"  [ID: {p_id}]")

@@ -2,7 +2,7 @@
 import pytest
 from geomas.schemas.world import WorldState, NationState
 from geomas.actions.engine import ActionEngine
-from geomas.actions.foreign.schemas import ForeignActionType, ForeignPayload, DiplomaticMessageType, ProposalResponse, ForeignResponseAction
+from geomas.actions.foreign.schemas import ForeignActionType, ForeignPayload, DiplomaticMessageType, ProposalResponse, ForeignResponseAction, TreatyTier
 from geomas.actions.defense.schemas import DefensePayload
 from geomas.actions.economy.schemas import EconomicPayload
 from geomas.agents.context.events import ContextManager
@@ -46,7 +46,8 @@ def test_alliance_proposal_carries_message(world):
     payload = ForeignPayload(
         action_type=ForeignActionType.PROPOSE_ALLIANCE,
         target_nation_id="NAT_B",
-        message="Let's be brothers forever!"
+        message="Let's be brothers forever!",
+        treaty_tier=TreatyTier.MUTUAL_DEFENSE
     )
     
     envelope = create_valid_envelope("NAT_A", 1, payload)
@@ -64,7 +65,7 @@ def test_alliance_proposal_carries_message(world):
     # 2. Verify display in ForeignInputBuilder
     ib = ForeignInputBuilder(world)
     context = ib.build("NAT_B", 1)
-    assert "**ALLIANCE proposal from Nation A**" in context
+    assert "**ALLIANCE [MUTUAL_DEFENSE] proposal from Nation A**" in context
     assert "> \"Let's be brothers forever!\"" in context
 
 def test_respond_to_proposal_carries_message(world):
@@ -75,7 +76,8 @@ def test_respond_to_proposal_carries_message(world):
         "type": "ALLIANCE",
         "from": "NAT_A",
         "turn": 1,
-        "message": "Original proposal"
+        "message": "Original proposal",
+        "tier": TreatyTier.MUTUAL_DEFENSE
     })
     
     engine = ActionEngine(world)
@@ -235,7 +237,8 @@ def test_proposal_tracking_lifecycle(world):
     payload = ForeignPayload(
         action_type=ForeignActionType.PROPOSE_ALLIANCE,
         target_nation_id=target,
-        message="Ally?"
+        message="Ally?",
+        treaty_tier=TreatyTier.MUTUAL_DEFENSE
     )
     # Ensure trust is high enough
     world.trust_matrix[sender][target] = 80
@@ -252,7 +255,7 @@ def test_proposal_tracking_lifecycle(world):
     ib = ForeignInputBuilder(world)
     context = ib.build(sender, 10)
     assert "## Sent proposals" in context
-    assert "⏳ **ALLIANCE to Nation B**" in context
+    assert "⏳ **ALLIANCE (MUTUAL_DEFENSE) to Nation B**" in context
     assert "Status: **PENDING**" in context
     
     # 3. Respond (Turn 11)
@@ -283,7 +286,7 @@ def test_proposal_tracking_lifecycle(world):
     
     # 4. Check Input Builder again (Sender sees result)
     context_resolved = ib.build(sender, 11)
-    assert "✅ **ALLIANCE to Nation B**" in context_resolved
+    assert "✅ **ALLIANCE (MUTUAL_DEFENSE) to Nation B**" in context_resolved
     assert ": **ACCEPTED**" in context_resolved
     
     # 5. Cleanup (Turn 13 - >1 turn after resolution)
@@ -296,7 +299,7 @@ def test_proposal_tracking_lifecycle(world):
     # Check updated Input Builder (History Section)
     context_history = ib.build(sender, 12)
     assert "## Proposal history" in context_history
-    assert "✅ **ALLIANCE to Nation B**" in context_history
+    assert "✅ **ALLIANCE (MUTUAL_DEFENSE) to Nation B**" in context_history
     
     # Turn 35: Still visible (11 + 24 <= 35)
     world.turn = 35

@@ -6,8 +6,9 @@ from geomas.agents.schemas import (
 )
 from geomas.actions.foreign import (
     ForeignProposalPayload, ProposalResponse, ForeignActionType, 
-    ForeignResponseAction, ForeignPayload
+    ForeignResponseAction, ForeignPayload, TreatyTier
 )
+from geomas.schemas.world import RelationshipState
 from geomas.actions.foreign.handler import execute_foreign
 from geomas.actions.common import Decision
 
@@ -44,7 +45,8 @@ def test_foreign_separation():
             "type": "ALLIANCE",
             "from": n2_id,
             "turn": 1,
-            "message": "Ally?"
+            "message": "Ally?",
+            "tier": TreatyTier.MUTUAL_DEFENSE
         }],
         "message_cooldown": {},
         "sent_proposals": []
@@ -83,7 +85,8 @@ def test_foreign_separation():
         ],
         action_type=ForeignActionType.PROPOSE_ALLIANCE,
         target_nation_id=n3_id,
-        message="Let's ally too!"
+        message="Let's ally too!",
+        treaty_tier=TreatyTier.MUTUAL_DEFENSE
     )
     
     # Execute
@@ -93,7 +96,7 @@ def test_foreign_separation():
     # 1. Proposal from N2 should be removed (Accepted)
     assert len(engine.world.nations[n1_id].pending_proposals) == 0
     # 2. Alliance should be formed with N2
-    assert engine.world.relationship_matrix[n1_id][n2_id] == "ALLIANCE"
+    assert engine.world.relationship_matrix[n1_id][n2_id] == RelationshipState.MUTUAL_DEFENSE
     
     # Verify Active Action
     # 3. New Proposal should be sent to N3

@@ -1,7 +1,7 @@
 import pytest
 from geomas.schemas.world import WorldState, NationState
 from geomas.actions.engine import ActionEngine
-from geomas.actions.foreign.schemas import ForeignActionType, ForeignPayload
+from geomas.actions.foreign.schemas import ForeignActionType, ForeignPayload, TreatyTier
 from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, EconomicIntentType, ForeignIntentType, DefenseIntentType
 from geomas.actions.defense.schemas import DefensePayload
 from geomas.actions.economy.schemas import EconomicPayload
@@ -20,7 +20,8 @@ def test_low_trust_alliance_allowed():
     payload = ForeignPayload(
         action_type=ForeignActionType.PROPOSE_ALLIANCE,
         target_nation_id="NAT_B",
-        message="Ally?"
+        message="Ally?",
+        treaty_tier=TreatyTier.MUTUAL_DEFENSE
     )
     
     # Create envelope
@@ -72,9 +73,9 @@ def test_low_trust_alliance_allowed():
     found_proposer_risk = False
     
     for log in engine.logs:
-        if "RISKY ALLIANCE for NAT_B" in log and "10 < 50" in log:
+        if "RISKY treaty for NAT_B" in log and "10 < 50" in log:
             found_target_risk = True
-        if "RISKY ALLIANCE for NAT_A" in log and "10 < 50" in log:
+        if "RISKY treaty for NAT_A" in log and "10 < 50" in log:
             found_proposer_risk = True
             
     assert found_target_risk, f"Target risk log not found in: {engine.logs}"

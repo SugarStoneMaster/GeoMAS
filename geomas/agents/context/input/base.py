@@ -6,7 +6,7 @@ Ensures consistency in relationship matrices, international overviews, and event
 """
 
 from typing import Optional, List, TYPE_CHECKING
-from geomas.schemas.world import WorldState
+from geomas.schemas.world import WorldState, RelationshipState
 
 if TYPE_CHECKING:
     from geomas.agents.context.events import ContextManager
@@ -76,7 +76,6 @@ class BaseInputBuilder:
         Includes Power projection, Neighbor status, Resource profiles, and Alliances.
         """
         from geomas.world.spatial.manager import SpatialManager
-        from geomas.schemas.world import RelationshipState
         
         lines = ["## Other nations"]
         my_nation = self.world.nations[nation_id]
