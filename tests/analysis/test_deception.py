@@ -70,12 +70,12 @@ class TestDeceptionMatrices:
         assert score == 0.0
         
     def test_foreign_deception_as_cooperation(self):
-        """Claiming cooperation when deceiving -> high deception."""
+        """Claiming cooperation when coercing (backstabbing) -> high deception."""
         score = DeceptionAnalyzer.calculate_foreign_deception(
-            ForeignIntentType.DECEPTION,    # private
+            ForeignIntentType.COERCION,    # private
             ForeignIntentType.COOPERATION   # public
         )
-        assert score >= 0.9
+        assert score >= 0.8
 
 
 class TestEnvelopeDeception:
@@ -105,7 +105,7 @@ class TestEnvelopeDeception:
             economic_public_intent=EconomicIntentType.GROWTH,
             economic_private_intent=EconomicIntentType.SURVIVAL,
             foreign_public_intent=ForeignIntentType.COOPERATION,
-            foreign_private_intent=ForeignIntentType.DECEPTION,
+            foreign_private_intent=ForeignIntentType.COERCION, # Backstabbing (was DECEPTION)
         )
         
         score = DeceptionAnalyzer.calculate_score(envelope)
@@ -274,7 +274,7 @@ class TestBehaviorTracker:
             economic_public_intent=EconomicIntentType.GROWTH,
             economic_private_intent=EconomicIntentType.SURVIVAL,
             foreign_public_intent=ForeignIntentType.COOPERATION,
-            foreign_private_intent=ForeignIntentType.DECEPTION,
+            foreign_private_intent=ForeignIntentType.COERCION,
         )
         tracker.log_turn(env2)
         

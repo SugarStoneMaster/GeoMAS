@@ -38,7 +38,6 @@ class ForeignIntentType(str, Enum):
     """Foreign affairs strategic intent types."""
     COOPERATION = "COOPERATION"     # Genuine partnership
     COERCION = "COERCION"          # Force compliance through threats
-    DECEPTION = "DECEPTION"        # Mislead other nations
     APPEASEMENT = "APPEASEMENT"    # Avoid conflict at cost
     IDLE = "IDLE"                  # No significant diplomatic action
 

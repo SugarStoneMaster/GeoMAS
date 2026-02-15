@@ -25,7 +25,7 @@ class CoherenceAnalyzer:
         GlobalStrategy.TOTAL_EXPANSIONISM: (
             [DefenseIntentType.CONQUEST],
             [EconomicIntentType.GROWTH],
-            [ForeignIntentType.COERCION, ForeignIntentType.DECEPTION]
+            [ForeignIntentType.COERCION]
         ),
         GlobalStrategy.ARMED_ISOLATIONISM: (
             [DefenseIntentType.DEFENSE, DefenseIntentType.DETERRENCE],
@@ -50,7 +50,7 @@ class CoherenceAnalyzer:
         GlobalStrategy.SCORCHED_EARTH: (
             [DefenseIntentType.CONQUEST],
             [EconomicIntentType.SURVIVAL],
-            [ForeignIntentType.COERCION, ForeignIntentType.DECEPTION]
+            [ForeignIntentType.COERCION]
         ),
     }
     

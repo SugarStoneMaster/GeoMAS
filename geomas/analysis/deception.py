@@ -78,40 +78,29 @@ class DeceptionAnalyzer:
     
     # --- FOREIGN DOMAIN DECEPTION MATRIX ---
     FOREIGN_MATRIX = {
-        # Private is DECEPTION
-        (ForeignIntentType.DECEPTION, ForeignIntentType.DECEPTION): 0.0,
-        (ForeignIntentType.DECEPTION, ForeignIntentType.COOPERATION): 0.95,
-        (ForeignIntentType.DECEPTION, ForeignIntentType.APPEASEMENT): 0.7,
-        (ForeignIntentType.DECEPTION, ForeignIntentType.COERCION): 0.4,
-        (ForeignIntentType.DECEPTION, ForeignIntentType.IDLE): 0.5,
-        
-        # Private is COERCION
+        # Private is COERCION (Bully)
         (ForeignIntentType.COERCION, ForeignIntentType.COERCION): 0.0,
-        (ForeignIntentType.COERCION, ForeignIntentType.COOPERATION): 0.85,
-        (ForeignIntentType.COERCION, ForeignIntentType.APPEASEMENT): 0.6,
-        (ForeignIntentType.COERCION, ForeignIntentType.DECEPTION): 0.2,
+        (ForeignIntentType.COERCION, ForeignIntentType.COOPERATION): 0.85, # Backstabbing
+        (ForeignIntentType.COERCION, ForeignIntentType.APPEASEMENT): 0.6,  # Feigned Weakness
         (ForeignIntentType.COERCION, ForeignIntentType.IDLE): 0.4,
         
-        # Private is COOPERATION
+        # Private is COOPERATION (Genuine Ally)
         (ForeignIntentType.COOPERATION, ForeignIntentType.COOPERATION): 0.0,
-        (ForeignIntentType.COOPERATION, ForeignIntentType.COERCION): 0.3,
+        (ForeignIntentType.COOPERATION, ForeignIntentType.COERCION): 0.3, # Tough Love?
         (ForeignIntentType.COOPERATION, ForeignIntentType.APPEASEMENT): 0.1,
-        (ForeignIntentType.COOPERATION, ForeignIntentType.DECEPTION): 0.3,
         (ForeignIntentType.COOPERATION, ForeignIntentType.IDLE): 0.1,
         
-        # Private is APPEASEMENT
+        # Private is APPEASEMENT (Submissive)
         (ForeignIntentType.APPEASEMENT, ForeignIntentType.APPEASEMENT): 0.0,
         (ForeignIntentType.APPEASEMENT, ForeignIntentType.COOPERATION): 0.1,
-        (ForeignIntentType.APPEASEMENT, ForeignIntentType.COERCION): 0.5,
-        (ForeignIntentType.APPEASEMENT, ForeignIntentType.DECEPTION): 0.3,
+        (ForeignIntentType.APPEASEMENT, ForeignIntentType.COERCION): 0.5, # Bluffing Strength
         (ForeignIntentType.APPEASEMENT, ForeignIntentType.IDLE): 0.2,
         
-        # Private is IDLE
+        # Private is IDLE (Neutral/Isolationist)
         (ForeignIntentType.IDLE, ForeignIntentType.IDLE): 0.0,
-        (ForeignIntentType.IDLE, ForeignIntentType.COOPERATION): 0.2,
+        (ForeignIntentType.IDLE, ForeignIntentType.COOPERATION): 0.5, # False Promise (was 0.2)
         (ForeignIntentType.IDLE, ForeignIntentType.COERCION): 0.3,
         (ForeignIntentType.IDLE, ForeignIntentType.APPEASEMENT): 0.1,
-        (ForeignIntentType.IDLE, ForeignIntentType.DECEPTION): 0.2,
     }
 
     @classmethod

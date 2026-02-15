@@ -182,7 +182,7 @@ class TestScorchedEarth:
             GlobalStrategy.SCORCHED_EARTH,
             DefenseIntentType.CONQUEST,
             EconomicIntentType.SURVIVAL,
-            ForeignIntentType.DECEPTION
+            ForeignIntentType.COERCION
         )
         assert score == 1.0
 

@@ -18,7 +18,6 @@ class ForeignActionType(str, Enum):
     FORMAL_DECLARATION_OF_WAR = "FORMAL_DECLARATION_OF_WAR"
     BREAK_TREATY = "BREAK_TREATY"
     REQUEST_PEACE = "REQUEST_PEACE"
-    # ACCEPT/REJECT are now handled via ProposalResponse
     IDLE = "IDLE"                         # No diplomatic action this turn
 
 

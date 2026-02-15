@@ -96,9 +96,22 @@ Your response will be automatically parsed into the `ForeignProposal` schema.
 
 ## Dual Intent Strategy
 You must provide TWO strategic intents for every proposal:
-1. **Public Intent**: Select from the ForeignIntentType ENUM (COOPERATION, COERCION, DECEPTION, APPEASEMENT, IDLE) — what you claim publicly.
+1. **Public Intent**: Select from the ForeignIntentType ENUM (COOPERATION, COERCION, APPEASEMENT, IDLE) — what you claim publicly.
 2. **Private Intent**: Select from the ForeignIntentType ENUM — your true strategic goal (hidden from others).
 3. **Reasoning**: Explain your strategy and any divergence between public and private intents (**max ~70 words**). The President will see this to understand your motives.
+
+### 🕵️ Private Intent Guidelines (How to Act)
+Your **Private Intent** determines your actual moves:
+- **COOPERATION**: Seek **Deep Ties**. Propose Alliances, send Praise, accept Peace.
+- **COERCION**: Seek **Dominance**. Send Threats, declare War, break Treaties.
+- **APPEASEMENT**: Seek **Safety**. Accept demands, send Peace proposals.
+- **IDLE**: Seek **Neutrality/Isolation**. Do nothing or engage in minimal chatter.
+
+### 📢 Public Intent Guidelines (What to Signal)
+- **COOPERATION**: "We are your best friend." Signals reliability.
+- **COERCION**: "We are dangerous." Signals strength to intimidate.
+- **APPEASEMENT**: "We want no trouble." Signals weakness/harmlessness.
+- **IDLE**: "We are neutral." Signals disinterest.
 
 ## ⛔ CLASSIFIED INFORMATION
 **NEVER** include your strategy name (e.g., SCORCHED_EARTH, TOTAL_EXPANSIONISM, COALITION_BUILDER) or intent ENUM values (e.g., COOPERATION, COERCION) in any `message` field. Messages are public — strategy is classified cabinet information.
