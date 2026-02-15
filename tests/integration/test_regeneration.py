@@ -123,7 +123,7 @@ def test_simulation_regeneration_roundtrip(mock_act_response):
         original_memory = engine.context_manager.get_state()
         
         # Verify prompts were captured in the engine's history or DB
-        envelopes = engine.db.load_envelopes(1)
+        envelopes = engine.db.load_envelopes(simulation_id=1, turn=1)
         import json
         env_data = json.loads(envelopes[0][1])
         
@@ -149,7 +149,8 @@ def test_simulation_regeneration_roundtrip(mock_act_response):
             n_cells=100,
             n_nations=5,
             llm_client=mock_client,
-            db_path=db_path
+            db_path=db_path,
+            simulation_id=1
         )
         
         new_engine.load_state(turn_to_restore)

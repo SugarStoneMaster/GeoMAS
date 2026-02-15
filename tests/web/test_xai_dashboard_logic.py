@@ -79,13 +79,13 @@ class TestXAIDashboardLogic:
 
     def test_get_max_turn(self, sim_with_db):
         """Test that get_max_turn returns correct values as simulation progresses."""
-        assert sim_with_db.db.get_max_turn() == 1 # Initial snapshot
+        assert sim_with_db.db.get_max_turn(sim_with_db.simulation_id) == 1 # Initial snapshot
         
         # Run 2 turns
         sim_with_db.step() # T1 -> T2
         sim_with_db.step() # T2 -> T3
         
-        assert sim_with_db.db.get_max_turn() == 3
+        assert sim_with_db.db.get_max_turn(sim_with_db.simulation_id) == 3
 
     def test_load_state_rollback(self, sim_with_db):
         """Test loading a previous state rolls back the world correctly."""
@@ -94,7 +94,7 @@ class TestXAIDashboardLogic:
             sim_with_db.step()
             
         assert sim_with_db.world.turn == 5
-        assert sim_with_db.db.get_max_turn() == 5
+        assert sim_with_db.db.get_max_turn(sim_with_db.simulation_id) == 5
         
         # Modify state at T5 to verify rollback wipes it
         nid = list(sim_with_db.world.nations.keys())[0]
@@ -118,5 +118,5 @@ class TestXAIDashboardLogic:
        assert sim_with_db.world.turn == 2
        
        # DB should now have max turn 3 (it overwrote or stayed same)
-       assert sim_with_db.db.get_max_turn() == 3
+       assert sim_with_db.db.get_max_turn(sim_with_db.simulation_id) == 3
 

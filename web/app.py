@@ -17,6 +17,7 @@ if project_root not in sys.path:
 
 # Import simulation
 from geomas.simulation import SimulationEngine
+from geomas.db import SimulationDB
 
 # Import local modules
 # Import local modules
@@ -51,10 +52,45 @@ with st.sidebar:
     st.divider()
     
     if mode == "Analysis / Forking":
+        # 0. Simulation Selection
+        db_path = "data/simulation.duckdb"
+        if os.path.exists(db_path):
+            with SimulationDB(db_path) as db:
+                sims = db.get_simulations()
+            
+            if not sims:
+                st.warning("No simulations found in DB.")
+            else:
+                sim_options = {s['id']: f"Sim {s['id']} ({s['name']}) - T{s['total_turns']}" for s in sims}
+                selected_sim_id = st.selectbox(
+                    "Select Simulation", 
+                    options=sorted(sim_options.keys(), reverse=True),
+                    format_func=lambda x: sim_options[x]
+                )
+                
+                # Load logic if selection changes or sim not loaded
+                current_sim = st.session_state.get("sim")
+                if not current_sim or current_sim.simulation_id != selected_sim_id:
+                    if st.button(f"📥 Load Simulation {selected_sim_id}", type="primary"):
+                        with st.spinner("Loading Simulation..."):
+                            # Initialize Engine with selected ID
+                            new_sim = SimulationEngine(
+                                db_path=db_path,
+                                simulation_id=selected_sim_id
+                            )
+                            # Load max turn state
+                            max_turn = new_sim.db.get_max_turn(selected_sim_id)
+                            if max_turn > 0:
+                                new_sim.load_state(max_turn)
+                            
+                            st.session_state["sim"] = new_sim
+                            st.session_state["remaining_turns"] = 0
+                            st.rerun()
+
         sim = st.session_state.get("sim")
         if sim and sim.db:
             st.markdown("### 🔍 Time Travel")
-            max_turn = st.session_state["sim"].db.get_max_turn()
+            max_turn = st.session_state["sim"].db.get_max_turn(sim.simulation_id)
             current_turn = st.session_state["sim"].world.turn
             
             target_turn = st.slider("Target Turn", 1, max_turn, current_turn)
@@ -155,22 +191,17 @@ if not st.session_state["sim"] or mode == "Live Simulation":
 
             # Ensure data directory exists
             os.makedirs("data", exist_ok=True)
-            
-            # Mandatory Overwrite: Delete existing DB if it exists
             db_path = "data/simulation.duckdb"
-            if os.path.exists(db_path):
-                try:
-                    os.remove(db_path)
-                except Exception as e:
-                    st.warning(f"Could not overwrite old database: {e}. Check if it's open in another tool.")
                 
+            # Create NEW Simulation (Auto-increment ID)
             sim = SimulationEngine(
                 map_seed=int(map_seed),
                 history_seed=int(history_seed),
                 n_cells=int(n_cells),
                 n_nations=int(n_nations),
                 llm_client=client,
-                db_path=db_path # Always persist
+                db_path=db_path, # Always persist
+                simulation_id=None # Force new ID creation
             )
             st.session_state["sim"] = sim
             st.session_state["remaining_turns"] = 0

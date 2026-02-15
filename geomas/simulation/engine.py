@@ -38,6 +38,7 @@ class SimulationEngine:
         n_nations: int = 10,  # Added configurable n_nations
         llm_client: LLMClient = None,
         db_path: Optional[str] = None,
+        simulation_id: Optional[int] = None,
         cache_size: int = 20
     ):
         """
@@ -50,12 +51,14 @@ class SimulationEngine:
             n_nations: Number of nations (4-10)
             llm_client: Optional LLM client for agent decisions
             db_path: Optional path to DuckDB file for persistence
+            simulation_id: Optional existing ID. If None, a new one is created.
             cache_size: Number of recent turns to keep in events (default 20)
         """
         self.map_seed = map_seed
         self.history_seed = history_seed
         self.n_cells = n_cells
         self.n_nations = n_nations
+        self.simulation_id = simulation_id
         
         # 1. Initialize World
         self.world = generate_world(
@@ -98,15 +101,21 @@ class SimulationEngine:
     def _init_db(self, db_path: str) -> None:
         """Initialize database and save initial snapshot (turn 0)."""
         self.db = SimulationDB(db_path)
-        self.db.initialize(
-            genesis_seed=self.map_seed,
-            simulation_seed=self.history_seed,
-            n_cells=self.n_cells
-        )
+        self.db.initialize()
+        
+        # Get or Create Simulation ID
+        if self.simulation_id is None:
+            self.simulation_id = self.db.create_simulation(
+                genesis_seed=self.map_seed,
+                simulation_seed=self.history_seed,
+                n_cells=self.n_cells
+            )
+            print(f"[DB] Saved as Simulation ID: {self.simulation_id}")
         
         # Save initial world state (turn 1 - Genesis)
         snapshot = serialize_world_snapshot(self.world, self.context_manager)
         self.db.save_snapshot(
+            simulation_id=self.simulation_id,
             turn=1,
             **snapshot
         )
@@ -212,7 +221,12 @@ class SimulationEngine:
         if self.db is None: return
         
         for envelope in envelopes:
-            self.db.save_envelope(turn=turn, nation_id=envelope.sender_id, envelope_json=serialize_envelope(envelope))
+            self.db.save_envelope(
+                simulation_id=self.simulation_id,
+                turn=turn, 
+                nation_id=envelope.sender_id, 
+                envelope_json=serialize_envelope(envelope)
+            )
             
             detailed = DeceptionAnalyzer.calculate_detailed_score(envelope)
             coherence = CoherenceAnalyzer.calculate_score(
@@ -222,6 +236,7 @@ class SimulationEngine:
                 envelope.foreign_private_intent
             )
             self.db.save_behavior(
+                simulation_id=self.simulation_id,
                 turn=turn, nation_id=envelope.sender_id,
                 deception_total=detailed["total"], deception_defense=detailed["defense"],
                 deception_economic=detailed["economic"], deception_foreign=detailed["foreign"],
@@ -242,6 +257,7 @@ class SimulationEngine:
                 cost = (entry.input_tokens * rate_in) + (entry.output_tokens * rate_out)
                 
                 self.db.save_token_usage(
+                    simulation_id=self.simulation_id,
                     turn=entry.turn,
                     nation_id=entry.nation_id,
                     agent_type=entry.role,
@@ -256,7 +272,7 @@ class SimulationEngine:
         """Save world snapshot for a turn."""
         if self.db is None: return
         snapshot = serialize_world_snapshot(self.world, self.context_manager)
-        self.db.save_snapshot(turn=turn, **snapshot)
+        self.db.save_snapshot(simulation_id=self.simulation_id, turn=turn, **snapshot)
 
     def _cache_turn(self, turn: int, envelopes: List[CountryEnvelope]) -> None:
         """Add turn data to in-events cache."""
@@ -374,16 +390,23 @@ class SimulationEngine:
         
         print(f"--- TURN {current_turn} COMPLETE ---")
         
-    def load_state(self, turn: int):
+    def load_state(self, turn: int, from_simulation_id: Optional[int] = None):
         """
         Recreates simulation state (world, events, cache) from a specific turn in DB.
         Enables continuation or forking from history.
+        
+        Args:
+            turn: The turn number to load state from.
+            from_simulation_id: If provided, load from a different simulation ID (Forking).
+                                Defaults to current self.simulation_id.
         """
         if not self.db:
             raise ValueError("No database connected to load state from")
+        
+        sim_id_to_load = from_simulation_id if from_simulation_id is not None else self.simulation_id
             
         # 1. Load Snapshot
-        data = self.db.load_snapshot(turn)
+        data = self.db.load_snapshot(sim_id_to_load, turn)
         if not data:
             raise ValueError(f"Snapshot for turn {turn} not found in DB")
             
@@ -416,7 +439,6 @@ class SimulationEngine:
         
         print(f"🔄 [SYSTEM] Simulation state restored to turn {turn}")
         
-
 
     def run(self, steps: int = 1, injections: Optional[List[dict]] = None):
         """Runs the simulation for N steps."""
