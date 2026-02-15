@@ -298,9 +298,13 @@ def _execute_propose_alliance(
     """
     world = engine.world
     
+    # Fallback to NON_AGGRESSION if tier not specified
     if not tier:
-        engine.logs.append(f"🤝 [FOREIGN] Alliance proposal failed: must specify a tier (NON_AGGRESSION or MUTUAL_DEFENSE)")
-        return False, "Missing tier"
+        from geomas.actions.foreign.schemas import TreatyTier
+        tier = TreatyTier.NON_AGGRESSION
+        engine.logs.append(
+            f"⚠️ [FOREIGN] {proposer_id} alliance proposal missing tier, defaulting to NON_AGGRESSION"
+        )
 
     current_rel = world.relationship_matrix.get(proposer_id, {}).get(target_id, RelationshipState.PEACE)
     
