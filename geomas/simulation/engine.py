@@ -433,16 +433,64 @@ class SimulationEngine:
         self._init_agents()
         self._init_opinion_agents()
         
-        # 4b. Reconstruct History (Envelopes for turns 1 to current turn)
-        # Note: self.history stores envelopes for each turn that has already executed.
-        # If we load Turn 5, it means Turns 1-4 have executed.
         from geomas.db.serialization import deserialize_envelope
         self.history = []
         for t in range(1, turn):
             envelopes_data = self.db.load_envelopes(sim_id_to_load, t)
             turn_enps = []
             for _, enp_json in envelopes_data:
-                turn_enps.append(deserialize_envelope(enp_json))
+                envelope = deserialize_envelope(enp_json)
+                turn_enps.append(envelope)
+                
+                # 4c. Restore Trace History to Agents for XAI Dashboard
+                agent = self.agents.get(envelope.sender_id)
+                if agent:
+                    # Construct Trace for NationAgent
+                    trace = {
+                        "turn": t,
+                        "nation_id": envelope.sender_id,
+                        "president": {
+                            "system_prompt": envelope.last_system_prompt,
+                            "user_prompt": envelope.last_input_prompt,
+                            "raw_json": envelope.raw_president_response,
+                            "public_statement": envelope.public_statement
+                        },
+                        "defense": {
+                            "system_prompt": envelope.defense_system_prompt,
+                            "user_prompt": envelope.defense_input_prompt,
+                            "raw_json": envelope.raw_defense_response,
+                            "proposal": envelope.original_defense_proposal
+                        },
+                        "economy": {
+                            "system_prompt": envelope.economic_system_prompt,
+                            "user_prompt": envelope.economic_input_prompt,
+                            "raw_json": envelope.raw_economic_response,
+                            "proposal": envelope.original_economic_proposal
+                        },
+                        "foreign": {
+                            "system_prompt": envelope.foreign_system_prompt,
+                            "user_prompt": envelope.foreign_input_prompt,
+                            "raw_json": envelope.raw_foreign_response,
+                            "proposal": envelope.original_foreign_proposal
+                        },
+                        "envelope": envelope
+                    }
+                    agent.trace_history[t] = trace
+                    
+                # Construct Trace for OpinionAgent
+                o_agent = self.opinion_agents.get(envelope.sender_id)
+                if o_agent:
+                    o_agent.trace_history[t] = {
+                        "system_prompt": envelope.opinion_system_prompt,
+                        "user_prompt": envelope.opinion_input_prompt,
+                        "proposal": {
+                            "mood": envelope.opinion_mood,
+                            "reasoning": envelope.opinion_reasoning,
+                            "multiplier_increase": envelope.opinion_multiplier_increase,
+                            "multiplier_decrease": envelope.opinion_multiplier_decrease,
+                            "raw_json": envelope.raw_opinion_response
+                        }
+                    }
             self.history.append(turn_enps)
         
         # 5. Sync Cache

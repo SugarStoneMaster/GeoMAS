@@ -38,7 +38,7 @@ def test_history_restoration_minimal(temp_db):
     # 2. Manually create an envelope and persist it
     envelope = CountryEnvelope(
         turn=1,
-        sender_id="VULCANIA",
+        sender_id="AGRIA",
         global_strategy=GlobalStrategy.COALITION_BUILDER,
         public_statement="Peace!",
         defense_payload=DefensePayload(decision=Decision.APPROVE, moves=[]),
@@ -81,6 +81,16 @@ def test_history_restoration_minimal(temp_db):
     assert len(new_sim.history) == 1
     assert new_sim.history[0][0].last_input_prompt == "TRACE_123"
     assert new_sim.world.turn == 2
+    
+    # NEW: Verify Trace History in Agent
+    agent = new_sim.agents["AGRIA"]
+    assert 1 in agent.trace_history
+    assert agent.trace_history[1]["president"]["user_prompt"] == "TRACE_123"
+    
+    # NEW: Verify Opinion Trace History
+    o_agent = new_sim.opinion_agents["AGRIA"]
+    assert 1 in o_agent.trace_history
+    assert o_agent.trace_history[1]["system_prompt"] is None # We didn't set it in mock envelope
 
 def test_action_injection_parsing():
     """Verify that NationAgent correctly parses action-level injections."""
