@@ -108,7 +108,7 @@ class TestForeignInputBuilder:
         
         context = builder.build(nation_id, turn=1)
         
-        assert "DIPLOMATIC" in context or "RELATIONSHIPS" in context
+        assert "Diplomatic relationships" in context
     
     def test_shows_pending_proposals(self, world):
         """Shows pending proposals when present."""
@@ -122,7 +122,7 @@ class TestForeignInputBuilder:
         
         context = builder.build(nation_id, turn=1)
         
-        assert "PENDING" in context
+        assert "Pending proposals" in context
         assert "ALLIANCE" in context
 
 

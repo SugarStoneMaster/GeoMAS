@@ -224,5 +224,5 @@ class TestForeignMinister(TestMinisterBase):
         user_prompt = args[1]
         
         # "RELATIONSHIP HISTORY" is gone. We expect "YOUR HISTORY" and "WORLD EVENTS"
-        assert "## 📜 YOUR HISTORY" in user_prompt
+        assert "## Your history" in user_prompt
         assert "Test Action" in user_prompt

@@ -437,8 +437,8 @@ class LLMClient:
         import re
         meta = {"turn": 0, "nation_id": "unknown", "role": "unknown"}
         
-        # 1. Turn: ## TURN (\d+)
-        turn_match = re.search(r"## TURN (\d+)", user_prompt)
+        # 1. Turn: ## TURN (\d+) or ## Month (\d+)
+        turn_match = re.search(r"## (?:TURN|Month) (\d+)", user_prompt)
         if turn_match:
             meta["turn"] = int(turn_match.group(1))
             

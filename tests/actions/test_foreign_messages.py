@@ -149,7 +149,7 @@ def test_foreign_message_in_context_manager(world):
     ib = ForeignInputBuilder(world)
     context = ib.build("NAT_B", 1, context_manager=cm)
     
-    assert "## 📨 INBOX (Recent Messages)" in context
+    assert "## Inbox" in context
     assert "Your mountains are beautiful" in context
 
 def test_message_soft_cooldown(world):
@@ -251,7 +251,7 @@ def test_proposal_tracking_lifecycle(world):
     # 2. Check Input Builder
     ib = ForeignInputBuilder(world)
     context = ib.build(sender, 10)
-    assert "📤 SENT PROPOSALS" in context
+    assert "## Sent proposals" in context
     assert "⏳ **ALLIANCE to Nation B**" in context
     assert "Status: **PENDING**" in context
     
@@ -295,7 +295,7 @@ def test_proposal_tracking_lifecycle(world):
     
     # Check updated Input Builder (History Section)
     context_history = ib.build(sender, 12)
-    assert "📜 PROPOSAL HISTORY" in context_history
+    assert "## Proposal history" in context_history
     assert "✅ **ALLIANCE to Nation B**" in context_history
     
     # Turn 35: Still visible (11 + 24 <= 35)

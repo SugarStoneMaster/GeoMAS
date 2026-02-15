@@ -52,36 +52,35 @@ class ForeignInputBuilder:
         
         sections = []
         
-        # Metadata Header for Observability
-        sections.append(f"## TURN {turn}")
+        # 1. Month Header
+        sections.append(f"## Month {turn}")
         
-        # 1. Incoming Messages (Recent communication)
-        if context_manager:
-            sections.append(self._build_incoming_messages(nation_id, turn, context_manager))
-            
-        # 2. Pending Proposals (require response)
-        sections.append(self._build_pending_proposals(nation))
-        
-        # 2. Full Relationship Matrix
+        # 2. Diplomatic Relationships
         sections.append(self._build_relationships(nation_id))
         
         # 3. Power Balance
         sections.append(self._build_power_balance(nation_id))
         
-        # 4. Recent Diplomatic Events (Legacy or ContextManager)
+        # 4. Recent World Events
         if context_manager:
-            # New De-cluttered History
             sections.append(self._build_world_events(nation_id, context_manager))
-            sections.append(self._build_self_history(nation_id, context_manager))
         elif recent_events:
-            # Fallback Legacy
             sections.append(self._build_events(recent_events))
-        
-        # 5. Recent Diplomatic Actions (Legacy Only, ContextManager handles this in self_history)
-        if not context_manager and recent_actions:
+            
+        # 5. Your History
+        if context_manager:
+            sections.append(self._build_self_history(nation_id, context_manager))
+        elif recent_actions:
             sections.append(self._build_recent_actions(recent_actions))
             
-        # 6. SENT PROPOSALS (Tracking)
+        # 6. Inbox
+        if context_manager:
+            sections.append(self._build_incoming_messages(nation_id, turn, context_manager))
+        
+        # 7. Pending Proposals
+        sections.append(self._build_pending_proposals(nation))
+        
+        # 8. Sent Proposals
         if nation.sent_proposals:
             sections.append(self._build_sent_proposals(nation))
         
@@ -94,7 +93,7 @@ class ForeignInputBuilder:
         """
         from geomas.agents.context.events.schemas import EventType
         
-        lines = ["## 📨 INBOX (Recent Messages)"]
+        lines = ["## Inbox"]
         
         # Filter:
         # 1. Event Type = DIPLOMATIC_MESSAGE
@@ -134,7 +133,7 @@ class ForeignInputBuilder:
         """
         Build world events (News) excluding self.
         """
-        lines = ["## 🌍 WORLD EVENTS (News)"]
+        lines = ["## World events"]
         
         # Get global events
         events = cm.global_events
@@ -171,7 +170,7 @@ class ForeignInputBuilder:
         - Foreign: Actions (MyAction) + Events (NotableEvent)
         - Defense/Economy: Events ONLY (NotableEvent) - High level abstracts
         """
-        lines = ["## 📜 YOUR HISTORY (Foreign Actions & World Interactions)"]
+        lines = ["## Your history"]
         
         history_items = []
         
@@ -230,7 +229,7 @@ class ForeignInputBuilder:
         
         # 1. Active Proposals
         if active:
-            lines.append("## 📤 SENT PROPOSALS (Awaiting Response)")
+            lines.append("## Sent proposals")
             for p in active:
                 p_type = p.get("type", "UNKNOWN")
                 to_id = p.get("to", "UNKNOWN")
@@ -245,7 +244,7 @@ class ForeignInputBuilder:
         
         # 2. Proposal History
         if history:
-            lines.append("\n## 📜 PROPOSAL HISTORY (Last 25 Turns)")
+            lines.append("\n## Proposal history")
             for p in history:
                 p_type = p.get("type", "UNKNOWN")
                 to_id = p.get("to", "UNKNOWN")
@@ -269,7 +268,7 @@ class ForeignInputBuilder:
 
     def _build_pending_proposals(self, nation: NationState) -> str:
         """Build pending proposals requiring response."""
-        lines = ["## 📬 PENDING PROPOSALS (Require Response)"]
+        lines = ["## Pending proposals"]
         
         if not nation.pending_proposals:
             lines.append("**No pending proposals. DO NOT generate any `proposal_responses`. Leave `proposal_responses` as an EMPTY list `[]`.**")
@@ -300,7 +299,7 @@ class ForeignInputBuilder:
     
     def _build_relationships(self, nation_id: str) -> str:
         """Build full relationship matrix."""
-        lines = ["## 🌍 DIPLOMATIC RELATIONSHIPS"]
+        lines = ["## Diplomatic relationships"]
         
         relationships = self.world.relationship_matrix.get(nation_id, {})
         trust = self.world.trust_matrix.get(nation_id, {})
@@ -364,7 +363,7 @@ class ForeignInputBuilder:
     
     def _build_power_balance(self, nation_id: str) -> str:
         """Build power comparison with neighbors."""
-        lines = ["## ⚖️ POWER BALANCE"]
+        lines = ["## Power balance"]
         
         my_power = self.world.nations[nation_id].power_projection
         
