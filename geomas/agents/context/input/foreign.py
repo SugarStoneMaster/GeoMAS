@@ -63,6 +63,10 @@ class ForeignInputBuilder:
         
         # 4. Recent World Events
         if context_manager:
+            feedback = context_manager.get_presidential_feedback(nation_id, "Foreign")
+            if feedback:
+                sections.append(feedback)
+            
             sections.append(self._build_world_events(nation_id, context_manager))
         elif recent_events:
             sections.append(self._build_events(recent_events))

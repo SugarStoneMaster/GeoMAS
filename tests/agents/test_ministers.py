@@ -86,7 +86,9 @@ class TestDefenseMinister(TestMinisterBase):
         # Setup context manager with mock actions
         cm = MagicMock(spec=ContextManager)
         cm.get_actions_for.return_value = ["Action 1: Moved troops", "Action 2: Built fort"]
+        cm.get_actions_for.return_value = ["Action 1: Moved troops", "Action 2: Built fort"]
         cm.get_events_for.return_value = []
+        cm.get_presidential_feedback.return_value = ""
         
         minister = DefenseMinister(nation_id, world, client, context_manager=cm)
         
@@ -158,7 +160,9 @@ class TestEconomicMinister(TestMinisterBase):
         # Setup context manager with mock actions
         cm = MagicMock(spec=ContextManager)
         cm.get_actions_for.return_value = ["Welfare Boost"]
+        cm.get_actions_for.return_value = ["Welfare Boost"]
         cm.get_events_for.return_value = []
+        cm.get_presidential_feedback.return_value = ""
         
         minister = EconomicMinister(nation_id, world, client, context_manager=cm)
         
@@ -225,7 +229,9 @@ class TestForeignMinister(TestMinisterBase):
         # Setup context manager with mock actions
         cm = MagicMock(spec=ContextManager)
         cm.get_actions_for.return_value = ["Test Action"]
+        cm.get_actions_for.return_value = ["Test Action"]
         cm.get_events_for.return_value = []
+        cm.get_presidential_feedback.return_value = ""
         cm.global_events = []
         
         minister = ForeignMinister(nation_id, world, client, context_manager=cm)

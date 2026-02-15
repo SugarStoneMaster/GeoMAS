@@ -521,7 +521,8 @@ class ContextManager:
                 
                 self.nation_actions[nation_id].append(MyAction(
                     turn=turn, domain="President", action_type="DECISION_DEFENSE",
-                    action_summary=summary, outcome=status
+                    action_summary=summary, outcome=status,
+                    reasoning=envelope.defense_private_reasoning
                 ))
 
             # 2. Economy Decision
@@ -536,7 +537,8 @@ class ContextManager:
                 
                 self.nation_actions[nation_id].append(MyAction(
                     turn=turn, domain="President", action_type="DECISION_ECONOMY",
-                    action_summary=summary, outcome=status
+                    action_summary=summary, outcome=status,
+                    reasoning=envelope.economic_private_reasoning
                 ))
 
             # 3. Foreign Decision
@@ -551,8 +553,47 @@ class ContextManager:
                 
                 self.nation_actions[nation_id].append(MyAction(
                     turn=turn, domain="President", action_type="DECISION_FOREIGN",
-                    action_summary=summary, outcome=status
+                    action_summary=summary, outcome=status,
+                    reasoning=envelope.foreign_private_reasoning
                 ))
+
+    def get_presidential_feedback(self, nation_id: str, domain: str, limit: int = 10) -> str:
+        """
+        Get formatted feedback from President on past proposals.
+        
+        Args:
+            nation_id: Nation ID
+            domain: "Defense", "Economy", "Foreign" (Matches DECISION_{DOMAIN})
+            limit: Max items
+            
+        Returns:
+            Formatted string section (markdown)
+        """
+        target_type = f"DECISION_{domain.upper()}"
+        
+        if nation_id not in self.nation_actions:
+            return ""
+            
+        # Filter for President decisions in this domain
+        actions = [
+            a for a in self.nation_actions[nation_id] 
+            if a.domain == "President" and a.action_type == target_type
+        ]
+        
+        # Sort by turn descending (newest first)
+        actions.sort(key=lambda a: a.turn, reverse=True)
+        actions = actions[:limit]
+        
+        if not actions:
+            return ""
+            
+        lines = [f"## Presidential Feedback ({domain})"]
+        for a in actions:
+            icon = "✅" if a.outcome == "APPROVED" else "❌"
+            reasoning = a.reasoning if a.reasoning else "No reasoning provided."
+            lines.append(f"- **T{a.turn} {icon} {a.outcome}**: {reasoning}")
+            
+        return "\\n".join(lines)
     
     def _behavior_to_action(self, turn: int, behavior: Any) -> Optional[MyAction]:
         """Convert behavior to MyAction record with descriptive summaries."""

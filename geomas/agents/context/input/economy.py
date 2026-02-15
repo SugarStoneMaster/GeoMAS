@@ -56,6 +56,10 @@ class EconomyInputBuilder:
         sections.append(self._build_other_nations(nation_id))
         
         if context_manager:
+            feedback = context_manager.get_presidential_feedback(nation_id, "Economy")
+            if feedback:
+                sections.append(feedback)
+            
             sections.append(self._build_world_events(nation_id, context_manager))
             sections.append(self._build_self_history(nation_id, context_manager))
         

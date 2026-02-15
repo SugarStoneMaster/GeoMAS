@@ -136,6 +136,7 @@ class MyAction(BaseModel):
     action_type: str  # "MOVE_TROOPS", "INVEST_WELFARE", "PROPOSE_ALLIANCE"
     action_summary: str  # "Moved 50 troops to Province 7"
     outcome: Optional[str] = None  # "Success", "Failed", "Accepted", "Rejected"
+    reasoning: Optional[str] = None # Presidential or Ministerial reasoning
     
     def to_prompt_line(self) -> str:
         """
