@@ -61,7 +61,7 @@ class TestTotalExpansionism:
         """Zero coherence with completely wrong intents."""
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.TOTAL_EXPANSIONISM,
-            DefenseIntentType.IDLE,  # Wrong
+            DefenseIntentType.DEFENSE,  # Wrong (IDLE is now valid)
             EconomicIntentType.SURVIVAL,  # Wrong
             ForeignIntentType.APPEASEMENT  # Wrong
         )
@@ -88,53 +88,6 @@ class TestArmedIsolationism:
             DefenseIntentType.DETERRENCE,
             EconomicIntentType.SURVIVAL,
             ForeignIntentType.APPEASEMENT
-        )
-        assert score == 1.0
-
-class TestMercantileHegemony:
-    """Tests for MERCANTILE_HEGEMONY strategy coherence."""
-    
-    def test_perfect_coherence(self):
-        """Perfect coherence with deterrence + growth + cooperation."""
-        score = CoherenceAnalyzer.calculate_score(
-            GlobalStrategy.MERCANTILE_HEGEMONY,
-            DefenseIntentType.DETERRENCE,
-            EconomicIntentType.GROWTH,
-            ForeignIntentType.COOPERATION
-        )
-        assert score == 1.0
-    
-    def test_support_economy_valid(self):
-        """Support is valid economic intent for mercantile hegemony."""
-        score = CoherenceAnalyzer.calculate_score(
-            GlobalStrategy.MERCANTILE_HEGEMONY,
-            DefenseIntentType.IDLE,
-            EconomicIntentType.SUPPORT,
-            ForeignIntentType.COERCION
-        )
-        assert score == 1.0
-
-
-class TestDomesticRecovery:
-    """Tests for DOMESTIC_RECOVERY strategy coherence."""
-    
-    def test_perfect_coherence(self):
-        """Perfect coherence with defense + survival + appeasement."""
-        score = CoherenceAnalyzer.calculate_score(
-            GlobalStrategy.DOMESTIC_RECOVERY,
-            DefenseIntentType.DEFENSE,
-            EconomicIntentType.SURVIVAL,
-            ForeignIntentType.APPEASEMENT
-        )
-        assert score == 1.0
-    
-    def test_growth_also_acceptable(self):
-        """Growth is acceptable for recovery strategy."""
-        score = CoherenceAnalyzer.calculate_score(
-            GlobalStrategy.DOMESTIC_RECOVERY,
-            DefenseIntentType.IDLE,
-            EconomicIntentType.GROWTH,
-            ForeignIntentType.IDLE
         )
         assert score == 1.0
 

@@ -19,12 +19,6 @@ STRATEGY_DESCRIPTIONS: dict[GlobalStrategy, str] = {
     GlobalStrategy.TOTAL_EXPANSIONISM: (
         "aggressive territorial growth through military dominance"
     ),
-    GlobalStrategy.MERCANTILE_HEGEMONY: (
-        "economic dominance through trade control and wealth accumulation"
-    ),
-    GlobalStrategy.DOMESTIC_RECOVERY: (
-        "internal stability and growth, avoiding foreign adventures"
-    ),
     GlobalStrategy.SCORCHED_EARTH: (
         "deterrence through unpredictability and willingness to deny resources to enemies"
     ),

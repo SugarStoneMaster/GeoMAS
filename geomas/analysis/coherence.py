@@ -23,33 +23,23 @@ class CoherenceAnalyzer:
     # Mapping: GlobalStrategy -> (expected defense, expected economic, expected foreign)
     EXPECTED_INTENTS = {
         GlobalStrategy.TOTAL_EXPANSIONISM: (
-            [DefenseIntentType.CONQUEST],
+            [DefenseIntentType.CONQUEST, DefenseIntentType.DETERRENCE, DefenseIntentType.IDLE], # Added Deterrence/Idle
             [EconomicIntentType.GROWTH],
-            [ForeignIntentType.COERCION]
+            [ForeignIntentType.COERCION, ForeignIntentType.IDLE] # Added Idle
         ),
         GlobalStrategy.ARMED_ISOLATIONISM: (
             [DefenseIntentType.DEFENSE, DefenseIntentType.DETERRENCE],
             [EconomicIntentType.GROWTH, EconomicIntentType.SURVIVAL],
             [ForeignIntentType.IDLE, ForeignIntentType.APPEASEMENT]
         ),
-        GlobalStrategy.MERCANTILE_HEGEMONY: (
-            [DefenseIntentType.DETERRENCE, DefenseIntentType.IDLE],
-            [EconomicIntentType.GROWTH, EconomicIntentType.SUPPORT],
-            [ForeignIntentType.COOPERATION, ForeignIntentType.COERCION]
-        ),
-        GlobalStrategy.DOMESTIC_RECOVERY: (
-            [DefenseIntentType.DEFENSE, DefenseIntentType.IDLE],
-            [EconomicIntentType.SURVIVAL, EconomicIntentType.GROWTH],
-            [ForeignIntentType.APPEASEMENT, ForeignIntentType.IDLE]
-        ),
         GlobalStrategy.COALITION_BUILDER: (
             [DefenseIntentType.DEFENSE, DefenseIntentType.DETERRENCE],
             [EconomicIntentType.SUPPORT, EconomicIntentType.GROWTH],
-            [ForeignIntentType.COOPERATION]
+            [ForeignIntentType.COOPERATION, ForeignIntentType.COERCION, ForeignIntentType.APPEASEMENT] # Broadened
         ),
         GlobalStrategy.SCORCHED_EARTH: (
-            [DefenseIntentType.CONQUEST],
-            [EconomicIntentType.SURVIVAL],
+            [DefenseIntentType.CONQUEST, DefenseIntentType.DEFENSE, DefenseIntentType.DETERRENCE], # Flexible Defense
+            [EconomicIntentType.SURVIVAL, EconomicIntentType.GROWTH], # Added Growth
             [ForeignIntentType.COERCION]
         ),
     }
