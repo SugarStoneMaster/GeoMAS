@@ -24,10 +24,10 @@ def test_simulation_id_increment(clean_db):
     db = SimulationDB(clean_db)
     db.initialize()
     
-    id1 = db.create_simulation(1, 1, 100, "Sim 1")
+    id1 = db.create_simulation(1, 1, 100, 4, "Sim 1")
     assert id1 == 1
     
-    id2 = db.create_simulation(2, 2, 100, "Sim 2")
+    id2 = db.create_simulation(2, 2, 100, 4, "Sim 2")
     assert id2 == 2
     
     sims = db.get_simulations()
@@ -70,7 +70,7 @@ def test_data_isolation(clean_db):
     db.save_snapshot(1, 5, "{}", "{}", "{}", "{}", "{}", '{}') 
     
     # Create Sim 2
-    id2 = db.create_simulation(1, 1, 100)
+    id2 = db.create_simulation(1, 1, 100, 4)
     # Save Sim 2 Turn 5
     db.save_snapshot(id2, 5, "{\"sim\": 2}", "{}", "{}", "{}", "{}", '{}')
     

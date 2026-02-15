@@ -39,7 +39,7 @@ class TestSimulationDB:
         db = SimulationDB(db_path)
         db.initialize()
         # Create a sim to get ID 1
-        db.create_simulation(genesis_seed=42, simulation_seed=99, n_cells=100)
+        db.create_simulation(genesis_seed=42, simulation_seed=99, n_cells=100, n_nations=5)
         yield db
         db.close()
     
@@ -59,6 +59,7 @@ class TestSimulationDB:
         assert info["genesis_seed"] == 42
         assert info["simulation_seed"] == 99
         assert info["n_cells"] == 100
+        assert info["n_nations"] == 5
         assert info["total_turns"] == 0
     
     def test_save_and_load_snapshot(self, initialized_db):
@@ -126,9 +127,10 @@ class TestSimulationDB:
         """Database works as context manager."""
         with SimulationDB(db_path) as db:
             db.initialize()
-            sim_id = db.create_simulation(genesis_seed=1, simulation_seed=2, n_cells=50)
+            sim_id = db.create_simulation(genesis_seed=1, simulation_seed=2, n_cells=50, n_nations=3)
             info = db.get_simulation_info(sim_id)
             assert info["genesis_seed"] == 1
+            assert info["n_nations"] == 3
     
     def test_load_nonexistent_snapshot(self, initialized_db):
         """Loading nonexistent snapshot returns None."""
