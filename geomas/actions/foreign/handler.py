@@ -437,11 +437,11 @@ def clear_expired_proposals(world: 'WorldState') -> None:
             if status == "PENDING":
                  new_sent.append(p)
             else:
-                # It is resolved. Keep only if current_turn <= resolved_turn + 1
+                # It is resolved. Keep only if current_turn <= resolved_turn + 25
                 # Wait, if resolved at T, agent sees result at T+1.
-                # So at start of T+2, (current_turn - resolved_turn) = 2 > 1 => Remove.
+                # We want history for 25 turns.
                 resolved_turn = p.get("resolved_turn", current_turn)
-                if current_turn - resolved_turn <= 1:
+                if current_turn - resolved_turn <= 25:
                     new_sent.append(p)
         
         nation.sent_proposals = new_sent

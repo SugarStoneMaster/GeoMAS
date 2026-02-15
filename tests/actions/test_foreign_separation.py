@@ -46,15 +46,18 @@ def test_foreign_separation():
             "turn": 1,
             "message": "Ally?"
         }],
-        "message_cooldown": {}
+        "message_cooldown": {},
+        "sent_proposals": []
     })
     engine.world.nations[n2_id] = type('Nation', (), {
         "pending_proposals": [],
-        "message_cooldown": {}
+        "message_cooldown": {},
+        "sent_proposals": [{"id": "prop_123", "type": "ALLIANCE", "to": n1_id, "turn": 1, "status": "PENDING"}]
     })
     engine.world.nations[n3_id] = type('Nation', (), {
         "pending_proposals": [],
-        "message_cooldown": {}
+        "message_cooldown": {},
+        "sent_proposals": []
     })
     
     # Setup Trust for active action

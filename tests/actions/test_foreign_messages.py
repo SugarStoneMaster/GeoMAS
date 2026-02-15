@@ -277,16 +277,28 @@ def test_proposal_tracking_lifecycle(world):
     # 4. Check Input Builder again (Sender sees result)
     context_resolved = ib.build(sender, 11)
     assert "✅ **ALLIANCE to Nation B**" in context_resolved
-    assert "Status: **ACCEPTED**" in context_resolved
+    assert ": **ACCEPTED**" in context_resolved
     
     # 5. Cleanup (Turn 13 - >1 turn after resolution)
     # Turn 12: Still visible (11 + 1 >= 12)
     world.turn = 12
     from geomas.actions.foreign.handler import clear_expired_proposals
     clear_expired_proposals(world)
-    assert len(world.nations[sender].sent_proposals) == 1 # Still there
+    assert len(world.nations[sender].sent_proposals) == 1 
     
-    # Turn 13: Removed (11 + 1 < 13)
-    world.turn = 13
+    # Check updated Input Builder (History Section)
+    context_history = ib.build(sender, 12)
+    assert "📜 PROPOSAL HISTORY" in context_history
+    assert "✅ **ALLIANCE to Nation B**" in context_history
+    
+    # Turn 35: Still visible (11 + 24 <= 35)
+    world.turn = 35
+    clear_expired_proposals(world)
+    assert len(world.nations[sender].sent_proposals) == 1
+
+    # Turn 38: Removed (11 + 25 < 38) -> Wait, condition is current - resolved <= 25.
+    # If resolved=11. 36 - 11 = 25 (Keep). 37 - 11 = 26 (Remove).
+    
+    world.turn = 37
     clear_expired_proposals(world)
     assert len(world.nations[sender].sent_proposals) == 0

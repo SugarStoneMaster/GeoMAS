@@ -75,26 +75,58 @@ class ForeignInputBuilder:
         return "\n\n".join(sections)
     
     def _build_sent_proposals(self, nation: NationState) -> str:
-        """Build list of proposals sent by us."""
-        lines = ["## 📤 SENT PROPOSALS (Awaiting Response / Status)"]
+        """Build list of proposals sent by us (Active + History)."""
+        active = []
+        history = []
         
         for p in nation.sent_proposals:
-            p_type = p.get("type", "UNKNOWN")
-            to_id = p.get("to", "UNKNOWN")
-            turn = p.get("turn", "?")
             status = p.get("status", "PENDING")
-            
-            icon = "⏳"
-            if status == "ACCEPTED": icon = "✅"
-            elif status == "REJECTED": icon = "❌"
-            elif status == "EXPIRED": icon = "🏚️"
-            
-            # Get target name
-            to_name = self.world.nations.get(to_id, {})
-            if hasattr(to_name, 'name'): to_name = to_name.name
-            else: to_name = to_id
-            
-            lines.append(f"- {icon} **{p_type} to {to_name}** (Sent Turn {turn}). Status: **{status}**")
+            if status == "PENDING":
+                active.append(p)
+            else:
+                history.append(p)
+        
+        # Sort history by resolved_turn descending (newest first)
+        history.sort(key=lambda x: x.get("resolved_turn", 0), reverse=True)
+        
+        lines = []
+        
+        # 1. Active Proposals
+        if active:
+            lines.append("## 📤 SENT PROPOSALS (Awaiting Response)")
+            for p in active:
+                p_type = p.get("type", "UNKNOWN")
+                to_id = p.get("to", "UNKNOWN")
+                turn = p.get("turn", "?")
+                
+                # Get target name
+                to_name = self.world.nations.get(to_id, {})
+                if hasattr(to_name, 'name'): to_name = to_name.name
+                else: to_name = to_id
+                
+                lines.append(f"- ⏳ **{p_type} to {to_name}** (Sent Turn {turn}). Status: **PENDING**")
+        
+        # 2. Proposal History
+        if history:
+            lines.append("\n## 📜 PROPOSAL HISTORY (Last 25 Turns)")
+            for p in history:
+                p_type = p.get("type", "UNKNOWN")
+                to_id = p.get("to", "UNKNOWN")
+                turn = p.get("turn", "?")
+                status = p.get("status", "UNKNOWN")
+                resolved_turn = p.get("resolved_turn", "?")
+                
+                icon = "❓"
+                if status == "ACCEPTED": icon = "✅"
+                elif status == "REJECTED": icon = "❌"
+                elif status == "EXPIRED": icon = "🏚️"
+                
+                # Get target name
+                to_name = self.world.nations.get(to_id, {})
+                if hasattr(to_name, 'name'): to_name = to_name.name
+                else: to_name = to_id
+                
+                lines.append(f"- {icon} **{p_type} to {to_name}** (Sent T{turn}, Resolved T{resolved_turn}): **{status}**")
             
         return "\n".join(lines)
 
