@@ -27,25 +27,24 @@ class PresidentInputBuilder:
         self,
         nation_id: str,
         turn: int,
+        context_manager: Optional['ContextManager'] = None,
         defense_summary: Optional[str] = None,
         economy_summary: Optional[str] = None,
         foreign_summary: Optional[str] = None,
-        recent_events: Optional[List[str]] = None,
-        recent_actions: Optional[List[str]] = None,
     ) -> str:
         """
         Build the input context for the President.
         
         Args:
             nation_id: Nation ID
+            turn: Current turn
+            context_manager: Memory context manager
             defense_summary: Summary from Defense Minister
             economy_summary: Summary from Economy Minister
             foreign_summary: Summary from Foreign Minister
-            recent_events: List of recent notable events
-            recent_actions: List of nation's recent actions
             
         Returns:
-            Formatted input prompt (~2500 tokens max)
+            Formatted input prompt (~2800 tokens max)
         """
         nation = self.world.nations.get(nation_id)
         if not nation:
@@ -53,32 +52,40 @@ class PresidentInputBuilder:
         
         sections = []
         
-        # Metadata Header for Observability
-        sections.append(f"## TURN {turn}")
+        # 0. Metadata Header
+        sections.append(f"## Month {turn}")
         
-        # 1. Current State Overview
+        # 1. Cabinet Common: Relationships
+        if context_manager:
+            sections.append(self._build_diplomatic_relationships(nation_id, context_manager))
+        
+        # 2. Cabinet Common: Other Nations
+        sections.append(self._build_other_nations(nation_id))
+        
+        # 3. Your Nation Status (Detailed)
         sections.append(self._build_state_overview(nation))
         
-        # 2. Minister Reports
+        # 4. Minister Briefings
         sections.append(self._build_minister_reports(
             defense_summary, economy_summary, foreign_summary
         ))
         
-        # 3. Relationship Summary
-        sections.append(self._build_relationships(nation_id))
+        # 5. World Events (Global News)
+        if context_manager:
+            sections.append(self._build_world_events(nation_id, context_manager))
         
-        # 4. Recent Events
-        if recent_events:
-            sections.append(self._build_events(recent_events))
-        
-        # 5. Recent Actions
-        if recent_actions:
-            sections.append(self._build_actions(recent_actions))
+        # 6. Your History (High-Level Events relevant to nation)
+        if context_manager:
+            sections.append(self._build_self_history(nation_id, context_manager))
+            
+        # 7. Your Recent Decisions (President's domain actions)
+        if context_manager:
+            sections.append(self._build_recent_decisions(nation_id, context_manager))
         
         return "\n\n".join(sections)
     
     def _build_state_overview(self, nation: NationState) -> str:
-        """Build nation state overview."""
+        """Detailed nation state overview."""
         military_total = nation.total_soldiers + nation.total_aircraft + nation.total_navy
         
         # Satisfaction status
@@ -93,7 +100,7 @@ class PresidentInputBuilder:
         
         nuke_line = f"\n**Nuclear Arsenal:** {nation.nukes} warheads" if nation.nukes > 0 else ""
         
-        return f"""== YOUR NATION STATUS ==
+        return f"""## Your nation status
 **Budget:** {nation.total_budget:,.0f}
 **Provinces:** {len(nation.province_ids)} land, {len(nation.territorial_water_ids)} territorial waters
 **Resources:** Food {nation.total_food:+.0f}/turn | Energy {nation.total_energy:+.0f}/turn | Materials {nation.total_materials:+.0f}/turn
@@ -106,8 +113,8 @@ class PresidentInputBuilder:
         economy: Optional[str],
         foreign: Optional[str]
     ) -> str:
-        """Build minister summary reports."""
-        lines = ["== MINISTER BRIEFINGS =="]
+        """Build minister summary briefings."""
+        lines = ["## Minister briefings"]
         
         if defense:
             lines.append(f"\n**Defense Minister:**\n{defense}")
@@ -125,57 +132,108 @@ class PresidentInputBuilder:
             lines.append("\n**Foreign Minister:** No report available")
         
         return "\n".join(lines)
-    
-    def _build_relationships(self, nation_id: str) -> str:
-        """Build relationship summary with neighbors."""
-        lines = ["== YOUR RELATIONSHIPS =="]
-        
-        nation = self.world.nations[nation_id]
-        
-        # Get all nations we have relationships with
-        if nation_id in self.world.relationship_matrix:
-            relationships = self.world.relationship_matrix[nation_id]
+
+    def _build_diplomatic_relationships(self, nation_id: str, cm: 'ContextManager') -> str:
+        """Standardized relationship layer."""
+        lines = ["## Diplomatic relationships"]
+        rel_lines = cm.get_relationships_for(nation_id)
+        if rel_lines:
+            lines.extend(rel_lines)
         else:
-            relationships = {}
+            lines.append("- No established diplomatic records.")
+        return "\n".join(lines)
+
+    def _build_other_nations(self, nation_id: str) -> str:
+        """
+        Standardized other nations layer.
+        Compact pipe-separated format.
+        """
+        from geomas.world.spatial.manager import SpatialManager
         
-        if nation_id in self.world.trust_matrix:
-            trust = self.world.trust_matrix[nation_id]
-        else:
-            trust = {}
+        lines = ["## Other nations"]
+        my_nation = self.world.nations[nation_id]
+        my_power = max(0.1, my_nation.power_projection)
         
-        for other_id, other_nation in self.world.nations.items():
+        spatial = SpatialManager(self.world)
+        neighbors = spatial.get_neighboring_nations(nation_id)
+        
+        # Calculate world averages for resources
+        n_nations = len(self.world.nations)
+        avg_food = sum(n.total_food for n in self.world.nations.values()) / n_nations
+        avg_energy = sum(n.total_energy for n in self.world.nations.values()) / n_nations
+        avg_materials = sum(n.total_materials for n in self.world.nations.values()) / n_nations
+        
+        from geomas.schemas.world import RelationshipState
+        
+        for other_id, other in self.world.nations.items():
             if other_id == nation_id:
                 continue
             
-            rel_status = relationships.get(other_id, "PEACE")
-            trust_level = trust.get(other_id, 50.0)
+            # Power
+            ratio = other.power_projection / my_power
+            if ratio > 1.5: power_desc = "Much stronger"
+            elif ratio > 1.1: power_desc = "Stronger"
+            elif ratio > 0.9: power_desc = "Equal"
+            elif ratio > 0.5: power_desc = "Weaker"
+            else: power_desc = "Much weaker"
             
-            # Trust description
-            if trust_level >= 80:
-                trust_desc = "ally"
-            elif trust_level >= 60:
-                trust_desc = "friendly"
-            elif trust_level >= 40:
-                trust_desc = "neutral"
-            elif trust_level >= 20:
-                trust_desc = "distrustful"
-            else:
-                trust_desc = "hostile"
+            # Neighbors
+            is_neighbor = "Yes" if other_id in neighbors else "No"
             
-            lines.append(f"- **{other_id}**: {rel_status}, Trust {trust_level:.0f} ({trust_desc})")
-        
+            # Resources
+            res_tags = []
+            if other.total_food > avg_food * 1.5: res_tags.append("Abundant Food")
+            elif other.total_food < avg_food * 0.5: res_tags.append("Food Shortage")
+            if other.total_energy > avg_energy * 1.5: res_tags.append("Abundant Energy")
+            elif other.total_energy < avg_energy * 0.5: res_tags.append("Energy Shortage")
+            if other.total_materials > avg_materials * 1.5: res_tags.append("Abundant Materials")
+            elif other.total_materials < avg_materials * 0.5: res_tags.append("Materials Shortage")
+            res_desc = ", ".join(res_tags) if res_tags else "Balanced"
+            
+            # Alliances
+            allies = []
+            if other_id in self.world.relationship_matrix:
+                for target_id, rel in self.world.relationship_matrix[other_id].items():
+                    if rel == RelationshipState.ALLIANCE and target_id in self.world.nations:
+                        allies.append(self.world.nations[target_id].name)
+            allies_desc = ", ".join(allies) if allies else "None"
+            
+            lines.append(f"- **{other.name}** ({other_id}): Power: {power_desc} | Neighbor: {is_neighbor} | Resources: {res_desc} | Allies: {allies_desc}")
+            
         return "\n".join(lines)
-    
-    def _build_events(self, events: List[str]) -> str:
-        """Build recent events section."""
-        lines = ["== RECENT WORLD EVENTS =="]
-        for event in events[-10:]:  # Last 10 events
-            lines.append(f"- {event}")
+
+    def _build_world_events(self, nation_id: str, cm: 'ContextManager') -> str:
+        """Standard world events layer."""
+        lines = ["## World events"]
+        event_lines = cm.get_events_for(nation_id, max_events=10)
+        if event_lines:
+            lines.extend(event_lines)
+        else:
+            lines.append("- No notable world events.")
         return "\n".join(lines)
-    
-    def _build_actions(self, actions: List[str]) -> str:
-        """Build recent actions section."""
-        lines = ["== YOUR RECENT ACTIONS =="]
-        for action in actions[-10:]:  # Last 10 actions
-            lines.append(f"- {action}")
+
+    def _build_self_history(self, nation_id: str, cm: 'ContextManager') -> str:
+        """
+        High-level nation history.
+        Includes all relevant world events (not Domain filtered).
+        """
+        lines = ["## Your history"]
+        event_lines = cm.get_events_for(nation_id, max_events=15)
+        if event_lines:
+            lines.extend(event_lines)
+        else:
+            lines.append("- No significant historical events recorded.")
+        return "\n".join(lines)
+
+    def _build_recent_decisions(self, nation_id: str, cm: 'ContextManager') -> str:
+        """
+        President's decision history (Approvals/Vetos).
+        """
+        lines = ["## Your recent decisions"]
+        # Retrieve actions for 'President' domain
+        action_lines = cm.get_actions_for(nation_id, domain="President", max_actions=15)
+        if action_lines:
+            lines.extend(action_lines)
+        else:
+            lines.append("- No recent presidential decisions recorded.")
         return "\n".join(lines)

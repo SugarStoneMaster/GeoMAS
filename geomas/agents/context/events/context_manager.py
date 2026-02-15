@@ -25,6 +25,7 @@ class ContextManager:
     # Token budget limits
     MAX_EVENTS = 50
     MAX_ACTIONS_PER_DOMAIN = 10
+    MAX_ACTIONS_PRESIDENT = 15
     MAX_RELATIONSHIP_EVENTS = 3
     
     def __init__(self, max_user_tokens: int = 4200):
@@ -121,6 +122,7 @@ class ContextManager:
         self._update_relationships(world)
         self._extract_events(turn, envelopes, world)
         self._log_actions(turn, envelopes)
+        self._log_presidential_decisions(turn, envelopes)
         self._prune_if_needed()
     
     def _update_relationships(self, world: WorldState) -> None:
@@ -498,6 +500,59 @@ class ContextManager:
                 action = self._behavior_to_action(turn, envelope.foreign_payload)
                 if action:
                     self.nation_actions[nation_id].append(action)
+
+    def _log_presidential_decisions(self, turn: int, envelopes: List[Any]) -> None:
+        """Log President decisions (Approvals/Vetos) to action history."""
+        from geomas.actions.common import Decision
+        
+        for envelope in envelopes:
+            nation_id = envelope.sender_id
+            if nation_id not in self.nation_actions:
+                self.nation_actions[nation_id] = []
+            
+            # 1. Defense Decision
+            if hasattr(envelope, 'defense_payload') and envelope.defense_payload:
+                status = "APPROVED" if envelope.defense_payload.decision == Decision.APPROVE else "VETOED"
+                if envelope.defense_payload.decision == Decision.APPROVE:
+                    move_count = len(envelope.defense_payload.moves)
+                    summary = f"APPROVED Defense proposal ({move_count} actions)"
+                else:
+                    summary = "VETOED Defense proposal"
+                
+                self.nation_actions[nation_id].append(MyAction(
+                    turn=turn, domain="President", action_type="DECISION_DEFENSE",
+                    action_summary=summary, outcome=status
+                ))
+
+            # 2. Economy Decision
+            if hasattr(envelope, 'economic_payload') and envelope.economic_payload:
+                status = "APPROVED" if envelope.economic_payload.decision == Decision.APPROVE else "VETOED"
+                if envelope.economic_payload.decision == Decision.APPROVE:
+                    act_type = envelope.economic_payload.action_type
+                    if hasattr(act_type, 'value'): act_type = act_type.value
+                    summary = f"APPROVED Economy proposal: {act_type}"
+                else:
+                    summary = "VETOED Economy proposal"
+                
+                self.nation_actions[nation_id].append(MyAction(
+                    turn=turn, domain="President", action_type="DECISION_ECONOMY",
+                    action_summary=summary, outcome=status
+                ))
+
+            # 3. Foreign Decision
+            if hasattr(envelope, 'foreign_payload') and envelope.foreign_payload:
+                status = "APPROVED" if envelope.foreign_payload.decision == Decision.APPROVE else "VETOED"
+                if envelope.foreign_payload.decision == Decision.APPROVE:
+                    act_type = envelope.foreign_payload.action_type
+                    if hasattr(act_type, 'value'): act_type = act_type.value
+                    summary = f"APPROVED Foreign proposal: {act_type}"
+                else:
+                    summary = "VETOED Foreign proposal"
+                
+                self.nation_actions[nation_id].append(MyAction(
+                    turn=turn, domain="President", action_type="DECISION_FOREIGN",
+                    action_summary=summary, outcome=status
+                ))
     
     def _behavior_to_action(self, turn: int, behavior: Any) -> Optional[MyAction]:
         """Convert behavior to MyAction record with descriptive summaries."""
@@ -636,7 +691,8 @@ class ContextManager:
             # Prune each domain
             pruned = []
             for domain, domain_actions in by_domain.items():
-                pruned.extend(domain_actions[-self.MAX_ACTIONS_PER_DOMAIN:])
+                limit = self.MAX_ACTIONS_PRESIDENT if domain == "President" else self.MAX_ACTIONS_PER_DOMAIN
+                pruned.extend(domain_actions[-limit:])
             
             self.nation_actions[nation_id] = sorted(pruned, key=lambda a: a.turn)
     
@@ -659,13 +715,19 @@ class ContextManager:
         
         return lines
     
-    def get_events_for(self, nation_id: str, max_events: int = 15) -> List[str]:
+    def get_events_for(
+        self, 
+        nation_id: str, 
+        max_events: int = 15,
+        event_types: Optional[List[EventType]] = None
+    ) -> List[str]:
         """
         Get formatted event lines relevant to a nation.
         
         Args:
             nation_id: Nation to get events for
             max_events: Maximum events to return
+            event_types: Optional list of EventTypes to filter by
             
         Returns:
             List of formatted event strings
@@ -673,7 +735,11 @@ class ContextManager:
         relevant = []
         
         for event in self.global_events:
-            # Include if: global, or involves this nation, or relevant to this nation
+            # Domain filter if provided
+            if event_types and event.event_type not in event_types:
+                continue
+                
+            # Relevance filter: Include if: global, or involves this nation, or relevant to this nation
             if (event.relevance_to is None or 
                 (isinstance(event.relevance_to, list) and nation_id in event.relevance_to) or
                 (isinstance(event.relevance_to, str) and event.relevance_to == nation_id) or

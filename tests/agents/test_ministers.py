@@ -106,7 +106,7 @@ class TestDefenseMinister(TestMinisterBase):
         minister.propose(GlobalStrategy.ARMED_ISOLATIONISM, turn=1)
         
         # Check that context was requested
-        cm.get_actions_for.assert_called_with(nation_id, domain="Defense", max_actions=10)
+        cm.get_actions_for.assert_called_with(nation_id, domain="Defense", max_actions=8)
         
         # Check that prompt contains actions
         args, _ = client.query_agent.call_args
@@ -222,17 +222,11 @@ class TestForeignMinister(TestMinisterBase):
         """Includes history and world events in prompt."""
         world, nation_id, client = setup
         
-        # Setup context manager with mock events
+        # Setup context manager with mock actions
         cm = MagicMock(spec=ContextManager)
+        cm.get_actions_for.return_value = ["Test Action"]
+        cm.get_events_for.return_value = []
         cm.global_events = []
-        cm.nation_actions = {}
-        
-        # Add a mock relationship through world state (handled by builder _build_relationships)
-        # But here we test the ContextManager integration
-        from geomas.agents.context.events.schemas import MyAction
-        cm.nation_actions[nation_id] = [
-            MyAction(turn=1, domain="Foreign", action_type="TEST", action_summary="Test Action", outcome="SUCCESS")
-        ]
         
         minister = ForeignMinister(nation_id, world, client, context_manager=cm)
         
@@ -252,10 +246,9 @@ class TestForeignMinister(TestMinisterBase):
         
         minister.propose(GlobalStrategy.COALITION_BUILDER, turn=1)
         
-        # Check prompt for NEW sections
+        # Check prompt
         args, _ = client.query_agent.call_args
         user_prompt = args[1]
         
-        # "RELATIONSHIP HISTORY" is gone. We expect "YOUR HISTORY" and "WORLD EVENTS"
         assert "## Your history" in user_prompt
         assert "Test Action" in user_prompt

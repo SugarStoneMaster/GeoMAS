@@ -24,13 +24,20 @@ class TestPresidentInputBuilder:
     
     def test_builds_input(self, world):
         """Can build president input context."""
+        from unittest.mock import MagicMock
+        from geomas.agents.context.events import ContextManager
+        cm = MagicMock(spec=ContextManager)
+        cm.get_relationships_for.return_value = ["Enemy: WAR"]
+        
         builder = PresidentInputBuilder(world)
         nation_id = list(world.nations.keys())[0]
         
-        context = builder.build(nation_id, turn=1)
+        context = builder.build(nation_id, turn=1, context_manager=cm)
         
-        assert "NATION STATUS" in context
-        assert "RELATIONSHIPS" in context
+        assert "## Your nation status" in context
+        assert "## Diplomatic relationships" in context
+        assert "## Other nations" in context
+        assert "Enemy: WAR" in context
     
     def test_includes_minister_briefings(self, world):
         """Minister briefings appear when provided."""
@@ -136,7 +143,7 @@ class TestOpinionInputBuilder:
         
         context = builder.build(nation_id, turn=1)
         
-        assert "PUBLIC MOOD" in context or "SATISFACTION" in context
+        assert "Public Mood" in context or "Satisfaction" in context
     
     def test_shows_conflict_status(self, world):
         """Shows war status when at war."""

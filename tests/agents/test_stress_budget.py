@@ -73,38 +73,19 @@ class TestStressBudget:
         return nation_id
     
     def _build_full_context(self, world, cm, nation_id, agent_type="Foreign"):
-        """Build complete context with all events data."""
-        relationships = cm.get_relationships_for(nation_id)
-        events = cm.get_events_for(nation_id, max_events=25)
-        actions = cm.get_actions_for(nation_id, max_actions=30)
-        
-        rel_text = "\n".join(f"- {r}" for r in relationships)
-        evt_text = "\n".join(events)
-        act_text = "\n".join(actions)
-        
+        """Build complete context using the builder's internal logic."""
         if agent_type == "Foreign":
             system = ForeignSystemPrompt.generate(
                 world.nations[nation_id].name, 
                 GlobalStrategy.TOTAL_EXPANSIONISM
             )
-            base = ForeignInputBuilder(world).build(nation_id, turn=0)
+            user = ForeignInputBuilder(world).build(nation_id, turn=95, context_manager=cm)
         else:
             system = DefenseSystemPrompt.generate(
                 world.nations[nation_id].name,
                 GlobalStrategy.TOTAL_EXPANSIONISM
             )
-            base = DefenseInputBuilder(world).build(nation_id, turn=0)
-        
-        user = f"""{base}
-
-== RELATIONSHIPS ({len(relationships)} nations) ==
-{rel_text}
-
-== RECENT EVENTS ({len(events)} events) ==
-{evt_text}
-
-== RECENT ACTIONS ({len(actions)} actions) ==
-{act_text}"""
+            user = DefenseInputBuilder(world).build(nation_id, turn=95, context_manager=cm)
         
         return system, user
     

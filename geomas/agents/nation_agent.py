@@ -213,23 +213,11 @@ class NationAgent:
         user_prompt = input_builder.build(
             nation_id=self.id,
             turn=turn,
+            context_manager=self.context_manager,
             defense_summary=defense_summary,
             economy_summary=economy_summary,
             foreign_summary=foreign_summary
         )
-        
-        # Add events context
-        if self.context_manager:
-            relationships = self.context_manager.get_relationships_for(self.id)
-            events = self.context_manager.get_events_for(self.id, max_events=10)
-            actions = self.context_manager.get_actions_for(self.id, max_actions=10)
-            
-            if relationships:
-                user_prompt += "\n\n== RELATIONSHIP HISTORY ==\n" + "\n".join(f"- {r}" for r in relationships[:5])
-            if events:
-                user_prompt += "\n\n== RECENT WORLD EVENTS ==\n" + "\n".join(events[:5])
-            if actions:
-                user_prompt += "\n\n== YOUR RECENT DECISIONS ==\n" + "\n".join(actions[:5])
         
         # Call LLM expecting PresidentialDecree
         decree = self.client.query_agent(

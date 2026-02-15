@@ -51,9 +51,9 @@ class EconomyInputBuilder:
         # 1. Month Header
         sections.append(f"## Month {turn}")
         
-        # 2. Common Layers (Relationships, Power, Events)
+        # 2. Common Layers (Relationships, Other nations, Events)
         sections.append(self._build_relationships(nation_id))
-        sections.append(self._build_power_balance(nation_id))
+        sections.append(self._build_other_nations(nation_id))
         
         if context_manager:
             sections.append(self._build_world_events(nation_id, context_manager))
@@ -186,13 +186,9 @@ class EconomyInputBuilder:
         return "\n".join(lines)
     
     def _build_relationships(self, nation_id: str) -> str:
-        """Build full relationship matrix."""
+        """Build compact relationship matrix."""
         lines = ["## Diplomatic relationships"]
         
-        relationships = self.world.relationship_matrix.get(nation_id, {})
-        trust = self.world.trust_matrix.get(nation_id, {})
-        
-        # Group by relationship type
         at_war = []
         allies = []
         neutral = []
@@ -200,114 +196,133 @@ class EconomyInputBuilder:
         for other_id, other_nation in self.world.nations.items():
             if other_id == nation_id:
                 continue
+                
+            rel = self.world.relationship_matrix.get(nation_id, {}).get(other_id, "PEACE")
+            trust_val = self.world.trust_matrix.get(nation_id, {}).get(other_id, 50.0)
             
-            rel_status = relationships.get(other_id, "PEACE")
-            trust_level = trust.get(other_id, 50.0)
+            line = f"- **{other_nation.name}** ({other_id}): {rel}, Trust {trust_val:.0f}"
             
-            if trust_level >= 80:
-                trust_desc = "Exceptional Trust"
-            elif trust_level >= 60:
-                trust_desc = "Friendly"
-            elif trust_level >= 40:
-                trust_desc = "Neutral"
-            elif trust_level >= 20:
-                trust_desc = "Distrustful"
+            if rel == "WAR":
+                at_war.append(line)
+            elif rel == "ALLIANCE":
+                allies.append(line)
             else:
-                trust_desc = "Hostile"
-            
-            entry = {
-                "id": other_id,
-                "trust": trust_level,
-                "trust_desc": trust_desc,
-                "status": rel_status
-            }
-            
-            if rel_status == "WAR":
-                at_war.append(entry)
-            elif rel_status == "ALLIANCE":
-                allies.append(entry)
-            else:
-                neutral.append(entry)
+                neutral.append(line)
         
         if at_war:
-            lines.append("\n**🔴 AT WAR:**")
-            for e in at_war:
-                lines.append(f"  - **{e['id']}**: Trust {e['trust']:.0f} ({e['trust_desc']})")
-        
+            lines.append("### AT WAR")
+            lines.extend(at_war)
         if allies:
-            lines.append("\n**🟢 ALLIES:**")
-            for e in allies:
-                lines.append(f"  - **{e['id']}**: Trust {e['trust']:.0f} ({e['trust_desc']})")
-        
+            lines.append("### ALLIES")
+            lines.extend(allies)
         if neutral:
-            lines.append("\n**⚪ NEUTRAL/PEACE:**")
-            for e in sorted(neutral, key=lambda x: -x['trust']):
-                lines.append(f"  - **{e['id']}**: Trust {e['trust']:.0f} ({e['trust_desc']})")
-        
+            lines.append("### NEUTRAL")
+            lines.extend(neutral)
+            
         return "\n".join(lines)
 
-    def _build_power_balance(self, nation_id: str) -> str:
-        """Build power comparison with neighbors."""
-        lines = ["## Power balance"]
+    def _build_other_nations(self, nation_id: str) -> str:
+        """
+        Build overview of all other nations.
+        Includes Power, Neighbors, Resource status, and Alliances.
+        """
+        from geomas.world.spatial.manager import SpatialManager
+        from geomas.schemas.world import RelationshipState
         
-        my_power = self.world.nations[nation_id].power_projection
+        lines = ["## Other nations"]
+        my_nation = self.world.nations[nation_id]
+        my_power = max(0.1, my_nation.power_projection)
         
-        for other_id, other_nation in self.world.nations.items():
+        spatial = SpatialManager(self.world)
+        neighbors = spatial.get_neighboring_nations(nation_id)
+        
+        # Calculate world averages for resources
+        n_nations = len(self.world.nations)
+        avg_food = sum(n.total_food for n in self.world.nations.values()) / n_nations
+        avg_energy = sum(n.total_energy for n in self.world.nations.values()) / n_nations
+        avg_materials = sum(n.total_materials for n in self.world.nations.values()) / n_nations
+        
+        for other_id, other in self.world.nations.items():
             if other_id == nation_id:
                 continue
             
-            other_power = other_nation.power_projection
-            ratio = other_power / my_power if my_power > 0 else 1.0
+            # 1. Power projection
+            ratio = other.power_projection / my_power
+            if ratio > 1.5: power_desc = "Much stronger"
+            elif ratio > 1.1: power_desc = "Stronger"
+            elif ratio > 0.9: power_desc = "Equal"
+            elif ratio > 0.5: power_desc = "Weaker"
+            else: power_desc = "Much weaker"
             
-            if ratio > 1.5:
-                comparison = "⚠️ Much stronger"
-            elif ratio > 1.1:
-                comparison = "Stronger"
-            elif ratio > 0.9:
-                comparison = "Equal"
-            elif ratio > 0.6:
-                comparison = "Weaker"
-            else:
-                comparison = "✅ Much weaker"
+            # 2. Neighbors
+            is_neighbor = "Yes" if other_id in neighbors else "No"
             
-            lines.append(f"- **{other_nation.name}**: {comparison}")
-        
+            # 3. Resources (Identify significant surplus/deficit)
+            res_tags = []
+            if other.total_food > avg_food * 1.5: res_tags.append("Abundant Food")
+            elif other.total_food < avg_food * 0.5: res_tags.append("Food Shortage")
+            
+            if other.total_energy > avg_energy * 1.5: res_tags.append("Abundant Energy")
+            elif other.total_energy < avg_energy * 0.5: res_tags.append("Energy Shortage")
+            
+            if other.total_materials > avg_materials * 1.5: res_tags.append("Abundant Materials")
+            elif other.total_materials < avg_materials * 0.5: res_tags.append("Materials Shortage")
+            
+            res_desc = ", ".join(res_tags) if res_tags else "Balanced"
+            
+            # 4. Alliances (Find who they are allied with)
+            allies = []
+            if other_id in self.world.relationship_matrix:
+                for target_id, rel in self.world.relationship_matrix[other_id].items():
+                    if rel == RelationshipState.ALLIANCE and target_id in self.world.nations:
+                        allies.append(self.world.nations[target_id].name)
+            
+            allies_desc = ", ".join(allies) if allies else "None"
+            
+            lines.append(f"- **{other.name}** ({other_id}): Power: {power_desc} | Neighbor: {is_neighbor} | Resources: {res_desc} | Allies: {allies_desc}")
+            
         return "\n".join(lines)
 
-    def _build_world_events(self, nation_id: str, context_manager: 'ContextManager') -> str:
-        """Build world events (News)."""
-        lines = ["## World events"]
-        # Use CM method to get relevant events
-        events = context_manager.get_events_for(nation_id, max_events=15)
+    def _build_self_history(self, nation_id: str, cm: 'ContextManager') -> str:
+        """Build domain-specific history for Economy Minister."""
+        from geomas.agents.context.events.schemas import EventType
         
-        if not events:
-            lines.append("No major world events.")
-        else:
-            for event_line in events:
-                lines.append(f"- {event_line}")
-        
-        return "\n".join(lines)
-
-    def _build_self_history(self, nation_id: str, context_manager: 'ContextManager') -> str:
-        """Build unified history for the nation (Economic focus)."""
         lines = ["## Your history"]
         
-        # Use CM methods for better filtering and consistency
-        actions = context_manager.get_actions_for(nation_id, domain="Economy", max_actions=10)
-        events = context_manager.get_events_for(nation_id, max_events=10)
+        # 1. Economy Actions
+        action_lines = cm.get_actions_for(nation_id, domain="Economy", max_actions=8)
         
-        # Combine and sort (rough sort by turn if possible, but CM already returns chronologically)
-        # For simplicity, we just list them
-        history = sorted(actions + events, key=lambda x: x.split(":")[0]) # Rough Txx sort
+        # 2. Economy-related Events
+        economy_event_types = [
+            EventType.TRADE_DEAL,
+            EventType.ECONOMIC_CRISIS,
+            EventType.CIVIL_UNREST
+        ]
+        event_lines = cm.get_events_for(nation_id, max_events=8, event_types=economy_event_types)
         
-        if not history:
-            lines.append("No recorded economic history.")
-        else:
-            for item in history[-15:]:
-                lines.append(f"- {item}")
-        
+        if action_lines:
+            lines.append("### Recent Actions")
+            lines.extend([f"- {a}" for a in action_lines])
+            
+        if event_lines:
+            lines.append("### Notable Economic Events")
+            lines.extend([f"- {e}" for e in event_lines])
+            
+        if not action_lines and not event_lines:
+            lines.append("- No recent economic history.")
+            
         return "\n".join(lines)
     
+    def _build_world_events(self, nation_id: str, cm: 'ContextManager') -> str:
+        """Standard world events layer."""
+        lines = ["## World events"]
+        event_lines = cm.get_events_for(nation_id, max_events=10)
+        if event_lines:
+            lines.extend(event_lines)
+        else:
+            lines.append("- No notable world events.")
+        return "\n".join(lines)
+
     def _build_global_market(self, nation_id: str) -> str:
         """Build global market intelligence with dynamic thresholds."""
         nations = [n for nid, n in self.world.nations.items() if nid != nation_id]
