@@ -433,6 +433,18 @@ class SimulationEngine:
         self._init_agents()
         self._init_opinion_agents()
         
+        # 4b. Reconstruct History (Envelopes for turns 1 to current turn)
+        # Note: self.history stores envelopes for each turn that has already executed.
+        # If we load Turn 5, it means Turns 1-4 have executed.
+        from geomas.db.serialization import deserialize_envelope
+        self.history = []
+        for t in range(1, turn):
+            envelopes_data = self.db.load_envelopes(sim_id_to_load, t)
+            turn_enps = []
+            for _, enp_json in envelopes_data:
+                turn_enps.append(deserialize_envelope(enp_json))
+            self.history.append(turn_enps)
+        
         # 5. Sync Cache
         self.cache.clear()
         self.cache.add_turn(turn, self.world, [], {}) 

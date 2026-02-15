@@ -111,18 +111,22 @@ with st.sidebar:
             target_nation = st.selectbox("Nation", sorted(list(st.session_state["sim"].world.nations.keys())))
             target_role = st.selectbox("Minister", ["Defense", "Economy", "Foreign"])
             
-            # 2. Select Intent based on Role
-            from geomas.agents.schemas import DefenseIntentType, EconomicIntentType, ForeignIntentType
+            # 2. Select Action based on Role
+            from geomas.actions.defense.schemas import DefenseActionType
+            from geomas.actions.economy.schemas import EconomicActionType
+            from geomas.actions.foreign.schemas import ForeignActionType
             
-            intent_options = []
+            action_options = []
             if target_role == "Defense":
-                intent_options = [i.name for i in DefenseIntentType]
+                action_options = [a.value for a in DefenseActionType]
             elif target_role == "Economy":
-                intent_options = [i.name for i in EconomicIntentType]
+                action_options = [a.value for a in EconomicActionType]
             elif target_role == "Foreign":
-                intent_options = [i.name for i in ForeignIntentType]
+                action_options = [a.value for a in ForeignActionType]
             
-            target_intent = st.selectbox("Intent", intent_options)
+            target_action = st.selectbox("Action", action_options)
+            action_details = st.text_input("Details (optional)", placeholder="e.g. qty=50, target=VULCANIA", help="Additional constraints for the action")
+            
             constraint_type = st.radio("Constraint", ["FORBID", "FORCE"], horizontal=True)
             
             # 3. Add Injection
@@ -130,17 +134,19 @@ with st.sidebar:
                 injection = {
                     "nation_id": target_nation,
                     "role": target_role,
-                    "intent": target_intent,
+                    "action": target_action,
+                    "details": action_details,
                     "type": constraint_type
                 }
                 st.session_state["injections"].append(injection)
-                st.success(f"Added: {constraint_type} {target_intent} for {target_nation} {target_role}")
+                st.success(f"Added: {constraint_type} {target_action} for {target_nation} {target_role}")
 
             # 4. List Injections
             if st.session_state["injections"]:
                 st.markdown("#### Active Constraints")
                 for i, inj in enumerate(st.session_state["injections"]):
-                    st.caption(f"{i+1}. {inj['nation_id']} ({inj['role']}): **{inj['type']} {inj['intent']}**")
+                    details_str = f" ({inj['details']})" if inj['details'] else ""
+                    st.caption(f"{i+1}. {inj['nation_id']} ({inj['role']}): **{inj['type']} {inj['action']}**{details_str}")
                 
                 if st.button("Clear All"):
                     st.session_state["injections"] = []

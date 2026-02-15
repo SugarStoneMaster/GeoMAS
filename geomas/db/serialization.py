@@ -312,3 +312,13 @@ def deserialize_memory_state(json_data: str) -> Dict[str, Any]:
         "trust_history": data.get("trust_history", {})
     }
     return state
+    
+
+def deserialize_envelope(json_data: str):
+    """
+    Deserialize envelope JSON back to CountryEnvelope.
+    """
+    from geomas.agents.schemas import CountryEnvelope
+    import json
+    data = json.loads(json_data)
+    return CountryEnvelope(**data)

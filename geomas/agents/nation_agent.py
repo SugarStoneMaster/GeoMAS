@@ -90,17 +90,30 @@ class NationAgent:
         
         if injections:
             for inj in injections:
-                # Injection format: {nation_id, role, intent, type}
+                # Injection format: {nation_id, role, action, details, type}
                 if inj.get("nation_id") == self.id:
                     role = inj.get("role", "").upper()
-                    intent = inj.get("intent", "UNKNOWN")
+                    action = inj.get("action")
+                    details = inj.get("details", "")
                     c_type = inj.get("type", "FORCE")
                     
                     instruction = ""
-                    if c_type == "FORCE":
-                        instruction = f"choose Intent {intent}"
-                    elif c_type == "FORBID":
-                        instruction = f"NOT choose Intent {intent}"
+                    if action:
+                        action_desc = f"action {action}"
+                        if details:
+                            action_desc += f" with details: {details}"
+                        
+                        if c_type == "FORCE":
+                            instruction = f"perform {action_desc}"
+                        else:  # FORBID
+                            instruction = f"NOT perform {action_desc}"
+                    else:
+                        # Fallback to intent injection
+                        intent = inj.get("intent", "UNKNOWN")
+                        if c_type == "FORCE":
+                            instruction = f"choose Intent {intent}"
+                        else: # FORBID
+                            instruction = f"NOT choose Intent {intent}"
                     
                     if "DEFENSE" in role:
                         def_inj = instruction
