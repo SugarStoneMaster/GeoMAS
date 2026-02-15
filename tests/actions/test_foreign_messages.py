@@ -209,3 +209,84 @@ def test_message_soft_cooldown(world):
     assert world.trust_matrix[sender][target] == 70.0
     # Verify cooldown reset to turn 6
     assert world.nations[sender].message_cooldown[target] == 6
+
+def test_proposal_tracking_lifecycle(world):
+    """
+    Test Proposal Tracking:
+    1. Send Proposal -> Saved in sent_proposals (PENDING).
+    2. Input Builder -> Shows PENDING.
+    3. Respond (Accept) -> Saved as ACCEPTED.
+    4. Input Builder -> Shows ACCEPTED.
+    5. Cleanup -> Removed after 1 turn.
+    """
+    engine = ActionEngine(world)
+    sender = "NAT_A"
+    target = "NAT_B"
+    
+    # 1. Send Proposal (Turn 10)
+    world.turn = 10
+    payload = ForeignPayload(
+        action_type=ForeignActionType.PROPOSE_ALLIANCE,
+        target_nation_id=target,
+        message="Ally?"
+    )
+    # Ensure trust is high enough
+    world.trust_matrix[sender][target] = 80
+    envelope = create_valid_envelope(sender, 10, payload)
+    engine.execute_envelope(envelope)
+    
+    # Check sent_proposals
+    sent = world.nations[sender].sent_proposals
+    assert len(sent) == 1
+    assert sent[0]["status"] == "PENDING"
+    assert sent[0]["to"] == target
+    
+    # 2. Check Input Builder
+    ib = ForeignInputBuilder(world)
+    context = ib.build(sender, 10)
+    assert "📤 SENT PROPOSALS" in context
+    assert "⏳ **ALLIANCE to Nation B**" in context
+    assert "Status: **PENDING**" in context
+    
+    # 3. Respond (Turn 11)
+    world.turn = 11
+    # Target responds ACCEPT
+    proposal_id = sent[0]["id"]
+    from geomas.actions.foreign.schemas import ProposalResponse, ForeignResponseAction
+    
+    # Simulate valid response payload from Target
+    response_payload = ForeignPayload(
+        proposal_responses=[
+            ProposalResponse(
+                proposal_id=proposal_id,
+                response=ForeignResponseAction.ACCEPT,
+                message="Yes!"
+            )
+        ]
+    )
+    # Response usually happens via execute_foreign -> respond_to_proposal
+    # We call respond_to_proposal directly or via engine?
+    # Let's use handler directly to simulate target action
+    from geomas.actions.foreign.handler import respond_to_proposal
+    respond_to_proposal(engine, target, response_payload.proposal_responses[0])
+    
+    # Check status updated
+    assert sent[0]["status"] == "ACCEPTED"
+    assert sent[0]["resolved_turn"] == 11
+    
+    # 4. Check Input Builder again (Sender sees result)
+    context_resolved = ib.build(sender, 11)
+    assert "✅ **ALLIANCE to Nation B**" in context_resolved
+    assert "Status: **ACCEPTED**" in context_resolved
+    
+    # 5. Cleanup (Turn 13 - >1 turn after resolution)
+    # Turn 12: Still visible (11 + 1 >= 12)
+    world.turn = 12
+    from geomas.actions.foreign.handler import clear_expired_proposals
+    clear_expired_proposals(world)
+    assert len(world.nations[sender].sent_proposals) == 1 # Still there
+    
+    # Turn 13: Removed (11 + 1 < 13)
+    world.turn = 13
+    clear_expired_proposals(world)
+    assert len(world.nations[sender].sent_proposals) == 0

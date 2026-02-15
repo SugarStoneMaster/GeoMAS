@@ -112,6 +112,11 @@ class NationState(BaseModel):
     # Must wait MESSAGE_COOLDOWN_TURNS before sending another to same target
     message_cooldown: Dict[str, int] = Field(default_factory=dict)
 
+    # --- OUTGOING PROPOSALS (Tracking) ---
+    # Tracks proposals sent BY this nation, to know if they are accepted/rejected.
+    # Format: [{"id": str, "type": str, "to": str, "turn": int, "message": str, "status": "PENDING"|"ACCEPTED"|"REJECTED"|"EXPIRED", "resolved_turn": int}, ...]
+    sent_proposals: List[Dict[str, Any]] = Field(default_factory=list)
+
 
 class WorldState(BaseModel):
     """

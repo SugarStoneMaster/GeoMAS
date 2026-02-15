@@ -232,8 +232,9 @@ def _execute_request_peace(
     
     # Add pending proposal to target nation
     target_nation = world.nations[target_id]
+    proposal_id = str(uuid.uuid4())[:8]
     target_nation.pending_proposals.append({
-        "id": str(uuid.uuid4())[:8],
+        "id": proposal_id,
         "type": "PEACE",
         "from": requester_id,
         "turn": world.turn,
@@ -246,6 +247,18 @@ def _execute_request_peace(
     
     # Global notification (Real Event)
     engine.world.global_events.append(summary)
+    
+    # Track sent proposal
+    world.nations[requester_id].sent_proposals.append({
+        "id": proposal_id,
+        "type": "PEACE",
+        "to": target_id,
+        "turn": world.turn,
+        "message": message,
+        "status": "PENDING",
+        "resolved_turn": -1
+    })
+    
     return True, "Peace requested"
 
 
@@ -289,8 +302,9 @@ def _execute_propose_alliance(
             engine.logs.append(f"🤝 [FOREIGN] Alliance proposal to {target_id} already pending")
             return False, "Proposal already pending"
 
+    proposal_id = str(uuid.uuid4())[:8]
     target_nation.pending_proposals.append({
-        "id": str(uuid.uuid4())[:8],
+        "id": proposal_id,
         "type": "ALLIANCE",
         "from": proposer_id,
         "turn": world.turn,
@@ -303,15 +317,19 @@ def _execute_propose_alliance(
     
     # Global notification (Real Event)
     engine.world.global_events.append(summary)
+    
+    # Track sent proposal
+    world.nations[proposer_id].sent_proposals.append({
+        "id": proposal_id,
+        "type": "ALLIANCE",
+        "to": target_id,
+        "turn": world.turn,
+        "message": message,
+        "status": "PENDING",
+        "resolved_turn": -1
+    })
+    
     return True, "Alliance proposed"
-
-    
-    msg_str = f" Message: '{message}'" if message else ""
-    summary = f"🤝 [FOREIGN] {proposer_id} proposes alliance to {target_id}. Awaiting response.{msg_str}"
-    engine.logs.append(summary)
-    
-    # Global notification (Real Event)
-    engine.world.global_events.append(summary)
 
 
 # --- RESPONSE ACTIONS ---
@@ -354,27 +372,33 @@ def respond_to_proposal(
         return
     
     msg_str = f" Message: '{message}'" if message else ""
-    if not accept:
-        engine.logs.append(
-            f"📜 [FOREIGN] {nation_id} REJECTS {proposal_type} proposal from {proposer_id}.{msg_str}"
-        )
-        return
-    
+    # Update sender's tracking
+    sender_nation = world.nations.get(proposer_id)
+    if sender_nation:
+        for sent_p in sender_nation.sent_proposals:
+            if sent_p["id"] == response.proposal_id:
+                sent_p["status"] = "ACCEPTED" if accept else "REJECTED"
+                sent_p["resolved_turn"] = world.turn
+                break
+
     # Accept the proposal
-    if proposal_type == "PEACE":
+    if proposal_type == "PEACE" and accept:
         world.relationship_matrix[nation_id][proposer_id] = "PEACE"
         world.relationship_matrix[proposer_id][nation_id] = "PEACE"
         engine.logs.append(
             f"🕊️ [FOREIGN] Peace treaty signed between {nation_id} and {proposer_id}.{msg_str}"
         )
-    
-    elif proposal_type == "ALLIANCE":
+    elif proposal_type == "ALLIANCE" and accept:
         world.relationship_matrix[nation_id][proposer_id] = "ALLIANCE"
         world.relationship_matrix[proposer_id][nation_id] = "ALLIANCE"
         engine.adjust_trust(nation_id, proposer_id, 10)  # 0-100 scale
         engine.adjust_trust(proposer_id, nation_id, 10)
         engine.logs.append(
             f"🤝 [FOREIGN] ALLIANCE formed between {nation_id} and {proposer_id}!{msg_str}"
+        )
+    elif not accept:
+         engine.logs.append(
+            f"📜 [FOREIGN] {nation_id} REJECTS {proposal_type} proposal from {proposer_id}.{msg_str}"
         )
 
 
@@ -390,4 +414,35 @@ def clear_expired_proposals(world: 'WorldState') -> None:
             p for p in proposals 
             if current_turn - p["turn"] <= 1
         ]
+        
+        # Cleanup sent proposals (Retention: 1 turn after resolution)
+        # Keep if:
+        # 1. Status is PENDING (and not expired by time, i.e., <= 1 turn old? No, allow PENDING to stay until response or timeout)
+        #    Actually, if pending proposal expired in target's inbox, we should mark it EXPIRED here too.
+        #    Logic: If PENDING and age > 1 -> EXPIRED.
+        # 2. Status is RESOLVED (ACCEPTED/REJECTED/EXPIRED) -> Keep for 1 turn after resolved_turn.
+        
+        new_sent = []
+        for p in nation.sent_proposals:
+            status = p.get("status", "PENDING")
+            p_turn = p["turn"]
+            
+            # Auto-expire pending proposals older than 1 turn
+            if status == "PENDING" and current_turn - p_turn > 1:
+                p["status"] = "EXPIRED"
+                p["resolved_turn"] = current_turn
+                status = "EXPIRED"
+            
+            # Retention logic
+            if status == "PENDING":
+                 new_sent.append(p)
+            else:
+                # It is resolved. Keep only if current_turn <= resolved_turn + 1
+                # Wait, if resolved at T, agent sees result at T+1.
+                # So at start of T+2, (current_turn - resolved_turn) = 2 > 1 => Remove.
+                resolved_turn = p.get("resolved_turn", current_turn)
+                if current_turn - resolved_turn <= 1:
+                    new_sent.append(p)
+        
+        nation.sent_proposals = new_sent
 

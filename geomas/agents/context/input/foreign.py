@@ -67,9 +67,37 @@ class ForeignInputBuilder:
         # 5. Recent Diplomatic Actions
         if recent_actions:
             sections.append(self._build_recent_actions(recent_actions))
+            
+        # 6. SENT PROPOSALS (Tracking)
+        if nation.sent_proposals:
+            sections.append(self._build_sent_proposals(nation))
         
         return "\n\n".join(sections)
     
+    def _build_sent_proposals(self, nation: NationState) -> str:
+        """Build list of proposals sent by us."""
+        lines = ["## 📤 SENT PROPOSALS (Awaiting Response / Status)"]
+        
+        for p in nation.sent_proposals:
+            p_type = p.get("type", "UNKNOWN")
+            to_id = p.get("to", "UNKNOWN")
+            turn = p.get("turn", "?")
+            status = p.get("status", "PENDING")
+            
+            icon = "⏳"
+            if status == "ACCEPTED": icon = "✅"
+            elif status == "REJECTED": icon = "❌"
+            elif status == "EXPIRED": icon = "🏚️"
+            
+            # Get target name
+            to_name = self.world.nations.get(to_id, {})
+            if hasattr(to_name, 'name'): to_name = to_name.name
+            else: to_name = to_id
+            
+            lines.append(f"- {icon} **{p_type} to {to_name}** (Sent Turn {turn}). Status: **{status}**")
+            
+        return "\n".join(lines)
+
     def _build_pending_proposals(self, nation: NationState) -> str:
         """Build pending proposals requiring response."""
         lines = ["## 📬 PENDING PROPOSALS (Require Response)"]
