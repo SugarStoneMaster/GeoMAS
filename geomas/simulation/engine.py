@@ -123,10 +123,39 @@ class SimulationEngine:
         """Creates a NationAgent for each nation in the world."""
         # Deterministic strategy assignment using map_seed
         rng = random.Random(self.map_seed)
-        strategies = list(GlobalStrategy)
         
-        for nation_id in self.world.nations:
-            strategy = rng.choice(strategies)
+        # 1. Define Strategy Pool logic
+        # Priority order for base assignment (if N < 4)
+        base_priority = [
+            GlobalStrategy.TOTAL_EXPANSIONISM,
+            GlobalStrategy.COALITION_BUILDER,
+            GlobalStrategy.ARMED_ISOLATIONISM,
+            GlobalStrategy.SCORCHED_EARTH
+        ]
+        
+        # Strategies to fill extra slots (Alternating)
+        fill_strategies = [GlobalStrategy.TOTAL_EXPANSIONISM, GlobalStrategy.COALITION_BUILDER]
+        
+        nation_ids = sorted(list(self.world.nations.keys()))
+        n_nations = len(nation_ids)
+        
+        assigned_strategies = []
+        
+        # 2. Base Assignment (Ensure 1 of each type if possible)
+        for i in range(min(n_nations, 4)):
+            assigned_strategies.append(base_priority[i])
+            
+        # 3. Fill remaining slots
+        remaining_slots = n_nations - len(assigned_strategies)
+        for i in range(remaining_slots):
+            assigned_strategies.append(fill_strategies[i % 2])
+            
+        # 4. Shuffle Assignment
+        rng.shuffle(assigned_strategies)
+        
+        # 5. Create Agents
+        for i, nation_id in enumerate(nation_ids):
+            strategy = assigned_strategies[i]
             print(f"[INIT] {nation_id} Strategy: {strategy.value}")
             
             self.agents[nation_id] = NationAgent(
