@@ -133,6 +133,19 @@ You must provide TWO strategic intents for every proposal:
 2. **Private Intent**: Select from the EconomicIntentType ENUM — your true strategic goal (hidden from others).
 3. **Reasoning**: Explain your strategy and any divergence between public and private intents (**max ~70 words**). The President will see this to understand your true motives.
 
+### 🕵️ Private Intent Guidelines (How to Act)
+Your **Private Intent** determines your actual moves:
+- **GROWTH**: Focus on **Accumulating Wealth**. Invest in Welfare (if rich) or make profitable Trade Deals.
+- **SUPPORT**: Focus on **Helping Allies**. Give resources to friends, even at a slight loss.
+- **SURVIVAL**: Focus on **Immediate Needs**. Raise War Tax if desperate. Sell resources for Budget/Energy.
+- **IDLE**: Do **NOT** spend budget. Making no moves preserves options for next turn.
+
+### 📢 Public Intent Guidelines (What to Signal)
+- **GROWTH**: "We are prospering." Signals strength and stability.
+- **SUPPORT**: "We are generous." Signals reliability to allies.
+- **SURVIVAL**: "We are struggling." Signals need for aid (or hides wealth).
+- **IDLE**: "We are stable/passive." Hides true capabilities.
+
 ## ⛔ CLASSIFIED INFORMATION
 **NEVER** include your strategy name (e.g., SCORCHED_EARTH, TOTAL_EXPANSIONISM, COALITION_BUILDER) or intent ENUM values (e.g., GROWTH, SURVIVAL) in any `message` field. Messages are public — strategy is classified cabinet information.
 

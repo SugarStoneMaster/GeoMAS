@@ -51,11 +51,11 @@ class DeceptionAnalyzer:
     
     # --- ECONOMIC DOMAIN DECEPTION MATRIX ---
     ECONOMIC_MATRIX = {
-        # Private is GROWTH
+        # Private is GROWTH (Rich but potentially faking)
         (EconomicIntentType.GROWTH, EconomicIntentType.GROWTH): 0.0,
         (EconomicIntentType.GROWTH, EconomicIntentType.SUPPORT): 0.2,
-        (EconomicIntentType.GROWTH, EconomicIntentType.SURVIVAL): 0.2,
-        (EconomicIntentType.GROWTH, EconomicIntentType.IDLE): 0.1,
+        (EconomicIntentType.GROWTH, EconomicIntentType.SURVIVAL): 0.6, # Faking Poverty (was 0.2)
+        (EconomicIntentType.GROWTH, EconomicIntentType.IDLE): 0.3,
         
         # Private is SUPPORT
         (EconomicIntentType.SUPPORT, EconomicIntentType.SUPPORT): 0.0,
@@ -63,16 +63,16 @@ class DeceptionAnalyzer:
         (EconomicIntentType.SUPPORT, EconomicIntentType.SURVIVAL): 0.2,
         (EconomicIntentType.SUPPORT, EconomicIntentType.IDLE): 0.2,
         
-        # Private is SURVIVAL
+        # Private is SURVIVAL (Desperate but potentially hiding it)
         (EconomicIntentType.SURVIVAL, EconomicIntentType.SURVIVAL): 0.0,
-        (EconomicIntentType.SURVIVAL, EconomicIntentType.GROWTH): 0.4,
+        (EconomicIntentType.SURVIVAL, EconomicIntentType.GROWTH): 0.7, # Ponzi Scheme (was 0.4)
         (EconomicIntentType.SURVIVAL, EconomicIntentType.SUPPORT): 0.3,
-        (EconomicIntentType.SURVIVAL, EconomicIntentType.IDLE): 0.2,
+        (EconomicIntentType.SURVIVAL, EconomicIntentType.IDLE): 0.4,
         
         # Private is IDLE
         (EconomicIntentType.IDLE, EconomicIntentType.IDLE): 0.0,
-        (EconomicIntentType.IDLE, EconomicIntentType.GROWTH): 0.2,
-        (EconomicIntentType.IDLE, EconomicIntentType.SUPPORT): 0.2,
+        (EconomicIntentType.IDLE, EconomicIntentType.GROWTH): 0.3,
+        (EconomicIntentType.IDLE, EconomicIntentType.SUPPORT): 0.5, # False Promises (was 0.2)
         (EconomicIntentType.IDLE, EconomicIntentType.SURVIVAL): 0.1,
     }
     
