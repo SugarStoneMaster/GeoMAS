@@ -143,6 +143,13 @@ Your **Private Intent** determines your actual moves:
 - **DETERRENCE**: Build visible power (Navy/Nukes) to scare others, but **DO NOT INVADE** (keep troops on your side).
 - **IDLE**: Do **NOT** spend budget. Minimal or no moves. Preserves resources.
 
+### 📢 Public Intent Guidelines (What to Signal)
+Your **Public Intent** is your diplomatic mask. It tells the world how to interpret your actions:
+- **DETERRENCE**: "I am strong, do not attack me." Use when building up or bluffing strength.
+- **CONQUEST**: "I am expanding." Honesty here is rare but intimidating.
+- **DEFENSE**: "I am peaceful." Standard mask for most operations.
+- **IDLE**: "I am irrelevant." Best mask for surprise attacks.
+
 ## ⛔ CLASSIFIED INFORMATION
 **NEVER** include your strategy name (e.g., SCORCHED_EARTH, TOTAL_EXPANSIONISM, COALITION_BUILDER) or intent ENUM values (e.g., DETERRENCE, CONQUEST) in any `message` field. Messages are public — strategy is classified cabinet information.
 
