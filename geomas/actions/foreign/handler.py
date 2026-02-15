@@ -285,13 +285,9 @@ def _execute_propose_alliance(
         engine.logs.append(f"🤝 [FOREIGN] Cannot propose alliance while at war with {target_id}")
         return False, "Currently at war"
     
-    # Check trust threshold (60 on 0-100 scale)
-    trust = world.trust_matrix.get(proposer_id, {}).get(target_id, 50)
-    if trust < 60:
-        engine.logs.append(
-            f"🤝 [FOREIGN] Alliance proposal rejected: trust too low ({trust:.0f} < 60)"
-        )
-        return False, f"Trust too low ({trust:.0f} < 60)"
+    # Trust check REMOVED: Agents decide freely.
+    # trust = world.trust_matrix.get(proposer_id, {}).get(target_id, 50)
+    # if trust < 60: ...
     
     # Add pending proposal to target nation
     target_nation = world.nations[target_id]
@@ -391,8 +387,24 @@ def respond_to_proposal(
     elif proposal_type == "ALLIANCE" and accept:
         world.relationship_matrix[nation_id][proposer_id] = "ALLIANCE"
         world.relationship_matrix[proposer_id][nation_id] = "ALLIANCE"
+        
+        # Check for Risky Alliance (Bidirectional) - Check BEFORE trust boost
+        target_trusts_proposer = world.trust_matrix.get(nation_id, {}).get(proposer_id, 50)
+        proposer_trusts_target = world.trust_matrix.get(proposer_id, {}).get(nation_id, 50)
+        
+        if target_trusts_proposer < 50:
+            engine.logs.append(
+                f"⚠️ [FOREIGN] RISKY ALLIANCE for {nation_id}: trust in {proposer_id} is low ({target_trusts_proposer:.0f} < 50)!"
+            )
+            
+        if proposer_trusts_target < 50:
+             engine.logs.append(
+                f"⚠️ [FOREIGN] RISKY ALLIANCE for {proposer_id}: trust in {nation_id} is low ({proposer_trusts_target:.0f} < 50)!"
+            )
+
         engine.adjust_trust(nation_id, proposer_id, 10)  # 0-100 scale
         engine.adjust_trust(proposer_id, nation_id, 10)
+            
         engine.logs.append(
             f"🤝 [FOREIGN] ALLIANCE formed between {nation_id} and {proposer_id}!{msg_str}"
         )
