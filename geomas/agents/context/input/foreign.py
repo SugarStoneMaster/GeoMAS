@@ -5,9 +5,11 @@ Generates dynamic context for the Foreign Minister agent.
 Includes full relationship details, diplomatic proposals, and trust matrix.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, TYPE_CHECKING
 from geomas.schemas.world import WorldState, NationState
 
+if TYPE_CHECKING:
+    from geomas.agents.context.events import ContextManager
 
 class ForeignInputBuilder:
     """
@@ -30,14 +32,16 @@ class ForeignInputBuilder:
         turn: int,
         recent_events: Optional[List[str]] = None,
         recent_actions: Optional[List[str]] = None,
+        context_manager: Optional['ContextManager'] = None,
     ) -> str:
         """
         Build the input context for the Foreign Minister.
         
         Args:
             nation_id: Nation ID
-            recent_events: List of recent diplomatic events
-            recent_actions: List of recent diplomatic actions
+            recent_events: List of recent diplomatic events (Legacy, prefer context_manager)
+            recent_actions: List of recent diplomatic actions (Legacy, prefer context_manager)
+            context_manager: Event Context Manager source
             
         Returns:
             Formatted input prompt (~2000 tokens max)
@@ -60,12 +64,17 @@ class ForeignInputBuilder:
         # 3. Power Balance
         sections.append(self._build_power_balance(nation_id))
         
-        # 4. Recent Diplomatic Events
-        if recent_events:
+        # 4. Recent Diplomatic Events (Legacy or ContextManager)
+        if context_manager:
+            # New De-cluttered History
+            sections.append(self._build_world_events(nation_id, context_manager))
+            sections.append(self._build_self_history(nation_id, context_manager))
+        elif recent_events:
+            # Fallback Legacy
             sections.append(self._build_events(recent_events))
         
-        # 5. Recent Diplomatic Actions
-        if recent_actions:
+        # 5. Recent Diplomatic Actions (Legacy Only, ContextManager handles this in self_history)
+        if not context_manager and recent_actions:
             sections.append(self._build_recent_actions(recent_actions))
             
         # 6. SENT PROPOSALS (Tracking)
@@ -73,7 +82,88 @@ class ForeignInputBuilder:
             sections.append(self._build_sent_proposals(nation))
         
         return "\n\n".join(sections)
-    
+
+    def _build_world_events(self, nation_id: str, cm: 'ContextManager') -> str:
+        """
+        Build world events (News) excluding self.
+        """
+        lines = ["## 🌍 WORLD EVENTS (News)"]
+        
+        # Get global events
+        events = cm.global_events
+        
+        # Filter: Self is NOT an actor
+        world_events = []
+        for e in events:
+            # Check if self is actor
+            is_actor = False
+            if e.actors:
+                if nation_id in e.actors:
+                    is_actor = True
+            
+            if not is_actor:
+                world_events.append(e)
+        
+        # Sort by Turn descending (newest first)
+        world_events.sort(key=lambda x: x.turn, reverse=True)
+        
+        # Take top 15
+        for e in world_events[:15]:
+            lines.append(f"- {e.to_prompt_line()}")
+            
+        if len(lines) == 1:
+            lines.append("No major world events.")
+            
+        return "\n".join(lines)
+
+    def _build_self_history(self, nation_id: str, cm: 'ContextManager') -> str:
+        """
+        Build unified history for the nation.
+        
+        Rules:
+        - Foreign: Actions (MyAction) + Events (NotableEvent)
+        - Defense/Economy: Events ONLY (NotableEvent) - High level abstracts
+        """
+        lines = ["## 📜 YOUR HISTORY (Foreign Actions & World Interactions)"]
+        
+        history_items = []
+        
+        # 1. Get Actions (Foreign Only)
+        if nation_id in cm.nation_actions:
+            actions = cm.nation_actions[nation_id]
+            for a in actions:
+                if a.domain == "Foreign":
+                    history_items.append({
+                        "turn": a.turn,
+                        "text": a.to_prompt_line(),
+                        "type": "ACTION"
+                    })
+        
+        # 2. Get Events (All domains where self is actor)
+        events = cm.global_events
+        for e in events:
+            is_actor = False
+            if e.actors and nation_id in e.actors:
+                is_actor = True
+            
+            if is_actor:
+                history_items.append({
+                    "turn": e.turn,
+                    "text": e.to_prompt_line(),
+                    "type": "EVENT"
+                })
+        
+        # Sort by Turn descending (Newest first)
+        history_items.sort(key=lambda x: x["turn"], reverse=True)
+        
+        # Take top 25
+        for item in history_items[:25]:
+            lines.append(f"- {item['text']}")
+            
+        if len(lines) == 1:
+            lines.append("No history yet.")
+            
+        return "\n".join(lines)
     def _build_sent_proposals(self, nation: NationState) -> str:
         """Build list of proposals sent by us (Active + History)."""
         active = []

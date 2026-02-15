@@ -185,14 +185,21 @@ class TestForeignMinister(TestMinisterBase):
         assert schema == ForeignProposal
         assert response == mock_response
     
-    def test_includes_relationship_context(self, setup):
-        """Includes relationships in prompt."""
+    def test_includes_memory_context(self, setup):
+        """Includes history and world events in prompt."""
         world, nation_id, client = setup
         
-        # Setup context manager with mock relationships
+        # Setup context manager with mock events
         cm = MagicMock(spec=ContextManager)
-        cm.get_relationships_for.return_value = ["Nation B: Friendly (Trust: 0.8)"]
-        cm.get_actions_for.return_value = [] # No actions needed for this test check
+        cm.global_events = []
+        cm.nation_actions = {}
+        
+        # Add a mock relationship through world state (handled by builder _build_relationships)
+        # But here we test the ContextManager integration
+        from geomas.agents.context.events.schemas import MyAction
+        cm.nation_actions[nation_id] = [
+            MyAction(turn=1, domain="Foreign", action_type="TEST", action_summary="Test Action", outcome="SUCCESS")
+        ]
         
         minister = ForeignMinister(nation_id, world, client, context_manager=cm)
         
@@ -212,8 +219,10 @@ class TestForeignMinister(TestMinisterBase):
         
         minister.propose(GlobalStrategy.COALITION_BUILDER, turn=1)
         
-        # Check prompt
+        # Check prompt for NEW sections
         args, _ = client.query_agent.call_args
         user_prompt = args[1]
-        assert "== RELATIONSHIP HISTORY ==" in user_prompt
-        assert "Nation B: Friendly" in user_prompt
+        
+        # "RELATIONSHIP HISTORY" is gone. We expect "YOUR HISTORY" and "WORLD EVENTS"
+        assert "## 📜 YOUR HISTORY" in user_prompt
+        assert "Test Action" in user_prompt

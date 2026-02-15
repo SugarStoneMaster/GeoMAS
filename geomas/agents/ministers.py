@@ -231,16 +231,11 @@ class ForeignMinister(BaseMinister):
         
         # Build input context using new architecture
         input_builder = ForeignInputBuilder(self.world)
-        user_prompt = input_builder.build(self.nation_id, turn)
-        
-        # Add events context (relationships + actions)
-        if self.context_manager:
-            relationships = self.context_manager.get_relationships_for(self.nation_id)
-            if relationships:
-                user_prompt += "\n\n== RELATIONSHIP HISTORY ==\n"
-                user_prompt += "\n".join(f"- {r}" for r in relationships[:5])
-        
-        user_prompt = self._add_memory_context(user_prompt, "Foreign")
+        user_prompt = input_builder.build(
+            self.nation_id, 
+            turn,
+            context_manager=self.context_manager
+        )
         
         # Dynamic Validation: Enforce valid nation IDs
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
@@ -271,15 +266,11 @@ class ForeignMinister(BaseMinister):
         system_prompt = self.system_prompt
         
         input_builder = ForeignInputBuilder(self.world)
-        user_prompt = input_builder.build(self.nation_id, turn)
-        
-        if self.context_manager:
-            relationships = self.context_manager.get_relationships_for(self.nation_id)
-            if relationships:
-                user_prompt += "\n\n== RELATIONSHIP HISTORY ==\n"
-                user_prompt += "\n".join(f"- {r}" for r in relationships[:5])
-        
-        user_prompt = self._add_memory_context(user_prompt, "Foreign")
+        user_prompt = input_builder.build(
+            self.nation_id, 
+            turn,
+            context_manager=self.context_manager
+        )
         
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
         ResponseModel = get_dynamic_proposal_model(ForeignProposal, valid_targets)

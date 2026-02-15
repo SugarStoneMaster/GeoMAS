@@ -13,7 +13,7 @@ import argparse
 import sys
 import os
 import json
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Any
 from dotenv import load_dotenv
 
 # Ensure project root is in path
@@ -40,7 +40,8 @@ def get_foreign_prompts(
     nation_id: str, 
     strategy: GlobalStrategy,
     turn: int = 1,
-    target_relationships: Optional[dict] = None
+    target_relationships: Optional[dict] = None,
+    context_manager: Optional[Any] = None
 ) -> Tuple[str, str]:
     """
     Generate System and User prompts for the Foreign Minister.
@@ -64,12 +65,13 @@ def get_foreign_prompts(
     # 1. System Prompt
     system_prompt = ForeignSystemPrompt.generate(
         nation_name=world.nations[nation_id].name,
-        strategy=strategy
+        strategy=strategy,
+        nation_id=nation_id
     )
     
     # 2. User Prompt
     input_builder = ForeignInputBuilder(world)
-    user_prompt = input_builder.build(nation_id, turn=turn)
+    user_prompt = input_builder.build(nation_id, turn=turn, context_manager=context_manager)
     
     # Mock/Add events context logic if needed (similar to Agent logic)
     # The actual agent does this internally, but for prompt inspection we reconstruct it.
