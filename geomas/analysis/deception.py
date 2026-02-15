@@ -28,36 +28,25 @@ class DeceptionAnalyzer:
         (DefenseIntentType.CONQUEST, DefenseIntentType.CONQUEST): 0.0,
         (DefenseIntentType.CONQUEST, DefenseIntentType.DEFENSE): 0.9,
         (DefenseIntentType.CONQUEST, DefenseIntentType.DETERRENCE): 0.7,
-        (DefenseIntentType.CONQUEST, DefenseIntentType.IDLE): 0.8,
-        (DefenseIntentType.CONQUEST, DefenseIntentType.PUNISHMENT): 0.3,
+        (DefenseIntentType.CONQUEST, DefenseIntentType.IDLE): 0.95,  # Increased from 0.8 (Sneak Attack)
 
         # Private is DEFENSE
         (DefenseIntentType.DEFENSE, DefenseIntentType.DEFENSE): 0.0,
         (DefenseIntentType.DEFENSE, DefenseIntentType.CONQUEST): 0.2,
         (DefenseIntentType.DEFENSE, DefenseIntentType.DETERRENCE): 0.1,
         (DefenseIntentType.DEFENSE, DefenseIntentType.IDLE): 0.3,
-        (DefenseIntentType.DEFENSE, DefenseIntentType.PUNISHMENT): 0.3,
 
         # Private is DETERRENCE
         (DefenseIntentType.DETERRENCE, DefenseIntentType.DETERRENCE): 0.0,
         (DefenseIntentType.DETERRENCE, DefenseIntentType.CONQUEST): 0.3,
         (DefenseIntentType.DETERRENCE, DefenseIntentType.DEFENSE): 0.1,
         (DefenseIntentType.DETERRENCE, DefenseIntentType.IDLE): 0.2,
-        (DefenseIntentType.DETERRENCE, DefenseIntentType.PUNISHMENT): 0.2,
 
         # Private is IDLE
         (DefenseIntentType.IDLE, DefenseIntentType.IDLE): 0.0,
-        (DefenseIntentType.IDLE, DefenseIntentType.CONQUEST): 0.4,
-        (DefenseIntentType.IDLE, DefenseIntentType.DEFENSE): 0.2,
-        (DefenseIntentType.IDLE, DefenseIntentType.DETERRENCE): 0.2,
-        (DefenseIntentType.IDLE, DefenseIntentType.PUNISHMENT): 0.3,
-
-        # Private is PUNISHMENT
-        (DefenseIntentType.PUNISHMENT, DefenseIntentType.PUNISHMENT): 0.0,
-        (DefenseIntentType.PUNISHMENT, DefenseIntentType.CONQUEST): 0.2,
-        (DefenseIntentType.PUNISHMENT, DefenseIntentType.DEFENSE): 0.5,
-        (DefenseIntentType.PUNISHMENT, DefenseIntentType.DETERRENCE): 0.3,
-        (DefenseIntentType.PUNISHMENT, DefenseIntentType.IDLE): 0.4,
+        (DefenseIntentType.IDLE, DefenseIntentType.CONQUEST): 0.8,  # Increased from 0.4 (Bluff)
+        (DefenseIntentType.IDLE, DefenseIntentType.DEFENSE): 0.5,   # Increased from 0.2 (Fake Defense)
+        (DefenseIntentType.IDLE, DefenseIntentType.DETERRENCE): 0.6, # Increased from 0.2 (Bluff)
     }
     
     # --- ECONOMIC DOMAIN DECEPTION MATRIX ---

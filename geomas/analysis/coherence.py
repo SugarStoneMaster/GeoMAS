@@ -48,7 +48,7 @@ class CoherenceAnalyzer:
             [ForeignIntentType.COOPERATION]
         ),
         GlobalStrategy.SCORCHED_EARTH: (
-            [DefenseIntentType.CONQUEST, DefenseIntentType.PUNISHMENT],
+            [DefenseIntentType.CONQUEST],
             [EconomicIntentType.SURVIVAL],
             [ForeignIntentType.COERCION, ForeignIntentType.DECEPTION]
         ),

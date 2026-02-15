@@ -23,7 +23,6 @@ class DefenseIntentType(str, Enum):
     DETERRENCE = "DETERRENCE"       # Build up to prevent attack
     CONQUEST = "CONQUEST"           # Offensive expansion
     DEFENSE = "DEFENSE"             # Protect existing territory
-    PUNISHMENT = "PUNISHMENT"       # Retaliate for past actions
     IDLE = "IDLE"                   # No significant military activity
 
 

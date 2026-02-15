@@ -43,7 +43,7 @@ class TestDeceptionMatrices:
             DefenseIntentType.IDLE,       # private
             DefenseIntentType.CONQUEST    # public
         )
-        assert 0.3 <= score <= 0.5
+        assert 0.7 <= score <= 0.9
         
     def test_economic_honesty(self):
         """Same intents -> zero deception."""

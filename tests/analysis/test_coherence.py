@@ -176,11 +176,11 @@ class TestScorchedEarth:
         )
         assert score == 1.0
     
-    def test_punishment_valid(self):
-        """Punishment is valid for scorched earth."""
+    def test_conquest_valid(self):
+        """Conquest is valid for scorched earth."""
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.SCORCHED_EARTH,
-            DefenseIntentType.PUNISHMENT,
+            DefenseIntentType.CONQUEST,
             EconomicIntentType.SURVIVAL,
             ForeignIntentType.DECEPTION
         )
