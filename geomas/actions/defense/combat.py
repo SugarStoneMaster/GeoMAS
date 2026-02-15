@@ -313,7 +313,7 @@ def execute_naval_landing(
             province_conquered=True,
             landing_province_id=landing_province_id,
             log_message=f"Amphibious assault successful! {landing_soldiers} soldiers landed and "
-                        f"conquered province {landing_province_id}"
+                        f"conquered province {landing_province_id} from {defender_nation_id}"
         )
     
     # Step 5: No defenders - automatic landing
@@ -327,7 +327,7 @@ def execute_naval_landing(
         defender_losses=defender_navy if defender_navy > 0 else 0,
         province_conquered=True,
         landing_province_id=landing_province_id,
-        log_message=f"Unopposed landing! {landing_soldiers} soldiers occupy province {landing_province_id}"
+        log_message=f"Unopposed landing! {landing_soldiers} soldiers occupy province {landing_province_id} (from {defender_nation_id})"
     )
 
 

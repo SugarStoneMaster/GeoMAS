@@ -405,8 +405,10 @@ def _execute_move_troops(
                 to_province.soldiers = quantity
                 nation.total_soldiers += quantity  # They were removed but now added back
                 
+                # Determine who lost the province for better logging
+                lost_by = f" (lost by {old_owner})" if old_owner else " (from NEUTRAL)"
                 engine.logs.append(
-                    f"🚩 [COMBAT] Province {to_province_id} conquered by {nation_id}"
+                    f"🚩 [COMBAT] Province {to_province_id} conquered by {nation_id}{lost_by}"
                 )
                 
                 # Trust impact: combat causes trust decrease
@@ -620,8 +622,8 @@ def _is_enemy_territory(world, nation_id: str, province_id: int, unit_type: Unit
         # For navy, enemy = not in our territorial waters
         return province_id not in nation.territorial_water_ids
     
-    # For land units, enemy = owned by someone else
-    return province.owner_id is not None and province.owner_id != nation_id
+    # For land units, enemy = NOT owned by us (includes neutral)
+    return province.owner_id != nation_id
 
 
 def _execute_nuclear_option(
