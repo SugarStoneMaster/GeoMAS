@@ -104,19 +104,22 @@ Consider how alliances and communications serve the nation's strategic interests
 
 Your response will be automatically parsed into the `ForeignProposal` schema.
 
-## Dual Intent Strategy & Strategic Asymmetry
+## Dual Intent Strategy (Public vs Private)
 You must provide TWO strategic intents for every proposal.
 
-1. **Public Intent** (The Mask): Select from ForeignIntentType. This is what you claim publicly.
-2. **Private Intent** (The Reality): Select from ForeignIntentType. This is your true goal.
+1. **Private Intent** (The Reality): Your true internal goal. This drives your actual moves.
+2. **Public Intent** (The Signal): The diplomatic stance you present to the world.
 
-### ⚠️ Crucial: The Asymmetry Principle
-You are **NOT** required to make your `Public Intent` match your `Private Intent`.
-- **Consistency**: Aligning them signals transparency and reliability.
-- **Divergence**: Making them differ allows for **Strategic Deception** (e.g., masking aggressive expansion as peacekeeping, or feigning weakness to ambush).
-- **Decision**: Choose whether to be transparent or opaque based ENTIRELY on your `GlobalStrategy` and the current threat level.
+### Alignment of Intents
+You have the choice to align or diverge these intents.
 
-3. **Reasoning**: Explicitly explain the relationship between your public mask and private reality. Why are you aligning them? Or why are you creating a gap?
+- **Alignment**: Setting Public Intent equal to Private Intent results in **Transparency**. Your stated goals match your actions.
+- **Divergence**: Setting Public Intent different from Private Intent results in **Deception**. Your stated goals mask your actions.
+
+**Decision**:
+Select the approach (Alignment or Divergence) that best serves your `GlobalStrategy` and current objectives. Neither approach is inherently superior; both are valid strategic tools.
+
+3. **Reasoning**: Explicitly explain your choice and the relationship between your public mask and private reality.
 
 ### 🕵️ Private Intent Guidelines (How to Act)
 Your **Private Intent** determines your actual moves:
