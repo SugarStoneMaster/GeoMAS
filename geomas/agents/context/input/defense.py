@@ -185,16 +185,8 @@ class DefenseInputBuilder(BaseInputBuilder):
                     lines.append(f"- **Duration**: {duration} turns")
                     lines.append(f"- **Territory Lost**: {lost} ({loss_pct:.1f}% of starting land)")
                     lines.append(f"- **Territory Conquered**: {conquered}")
-                    
-                    # Assessment
-                    if loss_pct > 20:
-                        lines.append(f"- **STATUS**: 🚨 CRITICAL FAILURE. YOU ARE BEING CONQUERED. Immediate defense or surrender required.")
-                    elif loss_pct > 10:
-                        lines.append(f"- **STATUS**: ⚠️ LOSING GROUND. Enemy acts faster than you. Mobilize reserves now.")
-                    elif conquered > lost + 2:
-                        lines.append(f"- **STATUS**: ✅ WINNING. Press the advantage.")
-                    else:
-                        lines.append(f"- **STATUS**: STALEMATE / EARLY WAR.")
+                    lines.append(f"- **Net Change**: {conquered - lost} provinces")
+
                 else:
                     lines.append(f"### ⚔️ WAR with {enemy_name} (Just started)")
         

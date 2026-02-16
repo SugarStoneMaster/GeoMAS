@@ -339,11 +339,8 @@ class ForeignInputBuilder(BaseInputBuilder):
                     lines.append(f"### WAR with {enemy_name} ({other_id})")
                     lines.append(f"- **Duration**: {duration} turns")
                     lines.append(f"- **Territory Lost**: {lost} ({loss_pct:.1f}% of nation!)")
-                    
-                    if loss_pct > 20:
-                        lines.append(f"- **DIPLOMATIC IMPERATIVE**: 🚨 SURVIVAL AT STAKE. BEG FOR PEACE or ALLIES IMMEDIATELY.")
-                    elif loss_pct > 10:
-                        lines.append(f"- **DIPLOMATIC IMPERATIVE**: ⚠️ LOSING BADLY. Seek ceasefire or intervention.")
+                    lines.append(f"- **Territory Conquered**: {stats.conquered_provinces}")
+
                 else:
                     lines.append(f"### WAR with {enemy_name} (Fresh conflict)")
 

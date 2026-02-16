@@ -115,12 +115,9 @@ class PresidentInputBuilder(BaseInputBuilder):
             war_lines.append(f"\n**WAR OVERVIEW:** Active conflicts with {len(nation.active_wars)} nations.")
             war_lines.append(f"- **Total Territory Change:** -{total_lost} Lost / +{total_conquered} Conquered")
             
-            if loss_pct > 15:
-                 war_lines.append(f"- **STRATEGIC ALERT:** 🚨 CRISIS. Nation has shrunk by {loss_pct:.1f}%. DEFENSE IS FAILING.")
-            elif loss_pct > 5:
-                 war_lines.append(f"- **STRATEGIC ALERT:** ⚠️ LOSING GROUND. Trend is negative.")
-            elif total_conquered > total_lost:
-                 war_lines.append(f"- **STRATEGIC ALERT:** ✅ EXPANDING. War aimed at conquest is succeeding.")
+            if start_provs > 0:
+                loss_pct = (total_lost - total_conquered) / start_provs * 100
+                war_lines.append(f"- **Net Change**: {loss_pct:+.1f}% of territory")
 
         war_section = "\n".join(war_lines)
         

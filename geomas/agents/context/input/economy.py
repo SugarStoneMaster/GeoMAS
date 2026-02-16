@@ -97,6 +97,10 @@ class EconomyInputBuilder(BaseInputBuilder):
         )
         
         # Budget health
+        if nation.total_budget > 5000:
+            status = "WEALTHY"
+        elif nation.total_budget > 1000:
+            status = "STABLE"
         elif nation.total_budget > 100:
             status = "TIGHT"
         else:
@@ -109,9 +113,6 @@ class EconomyInputBuilder(BaseInputBuilder):
             if total_lost > 0:
                 war_lines.append(f"\n**WAR IMPACT:**")
                 war_lines.append(f"- Lost {total_lost} tax-paying provinces.")
-                
-                if total_lost > 10:
-                     war_lines.append(f"- **FISCAL EMERGENCY**: Defense failing. Consider 'WAR_TAX' to fund reinforcements.")
         
         war_section = "\n".join(war_lines)
 
