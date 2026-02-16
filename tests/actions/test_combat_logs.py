@@ -49,6 +49,9 @@ def test_combat_log_shows_old_owner():
     world.nations = {attacker_id: attacker, defender_id: defender}
     world.provinces = {province_id: target_province, 80: source_province}
     world.turn = 1
+    # FIX: Add relationship/trust matrix for alliance checks
+    world.relationship_matrix = {}
+    world.trust_matrix = {}
     
     # Mock ActionEngine
     engine = MagicMock(spec=ActionEngine)
@@ -114,6 +117,9 @@ def test_neutral_combat_log():
     world.nations = {attacker_id: attacker}
     world.provinces = {province_id: target_province, 80: source_province}
     world.turn = 1
+    # FIX: Add relationship/trust matrix for alliance checks
+    world.relationship_matrix = {}
+    world.trust_matrix = {}
     
     # Mock ActionEngine
     engine = MagicMock(spec=ActionEngine)
