@@ -307,7 +307,6 @@ class ForeignInputBuilder(BaseInputBuilder):
             return ""
             
         lines.extend(opportunities)
-        lines.extend(opportunities)
         lines.append("To enact these, use `PROPOSE_ALLIANCE` with the specific `treaty_tier`.")
         return "\n".join(lines)
 
