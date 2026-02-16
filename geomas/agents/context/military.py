@@ -434,82 +434,87 @@ class MilitaryTranslator:
         
         return "\n".join(lines)
 
-    def _get_reachable_provinces(self, start_id: int, unit_type: UnitType, nation_id: str) -> Dict[str, List[int]]:
+    def _get_strategic_moves(self, start_id: int, unit_type: UnitType, nation_id: str) -> Dict[str, List[int]]:
         """
-        BFS to find GENUINELY reachable provinces within range.
-        Returns categorized destinations: {'ATTACK': [], 'REINFORCE': [], 'TRANSFER': []}
+        Find STRATEGIC destinations within range.
+        Prioritizes:
+        1. ATTACK (Enemy neighbors) - Show ALL.
+        2. REINFORCE (Border neighbors) - Show ALL.
+        3. TRANSFER (Interior) - Show MAX 3 (closest to front).
         """
         max_range = MOVEMENT_RANGE.get(unit_type, 2)
         results = {"ATTACK": [], "REINFORCE": [], "TRANSFER": []}
         
+        # Simple BFS to find all reachable nodes
         visited = {start_id}
-        queue = deque([(start_id, 0)])  # (province_id, distance)
-        
+        queue = deque([(start_id, 0)])
         border_provinces = set(self.spatial.get_border_provinces(nation_id))
+        
+        potential_transfers = [] # (id, distance)
         
         while queue:
             current_id, dist = queue.popleft()
+            if dist >= max_range: continue
             
-            if dist >= max_range:
-                continue
-                
             prov = self.world.provinces.get(current_id)
             if not prov: continue
             
             for neighbor_id in prov.neighbors:
-                if neighbor_id in visited:
-                    continue
+                if neighbor_id in visited: continue
                 
                 n_prov = self.world.provinces.get(neighbor_id)
                 if not n_prov: continue
                 
-                is_valid_step = False
-                
+                # Validity Check
+                is_valid = False
                 if unit_type == UnitType.SOLDIER:
-                    if n_prov.terrain == TerrainType.OCEAN:
-                        continue 
-                    
-                    if n_prov.owner_id == nation_id:
-                        is_valid_step = True
-                        if neighbor_id in border_provinces:
-                            results["REINFORCE"].append(neighbor_id)
-                        else:
-                            results["TRANSFER"].append(neighbor_id)
-                    elif n_prov.owner_id and n_prov.owner_id != nation_id:
-                        results["ATTACK"].append(neighbor_id)
-                        visited.add(neighbor_id)
-                        continue # Attack ends move
-                    
+                    if n_prov.terrain == TerrainType.OCEAN: continue
+                    is_valid = True
                 elif unit_type == UnitType.NAVY:
-                    if n_prov.terrain == TerrainType.OCEAN:
-                        is_valid_step = True
-                        # Navy destinations are slightly different, but let's keep it simple for now
-                        results["TRANSFER"].append(neighbor_id)
-                        
+                    if n_prov.terrain == TerrainType.OCEAN: is_valid = True
                 elif unit_type == UnitType.AIRCRAFT:
-                    is_valid_step = True
-                    if n_prov.owner_id == nation_id:
-                        if neighbor_id in border_provinces:
-                            results["REINFORCE"].append(neighbor_id)
-                        else:
-                            results["TRANSFER"].append(neighbor_id)
-                    elif n_prov.owner_id:
-                        results["ATTACK"].append(neighbor_id)
+                    is_valid = True
                 
-                if is_valid_step:
+                if not is_valid: continue
+                
+                # Categorize
+                if n_prov.owner_id != nation_id and n_prov.owner_id is not None:
+                    # Enemy/Neutral -> ATTACK
+                    # For soldiers, attack ends movement, so allow it as a valid target but don't extend BFS from here
+                    results["ATTACK"].append(neighbor_id)
+                    visited.add(neighbor_id)
+                    continue 
+                elif n_prov.owner_id == nation_id:
+                    # Own territory
                     visited.add(neighbor_id)
                     queue.append((neighbor_id, dist + 1))
+                    
+                    if neighbor_id in border_provinces:
+                        results["REINFORCE"].append(neighbor_id)
+                    else:
+                        potential_transfers.append(neighbor_id)
+
+        # Post-Processing
+        # Sort Attacks by enemy vulnerability (weakest first? or undefined. Let's just sort by ID for stability)
+        results["ATTACK"].sort()
+        results["REINFORCE"].sort()
         
-        # Deduplicate and sort
-        for key in results:
-            results[key] = sorted(list(set(results[key])))
+        # Clamp Transfers: Prioritize those that are neighbors to borders, or just first 3 unique
+        # Simple heuristic: Just take first 3 to reduce noise
+        seen = set()
+        unique_transfers = []
+        for t in potential_transfers:
+            if t not in seen:
+                unique_transfers.append(t)
+                seen.add(t)
+        results["TRANSFER"] = sorted(unique_transfers)[:3]
+        
         return results
 
     def _generate_province_list(self, nation_id: str) -> str:
         """
         Generate logistics section listing ONLY valid moves.
-        Eliminates 'Distance' and 'VOID' errors by pre-filtering.
-        Condenses output by hiding small interior garrisons.
+        Refactored for brevity and strategic relevance.
         """
         nation = self.world.nations.get(nation_id)
         if not nation: return ""
@@ -522,8 +527,7 @@ class MilitaryTranslator:
         lines.append("## 🚚 TROOP POSITIONS & LOGISTICS")
         lines.append("**Logistics Rules:**")
         lines.append("- **Ranges:** Soldier=2, Navy=4, Aircraft=6.")
-        lines.append("- **Terrain:** Soldiers blocked by OCEAN. Navy only OCEAN.")
-        lines.append("- **Valid Moves:** Only listed 'Can reach' destinations are valid.")
+        lines.append("- **Valid Moves:** You can ONLY move to destinations listed below.")
         
         skipped_interior = 0
         skipped_troops = 0
@@ -545,91 +549,58 @@ class MilitaryTranslator:
 
             total_u = sum(u[1] for u in units_here)
             
-            # Skip insignificant interior garrisons (keep Border always)
-            # Threshold: 50 troops or AIRCRAFT presence (air is strategic everywhere)
+            # --- FILTERING ---
+            # Hide Interior < 200 troops (unless they have Aircraft, which are strategic)
             has_air = any(u[0] == UnitType.AIRCRAFT for u in units_here)
-            if not is_border and total_u < 50 and not has_air:
+            if not is_border and total_u < 200 and not has_air:
                  skipped_interior += 1
                  skipped_troops += total_u
                  continue
 
             # Formatting context
             terrain_tag = f"[{prov.terrain.value.upper()}]"
-            border_tag = "[BORDER]" if is_border else "[INTERIOR]"
+            border_tag = "**[BORDER]**" if is_border else "[INTERIOR]"
             unit_str = ", ".join([f"{u[1]}{u[0].value[0]}" for u in units_here])
             
-            lines.append(f"- **{p_id}** {terrain_tag} ({unit_str}) {border_tag}")
+            lines.append(f"### {p_id} {terrain_tag} ({unit_str}) {border_tag}")
             
             # List VALID reachable destinations
             for u_type, amount in units_here:
-                reachable_map = self._get_reachable_provinces(p_id, u_type, nation_id)
+                # Use new strategic getter
+                moves = self._get_strategic_moves(p_id, u_type, nation_id)
                 
                 if u_type == UnitType.AIRCRAFT:
-                    total_reach = len(reachable_map["ATTACK"]) + len(reachable_map["REINFORCE"]) + len(reachable_map["TRANSFER"])
-                    if total_reach > 0:
-                        lines.append(f"  → A reaches: {total_reach} total provinces (Range {MOVEMENT_RANGE[UnitType.AIRCRAFT]})")
-                        # Show only immediate ATTACK targets for aircraft
-                        if reachable_map["ATTACK"]:
-                            targets = [f"{m_id}({self.world.provinces[m_id].owner_id})" for m_id in reachable_map["ATTACK"][:5]]
-                            lines.append(f"    * Key Attack Targets: {', '.join(targets)}")
+                    # Aircraft: Global range, just summary
+                    lines.append(f"- **AIRCRAFT**: Range 6. Can strike almost any target.")
                 else:
-                    # Soldiers/Navy: Intent-based grouping
-                    move_sections = []
-                    for intent, targets in reachable_map.items():
-                        if not targets: continue
-                        
-                        display_targets = []
-                        for m_id in targets[:8]:
-                            m_prov = self.world.provinces[m_id]
-                            if intent == "ATTACK":
-                                display_targets.append(f"{m_id}({m_prov.owner_id})")
-                            else:
-                                display_targets.append(str(m_id))
-                        
-                        res_str = ", ".join(display_targets)
-                        if len(targets) > 8:
-                            res_str += f" (+{len(targets)-8})"
-                        
-                        move_sections.append(f"{intent}: {res_str}")
+                    # Ground/Navy
+                    if moves["ATTACK"]:
+                        targets = [f"{m}({self.world.provinces[m].owner_id})" for m in moves["ATTACK"]]
+                        lines.append(f"- **ATTACK**: {', '.join(targets)}")
                     
-                    if move_sections:
-                        lines.append(f"  → {u_type.value[0]} moves:")
-                        for section in move_sections:
-                            lines.append(f"    - {section}")
+                    if moves["REINFORCE"]:
+                        targets = [str(m) for m in moves["REINFORCE"]]
+                        lines.append(f"- **REINFORCE**: {', '.join(targets)}")
+                    
+                    if moves["TRANSFER"]:
+                        targets = [str(m) for m in moves["TRANSFER"]]
+                        lines.append(f"- **TRANSFER**: {', '.join(targets)} (max 3 shown)")
 
         if skipped_interior > 0:
-            lines.append(f"\n*(Hid {skipped_interior} small interior garrisons totaling {skipped_troops} units to simplify logistics)*")
-
-        # --- Section 2: BORDER MAP (border provinces → enemy neighbors only) ---
-        border_lines = ["\n## 🗺️ BORDER MAP"]
-        border_lines.append("Use for routing to the front. ❌=Invalid for Soldiers.")
+            lines.append(f"\n*(Hid {skipped_interior} small interior garrisons totaling {skipped_troops} units)*")
         
+        # --- Section 2: BORDER MAP (Concise) ---
+        border_lines = ["\n## 🗺️ FRONT LINE MAP (Adjacency)"]
         for p_id in sorted(border_provinces):
             prov = self.world.provinces.get(p_id)
-            if not prov: continue
-            
-            terrain_tag = f"[{prov.terrain.value.upper()}]" if prov.terrain else ""
-            
-            # Only show non-own neighbors (enemies, sea, neutral)
             neighbor_strs = []
             for n_id in prov.neighbors:
                 n_prov = self.world.provinces.get(n_id)
                 if not n_prov: continue
-                
-                if n_prov.owner_id == nation_id:
-                    continue  # Skip own neighbors
-                
-                if n_prov.owner_id and n_prov.owner_id in self.world.nations:
-                    owner_name = n_prov.owner_id
-                    n_units = []
-                    if n_prov.soldiers > 0: n_units.append(f"{n_prov.soldiers}S")
-                    if n_prov.aircraft > 0: n_units.append(f"{n_prov.aircraft}A")
-                    units_str = f" {','.join(n_units)}" if n_units else ""
-                    neighbor_strs.append(f"{n_id}({owner_name}{units_str})")
-                elif n_prov.terrain == TerrainType.OCEAN:
-                    neighbor_strs.append(f"{n_id}(❌SEA)") # Explicit warning
+                if n_prov.owner_id != nation_id:
+                     neighbor_strs.append(f"{n_id}({n_prov.owner_id or 'SEA'})")
             
             if neighbor_strs:
-                border_lines.append(f"- **{p_id}** {terrain_tag} → [{', '.join(neighbor_strs)}]")
+                border_lines.append(f"- **{p_id}** attaches to: {', '.join(neighbor_strs)}")
             
         return "\n".join(lines) + "\n" + "\n".join(border_lines)

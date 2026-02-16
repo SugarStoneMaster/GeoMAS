@@ -92,11 +92,10 @@ class DefenseInputBuilder(BaseInputBuilder):
 
     def _build_logistics_reminder(self) -> str:
         """Reinforce movement rules at the end of the prompt."""
-        return """## 👮 MOVEMENT RULES (STRICT)
-- **MOVE_TROOPS** is ONLY valid for destinations listed in the 'moves' section above.
-- **SOLDIERS** cannot cross cross distance > 2. They are BLOCKED by OCEAN.
-- **NAVY** can only be in OCEAN.
-- **AIRCRAFT** can strike any target but are expensive to use for simple troop transfers."""
+        return """## 👮 RULES OF ENGAGEMENT
+1. **VALID MOVES ONLY**: Use the EXACT destinations listed in 'TROOP POSITIONS'. Do not hallucinate paths.
+2. **PRIORITY**: If under threat, prioritze **REINFORCE** moves to borders.
+3. **ATTACK**: Moving to an enemy province initiates combat. Ensure you have force superiority."""
     
     def _build_budget_section(self, nation: NationState) -> str:
         """Build available budget section with real constants and maintenance awareness."""
