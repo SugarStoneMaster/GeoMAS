@@ -100,10 +100,16 @@ class ForeignInputBuilder(BaseInputBuilder):
         if not cta_events:
             return ""
             
-        lines = ["# 🚨 CRITICAL: CALL TO ARMS 🚨"]
-        lines.append("You have been formally summoned by an ally to join a war. Failing to honor a MUTUAL_DEFENSE pact will result in severe trust penalties.")
+        lines = ["# 🚨 CRITICAL: CALL TO ARMS - MUTUAL DEFENSE PACT ACTIVATED 🚨"]
+        lines.append("An ally has been attacked. Under the MUTUAL_DEFENSE treaty, you are expected to declare war on the aggressor.")
+        lines.append("")
+        lines.append("**⚠️ CONSEQUENCES OF INACTION:**")
+        lines.append("- If you ignore this for **3 consecutive turns**, your alliance will be AUTOMATICALLY BROKEN.")
+        lines.append("- **Global Trust Penalty**: All nations will reduce trust in you by **-30** (Reputation: Unreliable).")
+        lines.append("")
+        lines.append("To honor the pact: Use `FORMAL_DECLARATION_OF_WAR` against the aggressor.")
         for e in cta_events:
-            lines.append(f"- **{e}**")
+            lines.append(f"- {e}")
         return "\n".join(lines)
 
     def _build_incoming_messages(self, nation_id: str, current_turn: int, cm: 'ContextManager') -> str:

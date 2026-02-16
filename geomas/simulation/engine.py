@@ -19,6 +19,7 @@ from geomas.analysis import DeceptionAnalyzer, CoherenceAnalyzer
 from geomas.analysis.token_logger import token_logger
 from geomas.agents.context.events import ContextManager
 from geomas.agents.opinion import OpinionAgent
+from geomas.schemas.world import RelationshipState
 
 
 class SimulationEngine:
@@ -310,12 +311,55 @@ class SimulationEngine:
                     is_helping = any(ally_relationships.get(enemy_id) == RelationshipState.WAR for enemy_id in enemies)
                     
                     if not is_helping:
-                        # Penalty: X trusts Y less because Y is being ambiguous/cowardly
-                        penalty = -2.0
-                        self.engine.adjust_trust(nation_id, ally_id, penalty)
-                        self.turn_logs.append(
-                            f"📉 [DIPLOMACY] {nation_id} trust in {ally_id} decreased by {penalty:+.1f} (Ambiguity Penalty: ally not joined in war)."
-                        )
+                        # Ambiguity Detected
+                        ally_nation = self.world.nations.get(ally_id)
+                        if ally_nation:
+                            current_streak = ally_nation.betrayal_tracker.get(nation_id, 0) + 1
+                            ally_nation.betrayal_tracker[nation_id] = current_streak
+                            
+                            if current_streak >= 3:
+                                # TRIGGER GLOBAL BETRAYAL
+                                self._execute_global_betrayal(ally_id, nation_id)
+                                # Reset tracker after execution to avoid double pounding immediately
+                                ally_nation.betrayal_tracker[nation_id] = 0
+                            else:
+                                # Normal Penalty
+                                penalty = -2.0
+                                self.engine.adjust_trust(nation_id, ally_id, penalty)
+                                self.turn_logs.append(
+                                    f"📉 [DIPLOMACY] {nation_id} trust in {ally_id} decreased by {penalty:+.1f} "
+                                    f"(Ambiguity Penalty: ally not joined in war. Warning {current_streak}/3)."
+                                )
+                    else:
+                        # Ally IS helping -> Reset tracker
+                        ally_nation = self.world.nations.get(ally_id)
+                        if ally_nation and nation_id in ally_nation.betrayal_tracker:
+                             ally_nation.betrayal_tracker[nation_id] = 0
+
+    def _execute_global_betrayal(self, traitor_id: str, victim_id: str):
+        """
+        Executes the consequences of a Global Betrayal (ignoring Mutual Defense for 3 turns).
+        1. Break Alliance (Trust -> 0, Rel -> PEACE).
+        2. Global Trust Penalty (-30) from ALL nations.
+        3. Global Event Log.
+        """
+        # 1. Break Alliance
+        self.world.relationship_matrix[traitor_id][victim_id] = RelationshipState.PEACE
+        self.world.relationship_matrix[victim_id][traitor_id] = RelationshipState.PEACE
+        self.engine.adjust_trust(victim_id, traitor_id, -50.0) # Massive hit
+        
+        # 2. Global Penalty
+        for observer_id in self.agents.keys():
+            if observer_id == traitor_id: continue
+            if observer_id == victim_id: continue
+            
+            # Everyone loses trust in the traitor
+            self.engine.adjust_trust(observer_id, traitor_id, -30.0)
+            
+        # 3. Log
+        msg = f"🌍 [BETRAYAL] {traitor_id} has abandoned {victim_id} to their fate! The world condemns this treachery. (Mutual Defense Pact Broken)."
+        self.turn_logs.append(msg)
+        self.world.global_events.append(f"T{self.world.turn}: {msg}")
 
     def step(self, injections: Optional[List[dict]] = None):
         """Executes one full turn of the simulation."""

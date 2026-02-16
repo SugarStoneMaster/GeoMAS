@@ -113,6 +113,12 @@ class NationState(BaseModel):
     # Must wait MESSAGE_COOLDOWN_TURNS before sending another to same target
     message_cooldown: Dict[str, int] = Field(default_factory=dict)
 
+    # --- LOYALTY TRACKING ---
+    # Tracks how many turns this nation has ignored a Call to Arms from an ally
+    # Format: {ally_id: consecutive_turns_ignoring}
+    # If this reaches 3, GLOBAL BETRAYAL is triggered.
+    betrayal_tracker: Dict[str, int] = Field(default_factory=dict)
+
     # --- OUTGOING PROPOSALS (Tracking) ---
     # Tracks proposals sent BY this nation, to know if they are accepted/rejected.
     # Format: [{"id": str, "type": str, "to": str, "turn": int, "message": str, "status": "PENDING"|"ACCEPTED"|"REJECTED"|"EXPIRED", "resolved_turn": int}, ...]
