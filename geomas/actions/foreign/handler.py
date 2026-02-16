@@ -299,11 +299,30 @@ def _execute_propose_alliance(
     world = engine.world
     
     # Fallback to NON_AGGRESSION if tier not specified
+    # Fallback to NON_AGGRESSION if tier not specified
     if not tier:
         from geomas.actions.foreign.schemas import TreatyTier
-        tier = TreatyTier.NON_AGGRESSION
+        
+        # Smart Inference based on message content
+        inferred_tier = TreatyTier.NON_AGGRESSION
+        msg_lower = message.lower() if message else ""
+        
+        strong_keywords = [
+            "mutual defense", 
+            "defense pact", 
+            "military alliance", 
+            "fight together",
+            "full alliance"
+        ]
+        
+        if any(k in msg_lower for k in strong_keywords):
+            inferred_tier = TreatyTier.MUTUAL_DEFENSE
+            
+        tier = inferred_tier
+        
         engine.logs.append(
-            f"⚠️ [FOREIGN] {proposer_id} alliance proposal missing tier, defaulting to NON_AGGRESSION"
+            f"⚠️ [FOREIGN] {proposer_id} alliance proposal missing tier. "
+            f"Inferred {tier.name} from message content ('{message[:30]}...')."
         )
 
     current_rel = world.relationship_matrix.get(proposer_id, {}).get(target_id, RelationshipState.PEACE)

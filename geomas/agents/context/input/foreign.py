@@ -74,6 +74,11 @@ class ForeignInputBuilder(BaseInputBuilder):
             sections.append(self._build_world_events(nation_id, context_manager))
             sections.append(self._build_self_history(nation_id, context_manager, domain="Foreign"))
         
+        # 3b. Treaty Opportunities (New)
+        opportunities = self._build_treaty_opportunities(nation_id)
+        if opportunities:
+            sections.append(opportunities)
+
         # 4. Inbox (Specialized)
         if context_manager:
             sections.append(self._build_incoming_messages(nation_id, turn, context_manager))
@@ -238,3 +243,40 @@ class ForeignInputBuilder(BaseInputBuilder):
         
         return "\n".join(lines)
     
+    def _build_treaty_opportunities(self, nation_id: str) -> str:
+        """Scan trust levels and relationships to suggest viable treaty upgrades."""
+        lines = ["## Strategic Opportunities (Treaties)"]
+        
+        from geomas.schemas.world import RelationshipState
+        
+        my_trust = self.world.trust_matrix.get(nation_id, {})
+        my_rels = self.world.relationship_matrix.get(nation_id, {})
+        
+        opportunities = []
+        
+        for other_id in self.world.nations:
+            if other_id == nation_id:
+                continue
+                
+            trust = my_trust.get(other_id, 50)
+            rel = my_rels.get(other_id, RelationshipState.PEACE)
+            
+            # Extract relation value if enum
+            rel_val = rel.value if hasattr(rel, 'value') else rel
+            
+            if rel_val == "PEACE":
+                if trust >= 80:
+                     opportunities.append(f"- **{other_id}** (Trust {trust}): High trust. Viable for **MUTUAL_DEFENSE** or **NON_AGGRESSION**.")
+                elif trust >= 60:
+                     opportunities.append(f"- **{other_id}** (Trust {trust}): Good trust. Viable for **NON_AGGRESSION** pact.")
+            
+            elif rel_val == "NON_AGGRESSION":
+                if trust >= 75:
+                     opportunities.append(f"- **{other_id}** (Trust {trust}): Very high trust. Consider upgrading to **MUTUAL_DEFENSE**.")
+        
+        if not opportunities:
+            return ""
+            
+        lines.extend(opportunities)
+        lines.append("To enact these, use `PROPOSE_ALLIANCE` with the specific `treaty_tier`.")
+        return "\n".join(lines)

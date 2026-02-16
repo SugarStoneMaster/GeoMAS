@@ -56,4 +56,4 @@ def test_alliance_proposal_without_tier_defaults_to_non_aggression():
     assert nat_b.pending_proposals[0]["tier"] == TreatyTier.NON_AGGRESSION
     
     # Verify warning log
-    assert any("defaulting to NON_AGGRESSION" in log for log in engine.logs)
+    assert any("Inferred NON_AGGRESSION" in log for log in engine.logs)
