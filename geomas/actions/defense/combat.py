@@ -346,6 +346,31 @@ def _conquer_province(
             # Clear defender units
             old_nation.total_soldiers -= province.soldiers
             old_nation.total_aircraft -= province.aircraft
+
+            # --- WAR STATS TRACKING ---
+            from geomas.schemas.world import RelationshipState, WarStats
+            
+            # Check if at WAR
+            rel = world.relationship_matrix.get(old_owner_id, {}).get(new_owner_id, RelationshipState.PEACE)
+            if rel == RelationshipState.WAR:
+                # Update Loser
+                if new_owner_id not in old_nation.active_wars:
+                    # Lazy init (should have been done at declaration, but for safety)
+                    old_nation.active_wars[new_owner_id] = WarStats(
+                        start_turn=world.turn,
+                        original_provinces=len(old_nation.province_ids) + 1 # +1 because we just removed one
+                    )
+                old_nation.active_wars[new_owner_id].lost_provinces += 1
+                
+                # Update Winner
+                new_nation_ref = world.nations.get(new_owner_id)
+                if new_nation_ref:
+                    if old_owner_id not in new_nation_ref.active_wars:
+                         new_nation_ref.active_wars[old_owner_id] = WarStats(
+                            start_turn=world.turn,
+                            original_provinces=len(new_nation_ref.province_ids)
+                        )
+                    new_nation_ref.active_wars[old_owner_id].conquered_provinces += 1
     
     # Transfer to new owner
     province.owner_id = new_owner_id

@@ -19,6 +19,14 @@ class RelationshipState(str, Enum):
     MUTUAL_DEFENSE = "MUTUAL_DEFENSE"  # Full military alliance (NATO Style)
 
 
+class WarStats(BaseModel):
+    """Statistics for an active war to track progress and losses."""
+    start_turn: int
+    original_provinces: int
+    lost_provinces: int = 0
+    conquered_provinces: int = 0
+
+
 class ProvinceState(BaseModel):
     """
     Represents a single province (Voronoi cell) in the world.
@@ -118,6 +126,11 @@ class NationState(BaseModel):
     # Format: {ally_id: consecutive_turns_ignoring}
     # If this reaches 3, GLOBAL BETRAYAL is triggered.
     betrayal_tracker: Dict[str, int] = Field(default_factory=dict)
+
+    # --- WAR TRACKING ---
+    # Tracks statistics for each active war to inform agents of progress/losses.
+    # Format: {enemy_id: WarStats}
+    active_wars: Dict[str, 'WarStats'] = Field(default_factory=dict)
 
     # --- OUTGOING PROPOSALS (Tracking) ---
     # Tracks proposals sent BY this nation, to know if they are accepted/rejected.

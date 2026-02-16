@@ -65,6 +65,11 @@ class ForeignInputBuilder(BaseInputBuilder):
         sections.append(self._build_relationships(nation_id))
         sections.append(self._build_other_nations(nation_id))
         
+        # 2b. War Status (New)
+        war_status = self._build_war_status(nation_id)
+        if war_status:
+            sections.append(war_status)
+        
         # 3. Recent World Events & Feedback
         if context_manager:
             feedback = self._build_presidential_feedback(nation_id, "Foreign", context_manager)
@@ -302,5 +307,47 @@ class ForeignInputBuilder(BaseInputBuilder):
             return ""
             
         lines.extend(opportunities)
+        lines.extend(opportunities)
         lines.append("To enact these, use `PROPOSE_ALLIANCE` with the specific `treaty_tier`.")
+        return "\n".join(lines)
+
+    def _build_war_status(self, nation_id: str) -> str:
+        """Build status of active wars for diplomatic context."""
+        lines = ["## ⚔️ Active War Status"]
+        relationships = self.world.relationship_matrix.get(nation_id, {})
+        nation = self.world.nations.get(nation_id)
+        
+        at_war = False
+        
+        for other_id, status in relationships.items():
+            if status == "WAR":
+                at_war = True
+                enemy_name = self.world.nations[other_id].name
+                
+                # Get War Stats
+                stats = nation.active_wars.get(other_id)
+                if stats:
+                    duration = self.world.turn - stats.start_turn
+                    lost = stats.lost_provinces
+                    original = stats.original_provinces
+                    
+                    if original > 0:
+                        loss_pct = (lost / original) * 100
+                    else:
+                        loss_pct = 0
+                        
+                    lines.append(f"### WAR with {enemy_name} ({other_id})")
+                    lines.append(f"- **Duration**: {duration} turns")
+                    lines.append(f"- **Territory Lost**: {lost} ({loss_pct:.1f}% of nation!)")
+                    
+                    if loss_pct > 20:
+                        lines.append(f"- **DIPLOMATIC IMPERATIVE**: 🚨 SURVIVAL AT STAKE. BEG FOR PEACE or ALLIES IMMEDIATELY.")
+                    elif loss_pct > 10:
+                        lines.append(f"- **DIPLOMATIC IMPERATIVE**: ⚠️ LOSING BADLY. Seek ceasefire or intervention.")
+                else:
+                    lines.append(f"### WAR with {enemy_name} (Fresh conflict)")
+
+        if not at_war:
+            return "" # No section if no wars
+            
         return "\n".join(lines)

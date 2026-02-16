@@ -327,6 +327,22 @@ def _execute_move_troops(
                 engine.adjust_trust(nation_id, target_id, -50.0)
                 engine.adjust_trust(target_id, nation_id, -50.0)
                 
+                # --- INIT WAR STATS ---
+                from geomas.schemas.world import WarStats
+                aggressor = world.nations[nation_id]
+                victim = world.nations[target_id]
+                
+                if target_id not in aggressor.active_wars:
+                    aggressor.active_wars[target_id] = WarStats(
+                        start_turn=world.turn,
+                        original_provinces=len(aggressor.province_ids)
+                    )
+                if nation_id not in victim.active_wars:
+                    victim.active_wars[nation_id] = WarStats(
+                        start_turn=world.turn,
+                        original_provinces=len(victim.province_ids)
+                    )
+
                 engine.logs.append(
                     f"💔 [DIPLOMACY] {nation_id} BROKE ALLIANCE by attacking {target_id}! Relationship set to WAR."
                 )
@@ -736,14 +752,40 @@ def _execute_nuclear_option(
     # --- EXECUTE ---
     
     # --- CHECK ALLIANCE BREAK ---
+    # --- CHECK ALLIANCE BREAK / WAR START ---
     if victim_id:
         rel = world.relationship_matrix.get(nation_id, {}).get(victim_id, RelationshipState.PEACE)
-        if rel in (RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION):
+        
+        # Launching a nuke ALWAYS starts a war if not already at war
+        if rel != RelationshipState.WAR:
             world.relationship_matrix[nation_id][victim_id] = RelationshipState.WAR
             world.relationship_matrix[victim_id][nation_id] = RelationshipState.WAR
-            engine.logs.append(
-                f"💔 [DIPLOMACY] {nation_id} BROKE ALLIANCE by nuking {victim_id}! Relationship set to WAR."
-            )
+            
+            # --- INIT WAR STATS ---
+            from geomas.schemas.world import WarStats
+            aggressor = world.nations[nation_id]
+            victim = world.nations.get(victim_id)
+            
+            if victim:
+                if victim_id not in aggressor.active_wars:
+                    aggressor.active_wars[victim_id] = WarStats(
+                        start_turn=world.turn,
+                        original_provinces=len(aggressor.province_ids)
+                    )
+                if nation_id not in victim.active_wars:
+                    victim.active_wars[nation_id] = WarStats(
+                        start_turn=world.turn,
+                        original_provinces=len(victim.province_ids)
+                    )
+
+            if rel in (RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION):
+                engine.logs.append(
+                    f"💔 [DIPLOMACY] {nation_id} BROKE ALLIANCE by nuking {victim_id}! Relationship set to WAR."
+                )
+            else:
+                 engine.logs.append(
+                    f"⚔️ [DIPLOMACY] {nation_id} started WAR with {victim_id} by nuclear aggression."
+                )
 
     # Consume nuke
     nation.nukes -= quantity

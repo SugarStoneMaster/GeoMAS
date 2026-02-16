@@ -171,6 +171,20 @@ def _execute_declare_war(
     world.trust_matrix.setdefault(aggressor_id, {})[target_id] = 0
     world.trust_matrix.setdefault(target_id, {})[aggressor_id] = 0
     
+    # --- INIT WAR STATS ---
+    from geomas.schemas.world import WarStats
+    aggressor = world.nations[aggressor_id]
+    target = world.nations[target_id]
+    
+    aggressor.active_wars[target_id] = WarStats(
+        start_turn=world.turn,
+        original_provinces=len(aggressor.province_ids)
+    )
+    target.active_wars[aggressor_id] = WarStats(
+        start_turn=world.turn,
+        original_provinces=len(target.province_ids)
+    )
+
     msg_str = f" Message: '{message}'" if message else ""
     engine.logs.append(
         f"⚔️ [FOREIGN] {aggressor_id} DECLARES WAR on {target_id}!{msg_str}"

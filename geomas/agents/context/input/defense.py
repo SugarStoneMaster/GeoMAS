@@ -154,20 +154,51 @@ class DefenseInputBuilder(BaseInputBuilder):
         return "\n".join(lines)
 
     def _build_enemy_status(self, nation_id: str) -> str:
-        """Build status of current enemies."""
+        """Build status of current enemies with WAR PROGRESS metrics."""
         lines = ["## Current conflicts"]
         relationships = self.world.relationship_matrix.get(nation_id, {})
-        at_war = []
+        nation = self.world.nations.get(nation_id)
+        
+        at_war = False
         
         for other_id, status in relationships.items():
             if other_id not in self.world.nations:
                 continue
             if status == "WAR":
-                at_war.append(self.world.nations[other_id].name)
+                at_war = True
+                enemy_name = self.world.nations[other_id].name
+                
+                # Get War Stats
+                stats = nation.active_wars.get(other_id)
+                if stats:
+                    duration = self.world.turn - stats.start_turn
+                    lost = stats.lost_provinces
+                    conquered = stats.conquered_provinces
+                    original = stats.original_provinces
+                    
+                    if original > 0:
+                        loss_pct = (lost / original) * 100
+                    else:
+                        loss_pct = 0
+                        
+                    lines.append(f"### ⚔️ WAR with {enemy_name} ({other_id})")
+                    lines.append(f"- **Duration**: {duration} turns")
+                    lines.append(f"- **Territory Lost**: {lost} ({loss_pct:.1f}% of starting land)")
+                    lines.append(f"- **Territory Conquered**: {conquered}")
+                    
+                    # Assessment
+                    if loss_pct > 20:
+                        lines.append(f"- **STATUS**: 🚨 CRITICAL FAILURE. YOU ARE BEING CONQUERED. Immediate defense or surrender required.")
+                    elif loss_pct > 10:
+                        lines.append(f"- **STATUS**: ⚠️ LOSING GROUND. Enemy acts faster than you. Mobilize reserves now.")
+                    elif conquered > lost + 2:
+                        lines.append(f"- **STATUS**: ✅ WINNING. Press the advantage.")
+                    else:
+                        lines.append(f"- **STATUS**: STALEMATE / EARLY WAR.")
+                else:
+                    lines.append(f"### ⚔️ WAR with {enemy_name} (Just started)")
         
-        if at_war:
-            lines.append(f"**AT WAR WITH:** {', '.join(at_war)}")
-        else:
+        if not at_war:
             lines.append("**No active wars.**")
         
         return "\n".join(lines)

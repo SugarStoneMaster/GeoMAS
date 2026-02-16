@@ -100,12 +100,36 @@ class PresidentInputBuilder(BaseInputBuilder):
         
         nuke_line = f"\n**Nuclear Arsenal:** {nation.nukes} warheads" if nation.nukes > 0 else ""
         
+        # War Assessment
+        war_lines = []
+        if nation.active_wars:
+            total_lost = sum(w.lost_provinces for w in nation.active_wars.values())
+            total_conquered = sum(w.conquered_provinces for w in nation.active_wars.values())
+            
+            start_provs = len(nation.province_ids) + total_lost - total_conquered
+            if start_provs > 0:
+                loss_pct = (total_lost - total_conquered) / start_provs * 100
+            else:
+                loss_pct = 0
+            
+            war_lines.append(f"\n**WAR OVERVIEW:** Active conflicts with {len(nation.active_wars)} nations.")
+            war_lines.append(f"- **Total Territory Change:** -{total_lost} Lost / +{total_conquered} Conquered")
+            
+            if loss_pct > 15:
+                 war_lines.append(f"- **STRATEGIC ALERT:** 🚨 CRISIS. Nation has shrunk by {loss_pct:.1f}%. DEFENSE IS FAILING.")
+            elif loss_pct > 5:
+                 war_lines.append(f"- **STRATEGIC ALERT:** ⚠️ LOSING GROUND. Trend is negative.")
+            elif total_conquered > total_lost:
+                 war_lines.append(f"- **STRATEGIC ALERT:** ✅ EXPANDING. War aimed at conquest is succeeding.")
+
+        war_section = "\n".join(war_lines)
+        
         return f"""## Your nation status
 **Budget:** {nation.total_budget:,.0f}
 **Provinces:** {len(nation.province_ids)} land, {len(nation.territorial_water_ids)} territorial waters
 **Resources:** Food {nation.total_food:+.0f}/turn | Energy {nation.total_energy:+.0f}/turn | Materials {nation.total_materials:+.0f}/turn
 **Military:** {military_total:,} total forces ({nation.total_soldiers:,} ground, {nation.total_aircraft:,} air, {nation.total_navy:,} naval)
-**Population:** {nation.total_population:,} | Satisfaction: {nation.public_satisfaction:.0f}% ({sat_status}){nuke_line}"""
+**Population:** {nation.total_population:,} | Satisfaction: {nation.public_satisfaction:.0f}% ({sat_status}){nuke_line}{war_section}"""
 
     def _build_minister_reports(
         self,

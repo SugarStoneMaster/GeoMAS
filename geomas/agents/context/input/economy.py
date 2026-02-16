@@ -97,21 +97,30 @@ class EconomyInputBuilder(BaseInputBuilder):
         )
         
         # Budget health
-        if nation.total_budget > 5000:
-            status = "WEALTHY"
-        elif nation.total_budget > 1000:
-            status = "STABLE"
         elif nation.total_budget > 100:
             status = "TIGHT"
         else:
             status = "CRITICAL"
         
+        # War Impact
+        war_lines = []
+        if nation.active_wars:
+            total_lost = sum(w.lost_provinces for w in nation.active_wars.values())
+            if total_lost > 0:
+                war_lines.append(f"\n**WAR IMPACT:**")
+                war_lines.append(f"- Lost {total_lost} tax-paying provinces.")
+                
+                if total_lost > 10:
+                     war_lines.append(f"- **FISCAL EMERGENCY**: Defense failing. Consider 'WAR_TAX' to fund reinforcements.")
+        
+        war_section = "\n".join(war_lines)
+
         return f"""## Treasury
 **Treasury Status:** {status}
 - **Budget:** {nation.total_budget:,.0f} (Estimated Income: {income:,.0f}/turn)
 - **Food:** {nation.total_food:,.0f}
 - **Energy:** {nation.total_energy:,.0f}
-- **Materials:** {nation.total_materials:,.0f}
+- **Materials:** {nation.total_materials:,.0f}{war_section}
 """
 
     def _build_resources_section(self, nation_id: str) -> str:
