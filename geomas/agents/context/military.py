@@ -550,9 +550,8 @@ class MilitaryTranslator:
             total_u = sum(u[1] for u in units_here)
             
             # --- FILTERING ---
-            # Hide Interior < 200 troops (unless they have Aircraft, which are strategic)
-            has_air = any(u[0] == UnitType.AIRCRAFT for u in units_here)
-            if not is_border and total_u < 200 and not has_air:
+            # Hide Interior < 200 troops (regardless of unit type)
+            if not is_border and total_u < 200:
                  skipped_interior += 1
                  skipped_troops += total_u
                  continue
