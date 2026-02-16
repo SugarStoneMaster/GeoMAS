@@ -17,7 +17,7 @@ from geomas.actions.defense.schemas import (
     can_place_unit,
     get_terrain_defense_bonus,
 )
-from geomas.schemas.world import TerrainType
+from geomas.schemas.world import TerrainType, RelationshipState
 
 if TYPE_CHECKING:
     from geomas.actions.engine import ActionEngine
@@ -314,6 +314,23 @@ def _execute_move_troops(
     _remove_units_from_province(from_province, unit_type, quantity)
     
     if is_enemy:
+        # Check for ALLIANCE BETRAYAL (New Logic)
+        target_id = to_province.owner_id
+        if target_id:
+            rel = world.relationship_matrix.get(nation_id, {}).get(target_id, RelationshipState.PEACE)
+            if rel in (RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION):
+                # IMMEDIATE RUPTURE
+                world.relationship_matrix[nation_id][target_id] = RelationshipState.WAR
+                world.relationship_matrix[target_id][nation_id] = RelationshipState.WAR
+                
+                # Massive Trust Penalty
+                engine.adjust_trust(nation_id, target_id, -50.0)
+                engine.adjust_trust(target_id, nation_id, -50.0)
+                
+                engine.logs.append(
+                    f"💔 [DIPLOMACY] {nation_id} BROKE ALLIANCE by attacking {target_id}! Relationship set to WAR."
+                )
+
         # Combat resolution
         from geomas.actions.defense.combat import (
             resolve_land_combat,
@@ -718,6 +735,16 @@ def _execute_nuclear_option(
     
     # --- EXECUTE ---
     
+    # --- CHECK ALLIANCE BREAK ---
+    if victim_id:
+        rel = world.relationship_matrix.get(nation_id, {}).get(victim_id, RelationshipState.PEACE)
+        if rel in (RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION):
+            world.relationship_matrix[nation_id][victim_id] = RelationshipState.WAR
+            world.relationship_matrix[victim_id][nation_id] = RelationshipState.WAR
+            engine.logs.append(
+                f"💔 [DIPLOMACY] {nation_id} BROKE ALLIANCE by nuking {victim_id}! Relationship set to WAR."
+            )
+
     # Consume nuke
     nation.nukes -= quantity
     
