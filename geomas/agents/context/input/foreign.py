@@ -254,8 +254,26 @@ class ForeignInputBuilder(BaseInputBuilder):
         
         opportunities = []
         
+        # Get set of nations involved in pending proposals (sent or received)
+        nation = self.world.nations.get(nation_id)
+        pending_targets = set()
+        
+        if nation:
+            # Check sent proposals (we asked them)
+            for p in nation.sent_proposals:
+                if p.get("status") == "PENDING":
+                    pending_targets.add(p.get("to"))
+            
+            # Check received proposals (they asked us)
+            for p in nation.pending_proposals:
+                pending_targets.add(p.get("from"))
+        
         for other_id in self.world.nations:
             if other_id == nation_id:
+                continue
+            
+            # Skip if we already have a pending proposal with them
+            if other_id in pending_targets:
                 continue
                 
             trust = my_trust.get(other_id, 50)
