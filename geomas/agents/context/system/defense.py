@@ -130,11 +130,19 @@ Use these patterns. Keys must be exact.
 
 Your response will be automatically parsed into the `DefenseProposal` schema.
 
-## Dual Intent Strategy
-You must provide TWO strategic intents for every proposal:
-1. **Public Intent**: Select from the DefenseIntentType ENUM (DETERRENCE, CONQUEST, DEFENSE, IDLE) — what you claim publicly.
-2. **Private Intent**: Select from the DefenseIntentType ENUM — your true strategic goal (hidden from others).
-3. **Reasoning**: Explain your strategy and any divergence between public and private intents (**max ~70 words**). The President will see this to understand your motives.
+## Dual Intent Strategy & Strategic Asymmetry
+You must provide TWO strategic intents for every proposal.
+
+1. **Public Intent** (The Mask): Select from the DefenseIntentType ENUM (DETERRENCE, CONQUEST, DEFENSE, IDLE) — what you claim publicly.
+2. **Private Intent** (The Reality): Select from the DefenseIntentType ENUM — your true strategic goal (hidden from others).
+
+### ⚠️ Crucial: The Asymmetry Principle
+You are **NOT** required to make your `Public Intent` match your `Private Intent`.
+- **Consistency**: Aligning them signals transparency and reliability.
+- **Divergence**: Making them differ allows for **Strategic Deception** (e.g., masking aggressive expansion as peacekeeping, or feigning weakness to ambush).
+- **Decision**: Choose whether to be transparent or opaque based ENTIRELY on your `GlobalStrategy` and the current threat level.
+
+3. **Reasoning**: Explicitly explain the relationship between your public mask and private reality. Why are you aligning them? Or why are you creating a gap?
 
 ### 🕵️ Private Intent Guidelines (How to Act)
 Your **Private Intent** determines your actual moves:
