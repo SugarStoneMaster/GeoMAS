@@ -78,6 +78,15 @@ def create_provinces(
         soldiers = int(population * military_ratio)
         workers = population - soldiers
         
+        # Initial Units (Aircraft & Navy)
+        # Aircraft: ~5% of soldiers
+        aircraft = int(soldiers * 0.05)
+        
+        # Navy: ~10% of soldiers (Coastal Only)
+        navy = 0
+        if terrain == TerrainType.COASTAL:
+            navy = int(soldiers * 0.10)
+        
         # Production
         food_prod, energy_prod, materials_prod = calculate_production(terrain, workers, rng)
         tax_revenue = population * TAX_RATE
@@ -92,8 +101,8 @@ def create_provinces(
             population=population,
             workers=workers,
             soldiers=soldiers,
-            aircraft=0,
-            navy=0,
+            aircraft=aircraft,
+            navy=navy,
             food_production=food_prod,
             energy_production=energy_prod,
             materials_production=materials_prod,
