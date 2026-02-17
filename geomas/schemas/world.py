@@ -56,6 +56,12 @@ class ProvinceState(BaseModel):
     soldiers: int = 0         # Ground troops stationed here
     aircraft: int = 0         # Air units stationed here
     navy: int = 0             # Naval units (only valid for OCEAN provinces)
+
+    # --- GUEST TROOPS (Allied Stationing) ---
+    # Troops from other nations stationed here (e.g. Allies).
+    # They do NOT defend the province automatically (unless programmed to).
+    # Format: {nation_id: {"soldiers": int, "aircraft": int}}
+    guest_troops: Dict[str, Dict[str, int]] = Field(default_factory=dict)
     
     # --- CIVIL STATUS ---
     in_revolt: bool = False   # True if province is in civil unrest (no production)

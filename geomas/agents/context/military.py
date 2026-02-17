@@ -161,9 +161,23 @@ class MilitaryTranslator:
             lines.append(f"**⚠️ UNDEFENDED BORDERS ({len(undefended)}):** {ud_str}")
             lines.append("  → Consider CREATE_UNIT or MOVE_TROOPS to fill these gaps!")
         
-        # AGGREGATED INTERIOR FORCES (Less Verbosity)
         if interior_units > 0:
             lines.append(f"**Reserves (Interior):** {interior_units:,} units in {interior_count} provinces")
+            
+        # GUEST TROOPS (Allied Stationing)
+        guest_locs = []
+        for p_id, province in self.world.provinces.items():
+            if province.guest_troops and nation_id in province.guest_troops:
+                gf = province.guest_troops[nation_id]
+                s = gf.get("soldiers", 0)
+                a_count = gf.get("aircraft", 0)
+                if s > 0 or a_count > 0:
+                    owner_name = self.world.nations.get(province.owner_id).name if province.owner_id in self.world.nations else "Unknown"
+                    guest_locs.append(f"{p_id} ({s}S/{a_count}A in {owner_name})")
+        
+        if guest_locs:
+            lines.append(f"\n**🌍 EXPEDITIONARY FORCES (Guest):** {', '.join(guest_locs)}")
+            lines.append("  → These troops are stationed in Allied territory. You can move them freely.")
         
         return "\n".join(lines)
 

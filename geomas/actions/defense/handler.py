@@ -239,9 +239,11 @@ def _execute_move_troops(
             engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Source {from_province_id} not in territorial waters")
             return
     else:
-        if from_province.owner_id != nation_id:
+        # Allow move if Owner OR if Guest Troops present
+        has_guest_troops = from_province.guest_troops and nation_id in from_province.guest_troops
+        if from_province.owner_id != nation_id and not has_guest_troops:
             move.execution_outcome.status = "FAILED"
-            move.execution_outcome.reason = f"Source {from_province_id} not owned by {nation_id}"
+            move.execution_outcome.reason = f"Source {from_province_id} not owned by {nation_id} and no guest troops present"
             engine.logs.append(f"🚚 [DEFENSE] MOVE_TROOPS: Source {from_province_id} not owned by {nation_id}")
             return
     
@@ -253,7 +255,8 @@ def _execute_move_troops(
             pass
     
     # Validate units available in source — clamp to available if exceeds
-    available_units = _get_units_in_province(from_province, unit_type)
+    # Validate units available in source — clamp to available if exceeds
+    available_units = _get_units_in_province(from_province, unit_type, nation_id)
     if available_units <= 0:
         move.execution_outcome.status = "FAILED"
         move.execution_outcome.reason = f"No {unit_type.value} in province {from_province_id}"
@@ -304,14 +307,21 @@ def _execute_move_troops(
         )
         return
     
-    # Check destination is valid for unit type (must be owned or passable for reinforcement)
+    # Validating if it's actually an attack or just guest stationing
     is_enemy = _is_enemy_territory(world, nation_id, to_province_id, unit_type)
+    
+    if is_enemy:
+        target_owner = to_province.owner_id
+        rel = world.relationship_matrix.get(nation_id, {}).get(target_owner, RelationshipState.PEACE)
+        if rel in [RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION]:
+            is_enemy = False # It's a friendly stationing
+            engine.logs.append(f"🛡️ [DEFENSE] Stationing {quantity} {unit_type.value} in Allied {target_owner} province {to_province_id}")
     
     # --- EXECUTE: Deduct energy first ---
     nation.total_energy -= total_energy_cost
     
     # Remove units from source
-    _remove_units_from_province(from_province, unit_type, quantity)
+    _remove_units_from_province(from_province, unit_type, quantity, nation_id)
     
     if is_enemy:
         # Check for ALLIANCE BETRAYAL (New Logic)
@@ -496,7 +506,7 @@ def _execute_move_troops(
                 to_province.aircraft = 0
                 
                 # Return aircraft to source
-                _add_units_to_province(from_province, unit_type, quantity)
+                _add_units_to_province(from_province, unit_type, quantity, nation_id)
                 engine.logs.append(
                     f"⚔️ [COMBAT] Air strike successful! {quantity} aircraft return to base"
                 )
@@ -517,7 +527,7 @@ def _execute_move_troops(
     # Friendly territory - validate destination terrain
     if not can_place_unit(unit_type, to_province.terrain):
         # Refund - return units to source
-        _add_units_to_province(from_province, unit_type, quantity)
+        _add_units_to_province(from_province, unit_type, quantity, nation_id)
         nation.total_energy += total_energy_cost  # Refund energy
         move.execution_outcome.status = "FAILED"
         move.execution_outcome.reason = f"Cannot move {unit_type.value} to {to_province.terrain.value} terrain"
@@ -527,7 +537,8 @@ def _execute_move_troops(
         return
     
     # --- EXECUTE: Move units to friendly territory ---
-    _add_units_to_province(to_province, unit_type, quantity)
+    # --- EXECUTE: Move units to friendly territory ---
+    _add_units_to_province(to_province, unit_type, quantity, nation_id)
     
     # Success Outcome
     move.execution_outcome.status = "SUCCESS"
@@ -546,35 +557,83 @@ def _execute_move_troops(
     )
 
 
-def _get_units_in_province(province, unit_type: UnitType) -> int:
-    """Get the number of units of a type in a province."""
-    if unit_type == UnitType.SOLDIER:
-        return province.soldiers
-    elif unit_type == UnitType.NAVY:
-        return province.navy
-    elif unit_type == UnitType.AIRCRAFT:
-        return province.aircraft
+def _get_units_in_province(province, unit_type: UnitType, nation_id: str = None) -> int:
+    """Get the number of units of a type in a province for a specific nation."""
+    
+    # If nation_id is None or matches owner, use standard fields
+    if nation_id is None or nation_id == province.owner_id:
+        if unit_type == UnitType.SOLDIER:
+            return province.soldiers
+        elif unit_type == UnitType.NAVY:
+            return province.navy
+        elif unit_type == UnitType.AIRCRAFT:
+            return province.aircraft
+            
+    # If Guest (Allied Stationing)
+    elif province.guest_troops and nation_id in province.guest_troops:
+        guest_force = province.guest_troops[nation_id]
+        if unit_type == UnitType.SOLDIER:
+            return guest_force.get("soldiers", 0)
+        elif unit_type == UnitType.AIRCRAFT:
+            return guest_force.get("aircraft", 0)
+            
     return 0
 
 
-def _remove_units_from_province(province, unit_type: UnitType, quantity: int) -> None:
+def _remove_units_from_province(province, unit_type: UnitType, quantity: int, nation_id: str = None) -> None:
     """Remove units from a province."""
-    if unit_type == UnitType.SOLDIER:
-        province.soldiers -= quantity
-    elif unit_type == UnitType.NAVY:
-        province.navy -= quantity
-    elif unit_type == UnitType.AIRCRAFT:
-        province.aircraft -= quantity
+    
+    # Standard Owner Removal
+    if nation_id is None or nation_id == province.owner_id:
+        if unit_type == UnitType.SOLDIER:
+            province.soldiers -= quantity
+        elif unit_type == UnitType.NAVY:
+            province.navy -= quantity
+        elif unit_type == UnitType.AIRCRAFT:
+            province.aircraft -= quantity
+            
+    # Guest Removal
+    elif province.guest_troops and nation_id in province.guest_troops:
+        guest_force = province.guest_troops[nation_id]
+        key = "soldiers" if unit_type == UnitType.SOLDIER else "aircraft"
+        
+        if key in guest_force:
+            guest_force[key] -= quantity
+            # Cleanup if empty
+            if guest_force[key] <= 0:
+                del guest_force[key]
+        
+        if not guest_force:
+            del province.guest_troops[nation_id]
 
 
-def _add_units_to_province(province, unit_type: UnitType, quantity: int) -> None:
-    """Add units to a province."""
-    if unit_type == UnitType.SOLDIER:
-        province.soldiers += quantity
-    elif unit_type == UnitType.NAVY:
-        province.navy += quantity
-    elif unit_type == UnitType.AIRCRAFT:
-        province.aircraft += quantity
+def _add_units_to_province(province, unit_type: UnitType, quantity: int, nation_id: str = None) -> None:
+    """Add units to a province (Owner or Guest)."""
+    
+    # Standard Owner Addition
+    if nation_id is None or nation_id == province.owner_id:
+        if unit_type == UnitType.SOLDIER:
+            province.soldiers += quantity
+        elif unit_type == UnitType.NAVY:
+            province.navy += quantity
+        elif unit_type == UnitType.AIRCRAFT:
+            province.aircraft += quantity
+            
+    # Guest Addition (Allied Stationing)
+    else:
+        if province.guest_troops is None:
+            province.guest_troops = {}
+            
+        if nation_id not in province.guest_troops:
+            province.guest_troops[nation_id] = {"soldiers": 0, "aircraft": 0}
+            
+        guest_force = province.guest_troops[nation_id]
+        
+        if unit_type == UnitType.SOLDIER:
+            guest_force["soldiers"] += quantity
+        elif unit_type == UnitType.AIRCRAFT:
+            guest_force["aircraft"] += quantity
+        # Navy cannot be guest (must be in water)
 
 
 def _find_valid_path(

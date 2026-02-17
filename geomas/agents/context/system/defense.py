@@ -68,6 +68,7 @@ Consider how defense actions support the nation's overarching goals.
      - **Navy can ONLY move through OCEAN/territorial waters.**
      - **Aircraft can fly over ANY terrain.**
    - **Combat**: Moving units to an ENEMY province initiates combat.
+   - **Stationing (Allies)**: Moving units to an **ALLIED** province (Mutual Defense/Non-Aggression) stations them as **Guest Troops**. They are safe and do NOT trigger war. You can move them out later (use the allied province ID as `source`).
 3. **`NUCLEAR_OPTION`**
    - **Fields**: `target_province_id`.
    - **MUST**: `target_nation_id` = ID of the target nation. CANNOT BE SELF.
