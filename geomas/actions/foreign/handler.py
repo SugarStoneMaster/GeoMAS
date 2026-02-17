@@ -43,12 +43,25 @@ def execute_foreign(
                 f"📜 [FOREIGN] {nation_id} tried to respond to proposals, but has no pending proposals. Skipping."
             )
         else:
+            response_details = []
             for response in payload.proposal_responses:
-                respond_to_proposal(
+                success, msg, event_type, related_nation_id = respond_to_proposal(
                     engine, 
                     nation_id, 
                     response
                 )
+                response_details.append({
+                    "proposal_id": response.proposal_id,
+                    "success": success,
+                    "message": msg,
+                    "event_type": event_type,
+                    "target_id": related_nation_id
+                })
+            
+            # Store details in execution outcome for ContextManager
+            if not payload.execution_outcome.details:
+                payload.execution_outcome.details = {}
+            payload.execution_outcome.details["responses"] = response_details
 
     # 2. PROCESS ACTIVE MEASURE (Agenda)
     if not payload.action_type or payload.action_type == ForeignActionType.IDLE:
@@ -438,7 +451,7 @@ def respond_to_proposal(
         engine.logs.append(
             f"📜 [FOREIGN] No pending proposal found with ID {response.proposal_id}"
         )
-        return
+        return False, "Proposal not found", None, None
 
     proposer_id = proposal_found["from"]
     proposal_type = proposal_found["type"]
@@ -448,7 +461,7 @@ def respond_to_proposal(
         engine.logs.append(
             f"📜 [FOREIGN] {proposal_type} proposal from {proposer_id} has expired"
         )
-        return
+        return False, "Proposal expired", None, proposer_id
     
     msg_str = f" Message: '{message}'" if message else ""
     # Update sender's tracking
@@ -470,6 +483,17 @@ def respond_to_proposal(
     elif proposal_type == "ALLIANCE" and accept:
         tier = proposal_found.get("tier", RelationshipState.MUTUAL_DEFENSE)
         
+        # Detect Change Type (Establish, Upgrade, Downgrade)
+        old_tier = world.relationship_matrix.get(nation_id, {}).get(proposer_id, RelationshipState.PEACE)
+        event_type = "formed"
+        
+        if old_tier == RelationshipState.PEACE:
+            event_type = "FORMED"
+        elif old_tier == RelationshipState.NON_AGGRESSION and tier == RelationshipState.MUTUAL_DEFENSE:
+            event_type = "UPGRADED"
+        elif old_tier == RelationshipState.MUTUAL_DEFENSE and tier == RelationshipState.NON_AGGRESSION:
+            event_type = "DOWNGRADED"
+        
         world.relationship_matrix[nation_id][proposer_id] = tier
         world.relationship_matrix[proposer_id][nation_id] = tier
         
@@ -490,13 +514,18 @@ def respond_to_proposal(
         engine.adjust_trust(nation_id, proposer_id, 10)  # 0-100 scale
         engine.adjust_trust(proposer_id, nation_id, 10)
             
-        engine.logs.append(
-            f"🤝 [FOREIGN] {tier} formed between {nation_id} and {proposer_id}!{msg_str}"
-        )
+        log_msg = f"🤝 [FOREIGN] {tier.value} {event_type} between {nation_id} and {proposer_id}!{msg_str}"
+        engine.logs.append(log_msg)
+        engine.world.global_events.append(f"[Turn {world.turn}] {log_msg}")
+        
+        return True, log_msg, event_type, proposer_id
+
     elif not accept:
-         engine.logs.append(
-            f"📜 [FOREIGN] {nation_id} REJECTS {proposal_type} proposal from {proposer_id}.{msg_str}"
-        )
+         log_msg = f"📜 [FOREIGN] {nation_id} REJECTS {proposal_type} proposal from {proposer_id}.{msg_str}"
+         engine.logs.append(log_msg)
+         return True, log_msg, None, proposer_id
+         
+    return False, "Unknown error", None, None
 
 
 def clear_expired_proposals(world: 'WorldState') -> None:

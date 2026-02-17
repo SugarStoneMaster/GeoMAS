@@ -88,6 +88,11 @@ def test_alliance_upgrade_downgrade(engine):
     
     # Check relationship is now MUTUAL_DEFENSE
     assert engine.world.relationship_matrix[n1][n2] == RelationshipState.MUTUAL_DEFENSE
+
+    # Verify Global Event LOG - UPGRADE
+    last_event = engine.world.global_events[-1]
+    assert "UPGRADED" in last_event
+    assert "MUTUAL_DEFENSE" in last_event or "Mutual Defense" in last_event
     
     # 5. Verify DOWNGRADE proposal succeeds
     payload_downgrade = ForeignPayload(
@@ -98,3 +103,36 @@ def test_alliance_upgrade_downgrade(engine):
     )
     execute_foreign(engine, n1, payload_downgrade)
     assert payload_downgrade.execution_outcome.status == "SUCCESS", f"Downgrade failed: {payload_downgrade.execution_outcome.reason}"
+    
+    # Accept Downgrade
+    prop_down = engine.world.nations[n2].pending_proposals[-1]
+    response_down = ForeignPayload(
+        target_nation_id=n1,
+        proposal_responses=[ProposalResponse(proposal_id=prop_down["id"], response="ACCEPT", message="Fine.")],
+        action_type=ForeignActionType.IDLE
+    )
+    execute_foreign(engine, n2, response_down)
+    
+    # Check relationship is NON_AGGRESSION
+    assert engine.world.relationship_matrix[n1][n2] == RelationshipState.NON_AGGRESSION
+
+    # Verify Global Event LOG - DOWNGRADE
+    last_event = engine.world.global_events[-1]
+    assert "DOWNGRADED" in last_event
+    assert "NON_AGGRESSION" in last_event or "Non-Aggression" in last_event
+
+    # Verify DETAILS for ContextManager integration
+    # The response_down payload should have execution_outcome.details populated
+    details = response_down.execution_outcome.details
+    assert details is not None, "Execution outcome details should not be None"
+    assert "responses" in details, "Details should contain 'responses' key"
+    
+    # We expect one response in the list
+    assert len(details["responses"]) == 1
+    resp_detail = details["responses"][0]
+    
+    # The event type from handler is simply "DOWNGRADED"
+    assert resp_detail["event_type"] == "DOWNGRADED"
+    assert resp_detail["proposal_id"] == prop_down["id"]
+    # The target of the response is n1 (the proposer)
+    assert resp_detail["target_id"] == n1

@@ -196,12 +196,24 @@ class ContextManager:
                     self.global_events.append(event)
                     self._add_event_to_relationships(turn, nation_id, event)
             
-            # Foreign: Single action
-            if envelope.foreign_payload and envelope.foreign_payload.action_type:
-                event = self._behavior_to_event(turn, nation_id, envelope.foreign_payload, world)
-                if event:
-                    self.global_events.append(event)
-                    self._add_event_to_relationships(turn, nation_id, event)
+            # Foreign: Responses and Single action
+            if envelope.foreign_payload:
+                # 1. Process explicit responses (if any)
+                outcome = getattr(envelope.foreign_payload, "execution_outcome", None)
+                if outcome and outcome.details and "responses" in outcome.details:
+                    for resp in outcome.details["responses"]:
+                        if resp.get("success") and resp.get("event_type"):
+                             event = self._response_detail_to_event(turn, nation_id, resp, world)
+                             if event:
+                                 self.global_events.append(event)
+                                 self._add_event_to_relationships(turn, nation_id, event)
+
+                # 2. Process main action
+                if envelope.foreign_payload.action_type:
+                    event = self._behavior_to_event(turn, nation_id, envelope.foreign_payload, world)
+                    if event:
+                        self.global_events.append(event)
+                        self._add_event_to_relationships(turn, nation_id, event)
     
     def _behavior_to_event(
         self, 
@@ -335,6 +347,13 @@ class ContextManager:
             
             event_type = None
             if "ACCEPT_PROPOSAL" in action_type:
+                # If handled by response details, skip here to avoid duplication
+                outcome = getattr(behavior, "execution_outcome", None)
+                if outcome and outcome.details and "responses" in outcome.details:
+                    # Check if any response generated a valid event (implied yes if formatted correctly)
+                    # We assume _extract_events handled it.
+                    return None
+
                 ref = str(getattr(behavior, 'proposal_ref_type', '') or '').upper()
                 event_type = EventType.PEACE_SIGNED if "PEACE" in ref else EventType.ALLIANCE_FORMED
             elif "REJECT_PROPOSAL" in action_type:
@@ -472,6 +491,54 @@ class ContextManager:
         # These are internal and don't generate world news
         
         return None
+    
+    def _response_detail_to_event(
+        self, 
+        turn: int, 
+        nation_id: str, 
+        resp: Dict[str, Any],
+        world: WorldState
+    ) -> Optional[NotableEvent]:
+        """Convert a proposal response detail to a global event."""
+        event_type_str = resp.get("event_type")
+        if not event_type_str:
+            return None
+            
+        target_id = resp.get("target_id")
+        target_name = world.nations[target_id].name if target_id and target_id in world.nations else target_id
+        nation_name = world.nations[nation_id].name if nation_id in world.nations else nation_id
+        
+        # Map raw strings from handler to EventType
+        if event_type_str == "UPGRADED":
+            event_type = EventType.ALLIANCE_UPGRADED
+        elif event_type_str == "DOWNGRADED":
+            event_type = EventType.ALLIANCE_DOWNGRADED
+        elif event_type_str == "FORMED":
+            event_type = EventType.ALLIANCE_FORMED
+        else:
+            try:
+                event_type = EventType(event_type_str)
+            except ValueError:
+                return None # Unknown event type
+            
+        summary = ""
+        if event_type == EventType.ALLIANCE_UPGRADED:
+            summary = f"{nation_name} UPGRADED alliance with {target_name}"
+        elif event_type == EventType.ALLIANCE_DOWNGRADED:
+             summary = f"{nation_name} DOWNGRADED alliance with {target_name}"
+        elif event_type == EventType.ALLIANCE_FORMED:
+             summary = f"{nation_name} formed alliance with {target_name}"
+        else:
+            # Other types?
+            return None
+            
+        return NotableEvent(
+            turn=turn,
+            event_type=event_type,
+            actors=[nation_id, target_id] if target_id else [nation_id],
+            summary=summary,
+            relevance_to=[nation_id, target_id] if target_id else [nation_id]
+        )
     
     def _add_event_to_relationships(
         self, 
