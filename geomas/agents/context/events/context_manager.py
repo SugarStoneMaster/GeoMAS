@@ -804,13 +804,9 @@ class ContextManager:
     
     def _prune_if_needed(self) -> None:
         """Prune old events and actions to stay within budget."""
-        # Prune global events
-        if len(self.global_events) > self.MAX_EVENTS:
-            # Keep critical events + most recent
-            critical = [e for e in self.global_events if e.is_critical()]
-            recent = [e for e in self.global_events if not e.is_critical()]
-            recent = recent[-(self.MAX_EVENTS - len(critical)):]
-            self.global_events = sorted(critical + recent, key=lambda e: e.turn)
+        # Note: We do NOT prune global_events anymore to keep full history for UI.
+        # Agent context budget is handled by get_events_for limit.
+        
         
         # Prune per-nation actions
         for nation_id in self.nation_actions:
