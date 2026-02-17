@@ -156,7 +156,7 @@ class TestStressBudget:
         
         cm._prune_if_needed()
         
-        assert len(cm.global_events) <= cm.MAX_EVENTS
+        assert len(cm.global_events) == 100 # No pruning for global events anymore
         # Actions pruned per domain (10 per domain)
         defense_actions = [a for a in cm.nation_actions[nation_id] if a.domain == "Defense"]
         assert len(defense_actions) <= cm.MAX_ACTIONS_PER_DOMAIN

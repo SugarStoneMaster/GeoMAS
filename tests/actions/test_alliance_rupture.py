@@ -34,7 +34,11 @@ def engine():
     engine = ActionEngine(w)
     return engine
 
-def test_attack_breaks_alliance(engine):
+def test_move_troops_into_ally_is_stationing(engine):
+    """
+    Verify that moving troops into allied territory is treated as Friendly Stationing (Guest Troops),
+    NOT an attack, and does NOT break the alliance.
+    """
     w = engine.world
     
     # 1. Setup Alliance
@@ -43,7 +47,7 @@ def test_attack_breaks_alliance(engine):
     w.trust_matrix["NAT_A"]["NAT_B"] = 90.0
     w.trust_matrix["NAT_B"]["NAT_A"] = 90.0
     
-    # 2. Execute Attack (Move Troops A -> B)
+    # 2. Execute Move (A -> B)
     payload = DefensePayload(moves=[
         DefenseActionItem(
             priority=1,
@@ -51,7 +55,7 @@ def test_attack_breaks_alliance(engine):
             unit_type=UnitType.SOLDIER,
             source_province_id=1,
             target_province_id=2,
-            quantity=20, # Superior force
+            quantity=20, 
             target_nation_id="NAT_B"
         )
     ])
@@ -59,18 +63,19 @@ def test_attack_breaks_alliance(engine):
     execute_defense_waterfall(engine, "NAT_A", payload)
     
     # 3. Assertions
-    # Relationship should be WAR
-    assert w.relationship_matrix["NAT_A"]["NAT_B"] == RelationshipState.WAR
-    assert w.relationship_matrix["NAT_B"]["NAT_A"] == RelationshipState.WAR
+    # Relationship should REMAIN MUTUAL_DEFENSE (No War)
+    assert w.relationship_matrix["NAT_A"]["NAT_B"] == RelationshipState.MUTUAL_DEFENSE
     
-    # Trust should have tanked (-50 penalty applied on top of combat penalty)
-    # 90 - 50 (betrayal) - 20 (combat) = 20
-    assert w.trust_matrix["NAT_B"]["NAT_A"] <= 30.0
+    # Trust should NOT be penalized
+    assert w.trust_matrix["NAT_B"]["NAT_A"] == 90.0
     
-    # Combat should have happened (A conquered B?)
-    # 20 attackers vs 10 defenders -> A likely wins
-    # This checks that physical action wasn't blocked
-    assert any("conquered by NAT_A" in log for log in engine.logs)
+    # Troops should be stationed as GUESTS
+    target_prov = w.provinces[2]
+    assert target_prov.owner_id == "NAT_B"
+    assert target_prov.guest_troops["NAT_A"]["soldiers"] == 20
+    
+    # No combat log
+    assert not any("conquered by NAT_A" in log for log in engine.logs)
 
 def test_nuke_breaks_alliance(engine):
     w = engine.world

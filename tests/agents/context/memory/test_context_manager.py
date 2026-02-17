@@ -191,7 +191,7 @@ class TestContextManager:
         
         manager._prune_if_needed()
         
-        assert len(manager.global_events) <= ContextManager.MAX_EVENTS
+        assert len(manager.global_events) == 100 # No pruning for global events anymore
     
     def test_critical_events_preserved(self, manager):
         """Critical events are preserved during pruning."""

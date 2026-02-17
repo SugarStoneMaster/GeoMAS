@@ -38,6 +38,7 @@ def test_combat_log_shows_old_owner():
     target_province.navy = 0
     target_province.terrain = TerrainType.LAND
     target_province.neighbors = [80]
+    target_province.guest_troops = {}  # FIX: Add guest_troops
     
     # Source province
     source_province = MagicMock(spec=ProvinceState)
@@ -45,6 +46,7 @@ def test_combat_log_shows_old_owner():
     source_province.owner_id = attacker_id
     source_province.soldiers = 50
     source_province.terrain = TerrainType.LAND
+    source_province.guest_troops = {}  # FIX: Add guest_troops
     
     world.nations = {attacker_id: attacker, defender_id: defender}
     world.provinces = {province_id: target_province, 80: source_province}
@@ -106,6 +108,7 @@ def test_neutral_combat_log():
     target_province.navy = 0
     target_province.terrain = TerrainType.LAND
     target_province.neighbors = [80]
+    target_province.guest_troops = {}  # FIX: Add guest_troops
     
     # Source province
     source_province = MagicMock(spec=ProvinceState)
@@ -113,6 +116,7 @@ def test_neutral_combat_log():
     source_province.owner_id = attacker_id
     source_province.soldiers = 50
     source_province.terrain = TerrainType.LAND
+    source_province.guest_troops = {}  # FIX: Add guest_troops
     
     world.nations = {attacker_id: attacker}
     world.provinces = {province_id: target_province, 80: source_province}
