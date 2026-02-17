@@ -12,6 +12,17 @@ from geomas.agents.schemas import CountryEnvelope
 
 from geomas.agents.context.events.schemas import NotableEvent
 
+@st.dialog("Prompt Viewer")
+def show_prompt_modal(title: str, content: str):
+    """Display prompt content in a modal dialog."""
+    st.markdown(f"### {title}")
+    
+    # Identify language
+    lang = "json" if "JSON" in title or "Raw" in title else "markdown"
+    
+    st.code(content, language=lang)
+
+
 def render_logs_page(world: WorldState, history: List[List[CountryEnvelope]], global_events: List[NotableEvent] = None) -> None:
     """
     Renders the History & Logs tab content.
@@ -81,12 +92,14 @@ def render_logs_page(world: WorldState, history: List[List[CountryEnvelope]], gl
                     
                     with trace_cols[0]:
                         st.markdown("**President**")
-                        if st.checkbox("System Prompt", key=f"sys_p_{turn_num}_{envelope.sender_id}"):
-                            st.code(envelope.last_system_prompt)
-                        if st.checkbox("User Prompt", key=f"usr_p_{turn_num}_{envelope.sender_id}"):
-                            st.code(envelope.last_input_prompt)
-                        if st.checkbox("Raw Output", key=f"raw_p_{turn_num}_{envelope.sender_id}"):
-                            st.code(envelope.raw_president_response or "Empty")
+                        if st.button("📜 System Prompt", key=f"sys_p_{turn_num}_{envelope.sender_id}"):
+                            show_prompt_modal("President System Prompt", envelope.last_system_prompt)
+                            
+                        if st.button("⌨️ User Prompt", key=f"usr_p_{turn_num}_{envelope.sender_id}"):
+                            show_prompt_modal("President User Prompt", envelope.last_input_prompt)
+                            
+                        if st.button("📤 Raw Output", key=f"raw_p_{turn_num}_{envelope.sender_id}"):
+                            show_prompt_modal("President Raw Output", envelope.raw_president_response or "Empty")
 
                     with trace_cols[1]:
                         agent_trace = st.selectbox(
@@ -101,18 +114,22 @@ def render_logs_page(world: WorldState, history: List[List[CountryEnvelope]], gl
                         else:
                             sys, usr, raw = envelope.foreign_system_prompt, envelope.foreign_input_prompt, envelope.raw_foreign_response
                             
-                        if st.checkbox(f"{agent_trace} System", key=f"sys_m_{turn_num}_{envelope.sender_id}"):
-                            st.code(sys or "None")
-                        if st.checkbox(f"{agent_trace} User", key=f"usr_m_{turn_num}_{envelope.sender_id}"):
-                            st.code(usr or "None")
-                        if st.checkbox(f"{agent_trace} Raw JSON", key=f"raw_m_{turn_num}_{envelope.sender_id}"):
-                            st.code(raw or "Empty")
+                        if st.button(f"📜 {agent_trace} System", key=f"sys_m_{turn_num}_{envelope.sender_id}"):
+                            show_prompt_modal(f"{agent_trace} System Prompt", sys or "None")
+                            
+                        if st.button(f"⌨️ {agent_trace} User", key=f"usr_m_{turn_num}_{envelope.sender_id}"):
+                            show_prompt_modal(f"{agent_trace} User Prompt", usr or "None")
+                            
+                        if st.button(f"📤 {agent_trace} JSON", key=f"raw_m_{turn_num}_{envelope.sender_id}"):
+                            show_prompt_modal(f"{agent_trace} Raw JSON", raw or "Empty")
 
                     with trace_cols[2]:
                         st.markdown("**Public Opinion**")
-                        if st.checkbox("Opinion System", key=f"sys_o_{turn_num}_{envelope.sender_id}"):
-                            st.code(getattr(envelope, "opinion_system_prompt", "None"))
-                        if st.checkbox("Opinion User", key=f"usr_o_{turn_num}_{envelope.sender_id}"):
-                            st.code(getattr(envelope, "opinion_input_prompt", "None"))
-                        if st.checkbox("Opinion Raw Output", key=f"raw_o_{turn_num}_{envelope.sender_id}"):
-                            st.code(getattr(envelope, "raw_opinion_response", "Empty"))
+                        if st.button("📜 Opinion System", key=f"sys_o_{turn_num}_{envelope.sender_id}"):
+                             show_prompt_modal("Opinion System Prompt", getattr(envelope, "opinion_system_prompt", "None"))
+                             
+                        if st.button("⌨️ Opinion User", key=f"usr_o_{turn_num}_{envelope.sender_id}"):
+                             show_prompt_modal("Opinion User Prompt", getattr(envelope, "opinion_input_prompt", "None"))
+                             
+                        if st.button("📤 Opinion Output", key=f"raw_o_{turn_num}_{envelope.sender_id}"):
+                             show_prompt_modal("Opinion Raw Output", getattr(envelope, "raw_opinion_response", "Empty"))
