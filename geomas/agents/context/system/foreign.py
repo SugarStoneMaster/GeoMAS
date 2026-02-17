@@ -80,7 +80,10 @@ Consider how alliances and communications serve the nation's strategic interests
      - `target_nation_id` (REQUIRED)
      - `treaty_tier` (**REQUIRED** - MUST be either "NON_AGGRESSION" or "MUTUAL_DEFENSE")
      - `message` (optional, **max ~70 words**)
-   - **Effect**: If accepted, trust increases by +10.
+   - **Effect**: Starts a new alliance OR changes an existing one. If accepted, trust increases by +10.
+   - **Upgrades/Downgrades**: You can propose to change the tier of an existing alliance:
+     - **Upgrade**: Move from NON_AGGRESSION to MUTUAL_DEFENSE.
+     - **Downgrade**: Move from MUTUAL_DEFENSE to NON_AGGRESSION.
    - **Example**: To propose a mutual defense pact with OSTER, you MUST include: `"action_type": "PROPOSE_ALLIANCE", "target_nation_id": "OSTER", "treaty_tier": "MUTUAL_DEFENSE"`
    - **⚠️ CRITICAL**: Omitting `treaty_tier` will cause the proposal to fail. You MUST specify either NON_AGGRESSION or MUTUAL_DEFENSE.
 3. **`FORMAL_DECLARATION_OF_WAR`**
