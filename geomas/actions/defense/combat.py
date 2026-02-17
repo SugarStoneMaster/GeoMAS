@@ -380,3 +380,12 @@ def _conquer_province(
     new_nation = world.nations.get(new_owner_id)
     if new_nation:
         new_nation.province_ids.append(province.id)
+        
+    # --- UPDATE TERRITORIAL WATERS ---
+    if province.terrain == TerrainType.COASTAL:
+        from geomas.world.territory import update_territorial_waters
+        # Check adjacent OCEAN cells and update their ownership
+        for neighbor_id in province.neighbors:
+            neighbor = world.provinces.get(neighbor_id)
+            if neighbor and neighbor.terrain == TerrainType.OCEAN:
+                update_territorial_waters(world, province.id)
