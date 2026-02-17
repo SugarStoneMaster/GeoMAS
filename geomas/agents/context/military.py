@@ -513,93 +513,112 @@ class MilitaryTranslator:
 
     def _generate_province_list(self, nation_id: str) -> str:
         """
-        Generate logistics section listing ONLY valid moves.
-        Refactored for brevity and strategic relevance.
+        Generate logistics section listing ONLY top valid moves.
+        Clamped to reduce token usage and hallucinations:
+        - Max 10 Soldier moves
+        - Max 3 Navy moves
+        - Max 2 Aircraft actions
         """
         nation = self.world.nations.get(nation_id)
         if not nation: return ""
         
-        border_provinces = set(self.spatial.get_border_provinces(nation_id))
-        p_ids = sorted(nation.province_ids)
-        lines = []
+        soldier_moves: List[Tuple[float, str]] = []
+        navy_moves: List[Tuple[float, str]] = []
+        air_moves: List[Tuple[float, str]] = []
         
-        # Header
-        lines.append("## 🚚 TROOP POSITIONS & LOGISTICS")
-        lines.append("**Logistics Rules:**")
-        lines.append("- **Ranges:** Soldier=2, Navy=4, Aircraft=6.")
-        lines.append("- **Valid Moves:** You can ONLY move to destinations listed below.")
-        
-        skipped_interior = 0
-        skipped_troops = 0
-
-        for p_id in p_ids:
+        # Iterate all provinces to collect options
+        for p_id in nation.province_ids:
             prov = self.world.provinces.get(p_id)
             if not prov: continue
             
-            is_border = p_id in border_provinces
-
-            # Identify units present
-            units_here = []
-            if prov.soldiers > 0: units_here.append((UnitType.SOLDIER, prov.soldiers))
-            if prov.navy > 0: units_here.append((UnitType.NAVY, prov.navy))
-            if prov.aircraft > 0: units_here.append((UnitType.AIRCRAFT, prov.aircraft))
-            
-            if not units_here:
-                continue
-
-            total_u = sum(u[1] for u in units_here)
-            
-            # --- FILTERING ---
-            # Hide Interior < 200 troops (regardless of unit type)
-            if not is_border and total_u < 200:
-                 skipped_interior += 1
-                 skipped_troops += total_u
-                 continue
-
-            # Formatting context
-            terrain_tag = f"[{prov.terrain.value.upper()}]"
-            border_tag = "**[BORDER]**" if is_border else "[INTERIOR]"
-            unit_str = ", ".join([f"{u[1]}{u[0].value[0]}" for u in units_here])
-            
-            lines.append(f"### {p_id} {terrain_tag} ({unit_str}) {border_tag}")
-            
-            # List VALID reachable destinations
-            for u_type, amount in units_here:
-                # Use new strategic getter
-                moves = self._get_strategic_moves(p_id, u_type, nation_id)
+            # --- SOLDIER MOVES ---
+            if prov.soldiers > 0:
+                moves = self._get_strategic_moves(p_id, UnitType.SOLDIER, nation_id)
+                # Score: Attack (High Priority)
+                for target in moves["ATTACK"]:
+                    t_prov = self.world.provinces[target]
+                    enemy_str = t_prov.soldiers + t_prov.aircraft
+                    ratio = prov.soldiers / max(1, enemy_str)
+                    if ratio > 1.2: # Only show good attacks
+                        score = 100 + (ratio * 10)
+                        desc = f"ATTACK {target} ({t_prov.owner_id}) from {p_id} [Advantage {ratio:.1f}x]"
+                        soldier_moves.append((score, desc))
                 
-                if u_type == UnitType.AIRCRAFT:
-                    # Aircraft: Global range, just summary
-                    lines.append(f"- **AIRCRAFT**: Range 6. Can strike almost any target.")
-                else:
-                    # Ground/Navy
-                    if moves["ATTACK"]:
-                        targets = [f"{m}({self.world.provinces[m].owner_id})" for m in moves["ATTACK"]]
-                        lines.append(f"- **ATTACK**: {', '.join(targets)}")
-                    
-                    if moves["REINFORCE"]:
-                        targets = [str(m) for m in moves["REINFORCE"]]
-                        lines.append(f"- **REINFORCE**: {', '.join(targets)}")
-                    
-                    if moves["TRANSFER"]:
-                        targets = [str(m) for m in moves["TRANSFER"]]
-                        lines.append(f"- **TRANSFER**: {', '.join(targets)} (max 3 shown)")
+                # Score: Reinforce (Medium Priority)
+                for target in moves["REINFORCE"]:
+                    # Prioritize reinforcing weak spots
+                    t_prov = self.world.provinces[target]
+                    t_def = t_prov.soldiers + t_prov.aircraft
+                    score = 50 + (1000 / (t_def + 1)) # Lower defense = Higher score
+                    desc = f"REINFORCE {target} from {p_id}"
+                    soldier_moves.append((score, desc))
 
-        if skipped_interior > 0:
-            lines.append(f"\n*(Hid {skipped_interior} small interior garrisons totaling {skipped_troops} units)*")
+                # Score: Transfer (Low Priority)
+                for target in moves["TRANSFER"]:
+                    score = 10
+                    desc = f"TRANSFER {p_id} -> {target}"
+                    soldier_moves.append((score, desc))
+
+            # --- NAVY MOVES ---
+            if prov.navy > 0:
+                moves = self._get_strategic_moves(p_id, UnitType.NAVY, nation_id)
+                # Similar logic for Navy
+                for target in moves["ATTACK"]:
+                     navy_moves.append((90, f"ATTACK {target} from {p_id}"))
+                for target in moves["REINFORCE"]: 
+                     navy_moves.append((40, f"REINFORCE {target} from {p_id}"))
+                for target in moves["TRANSFER"]: 
+                     navy_moves.append((10, f"TRANSFER {p_id} -> {target}"))
+
+            # --- AIRCRAFT MOVES ---
+            if prov.aircraft > 0:
+                # Aircraft have global range (6). We just want to suggest ATTACKS.
+                # We reuse the logic but only look for ATTACKS
+                moves = self._get_strategic_moves(p_id, UnitType.AIRCRAFT, nation_id)
+                for target in moves["ATTACK"]:
+                    t_prov = self.world.provinces[target]
+                    enemy_str = t_prov.soldiers + t_prov.aircraft
+                    # Air raid value
+                    score = 80 + (1000 / (enemy_str + 1)) # Prefer soft targets? Or hard targets?
+                    # Let's prefer targets with units
+                    if enemy_str > 10:
+                        air_moves.append((score, f"AIR STRIKE {target} ({t_prov.owner_id}) from {p_id}"))
+
+        # Sort by score descending
+        soldier_moves.sort(key=lambda x: x[0], reverse=True)
+        navy_moves.sort(key=lambda x: x[0], reverse=True)
+        air_moves.sort(key=lambda x: x[0], reverse=True)
         
-        # --- Section 2: BORDER MAP (Concise) ---
-        border_lines = ["\n## 🗺️ FRONT LINE MAP (Adjacency)"]
-        for p_id in sorted(border_provinces):
-            prov = self.world.provinces.get(p_id)
-            neighbor_strs = []
-            for n_id in prov.neighbors:
-                n_prov = self.world.provinces.get(n_id)
-                if not n_prov: continue
-                if n_prov.owner_id != nation_id:
-                     neighbor_strs.append(f"{n_id}({n_prov.owner_id or 'SEA'})")
-            
-            if neighbor_strs:
-                border_lines.append(f"- **{p_id}** attaches to: {', '.join(neighbor_strs)}")
-            
-        return "\n".join(lines) + "\n" + "\n".join(border_lines)
+        # Clamp
+        top_soldier = soldier_moves[:10]
+        top_navy = navy_moves[:3]
+        top_air = air_moves[:2]
+
+        # Generate Output
+        lines = []
+        lines.append("## 🚚 STRATEGIC LOGISTICS (Approved Moves)")
+        lines.append("**Rules:** You can ONLY execute the moves listed below.")
+        
+        lines.append(f"\n### ⚔️ GROUND OPERATIONS (Top {len(top_soldier)})")
+        if top_soldier:
+            for score, desc in top_soldier:
+                lines.append(f"- {desc}")
+        else:
+            lines.append("- No recommended ground moves.")
+
+        if top_navy:
+            lines.append(f"\n### ⚓ NAVAL OPERATIONS (Top {len(top_navy)})")
+            for score, desc in top_navy:
+                lines.append(f"- {desc}")
+        
+        if top_air:
+            lines.append(f"\n### ✈️ AIR OPERATIONS (Top {len(top_air)})")
+            for score, desc in top_air:
+                lines.append(f"- {desc}")
+        elif len(air_moves) == 0:
+             # Basic summary if no attacks found
+             if sum(p.aircraft for p in self.world.provinces.values() if p.owner_id == nation_id) > 0:
+                 lines.append("\n### ✈️ AIR OPERATIONS")
+                 lines.append("- Aircraft are ready. Use ATTACK on any enemy within range 6.")
+
+        return "\n".join(lines)

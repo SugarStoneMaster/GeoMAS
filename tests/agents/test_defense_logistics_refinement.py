@@ -42,19 +42,22 @@ def test_defense_logistics_refinement():
     print(prompt)
     
     # Verification checks
-    assert "**ATTACK**:" in prompt or "A reaches:" in prompt, "Intent-based grouping missing"
-    assert "**REINFORCE**:" in prompt or "**TRANSFER**:" in prompt, "Intent-based grouping missing"
-    assert "**AIRCRAFT**:" in prompt, "Aircraft summary missing"
-    assert "RULES OF ENGAGEMENT" in prompt, "Movement rules section missing"
-    assert "S reaches:" not in prompt, "Old format reached list found"
+    # New format headers
+    assert "## 🚚 STRATEGIC LOGISTICS" in prompt
+    assert "### ⚔️ GROUND OPERATIONS" in prompt
+    assert "**Rules:** You can ONLY execute the moves listed below." in prompt
     
-    # Check compaction - REVERTED: Now expects verbose strings again
-    assert "Power: Much" in prompt or "Power: Equal" in prompt or "Power: Stronger" in prompt or "Power: Weaker" in prompt
-    assert "Stronger +" not in prompt, "Compacted power string should have been reverted"
+    # Check for specific moves in new format
+    # p1(100) -> p3(50, enemy) => ATTACK
+    assert "ATTACK 3 (N2) from 1" in prompt
     
-    # Check Intent Grouping specifically
-    assert "**ATTACK**: 3(N2)" in prompt
-    assert "**REINFORCE**: 2, 4" in prompt or "**REINFORCE**: 1, 4" in prompt
+    # p1(100) -> p2(10), p4(5) => REINFORCE
+    # Checking if reinforce moves are present
+    assert "REINFORCE" in prompt
+    
+    # Check Aircraft (p4 has 5 aircraft)
+    assert "### ✈️ AIR OPERATIONS" in prompt
+    assert "AIR STRIKE" in prompt
     
     print("\nSUCCESS: Defense prompt optimization verified.")
 
