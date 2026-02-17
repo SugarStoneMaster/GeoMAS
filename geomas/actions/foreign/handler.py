@@ -314,6 +314,7 @@ def _execute_propose_alliance(
     
     # Fallback to NON_AGGRESSION if tier not specified
     # Fallback to NON_AGGRESSION if tier not specified
+    # Fallback to NON_AGGRESSION if tier not specified
     if not tier:
         from geomas.actions.foreign.schemas import TreatyTier
         
@@ -321,29 +322,45 @@ def _execute_propose_alliance(
         inferred_tier = TreatyTier.NON_AGGRESSION
         msg_lower = message.lower() if message else ""
         
-        strong_keywords = [
+        strong_md_keywords = [
             "mutual defense", 
             "defense pact", 
             "military alliance", 
             "fight together",
-            "full alliance"
+            "full alliance",
+            "defend each other"
         ]
         
-        if any(k in msg_lower for k in strong_keywords):
+        strong_na_keywords = [
+            "non aggression",
+            "non-aggression",
+            "peace pact",
+            "no attack",
+            "neutrality pact"
+        ]
+        
+        if any(k in msg_lower for k in strong_md_keywords):
             inferred_tier = TreatyTier.MUTUAL_DEFENSE
+        elif any(k in msg_lower for k in strong_na_keywords):
+            inferred_tier = TreatyTier.NON_AGGRESSION
             
         tier = inferred_tier
         
         engine.logs.append(
             f"⚠️ [FOREIGN] {proposer_id} alliance proposal missing tier. "
-            f"Inferred {tier.name} from message content ('{message[:30]}...')."
+            f"Inferred {tier.name} from message content."
         )
 
     current_rel = world.relationship_matrix.get(proposer_id, {}).get(target_id, RelationshipState.PEACE)
     
+    # Check if we can proceed (Allow UPGRADE/DOWNGRADE)
     if current_rel in [RelationshipState.NON_AGGRESSION, RelationshipState.MUTUAL_DEFENSE]:
-        engine.logs.append(f"🤝 [FOREIGN] Already have a treaty with {target_id} ({current_rel})")
-        return False, "Already has treaty"
+        if current_rel == tier:
+            engine.logs.append(f"🤝 [FOREIGN] Already have {current_rel} treaty with {target_id}. No change needed.")
+            return False, f"Already has {current_rel.value}"
+        else:
+            # Upgrade or Downgrade
+            pass # Proceed to propose change
     
     if current_rel == "WAR":
         engine.logs.append(f"🤝 [FOREIGN] Cannot propose alliance while at war with {target_id}")
