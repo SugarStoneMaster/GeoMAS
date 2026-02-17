@@ -15,6 +15,7 @@ class SpatialManager:
 
     def _build_graph(self):
         """Constructs the NetworkX graph from the WorldState."""
+        self.graph.clear()
         valid_province_ids = set(self.world.provinces.keys())
         
         for p_id, province in self.world.provinces.items():
