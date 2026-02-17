@@ -34,7 +34,7 @@ class OpinionSystemPrompt:
         """
         if cultural_traits:
             traits_text = f"""## Cultural Identity
-Your people are characterized by these traits: **{', '.join(cultural_traits)}**.
+Your people are characterized by these traits: **{', '.join(sorted(cultural_traits))}**.
 
 These traits influence how strongly you react to different events:
 - Some cultures value military glory, others prefer peace

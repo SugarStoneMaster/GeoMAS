@@ -42,7 +42,7 @@ class PresidentSystemPrompt:
         
         traits_text = ""
         if cultural_traits:
-            traits_text = f"\nYour people are known for being: {', '.join(cultural_traits)}."
+            traits_text = f"\nYour people are known for being: {', '.join(sorted(cultural_traits))}."
         
         strategy_desc = get_strategy_description(strategy)
         
