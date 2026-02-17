@@ -38,7 +38,7 @@ def render_inspector(nation_id: str, agent: NationAgent, opinion_agent=None):
     tabs = st.tabs(["President", "Defense", "Economy", "Foreign", "Public Opinion"])
     
     # Helper for modal
-    @st.dialog("Prompt Viewer")
+    @st.dialog("Prompt Viewer", width="large")
     def show_prompt_modal(title: str, content: str):
         st.markdown(f"### {title}")
         lang = "json" if "JSON" in title or "Raw" in title else "markdown"
