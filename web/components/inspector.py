@@ -37,32 +37,43 @@ def render_inspector(nation_id: str, agent: NationAgent, opinion_agent=None):
     # Tabs for each agent role
     tabs = st.tabs(["President", "Defense", "Economy", "Foreign", "Public Opinion"])
     
+    # Helper for modal
+    @st.dialog("Prompt Viewer")
+    def show_prompt_modal(title: str, content: str):
+        st.markdown(f"### {title}")
+        lang = "json" if "JSON" in title or "Raw" in title else "markdown"
+        st.code(content, language=lang)
+
     # helper to render a single agent's trace
     def _render_trace(trace_data, title):
         if not trace_data:
             st.info(f"No data for {title} this turn.")
             return
             
-        with st.expander("📝 System Prompt", expanded=False):
-            st.text_area("System Prompt", trace_data.get("system_prompt", ""), height=200, disabled=True, key=f"sys_{title}_{selected_turn}")
-            
-        with st.expander("📥 User Prompt (Context)", expanded=False):
-            st.text_area("User Prompt", trace_data.get("user_prompt", ""), height=400, disabled=True, key=f"user_{title}_{selected_turn}")
-            
-        with st.expander("📤 Output (JSON)", expanded=True):
-            output = trace_data.get("proposal") or trace_data.get("decree")
-            try:
-                # Try to use model_dump_json if it's a Pydantic model
-                if hasattr(output, 'model_dump_json'):
-                    json_str = output.model_dump_json(indent=2)
-                else:
-                    # Fallback to string or dict dump
-                    json_str = json.dumps(output, indent=2, default=str) if isinstance(output, (dict, list)) else str(output)
+        c1, c2, c3 = st.columns(3)
+        
+        with c1:
+            if st.button("📝 System Prompt", key=f"sys_{title}_{selected_turn}"):
+                show_prompt_modal(f"{title} - System Prompt", trace_data.get("system_prompt", ""))
+        
+        with c2:
+            if st.button("📥 User Prompt", key=f"user_{title}_{selected_turn}"):
+                show_prompt_modal(f"{title} - User Prompt", trace_data.get("user_prompt", ""))
                 
-                st.code(json_str, language="json")
-            except Exception as e:
-                st.error(f"Could not render output: {e}")
-                st.write(output)
+        with c3:
+            if st.button("📤 Output (JSON)", key=f"out_{title}_{selected_turn}"):
+                output = trace_data.get("proposal") or trace_data.get("decree")
+                try:
+                    # Try to use model_dump_json if it's a Pydantic model
+                    if hasattr(output, 'model_dump_json'):
+                        json_str = output.model_dump_json(indent=2)
+                    else:
+                        # Fallback to string or dict dump
+                        json_str = json.dumps(output, indent=2, default=str) if isinstance(output, (dict, list)) else str(output)
+                    
+                    show_prompt_modal(f"{title} - Output", json_str)
+                except Exception as e:
+                    show_prompt_modal(f"{title} - Output Error", str(e))
 
     # 1. PRESIDENT TAB
     with tabs[0]:
