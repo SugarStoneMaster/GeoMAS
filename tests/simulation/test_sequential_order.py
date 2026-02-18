@@ -32,12 +32,14 @@ class TestSequentialExecution(unittest.TestCase):
         self.assertGreater(len(nation_ids), 1, "Should have at least 2 nations for this test.")
         
         # Turn 1 order
-        rng1 = random.Random(self.sim.history_seed + 1)
+        seed1 = f"{self.sim.map_seed}-{self.sim.history_seed}-{self.sim.n_cells}-1"
+        rng1 = random.Random(seed1)
         expected_order_1 = list(nation_ids)
         rng1.shuffle(expected_order_1)
         
         # Turn 2 order
-        rng2 = random.Random(self.sim.history_seed + 2)
+        seed2 = f"{self.sim.map_seed}-{self.sim.history_seed}-{self.sim.n_cells}-2"
+        rng2 = random.Random(seed2)
         expected_order_2 = list(nation_ids)
         rng2.shuffle(expected_order_2)
         
@@ -49,11 +51,12 @@ class TestSequentialExecution(unittest.TestCase):
         nation_ids = list(self.sim.agents.keys())
         self.assertGreater(len(nation_ids), 1, "Should have at least 2 nations for this test.")
         
-        # Determine current turn (will be 1 after sim.step())
-        current_turn = self.sim.world.turn + 1
+        # Determine current turn (will be turn 1 at start)
+        current_turn = self.sim.world.turn
         
-        # Determine order for this turn
-        turn_rng = random.Random(self.sim.history_seed + current_turn)
+        # Determine order for this turn using new combined seed logic
+        combined_seed = f"{self.sim.map_seed}-{self.sim.history_seed}-{self.sim.n_cells}-{current_turn}"
+        turn_rng = random.Random(combined_seed)
         shuffled_ids = list(nation_ids)
         turn_rng.shuffle(shuffled_ids)
         
