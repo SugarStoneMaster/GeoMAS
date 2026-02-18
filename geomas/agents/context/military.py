@@ -491,22 +491,32 @@ class MilitaryTranslator:
                 
                 if not is_valid: continue
                 
+                # Relationships
+                target_owner = n_prov.owner_id
+                rel = self.world.relationship_matrix.get(nation_id, {}).get(target_owner, "PEACE")
+                is_ally = rel in ["MUTUAL_DEFENSE", "NON_AGGRESSION"]
+                
                 # Categorize
-                if n_prov.owner_id != nation_id and n_prov.owner_id is not None:
-                    # Enemy/Neutral -> ATTACK
+                if target_owner == nation_id or is_ally:
+                    # Own or Allied territory - can PASS THROUGH
+                    visited.add(neighbor_id)
+                    queue.append((neighbor_id, dist + 1))
+                    
+                    if target_owner == nation_id:
+                        if neighbor_id in border_provinces:
+                            results["REINFORCE"].append(neighbor_id)
+                        else:
+                            potential_transfers.append(neighbor_id)
+                    else:
+                        # Allied territory: can be reached for reinforcement/stationing
+                        results["REINFORCE"].append(neighbor_id)
+                        
+                elif target_owner is not None:
+                    # Enemy/Neutral -> ATTACK (Starts a war or continues one)
                     # For soldiers, attack ends movement, so allow it as a valid target but don't extend BFS from here
                     results["ATTACK"].append(neighbor_id)
                     visited.add(neighbor_id)
                     continue 
-                elif n_prov.owner_id == nation_id:
-                    # Own territory
-                    visited.add(neighbor_id)
-                    queue.append((neighbor_id, dist + 1))
-                    
-                    if neighbor_id in border_provinces:
-                        results["REINFORCE"].append(neighbor_id)
-                    else:
-                        potential_transfers.append(neighbor_id)
 
         # Post-Processing
         # Sort Attacks by enemy vulnerability (weakest first? or undefined. Let's just sort by ID for stability)

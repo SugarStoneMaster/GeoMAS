@@ -678,38 +678,36 @@ def _find_valid_path(
         return path
     
     else:  # SOLDIER
-        # Soldiers must move through owned/allied land provinces
-        path = engine.spatial.get_shortest_path(from_id, to_id)
-        if path is None:
-            return None
+        # Soldiers must move through owned/allied land provinces.
+        # We find a permitted path using relationship-aware logic.
+        permitted_ids = {
+            oid for oid, rel in world.relationship_matrix.get(nation_id, {}).items()
+            if rel in [RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION]
+        }
         
-        # Validate all intermediate provinces are owned OR allied
-        for p_id in path[1:-1]:  # Exclude start and end (end can be enemy for attack)
-            prov = world.provinces.get(p_id)
-            if not prov:
-                return None
-            
-            # Must be owned land (not ocean)
-            if prov.terrain == TerrainType.OCEAN:
-                return None
-            
-            # 1. Check Ownership
-            if prov.owner_id == nation_id:
-                continue
-                
-            # 2. Check Alliance (Access Rights)
-            # If not owned, must be an ally (Mutual Defense or Non-Aggression)
-            owner_id = prov.owner_id
-            if not owner_id:
-                 return None # Cannot move through unclaimed land (unless we conquer it step by step, which requires separate moves)
-            
-            relationship = world.relationship_matrix.get(nation_id, {}).get(owner_id, RelationshipState.PEACE)
-            
-            # User Rule: "Se C è neutrale... lasci passare le truppe. Se C è alleata... ha senso".
-            # We strictly allow access only for treaties. PEACE (Neutral) is NOT enough.
-            if relationship not in [RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION]:
-                engine.logs.append(f"⛔ [DEFENSE] Cannot move through neutral/hostile {owner_id} (Province {p_id}). Relation: {relationship}")
-                return None
+        path = engine.spatial.get_permitted_path(
+            from_id, 
+            to_id, 
+            nation_id, 
+            permitted_ids, 
+            unit_type="SOLDIER"
+        )
+        
+        if path is None:
+            # Check if there was a path at all but it was blocked
+            raw_path = engine.spatial.get_shortest_path(from_id, to_id)
+            if raw_path:
+                 # It exists but isn't permitted. Log why.
+                 # Find the first non-permitted province for better logging.
+                 for p_id in raw_path[1:-1]:
+                     p = world.provinces.get(p_id)
+                     if not p: continue
+                     if p.owner_id == nation_id or p.owner_id in permitted_ids: continue
+                     
+                     rel = world.relationship_matrix.get(nation_id, {}).get(p.owner_id, RelationshipState.PEACE)
+                     engine.logs.append(f"⛔ [DEFENSE] Cannot move through neutral/hostile {p.owner_id} (Province {p_id}). Relation: {rel}")
+                     break
+            return None
         
         return path
 

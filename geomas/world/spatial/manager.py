@@ -43,6 +43,55 @@ class SpatialManager:
         except nx.NodeNotFound:
             return None
 
+    def get_permitted_path(
+        self, 
+        from_id: int, 
+        to_id: int, 
+        nation_id: str,
+        permitted_owner_ids: Set[str],
+        unit_type: str = "SOLDIER"
+    ) -> Optional[List[int]]:
+        """
+        Finds the shortest path through permitted territory.
+        
+        Rules:
+        - Start and End provinces are always considered 'reachable' in the graph (to allow starting/attacking).
+        - Intermediate provinces must belong to nation_id OR be in permitted_owner_ids.
+        - Terrain constraints apply based on unit_type.
+        """
+        try:
+            # We use a custom weight function or filter the graph.
+            # Filtering is safer for 'hard' constraints.
+            
+            def is_permitted(node_id):
+                if node_id == from_id or node_id == to_id:
+                    return True
+                
+                prov = self.world.provinces.get(node_id)
+                if not prov: return False
+                
+                # Terrain Check
+                if unit_type == "SOLDIER" and prov.terrain == TerrainType.OCEAN:
+                    return False
+                if unit_type == "NAVY" and prov.terrain != TerrainType.OCEAN:
+                    # Note: currently navy only in ocean. If we add ports, change this.
+                    return False
+                
+                # Ownership / Access Check
+                if prov.owner_id == nation_id or prov.owner_id in permitted_owner_ids:
+                    return True
+                    
+                return False
+
+            # Create a view of the graph with only permitted nodes
+            permitted_nodes = [n for n in self.graph.nodes if is_permitted(n)]
+            subgraph = self.graph.subgraph(permitted_nodes)
+            
+            return nx.shortest_path(subgraph, source=from_id, target=to_id)
+            
+        except (nx.NetworkXNoPath, nx.NodeNotFound, KeyError):
+            return None
+
     def get_path_length(self, start_id: int, end_id: int) -> int:
         """Returns the number of hops between two provinces."""
         try:
