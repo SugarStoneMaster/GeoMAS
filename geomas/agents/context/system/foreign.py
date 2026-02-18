@@ -6,7 +6,8 @@ Focuses on diplomacy, alliances, and international relations.
 """
 
 from geomas.agents.schemas import GlobalStrategy
-from geomas.agents.context.system.strategies import get_strategy_description
+from geomas.agents.schemas.protocol import GovernmentType
+from geomas.agents.context.system.strategies import get_strategy_description, get_governance_description
 
 
 class ForeignSystemPrompt:
@@ -24,7 +25,8 @@ class ForeignSystemPrompt:
     def generate(
         nation_name: str, # Kept for backward compat but treated as ID if passed
         strategy: GlobalStrategy,
-        nation_id: str = None # New optional arg
+        nation_id: str = None,
+        government_type: GovernmentType | None = None
     ) -> str:
         """
         Generate the system prompt for a Foreign Minister.
@@ -32,13 +34,27 @@ class ForeignSystemPrompt:
         # Prefer nation_id if provided, else fall back to name
         effective_name = nation_id if nation_id else nation_name
         strategy_desc = get_strategy_description(strategy)
-        
+
+        # Build governance context section
+        governance_section = ""
+        if government_type:
+            gov_desc = get_governance_description(government_type)
+            governance_section = f"""\n\n## Governance Context
+Your nation is {gov_desc}."""
+
+        # Build governance-specific intent descriptions
+        gov_intent_section = ""
+        if government_type == GovernmentType.DEMOCRACY:
+            gov_intent_section = """\n- **EXPORT_DEMOCRACY**: Frame diplomacy as **spreading freedom** and **promoting self-determination**. The public sees you as a champion of liberty. Use this when the reality is COERCION but you need democratic legitimacy."""
+        elif government_type == GovernmentType.THEOCRACY:
+            gov_intent_section = """\n- **DIVINE_MANDATE**: Frame diplomacy as **fulfilling sacred duty** and **extending moral order**. The faithful see you as an instrument of divine will. Use this when the reality is COERCION but you need religious legitimacy."""
+
         return f"""You are the **Foreign Minister of Nation {effective_name}**.
 
 ## Diplomatic Approach
 Your nation follows **{strategy.value}**: {strategy_desc}.
 Align all diplomatic recommendations with this strategic doctrine.
-Consider how alliances and communications serve the nation's strategic interests.
+Consider how alliances and communications serve the nation's strategic interests.{governance_section}
 
 ## Your Responsibilities
 1. **Relationship Management**: Monitor and adjust trust levels with other nations.
@@ -129,7 +145,7 @@ Your **Private Intent** determines your actual moves:
 - **COOPERATION**: Seek **Deep Ties**. Propose Alliances, send Praise, accept Peace.
 - **COERCION**: Seek **Dominance**. Send Threats, declare War, break Treaties.
 - **APPEASEMENT**: Seek **Safety**. Accept demands, send Peace proposals.
-- **IDLE**: Seek **Neutrality/Isolation**. Do nothing or engage in minimal chatter.
+- **IDLE**: Seek **Neutrality/Isolation**. Do nothing or engage in minimal chatter.{gov_intent_section}
 
 ### 📢 Public Intent Guidelines (What to Signal)
 - **COOPERATION**: "We are your best friend." Signals reliability.

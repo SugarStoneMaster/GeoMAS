@@ -8,6 +8,7 @@ from typing import Any, Optional
 from geomas.agents.llm_client import LLMClient
 from geomas.schemas.world import WorldState
 from geomas.agents.schemas import DefenseProposal, EconomicProposal, ForeignProposal, GlobalStrategy
+from geomas.agents.schemas.protocol import GovernmentType
 from geomas.agents.schemas.dynamic import get_dynamic_proposal_model
 from geomas.agents.context.system import DefenseSystemPrompt, EconomySystemPrompt, ForeignSystemPrompt
 from geomas.agents.context.input import DefenseInputBuilder, EconomyInputBuilder, ForeignInputBuilder
@@ -23,12 +24,14 @@ class BaseMinister:
         world: WorldState, 
         client: LLMClient,
         context_manager: Optional[ContextManager] = None,
-        strategy: Optional[GlobalStrategy] = None
+        strategy: Optional[GlobalStrategy] = None,
+        government_type: Optional[GovernmentType] = None
     ):
         self.nation_id = nation_id
         self.world = world
         self.client = client
         self.context_manager = context_manager
+        self.government_type = government_type
         
         # System Prompt Caching
         self.system_prompt: Optional[str] = None
@@ -50,7 +53,8 @@ class BaseMinister:
         self.system_prompt = self.prompt_class.generate(
             nation_name=nation.name,
             strategy=strategy,
-            nation_id=self.nation_id
+            nation_id=self.nation_id,
+            government_type=self.government_type
         )
         self.last_strategy = strategy
 
@@ -103,7 +107,7 @@ class DefenseMinister(BaseMinister):
         # Dynamic Validation: Enforce valid nation IDs
         # Defense includes SELF because CREATE_UNIT requires target_nation_id = own ID
         valid_targets = list(self.world.nations.keys())
-        ResponseModel = get_dynamic_proposal_model(DefenseProposal, valid_targets)
+        ResponseModel = get_dynamic_proposal_model(DefenseProposal, valid_targets, self.government_type)
         
         proposal = self.client.query_agent(
             system_prompt, 
@@ -143,7 +147,7 @@ class DefenseMinister(BaseMinister):
             )
         
         valid_targets = list(self.world.nations.keys())
-        ResponseModel = get_dynamic_proposal_model(DefenseProposal, valid_targets)
+        ResponseModel = get_dynamic_proposal_model(DefenseProposal, valid_targets, self.government_type)
         
         proposal = await self.client.aquery_agent(
             system_prompt, 
@@ -281,7 +285,7 @@ class ForeignMinister(BaseMinister):
         
         # Dynamic Validation: Enforce valid nation IDs
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
-        ResponseModel = get_dynamic_proposal_model(ForeignProposal, valid_targets)
+        ResponseModel = get_dynamic_proposal_model(ForeignProposal, valid_targets, self.government_type)
         
         proposal = self.client.query_agent(
             system_prompt, 
@@ -325,7 +329,7 @@ class ForeignMinister(BaseMinister):
             )
         
         valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
-        ResponseModel = get_dynamic_proposal_model(ForeignProposal, valid_targets)
+        ResponseModel = get_dynamic_proposal_model(ForeignProposal, valid_targets, self.government_type)
         
         proposal = await self.client.aquery_agent(
             system_prompt, 

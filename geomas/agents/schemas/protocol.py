@@ -16,12 +16,22 @@ class GlobalStrategy(str, Enum):
     SCORCHED_EARTH = "SCORCHED_EARTH"
 
 
+class GovernmentType(str, Enum):
+    """Form of government, orthogonal to GlobalStrategy. Affects narrative/rhetoric only."""
+    DEMOCRACY = "DEMOCRACY"
+    AUTHORITARIAN = "AUTHORITARIAN"
+    THEOCRACY = "THEOCRACY"
+
+
 class DefenseIntentType(str, Enum):
     """Defense/military strategic intent types."""
     DETERRENCE = "DETERRENCE"       # Build up to prevent attack
     CONQUEST = "CONQUEST"           # Offensive expansion
     DEFENSE = "DEFENSE"             # Protect existing territory
     IDLE = "IDLE"                   # No significant military activity
+    # Governance-specific intents (restricted by GovernmentType)
+    EXPORT_DEMOCRACY = "EXPORT_DEMOCRACY"  # Democracy only: military intervention framed as liberation
+    HOLY_WAR = "HOLY_WAR"                  # Theocracy only: military action framed as religious duty
 
 
 class EconomicIntentType(str, Enum):
@@ -38,6 +48,9 @@ class ForeignIntentType(str, Enum):
     COERCION = "COERCION"          # Force compliance through threats
     APPEASEMENT = "APPEASEMENT"    # Avoid conflict at cost
     IDLE = "IDLE"                  # No significant diplomatic action
+    # Governance-specific intents (restricted by GovernmentType)
+    EXPORT_DEMOCRACY = "EXPORT_DEMOCRACY"  # Democracy only: diplomacy framed as spreading freedom
+    DIVINE_MANDATE = "DIVINE_MANDATE"      # Theocracy only: diplomacy framed as divine duty
 
 
 # --- INTENT OBJECTS (For Minister Proposals) ---
@@ -147,6 +160,7 @@ class CountryEnvelope(BaseModel):
     # STRATEGIC LAYER
     # ═══════════════════════════════════════════════════════════════
     global_strategy: GlobalStrategy
+    government_type: Optional[str] = None  # GovernmentType value for analysis
     
     # ═══════════════════════════════════════════════════════════════
     # PUBLIC LAYER (Broadcast to all nations)

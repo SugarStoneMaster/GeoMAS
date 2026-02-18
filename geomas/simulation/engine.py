@@ -7,6 +7,7 @@ The Main Loop. Orchestrates the flow of time, agent decisions, and world updates
 import random
 from typing import Dict, List, Optional
 from geomas.agents.schemas import CountryEnvelope, GlobalStrategy
+from geomas.agents.schemas.protocol import GovernmentType
 from geomas.world import generate_world
 from geomas.actions import ActionEngine
 from geomas.actions.foreign import clear_expired_proposals
@@ -168,17 +169,40 @@ class SimulationEngine:
         # 4. Shuffle Assignment
         rng.shuffle(assigned_strategies)
         
+        # === GovernmentType Assignment (Independent from Strategy) ===
+        gov_pool = [
+            GovernmentType.DEMOCRACY,
+            GovernmentType.AUTHORITARIAN,
+            GovernmentType.THEOCRACY,
+        ]
+        assigned_govs = []
+        # Base assignment: ensure 1 of each if possible
+        for i in range(min(n_nations, 3)):
+            assigned_govs.append(gov_pool[i])
+        # Fill remaining slots (cycling)
+        remaining_gov = n_nations - len(assigned_govs)
+        for i in range(remaining_gov):
+            assigned_govs.append(gov_pool[i % 3])
+        # Independent shuffle (separate rng call from strategy shuffle)
+        rng.shuffle(assigned_govs)
+        
         # 5. Create Agents
         for i, nation_id in enumerate(nation_ids):
             strategy = assigned_strategies[i]
-            print(f"[INIT] {nation_id} Strategy: {strategy.value}")
+            gov_type = assigned_govs[i]
+            
+            # Store government_type on nation state for reference
+            self.world.nations[nation_id].government_type = gov_type.value
+            
+            print(f"[INIT] {nation_id} Strategy: {strategy.value} | Gov: {gov_type.value}")
             
             self.agents[nation_id] = NationAgent(
                 nation_id=nation_id,
                 world=self.world,
                 llm_client=self.client,
                 global_strategy=strategy,
-                context_manager=self.context_manager
+                context_manager=self.context_manager,
+                government_type=gov_type
             )
     
     def _init_opinion_agents(self):
@@ -187,12 +211,17 @@ class SimulationEngine:
             # Get cultural traits from nation if available, else empty list
             traits = getattr(nation, 'cultural_traits', []) or []
             
+            # Get government_type from nation state (set during _init_agents)
+            gov_type_str = getattr(nation, 'government_type', None)
+            gov_type = GovernmentType(gov_type_str) if gov_type_str else None
+            
             self.opinion_agents[nation_id] = OpinionAgent(
                 nation_id=nation_id,
                 nation_name=nation.name,
                 cultural_traits=traits,
                 llm_client=self.client,
-                world=self.world
+                world=self.world,
+                government_type=gov_type
             )
 
     def _calculate_behaviors(
@@ -217,7 +246,8 @@ class SimulationEngine:
                 "deception_economic": detailed["economic"],
                 "deception_foreign": detailed["foreign"],
                 "coherence_score": coherence,
-                "global_strategy": envelope.global_strategy.value
+                "global_strategy": envelope.global_strategy.value,
+                "government_type": envelope.government_type
             }
         
         return behaviors
@@ -246,7 +276,8 @@ class SimulationEngine:
                 turn=turn, nation_id=envelope.sender_id,
                 deception_total=detailed["total"], deception_defense=detailed["defense"],
                 deception_economic=detailed["economic"], deception_foreign=detailed["foreign"],
-                coherence_score=coherence, global_strategy=envelope.global_strategy.value
+                coherence_score=coherence, global_strategy=envelope.global_strategy.value,
+                government_type=envelope.government_type
             )
 
     def _persist_token_usage(self, turn: int) -> None:

@@ -23,9 +23,11 @@ class CoherenceAnalyzer:
     # Mapping: GlobalStrategy -> (expected defense, expected economic, expected foreign)
     EXPECTED_INTENTS = {
         GlobalStrategy.TOTAL_EXPANSIONISM: (
-            [DefenseIntentType.CONQUEST, DefenseIntentType.DETERRENCE, DefenseIntentType.IDLE], # Added Deterrence/Idle
+            [DefenseIntentType.CONQUEST, DefenseIntentType.DETERRENCE, DefenseIntentType.IDLE,
+             DefenseIntentType.EXPORT_DEMOCRACY, DefenseIntentType.HOLY_WAR],  # Governance intents align with expansionism
             [EconomicIntentType.GROWTH],
-            [ForeignIntentType.COERCION, ForeignIntentType.IDLE] # Added Idle
+            [ForeignIntentType.COERCION, ForeignIntentType.IDLE,
+             ForeignIntentType.EXPORT_DEMOCRACY, ForeignIntentType.DIVINE_MANDATE]  # Governance intents align
         ),
         GlobalStrategy.ARMED_ISOLATIONISM: (
             [DefenseIntentType.DEFENSE, DefenseIntentType.DETERRENCE],
@@ -33,14 +35,17 @@ class CoherenceAnalyzer:
             [ForeignIntentType.IDLE, ForeignIntentType.APPEASEMENT]
         ),
         GlobalStrategy.COALITION_BUILDER: (
-            [DefenseIntentType.DEFENSE, DefenseIntentType.DETERRENCE],
+            [DefenseIntentType.DEFENSE, DefenseIntentType.DETERRENCE,
+             DefenseIntentType.EXPORT_DEMOCRACY],  # Democracy can ally-build via export
             [EconomicIntentType.SUPPORT, EconomicIntentType.GROWTH],
-            [ForeignIntentType.COOPERATION, ForeignIntentType.COERCION, ForeignIntentType.APPEASEMENT] # Broadened
+            [ForeignIntentType.COOPERATION, ForeignIntentType.COERCION, ForeignIntentType.APPEASEMENT,
+             ForeignIntentType.EXPORT_DEMOCRACY, ForeignIntentType.DIVINE_MANDATE]  # Broadened
         ),
         GlobalStrategy.SCORCHED_EARTH: (
-            [DefenseIntentType.CONQUEST, DefenseIntentType.DEFENSE, DefenseIntentType.DETERRENCE], # Flexible Defense
-            [EconomicIntentType.SURVIVAL, EconomicIntentType.GROWTH], # Added Growth
-            [ForeignIntentType.COERCION]
+            [DefenseIntentType.CONQUEST, DefenseIntentType.DEFENSE, DefenseIntentType.DETERRENCE,
+             DefenseIntentType.HOLY_WAR],  # Theocracy can frame scorched earth as holy war
+            [EconomicIntentType.SURVIVAL, EconomicIntentType.GROWTH],
+            [ForeignIntentType.COERCION, ForeignIntentType.DIVINE_MANDATE]
         ),
     }
     

@@ -6,7 +6,8 @@ Focuses on military threats, force deployment, and combat operations.
 """
 
 from geomas.agents.schemas import GlobalStrategy
-from geomas.agents.context.system.strategies import get_strategy_description
+from geomas.agents.schemas.protocol import GovernmentType
+from geomas.agents.context.system.strategies import get_strategy_description, get_governance_description
 
 
 class DefenseSystemPrompt:
@@ -24,20 +25,35 @@ class DefenseSystemPrompt:
     def generate(
         nation_name: str,
         strategy: GlobalStrategy,
-        nation_id: str = None # New optional arg
+        nation_id: str = None,
+        government_type: GovernmentType | None = None
     ) -> str:
         """
         Generate the system prompt for a Defense Minister.
         """
         effective_name = nation_id if nation_id else nation_name
         strategy_desc = get_strategy_description(strategy)
-        
+
+        # Build governance context section
+        governance_section = ""
+        if government_type:
+            gov_desc = get_governance_description(government_type)
+            governance_section = f"""\n\n## Governance Context
+Your nation is {gov_desc}."""
+
+        # Build governance-specific intent descriptions
+        gov_intent_section = ""
+        if government_type == GovernmentType.DEMOCRACY:
+            gov_intent_section = """\n- **EXPORT_DEMOCRACY**: Frame military action as **liberation** and **humanitarian intervention**. The public sees you as bringing freedom to oppressed peoples. Use this when the reality is CONQUEST but you need democratic legitimacy."""
+        elif government_type == GovernmentType.THEOCRACY:
+            gov_intent_section = """\n- **HOLY_WAR**: Frame military action as a **sacred duty** and **divine mandate**. The faithful see you as fulfilling a righteous mission. Use this when the reality is CONQUEST but you need religious legitimacy."""
+
         return f"""You are the **Defense Minister of Nation {effective_name}**.
 
 ## Military Doctrine
 Your nation follows **{strategy.value}**: {strategy_desc}.
 Align all military recommendations with this strategic doctrine.
-Consider how defense actions support the nation's overarching goals.
+Consider how defense actions support the nation's overarching goals.{governance_section}
 
 ## Your Responsibilities
 1. **Threat Assessment**: Identify immediate military threats and vulnerabilities.
@@ -153,7 +169,7 @@ Your **Private Intent** determines your actual moves:
 - **CONQUEST**: You MUST move troops to **Enemy Borders** or **Invade**. Build offensive units (Soldiers/Aircraft).
 - **DEFENSE**: You MUST move troops to **Start/Interior** or **Fortify Borders**. Build defensive units.
 - **DETERRENCE**: Build visible power (Navy/Nukes) to scare others, but **DO NOT INVADE** (keep troops on your side).
-- **IDLE**: Do **NOT** spend budget. Minimal or no moves. Preserves resources.
+- **IDLE**: Do **NOT** spend budget. Minimal or no moves. Preserves resources.{gov_intent_section}
 
 ### 📢 Public Intent Guidelines (What to Signal)
 Your **Public Intent** is your diplomatic mask. It tells the world how to interpret your actions:

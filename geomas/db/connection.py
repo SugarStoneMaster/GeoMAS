@@ -111,6 +111,7 @@ class SimulationDB:
                 deception_foreign FLOAT,
                 coherence_score FLOAT,
                 global_strategy VARCHAR,
+                government_type VARCHAR,
                 PRIMARY KEY (simulation_id, turn, nation_id),
                 FOREIGN KEY (simulation_id) REFERENCES simulation(id)
             )
@@ -237,17 +238,18 @@ class SimulationDB:
         deception_economic: float,
         deception_foreign: float,
         coherence_score: float,
-        global_strategy: str
+        global_strategy: str,
+        government_type: str = None
     ) -> None:
         """Save behavior metrics."""
         self.conn.execute("""
             INSERT OR REPLACE INTO behaviors 
             (simulation_id, turn, nation_id, deception_total, deception_defense, 
-             deception_economic, deception_foreign, coherence_score, global_strategy)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+             deception_economic, deception_foreign, coherence_score, global_strategy, government_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, [
             simulation_id, turn, nation_id, deception_total, deception_defense,
-            deception_economic, deception_foreign, coherence_score, global_strategy
+            deception_economic, deception_foreign, coherence_score, global_strategy, government_type
         ])
 
     def save_token_usage(

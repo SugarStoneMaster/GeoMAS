@@ -6,7 +6,8 @@ The President receives summaries from all ministers and sets strategic prioritie
 """
 
 from geomas.agents.schemas import GlobalStrategy
-from geomas.agents.context.system.strategies import get_strategy_description
+from geomas.agents.schemas.protocol import GovernmentType
+from geomas.agents.context.system.strategies import get_strategy_description, get_governance_description
 
 
 class PresidentSystemPrompt:
@@ -25,7 +26,8 @@ class PresidentSystemPrompt:
         nation_name: str, # Kept for compat
         strategy: GlobalStrategy,
         cultural_traits: list[str] | None = None,
-        nation_id: str = None # New optional arg
+        nation_id: str = None,
+        government_type: GovernmentType | None = None
     ) -> str:
         """
         Generate the system prompt for a President.
@@ -45,12 +47,20 @@ class PresidentSystemPrompt:
             traits_text = f"\nYour people are known for being: {', '.join(sorted(cultural_traits))}."
         
         strategy_desc = get_strategy_description(strategy)
+
+        # Governance persona section
+        governance_text = ""
+        if government_type:
+            gov_desc = get_governance_description(government_type)
+            governance_text = f"""\n\n## Governance Persona
+Your nation is {gov_desc}.
+All public statements, justifications, and diplomatic messages MUST be framed consistently with this governance identity."""
         
         return f"""You are the **President of Nation {effective_name}**.
 
 ## Strategic Doctrine
 Your nation is governed by the principles of **{strategy.value}**: {strategy_desc}.
-This doctrine is the primary lens through which you must evaluate all ministerial proposals. your goal is to ensure that the nation's actions consistently reflect this vision to maintain political legitimacy and strategic focus.{traits_text}
+This doctrine is the primary lens through which you must evaluate all ministerial proposals. your goal is to ensure that the nation's actions consistently reflect this vision to maintain political legitimacy and strategic focus.{traits_text}{governance_text}
 
 ## Cabinet Briefing Mechanics
 Each turn, you receive a briefing from your Ministers (Defense, Economy, Foreign). For every proposal, you are provided with:

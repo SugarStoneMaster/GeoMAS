@@ -61,13 +61,15 @@ class OpinionAgent:
         nation_name: str,
         cultural_traits: List[str],
         llm_client: Optional['LLMClient'] = None,
-        world: Optional['WorldState'] = None
+        world: Optional['WorldState'] = None,
+        government_type = None
     ):
         self.nation_id = nation_id
         self.nation_name = nation_name
         self.cultural_traits = cultural_traits
         self.llm_client = llm_client
         self.world = world
+        self.government_type = government_type
         
         # Traces for analysis
         self.last_system_prompt: Optional[str] = None
@@ -75,7 +77,9 @@ class OpinionAgent:
         self.last_response: Optional[OpinionResponse] = None
         self.trace_history: dict = {} # turn -> trace
         # Eager Initialization
-        self.system_prompt = OpinionSystemPrompt.generate(nation_name, cultural_traits)
+        self.system_prompt = OpinionSystemPrompt.generate(
+            nation_name, cultural_traits, government_type=government_type
+        )
     
     def react(
         self,

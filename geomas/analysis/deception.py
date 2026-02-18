@@ -47,6 +47,34 @@ class DeceptionAnalyzer:
         (DefenseIntentType.IDLE, DefenseIntentType.CONQUEST): 0.8,  # Increased from 0.4 (Bluff)
         (DefenseIntentType.IDLE, DefenseIntentType.DEFENSE): 0.5,   # Increased from 0.2 (Fake Defense)
         (DefenseIntentType.IDLE, DefenseIntentType.DETERRENCE): 0.6, # Increased from 0.2 (Bluff)
+
+        # --- Governance-Specific: EXPORT_DEMOCRACY (Democracy only) ---
+        # Private is CONQUEST, public is EXPORT_DEMOCRACY → moral washing (liberation framing)
+        (DefenseIntentType.CONQUEST, DefenseIntentType.EXPORT_DEMOCRACY): 0.95,
+        (DefenseIntentType.DEFENSE, DefenseIntentType.EXPORT_DEMOCRACY): 0.3,
+        (DefenseIntentType.DETERRENCE, DefenseIntentType.EXPORT_DEMOCRACY): 0.4,
+        (DefenseIntentType.IDLE, DefenseIntentType.EXPORT_DEMOCRACY): 0.7,
+        (DefenseIntentType.EXPORT_DEMOCRACY, DefenseIntentType.EXPORT_DEMOCRACY): 0.0,
+        (DefenseIntentType.EXPORT_DEMOCRACY, DefenseIntentType.CONQUEST): 0.1,
+        (DefenseIntentType.EXPORT_DEMOCRACY, DefenseIntentType.DEFENSE): 0.2,
+        (DefenseIntentType.EXPORT_DEMOCRACY, DefenseIntentType.DETERRENCE): 0.2,
+        (DefenseIntentType.EXPORT_DEMOCRACY, DefenseIntentType.IDLE): 0.3,
+
+        # --- Governance-Specific: HOLY_WAR (Theocracy only) ---
+        # Private is CONQUEST, public is HOLY_WAR → moral washing (sacred duty framing)
+        (DefenseIntentType.CONQUEST, DefenseIntentType.HOLY_WAR): 0.95,
+        (DefenseIntentType.DEFENSE, DefenseIntentType.HOLY_WAR): 0.3,
+        (DefenseIntentType.DETERRENCE, DefenseIntentType.HOLY_WAR): 0.4,
+        (DefenseIntentType.IDLE, DefenseIntentType.HOLY_WAR): 0.7,
+        (DefenseIntentType.HOLY_WAR, DefenseIntentType.HOLY_WAR): 0.0,
+        (DefenseIntentType.HOLY_WAR, DefenseIntentType.CONQUEST): 0.1,
+        (DefenseIntentType.HOLY_WAR, DefenseIntentType.DEFENSE): 0.2,
+        (DefenseIntentType.HOLY_WAR, DefenseIntentType.DETERRENCE): 0.2,
+        (DefenseIntentType.HOLY_WAR, DefenseIntentType.IDLE): 0.3,
+
+        # Cross-governance (EXPORT_DEMOCRACY vs HOLY_WAR and vice versa)
+        (DefenseIntentType.EXPORT_DEMOCRACY, DefenseIntentType.HOLY_WAR): 0.5,
+        (DefenseIntentType.HOLY_WAR, DefenseIntentType.EXPORT_DEMOCRACY): 0.5,
     }
     
     # --- ECONOMIC DOMAIN DECEPTION MATRIX ---
@@ -96,11 +124,39 @@ class DeceptionAnalyzer:
         (ForeignIntentType.APPEASEMENT, ForeignIntentType.COERCION): 0.5, # Bluffing Strength
         (ForeignIntentType.APPEASEMENT, ForeignIntentType.IDLE): 0.2,
         
-        # Private is IDLE (Neutral/Isolationist)
+        # Private is IDLE
         (ForeignIntentType.IDLE, ForeignIntentType.IDLE): 0.0,
         (ForeignIntentType.IDLE, ForeignIntentType.COOPERATION): 0.5, # False Promise (was 0.2)
         (ForeignIntentType.IDLE, ForeignIntentType.COERCION): 0.3,
         (ForeignIntentType.IDLE, ForeignIntentType.APPEASEMENT): 0.1,
+
+        # --- Governance-Specific: EXPORT_DEMOCRACY (Democracy only) ---
+        # Private is COERCION, public is EXPORT_DEMOCRACY → moral washing (freedom framing)
+        (ForeignIntentType.COERCION, ForeignIntentType.EXPORT_DEMOCRACY): 0.90,
+        (ForeignIntentType.COOPERATION, ForeignIntentType.EXPORT_DEMOCRACY): 0.1,
+        (ForeignIntentType.APPEASEMENT, ForeignIntentType.EXPORT_DEMOCRACY): 0.4,
+        (ForeignIntentType.IDLE, ForeignIntentType.EXPORT_DEMOCRACY): 0.6,
+        (ForeignIntentType.EXPORT_DEMOCRACY, ForeignIntentType.EXPORT_DEMOCRACY): 0.0,
+        (ForeignIntentType.EXPORT_DEMOCRACY, ForeignIntentType.COOPERATION): 0.1,
+        (ForeignIntentType.EXPORT_DEMOCRACY, ForeignIntentType.COERCION): 0.3,
+        (ForeignIntentType.EXPORT_DEMOCRACY, ForeignIntentType.APPEASEMENT): 0.2,
+        (ForeignIntentType.EXPORT_DEMOCRACY, ForeignIntentType.IDLE): 0.2,
+
+        # --- Governance-Specific: DIVINE_MANDATE (Theocracy only) ---
+        # Private is COERCION, public is DIVINE_MANDATE → moral washing (sacred duty framing)
+        (ForeignIntentType.COERCION, ForeignIntentType.DIVINE_MANDATE): 0.90,
+        (ForeignIntentType.COOPERATION, ForeignIntentType.DIVINE_MANDATE): 0.1,
+        (ForeignIntentType.APPEASEMENT, ForeignIntentType.DIVINE_MANDATE): 0.4,
+        (ForeignIntentType.IDLE, ForeignIntentType.DIVINE_MANDATE): 0.6,
+        (ForeignIntentType.DIVINE_MANDATE, ForeignIntentType.DIVINE_MANDATE): 0.0,
+        (ForeignIntentType.DIVINE_MANDATE, ForeignIntentType.COOPERATION): 0.1,
+        (ForeignIntentType.DIVINE_MANDATE, ForeignIntentType.COERCION): 0.3,
+        (ForeignIntentType.DIVINE_MANDATE, ForeignIntentType.APPEASEMENT): 0.2,
+        (ForeignIntentType.DIVINE_MANDATE, ForeignIntentType.IDLE): 0.2,
+
+        # Cross-governance
+        (ForeignIntentType.EXPORT_DEMOCRACY, ForeignIntentType.DIVINE_MANDATE): 0.5,
+        (ForeignIntentType.DIVINE_MANDATE, ForeignIntentType.EXPORT_DEMOCRACY): 0.5,
     }
 
     @classmethod

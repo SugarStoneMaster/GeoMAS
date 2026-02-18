@@ -90,6 +90,7 @@ class NationState(BaseModel):
     population_multiplier_increase: float = 1.0  # Applied when satisfaction goes up
     population_multiplier_decrease: float = 1.0  # Applied when satisfaction goes down
     cultural_traits: List[str] = Field(default_factory=list)  # Seed-generated traits
+    government_type: Optional[str] = None  # GovernmentType: DEMOCRACY, AUTHORITARIAN, THEOCRACY
     civil_unrest_active: bool = False  # True when satisfaction < 10, ends at > 50
     
     # --- BUDGET (National Treasury) ---

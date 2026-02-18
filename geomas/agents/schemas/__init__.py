@@ -20,6 +20,7 @@ and the ActionEngine. It contains:
 
 from geomas.agents.schemas.protocol import (
     GlobalStrategy,
+    GovernmentType,
     DefenseIntentType,
     EconomicIntentType,
     ForeignIntentType,
@@ -47,6 +48,7 @@ from geomas.actions.foreign import ForeignPayload
 
 __all__ = [
     "GlobalStrategy",
+    "GovernmentType",
     "DefenseIntentType",
     "EconomicIntentType",
     "ForeignIntentType",

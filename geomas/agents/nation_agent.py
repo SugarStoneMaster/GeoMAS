@@ -12,7 +12,7 @@ from geomas.agents.schemas import (
     PresidentialDecree, Decision, PresidentialDecision,
     DefenseProposal, EconomicProposal, ForeignProposal,
     DefenseIntentType, EconomicIntentType, ForeignIntentType,
-    DefenseIntent, EconomicIntent, ForeignIntent
+    DefenseIntent, EconomicIntent, ForeignIntent, GovernmentType
 )
 from geomas.actions.common import Decision
 from geomas.actions.defense import DefensePayload
@@ -40,13 +40,15 @@ class NationAgent:
         world: WorldState, 
         llm_client: LLMClient,
         global_strategy: GlobalStrategy = GlobalStrategy.COALITION_BUILDER,
-        context_manager: Optional[ContextManager] = None
+        context_manager: Optional[ContextManager] = None,
+        government_type: Optional[GovernmentType] = None
     ):
         self.id = nation_id
         self.world = world
         self.client = llm_client
         self.strategy = global_strategy 
         self.context_manager = context_manager
+        self.government_type = government_type
         
         # System Prompt Caching (Eager Init)
         self.last_strategy: Optional[GlobalStrategy] = global_strategy
@@ -54,13 +56,14 @@ class NationAgent:
             nation_name=world.nations[nation_id].name,
             strategy=global_strategy,
             cultural_traits=getattr(world.nations[nation_id], 'cultural_traits', None),
-            nation_id=self.id
+            nation_id=self.id,
+            government_type=government_type
         )
         
-        # Initialize Cabinet (pass context_manager and strategy for eager init)
-        self.defense_minister = DefenseMinister(nation_id, world, llm_client, context_manager, strategy=global_strategy)
-        self.economy_minister = EconomicMinister(nation_id, world, llm_client, context_manager, strategy=global_strategy)
-        self.foreign_minister = ForeignMinister(nation_id, world, llm_client, context_manager, strategy=global_strategy)
+        # Initialize Cabinet (pass context_manager, strategy, and government_type)
+        self.defense_minister = DefenseMinister(nation_id, world, llm_client, context_manager, strategy=global_strategy, government_type=government_type)
+        self.economy_minister = EconomicMinister(nation_id, world, llm_client, context_manager, strategy=global_strategy, government_type=government_type)
+        self.foreign_minister = ForeignMinister(nation_id, world, llm_client, context_manager, strategy=global_strategy, government_type=government_type)
         
         self.memory: List[str] = []
         
@@ -349,6 +352,7 @@ class NationAgent:
             turn=turn,
             sender_id=self.id,
             global_strategy=self.strategy, 
+            government_type=self.government_type.value if self.government_type else None,
             public_statement=decree.public_statement,
             
             defense_payload=def_payload,

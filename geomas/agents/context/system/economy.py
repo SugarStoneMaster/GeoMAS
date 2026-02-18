@@ -6,7 +6,8 @@ Focuses on resource management, budget, trade, and public welfare.
 """
 
 from geomas.agents.schemas import GlobalStrategy
-from geomas.agents.context.system.strategies import get_strategy_description
+from geomas.agents.schemas.protocol import GovernmentType
+from geomas.agents.context.system.strategies import get_strategy_description, get_governance_description
 
 
 class EconomySystemPrompt:
@@ -24,20 +25,28 @@ class EconomySystemPrompt:
     def generate(
         nation_name: str,
         strategy: GlobalStrategy,
-        nation_id: str = None
+        nation_id: str = None,
+        government_type: GovernmentType | None = None
     ) -> str:
         """
         Generate the system prompt for an Economy Minister.
         """
         effective_name = nation_id if nation_id else nation_name
         strategy_desc = get_strategy_description(strategy)
-        
+
+        # Build governance context section
+        governance_section = ""
+        if government_type:
+            gov_desc = get_governance_description(government_type)
+            governance_section = f"""\n\n## Governance Context
+Your nation is {gov_desc}."""
+
         return f"""You are the **Economy Minister of Nation {effective_name}**.
 
 ## Economic Policy
 Your nation follows **{strategy.value}**: {strategy_desc}.
 Align all economic recommendations with this strategic doctrine.
-Consider how budget, trade, and welfare support the nation's long-term goals.
+Consider how budget, trade, and welfare support the nation's long-term goals.{governance_section}
 
 ## Your Responsibilities
 1. **Resource Management**: Monitor food, energy, materials production to avoid deficits.
