@@ -236,14 +236,12 @@ class SimulationEngine:
             coherence = CoherenceAnalyzer.calculate_score(
                 envelope.global_strategy,
                 envelope.defense_private_intent,
-                envelope.economic_private_intent,
                 envelope.foreign_private_intent
             )
             
             behaviors[envelope.sender_id] = {
                 "deception_total": detailed["total"],
                 "deception_defense": detailed["defense"],
-                "deception_economic": detailed["economic"],
                 "deception_foreign": detailed["foreign"],
                 "coherence_score": coherence,
                 "global_strategy": envelope.global_strategy.value,
@@ -268,14 +266,13 @@ class SimulationEngine:
             coherence = CoherenceAnalyzer.calculate_score(
                 envelope.global_strategy,
                 envelope.defense_private_intent,
-                envelope.economic_private_intent,
                 envelope.foreign_private_intent
             )
             self.db.save_behavior(
                 simulation_id=self.simulation_id,
                 turn=turn, nation_id=envelope.sender_id,
                 deception_total=detailed["total"], deception_defense=detailed["defense"],
-                deception_economic=detailed["economic"], deception_foreign=detailed["foreign"],
+                deception_foreign=detailed["foreign"],
                 coherence_score=coherence, global_strategy=envelope.global_strategy.value,
                 government_type=envelope.government_type
             )

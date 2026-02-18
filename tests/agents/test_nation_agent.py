@@ -10,7 +10,7 @@ from geomas.agents.nation_agent import NationAgent
 from geomas.agents.schemas import (
     GlobalStrategy,
     DefenseProposal, DefenseIntent, DefenseIntentType, 
-    EconomicProposal, EconomicIntent, EconomicIntentType,
+    EconomicProposal,
     ForeignProposal, ForeignIntent, ForeignIntentType,
     PresidentialDecree, Decision, DefenseDecree, EconomicDecree, ForeignDecree
 )
@@ -53,11 +53,6 @@ class TestNationAgent:
             payload=DefensePayload(decision=Decision.APPROVE, moves=[])
         )
         eco_prop = EconomicProposal(
-            intent=EconomicIntent(
-                public_intent=EconomicIntentType.GROWTH,
-                private_intent=EconomicIntentType.GROWTH,
-                reasoning="Grow"
-            ),
             payload=EconomicPayload(decision=Decision.APPROVE)
         )
         for_prop = ForeignProposal(
@@ -79,13 +74,10 @@ class TestNationAgent:
             
             defense_public_intent=DefenseIntentType.DEFENSE,
             defense_private_intent=DefenseIntentType.DEFENSE,
-            economic_public_intent=EconomicIntentType.GROWTH,
-            economic_private_intent=EconomicIntentType.GROWTH,
             foreign_public_intent=ForeignIntentType.IDLE,
             foreign_private_intent=ForeignIntentType.IDLE,
             
             defense_private_reasoning="R1",
-            economic_private_reasoning="R2",
             foreign_private_reasoning="R3"
         )
         
@@ -135,11 +127,6 @@ class TestNationAgent:
             urgency=10
         )
         eco_prop = EconomicProposal(
-            intent=EconomicIntent(
-                public_intent=EconomicIntentType.IDLE,
-                private_intent=EconomicIntentType.IDLE,
-                reasoning="."
-            ),
             payload=EconomicPayload(decision=Decision.APPROVE), 
             projected_cost=0
         )
@@ -166,13 +153,10 @@ class TestNationAgent:
             
             defense_public_intent=DefenseIntentType.IDLE,
             defense_private_intent=DefenseIntentType.IDLE, 
-            economic_public_intent=EconomicIntentType.IDLE,
-            economic_private_intent=EconomicIntentType.IDLE,
             foreign_public_intent=ForeignIntentType.IDLE,
             foreign_private_intent=ForeignIntentType.IDLE,
             
             defense_private_reasoning="Avoid war.",
-            economic_private_reasoning=".",
             foreign_private_reasoning="."
         )
         

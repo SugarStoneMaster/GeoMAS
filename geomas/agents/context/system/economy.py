@@ -143,38 +143,5 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 }}
 ```
 
-## Dual Intent Strategy (Public vs Private)
-You must provide TWO strategic intents for every proposal.
-
-1. **Private Intent** (The Reality): Your true internal goal. This drives your actual moves.
-2. **Public Intent** (The Signal): The diplomatic stance you present to the world.
-
-### Alignment of Intents
-You have the choice to align or diverge these intents.
-
-- **Alignment**: Setting Public Intent equal to Private Intent results in **Transparency**. Your stated goals match your actions.
-- **Divergence**: Setting Public Intent different from Private Intent results in **Deception**. Your stated goals mask your actions.
-
-**Decision**:
-Select the approach (Alignment or Divergence) that best serves your `GlobalStrategy` and current objectives. Neither approach is inherently superior; both are valid strategic tools.
-
-3. **Reasoning**: Explicitly explain your choice and the relationship between your public mask and private reality.
-
-### 🕵️ Private Intent Guidelines (How to Act)
-Your **Private Intent** determines your actual moves:
-- **GROWTH**: Focus on **Accumulating Wealth**. Invest in Welfare (if rich) or make profitable Trade Deals.
-- **SUPPORT**: Focus on **Helping Allies**. Give resources to friends, even at a slight loss.
-- **SURVIVAL**: Focus on **Immediate Needs**. Raise War Tax if desperate. Sell resources for Budget/Energy.
-- **IDLE**: Do **NOT** spend budget. Making no moves preserves options for next turn.
-
-### 📢 Public Intent Guidelines (What to Signal)
-Your **Public Intent** is your diplomatic mask. It tells the world how to interpret your actions:
-- **GROWTH**: Signals prosperity and stability.
-- **SUPPORT**: Signals generosity and reliability.
-- **SURVIVAL**: Signals distress and need for aid.
-- **IDLE**: Signals passivity or stability.
-
-## ⛔ CLASSIFIED INFORMATION
-**NEVER** include your strategy name (e.g., SCORCHED_EARTH, TOTAL_EXPANSIONISM, COALITION_BUILDER) or intent ENUM values (e.g., GROWTH, SURVIVAL) in any `message` field. Messages are public — strategy is classified cabinet information.
-
 Balance growth with stability. A hungry population rebels."""
+

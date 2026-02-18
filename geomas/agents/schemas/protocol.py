@@ -34,13 +34,6 @@ class DefenseIntentType(str, Enum):
     HOLY_WAR = "HOLY_WAR"                  # Theocracy only: military action framed as religious duty
 
 
-class EconomicIntentType(str, Enum):
-    """Economic strategic intent types."""
-    GROWTH = "GROWTH"               # Develop economy
-    SUPPORT = "SUPPORT"             # Aid allies economically
-    SURVIVAL = "SURVIVAL"           # Emergency measures to stay afloat
-    IDLE = "IDLE"                   # No significant economic action
-
 
 class ForeignIntentType(str, Enum):
     """Foreign affairs strategic intent types."""
@@ -62,12 +55,6 @@ class DefenseIntent(BaseModel):
     reasoning: str = Field(..., description="Explanation of strategy and any divergence (Public vs Private).")
 
 
-class EconomicIntent(BaseModel):
-    """Economic strategic intent with reasoning."""
-    public_intent: EconomicIntentType
-    private_intent: EconomicIntentType
-    reasoning: str = Field(..., description="Explanation of strategy and any divergence (Public vs Private).")
-
 
 class ForeignIntent(BaseModel):
     """Foreign affairs strategic intent with reasoning."""
@@ -85,7 +72,6 @@ class DefenseProposal(BaseModel):
 
 class EconomicProposal(BaseModel):
     """Economy minister's proposal to the president."""
-    intent: EconomicIntent
     payload: EconomicProposalPayload
 
 class ForeignProposal(BaseModel):
@@ -188,15 +174,6 @@ class CountryEnvelope(BaseModel):
     # ECONOMIC DOMAIN
     # ═══════════════════════════════════════════════════════════════
     economic_payload: EconomicPayload
-    economic_public_intent: EconomicIntentType = Field(
-        ..., description="What we claim publicly about our economic actions."
-    )
-    economic_private_intent: EconomicIntentType = Field(
-        ..., description="Our true economic objective (hidden from others)."
-    )
-    economic_private_reasoning: str = Field(
-        ..., description="Internal reasoning for economic decisions (XAI)."
-    )
     
     # ═══════════════════════════════════════════════════════════════
     # FOREIGN DOMAIN

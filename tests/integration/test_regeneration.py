@@ -7,10 +7,10 @@ from geomas.simulation.engine import SimulationEngine
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, 
-    DefenseIntentType, EconomicIntentType, ForeignIntentType,
+    DefenseIntentType, ForeignIntentType,
     DefensePayload, EconomicPayload, ForeignPayload,
     DefenseProposal, EconomicProposal, ForeignProposal,
-    DefenseIntent, EconomicIntent, ForeignIntent
+    DefenseIntent, ForeignIntent
 )
 
 @pytest.fixture
@@ -26,9 +26,6 @@ def mock_act_response():
             defense_private_intent=DefenseIntentType.DETERRENCE,
             defense_private_reasoning="Defense reasoning",
             economic_payload=EconomicPayload(),
-            economic_public_intent=EconomicIntentType.GROWTH,
-            economic_private_intent=EconomicIntentType.GROWTH,
-            economic_private_reasoning="Economic reasoning",
             foreign_payload=ForeignPayload(),
             foreign_public_intent=ForeignIntentType.COOPERATION,
             foreign_private_intent=ForeignIntentType.COOPERATION,
@@ -58,11 +55,6 @@ def mock_act_response():
                 payload=DefensePayload(moves=[])
             ),
             original_economic_proposal=EconomicProposal(
-                intent=EconomicIntent(
-                    public_intent=EconomicIntentType.GROWTH,
-                    private_intent=EconomicIntentType.GROWTH,
-                    reasoning="Minister reasoning"
-                ),
                 payload=EconomicPayload()
             ),
             original_foreign_proposal=ForeignProposal(

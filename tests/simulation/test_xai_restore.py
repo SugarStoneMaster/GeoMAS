@@ -8,9 +8,9 @@ from geomas.agents.llm_client import LLMClient
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, PresidentialDecision,
     DefensePayload, EconomicPayload, ForeignPayload,
-    DefenseIntentType, EconomicIntentType, ForeignIntentType,
+    DefenseIntentType, ForeignIntentType,
     DefenseProposal, EconomicProposal, ForeignProposal,
-    DefenseIntent, EconomicIntent, ForeignIntent
+    DefenseIntent, ForeignIntent
 )
 from geomas.actions.defense.schemas import DefenseProposalPayload
 from geomas.actions.economy.schemas import EconomicProposalPayload, EconomicActionType
@@ -46,9 +46,6 @@ def test_history_restoration_minimal(temp_db):
         defense_private_intent=DefenseIntentType.IDLE,
         defense_private_reasoning="None",
         economic_payload=EconomicPayload(decision=Decision.APPROVE, action_type=None),
-        economic_public_intent=EconomicIntentType.IDLE,
-        economic_private_intent=EconomicIntentType.IDLE,
-        economic_private_reasoning="None",
         foreign_payload=ForeignPayload(decision=Decision.APPROVE, action_type=None),
         foreign_public_intent=ForeignIntentType.IDLE,
         foreign_private_intent=ForeignIntentType.IDLE,
@@ -125,7 +122,6 @@ def test_action_injection_parsing():
                 payload=DefenseProposalPayload(moves=[])
             ),
             EconomicProposal(
-                intent=EconomicIntent(public_intent=EconomicIntentType.IDLE, private_intent=EconomicIntentType.IDLE, reasoning="mock"),
                 payload=EconomicProposalPayload(action_type=EconomicActionType.IDLE)
             ),
             ForeignProposal(

@@ -78,9 +78,6 @@ def test_feedback_loop():
         defense_public_intent=None,
         defense_private_intent=None,
         defense_private_reasoning="N/A",
-        economic_public_intent=None,
-        economic_private_intent=None,
-        economic_private_reasoning="N/A",
         foreign_public_intent=None,
         foreign_private_intent=None,
         foreign_private_reasoning="N/A"

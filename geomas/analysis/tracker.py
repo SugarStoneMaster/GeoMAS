@@ -10,7 +10,6 @@ from geomas.agents.schemas import (
     CountryEnvelope, 
     GlobalStrategy,
     DefenseIntentType, 
-    EconomicIntentType, 
     ForeignIntentType
 )
 from geomas.analysis.deception import DeceptionAnalyzer
@@ -23,17 +22,14 @@ class BehaviorRecord:
     turn: int
     nation_id: str
     
-    # Intents
+    # Intents (defense and foreign only — economic intents removed, no moral washing signal)
     defense_public: DefenseIntentType
     defense_private: DefenseIntentType
-    economic_public: EconomicIntentType
-    economic_private: EconomicIntentType
     foreign_public: ForeignIntentType
     foreign_private: ForeignIntentType
     
-    # Deception scores
+    # Deception scores (defense + foreign only)
     defense_deception: float
-    economic_deception: float
     foreign_deception: float
     total_deception: float
     
@@ -64,14 +60,13 @@ class BehaviorTracker:
         
         Returns the created BehaviorRecord.
         """
-        # Calculate deception scores
+        # Calculate deception scores (defense + foreign only)
         detailed = DeceptionAnalyzer.calculate_detailed_score(envelope)
         
-        # Calculate coherence score
+        # Calculate coherence score (defense + foreign only)
         coherence = CoherenceAnalyzer.calculate_score(
             envelope.global_strategy,
             envelope.defense_private_intent,
-            envelope.economic_private_intent,
             envelope.foreign_private_intent
         )
         
@@ -80,12 +75,9 @@ class BehaviorTracker:
             nation_id=envelope.sender_id,
             defense_public=envelope.defense_public_intent,
             defense_private=envelope.defense_private_intent,
-            economic_public=envelope.economic_public_intent,
-            economic_private=envelope.economic_private_intent,
             foreign_public=envelope.foreign_public_intent,
             foreign_private=envelope.foreign_private_intent,
             defense_deception=detailed["defense"],
-            economic_deception=detailed["economic"],
             foreign_deception=detailed["foreign"],
             total_deception=detailed["total"],
             global_strategy=envelope.global_strategy,
@@ -116,12 +108,11 @@ class BehaviorTracker:
         """Calculate average scores for a nation."""
         history = self.get_nation_history(nation_id)
         if not history:
-            return {"defense": 0.0, "economic": 0.0, "foreign": 0.0, "total": 0.0, "coherence": 0.0}
+            return {"defense": 0.0, "foreign": 0.0, "total": 0.0, "coherence": 0.0}
         
         n = len(history)
         return {
             "defense": sum(r.defense_deception for r in history) / n,
-            "economic": sum(r.economic_deception for r in history) / n,
             "foreign": sum(r.foreign_deception for r in history) / n,
             "total": sum(r.total_deception for r in history) / n,
             "coherence": sum(r.coherence_score for r in history) / n,

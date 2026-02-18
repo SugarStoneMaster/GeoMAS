@@ -2,7 +2,7 @@ import pytest
 from geomas.schemas.world import WorldState, NationState
 from geomas.actions.engine import ActionEngine
 from geomas.actions.foreign.schemas import ForeignActionType, ForeignPayload, TreatyTier
-from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, EconomicIntentType, ForeignIntentType, DefenseIntentType
+from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, ForeignIntentType, DefenseIntentType
 from geomas.actions.defense.schemas import DefensePayload
 from geomas.actions.economy.schemas import EconomicPayload
 
@@ -39,9 +39,6 @@ def test_low_trust_alliance_allowed():
         defense_private_intent=DefenseIntentType.IDLE,
         defense_private_reasoning="Test",
         economic_payload=EconomicPayload(),
-        economic_public_intent=EconomicIntentType.GROWTH,
-        economic_private_intent=EconomicIntentType.GROWTH,
-        economic_private_reasoning="Test"
     )
     
     # Execute

@@ -11,7 +11,7 @@ from geomas.agents.llm_client import LLMClient
 from geomas.agents.schemas.protocol import (
     DefenseProposal, EconomicProposal, ForeignProposal, PresidentialDecree,
     DefenseIntent, DefenseIntentType, DefensePayload,
-    EconomicIntent, EconomicIntentType,
+   
     ForeignIntent, ForeignIntentType,
     DefenseDecree, EconomicDecree, ForeignDecree
 )
@@ -67,11 +67,6 @@ class TestTokenObservability(unittest.TestCase):
                 )
             elif "EconomicProposal" in str(response_model):
                 res = EconomicProposal(
-                    intent=EconomicIntent(
-                        public_intent=EconomicIntentType.GROWTH,
-                        private_intent=EconomicIntentType.GROWTH,
-                        reasoning="mock"
-                    ),
                     payload=EconomicPayload(decision=Decision.APPROVE),
                     projected_cost=0.0
                 )

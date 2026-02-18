@@ -5,14 +5,15 @@ The Cognitive Entity representing a Nation.
 Orchestrates the Cabinet (Ministers) and the President.
 """
 import asyncio
-from typing import List, Optional
+from typing import List, Optional, Any
 from geomas.schemas.world import WorldState, NationState 
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, CabinetBriefing, 
     PresidentialDecree, Decision, PresidentialDecision,
     DefenseProposal, EconomicProposal, ForeignProposal,
-    DefenseIntentType, EconomicIntentType, ForeignIntentType,
-    DefenseIntent, EconomicIntent, ForeignIntent, GovernmentType
+    DefenseIntentType, ForeignIntentType,
+    DefenseIntent, ForeignIntent,
+    GovernmentType
 )
 from geomas.actions.common import Decision
 from geomas.actions.defense import DefensePayload
@@ -202,11 +203,6 @@ class NationAgent:
         except Exception as e:
             print(f"[WARN] Economy minister failed for {self.id}: {repr(e)}")
             return EconomicProposal(
-                intent=EconomicIntent(
-                    public_intent=EconomicIntentType.IDLE,
-                    private_intent=EconomicIntentType.IDLE,
-                    reasoning=f"Minister failure: {str(e)[:100]}"
-                ),
                 payload=EconomicProposalPayload(action_type=EconomicActionType.IDLE),
                 projected_cost=0.0
             )
@@ -267,11 +263,21 @@ class NationAgent:
         )
         
         # Call LLM expecting PresidentialDecree
-        decree = self.client.query_agent(
-            system_prompt, 
-            user_prompt, 
-            PresidentialDecree
-        )
+        try:
+            decree = self.client.query_agent(
+                system_prompt, 
+                user_prompt, 
+                PresidentialDecree
+            )
+        except Exception as e:
+            print(f"[ERROR] President of {self.id} failed: {repr(e)}")
+            # Safe fallback Decree
+            decree = PresidentialDecree(
+                defense=DefenseDecree(action=PresidentialDecision.VETO, reasoning="Cabinet failure"),
+                economy=EconomicDecree(action=PresidentialDecision.VETO, reasoning="Cabinet failure"),
+                foreign=ForeignDecree(action=PresidentialDecision.VETO, reasoning="Cabinet failure"),
+                public_statement="No action taken."
+            )
         
         self.last_president_trace = {
             "system_prompt": system_prompt,
@@ -281,6 +287,12 @@ class NationAgent:
         }
         
         return decree
+
+    def _get_value(self, obj: Any) -> str:
+        """Safely get value from Enum or string."""
+        if obj is None: return ""
+        if hasattr(obj, 'value'): return str(obj.value)
+        return str(obj)
 
     def _construct_envelope_from_decree(self, turn: int, decree: PresidentialDecree, briefing: CabinetBriefing) -> CountryEnvelope:
         """Apply Veto/Approve logic to build final envelope."""
@@ -316,14 +328,8 @@ class NationAgent:
                 give_amount=prop_payload.give_amount,
                 want_type=prop_payload.want_type
             )
-            eco_pub_intent = briefing.economy.intent.public_intent
-            eco_priv_intent = briefing.economy.intent.private_intent
-            eco_reasoning = f"{briefing.economy.intent.reasoning} [President: {decree.economy.reasoning}]"
         else: # VETO -> No action
             eco_payload = EconomicPayload(decision=Decision.VETO, action_type=None)
-            eco_pub_intent = EconomicIntentType.IDLE
-            eco_priv_intent = EconomicIntentType.IDLE
-            eco_reasoning = f"VETOED: {decree.economy.reasoning}"
 
         # --- FOREIGN ---
         if decree.foreign.action == PresidentialDecision.APPROVE:
@@ -352,7 +358,7 @@ class NationAgent:
             turn=turn,
             sender_id=self.id,
             global_strategy=self.strategy, 
-            government_type=self.government_type.value if self.government_type else None,
+            government_type=self._get_value(self.government_type),
             public_statement=decree.public_statement,
             
             defense_payload=def_payload,
@@ -361,9 +367,6 @@ class NationAgent:
             defense_private_reasoning=def_reasoning,
             
             economic_payload=eco_payload,
-            economic_public_intent=eco_pub_intent,
-            economic_private_intent=eco_priv_intent,
-            economic_private_reasoning=eco_reasoning,
             
             foreign_payload=for_payload,
             foreign_public_intent=for_pub_intent,
@@ -399,7 +402,7 @@ class NationAgent:
         """Format defense proposal for President."""
         intent = proposal.intent
         payload = proposal.payload
-        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Actions:**"
+        summary = f"**Public Intent:** {self._get_value(intent.public_intent)}\n**Private Intent:** {self._get_value(intent.private_intent)}\n**Reasoning:** {intent.reasoning}\n**Actions:**"
         
         # Count action types from the generic 'moves' list
         move_count = 0
@@ -427,10 +430,9 @@ class NationAgent:
         return summary + " " + ", ".join(actions)
 
     def _summarize_economy(self, proposal: EconomicProposal) -> str:
-        """Format economic proposal for President."""
-        intent = proposal.intent
+        """Format economic proposal for President (no intent fields)."""
         payload = proposal.payload
-        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n**Action:**"
+        summary = "**Action:**"
         
         if payload.action_type:
             # Build details from explicit fields
@@ -442,14 +444,14 @@ class NationAgent:
             if payload.want_type:
                 details_parts.append(f"want={payload.want_type}")
             details = " ".join(details_parts)
-            return f"{summary} {payload.action_type.value} {details}"
+            return f"{summary} {self._get_value(payload.action_type)} {details}"
         return f"{summary} None"
 
     def _summarize_foreign(self, proposal: ForeignProposal) -> str:
         """Format foreign proposal for President."""
         intent = proposal.intent
         payload = proposal.payload
-        summary = f"**Public Intent:** {intent.public_intent.value}\n**Private Intent:** {intent.private_intent.value}\n**Reasoning:** {intent.reasoning}\n"
+        summary = f"**Public Intent:** {self._get_value(intent.public_intent)}\n**Private Intent:** {self._get_value(intent.private_intent)}\n**Reasoning:** {intent.reasoning}\n"
         
         parts = []
         
@@ -465,9 +467,9 @@ class NationAgent:
             target = f" (Target: {payload.target_nation_id})" if payload.target_nation_id else ""
             details_parts = []
             if payload.diplomatic_message_type:
-                details_parts.append(f"msg_type={payload.diplomatic_message_type.value}")
+                details_parts.append(f"msg_type={self._get_value(payload.diplomatic_message_type)}")
             details = " ".join(details_parts)
-            parts.append(f"**Agenda:** {payload.action_type.value}{target} {details}")
+            parts.append(f"**Agenda:** {self._get_value(payload.action_type)}{target} {details}")
         else:
             parts.append("**Agenda:** None")
             

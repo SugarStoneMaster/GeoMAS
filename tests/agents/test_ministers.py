@@ -15,10 +15,10 @@ from geomas.agents.schemas import (
     EconomicProposal, 
     ForeignProposal,
     DefenseIntent,
-    EconomicIntent,
+   
     ForeignIntent,
     DefenseIntentType,
-    EconomicIntentType,
+    
     ForeignIntentType,
     DefensePayload,
     EconomicPayload,
@@ -128,11 +128,6 @@ class TestEconomicMinister(TestMinisterBase):
         
         # Mock response
         mock_response = EconomicProposal(
-            intent=EconomicIntent(
-                public_intent=EconomicIntentType.GROWTH,
-                private_intent=EconomicIntentType.GROWTH,
-                reasoning="Test reasoning"
-            ),
             payload=EconomicPayload(
                 decision=Decision.APPROVE,
                 action_type=EconomicActionType.INVEST_WELFARE,
@@ -168,11 +163,6 @@ class TestEconomicMinister(TestMinisterBase):
         
         # Mock response
         client.query_agent.return_value = EconomicProposal(
-            intent=EconomicIntent(
-                public_intent=EconomicIntentType.IDLE,
-                private_intent=EconomicIntentType.IDLE,
-                reasoning="Test"
-            ),
             payload=EconomicPayload(decision=Decision.APPROVE, action_type=None),
             projected_cost=0.0
         )

@@ -626,7 +626,7 @@ class ContextManager:
                 self.nation_actions[nation_id].append(MyAction(
                     turn=turn, domain="President", action_type="DECISION_ECONOMY",
                     action_summary=summary, outcome=status,
-                    reasoning=envelope.economic_private_reasoning
+                    reasoning=None  # Economic intent removed, no private reasoning
                 ))
 
             # 3. Foreign Decision

@@ -9,7 +9,7 @@ from geomas.agents.context.events import ContextManager
 from geomas.simulation.phases import run_opinion_phase
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, 
-    EconomicIntentType, ForeignIntentType, DefenseIntentType
+    ForeignIntentType, DefenseIntentType
 )
 
 @pytest.fixture
@@ -27,9 +27,6 @@ def create_valid_envelope(nation_id, turn, economic_payload):
         public_statement="Test statement",
         # Economy
         economic_payload=economic_payload,
-        economic_public_intent=EconomicIntentType.GROWTH,
-        economic_private_intent=EconomicIntentType.GROWTH,
-        economic_private_reasoning="Test reasoning",
         # Defense (Defaults)
         defense_payload=DefensePayload(),
         defense_public_intent=DefenseIntentType.IDLE,

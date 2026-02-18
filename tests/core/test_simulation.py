@@ -17,7 +17,7 @@ from geomas.agents.llm_client import LLMClient
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, 
     DefenseIntent, DefenseIntentType,
-    EconomicIntent, EconomicIntentType,
+   
     ForeignIntent, ForeignIntentType,
     DefenseProposal, EconomicProposal, ForeignProposal
 )
@@ -43,11 +43,6 @@ class SimMockLLM(LLMClient):
             )
         elif response_model == EconomicProposal:
             return EconomicProposal(
-                intent=EconomicIntent(
-                    public_intent=EconomicIntentType.GROWTH,
-                    private_intent=EconomicIntentType.GROWTH,
-                    reasoning="Grow"
-                ),
                 payload=EconomicPayload(decision=Decision.APPROVE, action_type=EconomicActionType.INVEST_WELFARE)
             )
         elif response_model == ForeignProposal:
@@ -76,9 +71,6 @@ class SimMockLLM(LLMClient):
                     action_type=EconomicActionType.INVEST_WELFARE,
                     amount=10.0
                 ),
-                economic_public_intent=EconomicIntentType.GROWTH,
-                economic_private_intent=EconomicIntentType.GROWTH,
-                economic_private_reasoning="Welfare investment.",
                 # Foreign
                 foreign_payload=ForeignPayload(decision=Decision.APPROVE),
                 foreign_public_intent=ForeignIntentType.COOPERATION,

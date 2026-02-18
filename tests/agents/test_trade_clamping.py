@@ -4,7 +4,7 @@ from geomas.agents.nation_agent import NationAgent
 from geomas.actions.economy.schemas import EconomicActionType, EconomicProposalPayload, EconomicPayload
 from geomas.agents.schemas import (
     CabinetBriefing, PresidentialDecree, PresidentialDecision, Decision, 
-    CountryEnvelope, GlobalStrategy, EconomicIntent, EconomicIntentType,
+    CountryEnvelope, GlobalStrategy,
     EconomicProposal
 )
 from geomas.schemas.world import WorldState, NationState

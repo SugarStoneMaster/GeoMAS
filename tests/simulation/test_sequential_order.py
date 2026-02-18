@@ -88,9 +88,6 @@ class TestSequentialExecution(unittest.TestCase):
             defense_private_intent="DETERRENCE",
             defense_private_reasoning="None",
             economic_payload=EconomicPayload(decision=Decision.VETO, action_type=None),
-            economic_public_intent="IDLE",
-            economic_private_intent="IDLE",
-            economic_private_reasoning="None",
             foreign_payload=ForeignPayload(decision=Decision.VETO, action_type=None),
             foreign_public_intent="IDLE",
             foreign_private_intent="IDLE",
@@ -108,9 +105,6 @@ class TestSequentialExecution(unittest.TestCase):
             defense_private_intent="IDLE",
             defense_private_reasoning="None",
             economic_payload=EconomicPayload(decision=Decision.VETO, action_type=None),
-            economic_public_intent="IDLE",
-            economic_private_intent="IDLE",
-            economic_private_reasoning="None",
             foreign_payload=ForeignPayload(decision=Decision.VETO, action_type=None),
             foreign_public_intent="IDLE",
             foreign_private_intent="IDLE",
@@ -141,7 +135,6 @@ class TestSequentialExecution(unittest.TestCase):
                     defense_payload=DefensePayload(decision=Decision.VETO, moves=[]),
                     defense_public_intent="IDLE", defense_private_intent="IDLE", defense_private_reasoning="",
                     economic_payload=EconomicPayload(decision=Decision.VETO, action_type=None),
-                    economic_public_intent="IDLE", economic_private_intent="IDLE", economic_private_reasoning="",
                     foreign_payload=ForeignPayload(decision=Decision.VETO, action_type=None),
                     foreign_public_intent="IDLE", foreign_private_intent="IDLE", foreign_private_reasoning=""
                 )

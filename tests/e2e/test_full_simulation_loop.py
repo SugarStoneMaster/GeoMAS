@@ -17,7 +17,6 @@ from geomas.analysis.deception import DeceptionAnalyzer
 from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, 
     DefenseIntent, DefenseIntentType,
-    EconomicIntent, EconomicIntentType,
     ForeignIntent, ForeignIntentType,
     DefenseProposal, EconomicProposal, ForeignProposal,
     PresidentialDecree, Decision, DefenseDecree, EconomicDecree, ForeignDecree
@@ -35,31 +34,27 @@ class E2EMockLLM(LLMClient):
         # Return valid dummy objects
         if issubclass(response_model, DefenseProposal):
             return response_model(
-                intent=DefenseIntent(
-                    public_intent=DefenseIntentType.IDLE,
-                    private_intent=DefenseIntentType.IDLE,
-                    reasoning="Peace"
-                ),
+                intent={
+                    "public_intent": DefenseIntentType.IDLE,
+                    "private_intent": DefenseIntentType.IDLE,
+                    "reasoning": "Peace"
+                },
                 payload={"decision": Decision.APPROVE, "moves": []},
                 urgency=1
             )
         elif issubclass(response_model, EconomicProposal):
+            # NO INTENT FIELD
             return response_model(
-                intent=EconomicIntent(
-                    public_intent=EconomicIntentType.GROWTH,
-                    private_intent=EconomicIntentType.GROWTH,
-                    reasoning="Grow"
-                ),
                 payload={"decision": Decision.APPROVE, "action_type": EconomicActionType.INVEST_WELFARE},
                 projected_cost=10.0
             )
         elif issubclass(response_model, ForeignProposal):
             return response_model(
-                intent=ForeignIntent(
-                    public_intent=ForeignIntentType.COOPERATION,
-                    private_intent=ForeignIntentType.COOPERATION,
-                    reasoning="Coop"
-                ),
+                intent={
+                    "public_intent": ForeignIntentType.COOPERATION,
+                    "private_intent": ForeignIntentType.COOPERATION,
+                    "reasoning": "Coop"
+                },
                 payload={"decision": Decision.APPROVE, "action_type": ForeignActionType.SEND_DIPLOMATIC_MESSAGE},
                 target_trust_impact=0.1
             )
@@ -81,15 +76,12 @@ class E2EMockLLM(LLMClient):
                 defense_public_intent=DefenseIntentType.IDLE,
                 defense_private_intent=DefenseIntentType.IDLE,
                 defense_private_reasoning="Peace is best.",
-                # Economic - honest
+                # Economic - honest (no intent fields)
                 economic_payload=EconomicPayload(
                     decision=Decision.APPROVE, 
                     action_type=EconomicActionType.INVEST_WELFARE,
                     amount=10.0
                 ),
-                economic_public_intent=EconomicIntentType.GROWTH,
-                economic_private_intent=EconomicIntentType.GROWTH,
-                economic_private_reasoning="Welfare investment.",
                 # Foreign - honest
                 foreign_payload=ForeignPayload(decision=Decision.APPROVE),
                 foreign_public_intent=ForeignIntentType.COOPERATION,
@@ -98,7 +90,7 @@ class E2EMockLLM(LLMClient):
             )
         return response_model()
 
-    async def aquery_agent(self, system_prompt, user_prompt, response_model, max_retries=3, context=None):
+    async def aquery_agent(self, system_prompt, user_prompt, response_model, max_retries=3):
         """Async wrapper for synchronous mock."""
         return self.query_agent(system_prompt, user_prompt, response_model, max_retries)
 

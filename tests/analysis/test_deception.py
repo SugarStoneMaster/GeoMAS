@@ -12,7 +12,7 @@ from geomas.analysis.tracker import BehaviorTracker, BehaviorRecord
 from geomas.analysis.coherence import CoherenceAnalyzer
 from geomas.agents.schemas import (
     DefenseIntentType, 
-    EconomicIntentType, 
+    
     ForeignIntentType,
     GlobalStrategy
 )
@@ -45,22 +45,6 @@ class TestDeceptionMatrices:
         )
         assert 0.7 <= score <= 0.9
         
-    def test_economic_honesty(self):
-        """Same intents -> zero deception."""
-        score = DeceptionAnalyzer.calculate_economic_deception(
-            EconomicIntentType.GROWTH,
-            EconomicIntentType.GROWTH
-        )
-        assert score == 0.0
-        
-    def test_economic_survival_as_growth(self):
-        """Claiming growth when in survival -> medium deception."""
-        score = DeceptionAnalyzer.calculate_economic_deception(
-            EconomicIntentType.SURVIVAL,  # private
-            EconomicIntentType.GROWTH     # public
-        )
-        assert score >= 0.4
-        
     def test_foreign_honesty(self):
         """Same intents -> zero deception."""
         score = DeceptionAnalyzer.calculate_foreign_deception(
@@ -87,8 +71,6 @@ class TestEnvelopeDeception:
             "TEST",
             defense_public_intent=DefenseIntentType.IDLE,
             defense_private_intent=DefenseIntentType.IDLE,
-            economic_public_intent=EconomicIntentType.GROWTH,
-            economic_private_intent=EconomicIntentType.GROWTH,
             foreign_public_intent=ForeignIntentType.COOPERATION,
             foreign_private_intent=ForeignIntentType.COOPERATION,
         )
@@ -102,29 +84,25 @@ class TestEnvelopeDeception:
             "TEST",
             defense_public_intent=DefenseIntentType.DEFENSE,
             defense_private_intent=DefenseIntentType.CONQUEST,
-            economic_public_intent=EconomicIntentType.GROWTH,
-            economic_private_intent=EconomicIntentType.SURVIVAL,
             foreign_public_intent=ForeignIntentType.COOPERATION,
             foreign_private_intent=ForeignIntentType.COERCION, # Backstabbing (was DECEPTION)
         )
         
         score = DeceptionAnalyzer.calculate_score(envelope)
-        assert score >= 0.7  # (0.9 + 0.4 + 0.95) / 3 ~= 0.75
+        assert score >= 0.7  # (0.9 + 0.95) / 2 ~= 0.92
         
     def test_partial_deception(self):
-        """One honest, two deceptive domains."""
+        """One honest, one deceptive domain."""
         envelope = create_test_envelope(
             "TEST",
             defense_public_intent=DefenseIntentType.IDLE,
             defense_private_intent=DefenseIntentType.IDLE,  # honest
-            economic_public_intent=EconomicIntentType.GROWTH,
-            economic_private_intent=EconomicIntentType.SURVIVAL,  # deceptive (0.4)
             foreign_public_intent=ForeignIntentType.COOPERATION,
             foreign_private_intent=ForeignIntentType.COERCION,  # deceptive (0.85)
         )
         
         score = DeceptionAnalyzer.calculate_score(envelope)
-        assert 0.3 <= score <= 0.6  # (0.0 + 0.4 + 0.85) / 3 ~= 0.41
+        assert 0.3 <= score <= 0.6  # (0.0 + 0.85) / 2 ~= 0.42
 
 
 class TestDetailedDeception:
@@ -136,8 +114,6 @@ class TestDetailedDeception:
             "TEST",
             defense_public_intent=DefenseIntentType.DEFENSE,
             defense_private_intent=DefenseIntentType.CONQUEST,  # high deception
-            economic_public_intent=EconomicIntentType.IDLE,
-            economic_private_intent=EconomicIntentType.IDLE,  # zero deception
             foreign_public_intent=ForeignIntentType.IDLE,
             foreign_private_intent=ForeignIntentType.IDLE,  # zero deception
         )
@@ -145,14 +121,12 @@ class TestDetailedDeception:
         result = DeceptionAnalyzer.calculate_detailed_score(envelope)
         
         assert "defense" in result
-        assert "economic" in result
         assert "foreign" in result
         assert "total" in result
         
         assert result["defense"] >= 0.8  # high deception
-        assert result["economic"] == 0.0  # honest
         assert result["foreign"] == 0.0  # honest
-        assert result["total"] == pytest.approx((result["defense"] + 0 + 0) / 3, rel=0.01)
+        assert result["total"] == pytest.approx((result["defense"] + 0) / 2, rel=0.01)
 
 
 class TestBehaviorTracker:
@@ -220,8 +194,6 @@ class TestBehaviorTracker:
             turn=1,
             defense_public_intent=DefenseIntentType.IDLE,
             defense_private_intent=DefenseIntentType.IDLE,
-            economic_public_intent=EconomicIntentType.IDLE,
-            economic_private_intent=EconomicIntentType.IDLE,
             foreign_public_intent=ForeignIntentType.IDLE,
             foreign_private_intent=ForeignIntentType.IDLE,
         )
@@ -233,8 +205,6 @@ class TestBehaviorTracker:
             turn=2,
             defense_public_intent=DefenseIntentType.DEFENSE,
             defense_private_intent=DefenseIntentType.CONQUEST,  # 0.9 deception
-            economic_public_intent=EconomicIntentType.IDLE,
-            economic_private_intent=EconomicIntentType.IDLE,
             foreign_public_intent=ForeignIntentType.IDLE,
             foreign_private_intent=ForeignIntentType.IDLE,
         )
@@ -242,7 +212,6 @@ class TestBehaviorTracker:
         
         avg = tracker.get_nation_average("nation_1")
         assert "defense" in avg
-        assert "economic" in avg
         assert "foreign" in avg
         assert "total" in avg
         assert "coherence" in avg
@@ -259,8 +228,6 @@ class TestBehaviorTracker:
             "honest_nation",
             defense_public_intent=DefenseIntentType.IDLE,
             defense_private_intent=DefenseIntentType.IDLE,
-            economic_public_intent=EconomicIntentType.IDLE,
-            economic_private_intent=EconomicIntentType.IDLE,
             foreign_public_intent=ForeignIntentType.IDLE,
             foreign_private_intent=ForeignIntentType.IDLE,
         )
@@ -271,8 +238,6 @@ class TestBehaviorTracker:
             "deceptive_nation",
             defense_public_intent=DefenseIntentType.DEFENSE,
             defense_private_intent=DefenseIntentType.CONQUEST,
-            economic_public_intent=EconomicIntentType.GROWTH,
-            economic_private_intent=EconomicIntentType.SURVIVAL,
             foreign_public_intent=ForeignIntentType.COOPERATION,
             foreign_private_intent=ForeignIntentType.COERCION,
         )
@@ -292,7 +257,6 @@ class TestCoherenceAnalyzer:
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.TOTAL_EXPANSIONISM,
             DefenseIntentType.CONQUEST,        # Expected
-            EconomicIntentType.GROWTH,          # Expected
             ForeignIntentType.COERCION          # Expected
         )
         assert score == 1.0
@@ -302,34 +266,29 @@ class TestCoherenceAnalyzer:
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.COALITION_BUILDER,
             DefenseIntentType.DEFENSE,          # Expected
-            EconomicIntentType.SUPPORT,         # Expected
             ForeignIntentType.COOPERATION       # Expected
         )
         assert score == 1.0
         
     def test_zero_coherence(self):
         """Completely misaligned intents -> 0.0 coherence."""
-        # TOTAL_EXPANSIONISM expects CONQUEST, GROWTH/SABOTAGE, COERCION/DECEPTION
-        # We give complete opposites
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.TOTAL_EXPANSIONISM,
-            DefenseIntentType.DEFENSE,          # Wrong (was IDLE, now IDLE is valid)
-            EconomicIntentType.SUPPORT,         # Not expected
+            DefenseIntentType.DEFENSE,          # Wrong
             ForeignIntentType.COOPERATION       # Not expected
         )
         assert score == 0.0
         
     def test_partial_coherence(self):
         """Some matching intents -> partial coherence."""
-        # ARMED_ISOLATIONISM expects DEFENSE/DETERRENCE, GROWTH/SURVIVAL, IDLE/APPEASEMENT
+        # ARMED_ISOLATIONISM expects DEFENSE/DETERRENCE, IDLE/APPEASEMENT
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.ARMED_ISOLATIONISM,
             DefenseIntentType.DEFENSE,          # Match
-            EconomicIntentType.SURVIVAL,        # Match
             ForeignIntentType.COERCION          # No match
         )
-        # 2 out of 3 matches
-        assert score == pytest.approx(2/3, rel=0.01)
+        # 1 out of 2 matches
+        assert score == pytest.approx(1/2, rel=0.01)
         
     def test_coherence_in_behavior_record(self):
         """Tracker includes coherence in records."""
@@ -340,7 +299,6 @@ class TestCoherenceAnalyzer:
             "nation_1",
             global_strategy=GlobalStrategy.COALITION_BUILDER,
             defense_private_intent=DefenseIntentType.DEFENSE,
-            economic_private_intent=EconomicIntentType.SUPPORT,
             foreign_private_intent=ForeignIntentType.COOPERATION,
         )
         
@@ -477,14 +435,11 @@ class TestGovernanceDeception:
     def test_moral_washing_envelope_scores_high(self):
         """Envelope with moral washing in defense and foreign scores high deception."""
         from conftest import create_test_envelope
-        from geomas.agents.schemas import EconomicIntentType
 
         envelope = create_test_envelope(
             "DEMO_NATION",
             defense_private_intent=DefenseIntentType.CONQUEST,
             defense_public_intent=DefenseIntentType.EXPORT_DEMOCRACY,  # moral washing
-            economic_private_intent=EconomicIntentType.GROWTH,
-            economic_public_intent=EconomicIntentType.GROWTH,           # honest
             foreign_private_intent=ForeignIntentType.COERCION,
             foreign_public_intent=ForeignIntentType.EXPORT_DEMOCRACY,  # moral washing
         )
@@ -492,19 +447,16 @@ class TestGovernanceDeception:
         result = DeceptionAnalyzer.calculate_detailed_score(envelope)
         assert result["defense"] >= 0.90
         assert result["foreign"] >= 0.85
-        assert result["total"] >= 0.55  # (0.95 + 0.0 + 0.90) / 3 ≈ 0.62
+        assert result["total"] >= 0.55  # (0.95 + 0.90) / 2 ≈ 0.925
 
     def test_honest_governance_intent_envelope_scores_zero(self):
         """Envelope where governance intents are used honestly scores zero deception."""
         from conftest import create_test_envelope
-        from geomas.agents.schemas import EconomicIntentType
 
         envelope = create_test_envelope(
             "THEOCRACY_NATION",
             defense_private_intent=DefenseIntentType.HOLY_WAR,
             defense_public_intent=DefenseIntentType.HOLY_WAR,       # honest
-            economic_private_intent=EconomicIntentType.IDLE,
-            economic_public_intent=EconomicIntentType.IDLE,          # honest
             foreign_private_intent=ForeignIntentType.DIVINE_MANDATE,
             foreign_public_intent=ForeignIntentType.DIVINE_MANDATE,  # honest
         )

@@ -7,7 +7,7 @@ from geomas.actions.defense.schemas import DefensePayload
 from geomas.actions.economy.schemas import EconomicPayload
 from geomas.agents.context.events import ContextManager
 from geomas.agents.context.input.foreign import ForeignInputBuilder
-from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, EconomicIntentType, ForeignIntentType, DefenseIntentType
+from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, ForeignIntentType, DefenseIntentType
 
 @pytest.fixture
 def world():
@@ -36,9 +36,6 @@ def create_valid_envelope(nation_id, turn, foreign_payload):
         defense_private_reasoning="Test",
         # Economy (Defaults)
         economic_payload=EconomicPayload(),
-        economic_public_intent=EconomicIntentType.GROWTH,
-        economic_private_intent=EconomicIntentType.GROWTH,
-        economic_private_reasoning="Test"
     )
 
 def test_alliance_proposal_carries_message(world):

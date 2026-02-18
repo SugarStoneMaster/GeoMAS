@@ -6,7 +6,7 @@ from geomas.agents.schemas import (
     CountryEnvelope, GlobalStrategy, 
     DefenseProposal, EconomicProposal, ForeignProposal,
     DefenseIntent, DefenseIntentType,
-    EconomicIntent, EconomicIntentType,
+   
     ForeignIntent, ForeignIntentType,
     PresidentialDecree, PresidentialDecision, Decision,
     DefenseDecree, EconomicDecree, ForeignDecree
@@ -30,7 +30,8 @@ class TestXAIForking:
         
         # Default mock responses
         def_prop = DefenseProposal(intent=DefenseIntent(public_intent=DefenseIntentType.IDLE, private_intent=DefenseIntentType.IDLE, reasoning="Idle"), payload=DefenseProposalPayload(moves=[]))
-        eco_prop = EconomicProposal(intent=EconomicIntent(public_intent=EconomicIntentType.IDLE, private_intent=EconomicIntentType.IDLE, reasoning="Idle"), payload=EconomicProposalPayload(action_type=None), projected_cost=0.0)
+        eco_prop = EconomicProposal(
+ payload=EconomicProposalPayload(action_type=None), projected_cost=0.0)
         for_prop = ForeignProposal(intent=ForeignIntent(public_intent=ForeignIntentType.IDLE, private_intent=ForeignIntentType.IDLE, reasoning="Idle"), payload=ForeignProposalPayload(action_type=None, proposal_responses=[]), target_trust_impact=0.0)
         
         import itertools

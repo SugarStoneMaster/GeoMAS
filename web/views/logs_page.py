@@ -53,8 +53,6 @@ def render_logs_page(world: WorldState, history: List[List[CountryEnvelope]], gl
                         st.json(envelope.defense_payload.model_dump())
                 with c2:
                     st.markdown("**💰 Economic**")
-                    st.caption(f"Public: {envelope.economic_public_intent.value}")
-                    st.caption(f"Private: {envelope.economic_private_intent.value}")
                     if envelope.economic_payload:
                         st.json(envelope.economic_payload.model_dump())
                 with c3:

@@ -1,7 +1,8 @@
 """
 Tests for Coherence Analyzer.
 
-Tests coherence scoring for all 7 GlobalStrategy types.
+Tests coherence scoring for all GlobalStrategy types.
+Economic intent removed: coherence is now measured on defense + foreign only.
 """
 
 import pytest
@@ -9,7 +10,6 @@ from geomas.analysis.coherence import CoherenceAnalyzer
 from geomas.agents.schemas import (
     GlobalStrategy,
     DefenseIntentType,
-    EconomicIntentType,
     ForeignIntentType,
 )
 
@@ -23,7 +23,6 @@ class TestCoherenceAnalyzerBasics:
             score = CoherenceAnalyzer.calculate_score(
                 strategy,
                 DefenseIntentType.DEFENSE,
-                EconomicIntentType.GROWTH,
                 ForeignIntentType.COOPERATION
             )
             assert 0.0 <= score <= 1.0
@@ -38,31 +37,28 @@ class TestTotalExpansionism:
     """Tests for TOTAL_EXPANSIONISM strategy coherence."""
     
     def test_perfect_coherence(self):
-        """Perfect coherence with conquest + growth + coercion."""
+        """Perfect coherence with conquest + coercion."""
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.TOTAL_EXPANSIONISM,
             DefenseIntentType.CONQUEST,
-            EconomicIntentType.GROWTH,
             ForeignIntentType.COERCION
         )
         assert score == 1.0
     
     def test_partial_coherence(self):
-        """Partial coherence with some matching intents."""
+        """Partial coherence with only defense matching."""
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.TOTAL_EXPANSIONISM,
             DefenseIntentType.CONQUEST,  # Match
-            EconomicIntentType.SURVIVAL,  # No match
             ForeignIntentType.COOPERATION  # No match
         )
-        assert score == pytest.approx(1/3)
+        assert score == pytest.approx(1/2)
     
     def test_incoherent(self):
         """Zero coherence with completely wrong intents."""
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.TOTAL_EXPANSIONISM,
-            DefenseIntentType.DEFENSE,  # Wrong (IDLE is now valid)
-            EconomicIntentType.SURVIVAL,  # Wrong
+            DefenseIntentType.DEFENSE,  # Wrong
             ForeignIntentType.APPEASEMENT  # Wrong
         )
         assert score == 0.0
@@ -72,11 +68,10 @@ class TestArmedIsolationism:
     """Tests for ARMED_ISOLATIONISM strategy coherence."""
     
     def test_perfect_coherence(self):
-        """Perfect coherence with defense + growth + idle diplomacy."""
+        """Perfect coherence with defense + idle diplomacy."""
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.ARMED_ISOLATIONISM,
             DefenseIntentType.DEFENSE,
-            EconomicIntentType.GROWTH,
             ForeignIntentType.IDLE
         )
         assert score == 1.0
@@ -86,7 +81,6 @@ class TestArmedIsolationism:
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.ARMED_ISOLATIONISM,
             DefenseIntentType.DETERRENCE,
-            EconomicIntentType.SURVIVAL,
             ForeignIntentType.APPEASEMENT
         )
         assert score == 1.0
@@ -96,11 +90,10 @@ class TestCoalitionBuilder:
     """Tests for COALITION_BUILDER strategy coherence."""
     
     def test_perfect_coherence(self):
-        """Perfect coherence with defense + support + cooperation."""
+        """Perfect coherence with defense + cooperation."""
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.COALITION_BUILDER,
             DefenseIntentType.DEFENSE,
-            EconomicIntentType.SUPPORT,
             ForeignIntentType.COOPERATION
         )
         assert score == 1.0
@@ -110,7 +103,6 @@ class TestCoalitionBuilder:
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.COALITION_BUILDER,
             DefenseIntentType.DETERRENCE,
-            EconomicIntentType.GROWTH,
             ForeignIntentType.COOPERATION
         )
         assert score == 1.0
@@ -120,11 +112,10 @@ class TestScorchedEarth:
     """Tests for SCORCHED_EARTH strategy coherence."""
     
     def test_perfect_coherence(self):
-        """Perfect coherence with conquest + survival + coercion."""
+        """Perfect coherence with conquest + coercion."""
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.SCORCHED_EARTH,
             DefenseIntentType.CONQUEST,
-            EconomicIntentType.SURVIVAL,
             ForeignIntentType.COERCION
         )
         assert score == 1.0
@@ -134,7 +125,6 @@ class TestScorchedEarth:
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.SCORCHED_EARTH,
             DefenseIntentType.CONQUEST,
-            EconomicIntentType.SURVIVAL,
             ForeignIntentType.COERCION
         )
         assert score == 1.0
@@ -143,23 +133,25 @@ class TestScorchedEarth:
 class TestScoreInterpretation:
     """Tests for interpreting coherence scores."""
     
-    def test_score_of_one_third(self):
-        """1/3 score means 1 of 3 intents match."""
-        # For COALITION_BUILDER: defense or deterrence, support or growth, cooperation
+    def test_score_of_half(self):
+        """0.5 score means 1 of 2 intents match."""
+        # For COALITION_BUILDER: defense or deterrence, cooperation
         score = CoherenceAnalyzer.calculate_score(
             GlobalStrategy.COALITION_BUILDER,
             DefenseIntentType.CONQUEST,  # Wrong
-            EconomicIntentType.SURVIVAL,  # Wrong
             ForeignIntentType.COOPERATION  # Match
         )
-        assert score == pytest.approx(1/3)
+        assert score == pytest.approx(1/2)
     
-    def test_score_of_two_thirds(self):
-        """2/3 score means 2 of 3 intents match."""
+    def test_score_of_zero(self):
+        """0.0 score means no intents match."""
+        # SCORCHED_EARTH expects CONQUEST/DEFENSE/DETERRENCE, COERCION/DIVINE_MANDATE
+        # DEFENSE is valid for SCORCHED_EARTH, COOPERATION is not
+        # Use TOTAL_EXPANSIONISM: expects CONQUEST/DETERRENCE/IDLE/EXPORT_DEMOCRACY/HOLY_WAR, COERCION/IDLE/EXPORT_DEMOCRACY/DIVINE_MANDATE
+        # DEFENSE is NOT in TOTAL_EXPANSIONISM defense pool, APPEASEMENT is NOT in foreign pool
         score = CoherenceAnalyzer.calculate_score(
-            GlobalStrategy.COALITION_BUILDER,
-            DefenseIntentType.DEFENSE,  # Match
-            EconomicIntentType.SURVIVAL,  # Wrong
-            ForeignIntentType.COOPERATION  # Match
+            GlobalStrategy.TOTAL_EXPANSIONISM,
+            DefenseIntentType.DEFENSE,   # Wrong: not in TOTAL_EXPANSIONISM defense pool
+            ForeignIntentType.APPEASEMENT  # Wrong: not in TOTAL_EXPANSIONISM foreign pool
         )
-        assert score == pytest.approx(2/3)
+        assert score == 0.0

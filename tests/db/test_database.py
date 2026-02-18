@@ -109,7 +109,6 @@ class TestSimulationDB:
             nation_id="nation_1",
             deception_total=0.5,
             deception_defense=0.3,
-            deception_economic=0.6,
             deception_foreign=0.4,
             coherence_score=0.8,
             global_strategy="COALITION_BUILDER"

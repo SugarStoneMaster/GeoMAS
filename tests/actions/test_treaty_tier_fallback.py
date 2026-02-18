@@ -24,7 +24,7 @@ def test_alliance_proposal_without_tier_defaults_to_non_aggression():
         message="Let's ally!"
     )
     
-    from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, EconomicIntentType, ForeignIntentType, DefenseIntentType
+    from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, ForeignIntentType, DefenseIntentType
     from geomas.actions.defense.schemas import DefensePayload
     from geomas.actions.economy.schemas import EconomicPayload
     
@@ -42,9 +42,6 @@ def test_alliance_proposal_without_tier_defaults_to_non_aggression():
         defense_private_intent=DefenseIntentType.IDLE,
         defense_private_reasoning="Test",
         economic_payload=EconomicPayload(),
-        economic_public_intent=EconomicIntentType.GROWTH,
-        economic_private_intent=EconomicIntentType.GROWTH,
-        economic_private_reasoning="Test"
     )
     
     # Execute

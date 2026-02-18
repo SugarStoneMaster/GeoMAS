@@ -107,7 +107,6 @@ class SimulationDB:
                 nation_id VARCHAR,
                 deception_total FLOAT,
                 deception_defense FLOAT,
-                deception_economic FLOAT,
                 deception_foreign FLOAT,
                 coherence_score FLOAT,
                 global_strategy VARCHAR,
@@ -235,21 +234,20 @@ class SimulationDB:
         nation_id: str,
         deception_total: float,
         deception_defense: float,
-        deception_economic: float,
         deception_foreign: float,
         coherence_score: float,
         global_strategy: str,
         government_type: str = None
     ) -> None:
-        """Save behavior metrics."""
+        """Save behavior metrics (defense + foreign deception only)."""
         self.conn.execute("""
             INSERT OR REPLACE INTO behaviors 
             (simulation_id, turn, nation_id, deception_total, deception_defense, 
-             deception_economic, deception_foreign, coherence_score, global_strategy, government_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             deception_foreign, coherence_score, global_strategy, government_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, [
             simulation_id, turn, nation_id, deception_total, deception_defense,
-            deception_economic, deception_foreign, coherence_score, global_strategy, government_type
+            deception_foreign, coherence_score, global_strategy, government_type
         ])
 
     def save_token_usage(
@@ -307,7 +305,7 @@ class SimulationDB:
         """Load behaviors for specific sim and turn."""
         results = self.conn.execute("""
             SELECT nation_id, deception_total, deception_defense, 
-                   deception_economic, deception_foreign, coherence_score, global_strategy
+                   deception_foreign, coherence_score, global_strategy
             FROM behaviors 
             WHERE simulation_id = ? AND turn = ?
         """, [simulation_id, turn]).fetchall()
@@ -317,10 +315,9 @@ class SimulationDB:
                 "nation_id": row[0],
                 "deception_total": row[1],
                 "deception_defense": row[2],
-                "deception_economic": row[3],
-                "deception_foreign": row[4],
-                "coherence_score": row[5],
-                "global_strategy": row[6]
+                "deception_foreign": row[3],
+                "coherence_score": row[4],
+                "global_strategy": row[5]
             }
             for row in results
         ]

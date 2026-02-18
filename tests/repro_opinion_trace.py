@@ -12,7 +12,7 @@ from geomas.simulation.engine import SimulationEngine
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.schemas import (
     DefenseProposal, DefenseIntent, DefenseIntentType,
-    EconomicProposal, EconomicIntent, EconomicIntentType,
+    EconomicProposal,
     ForeignProposal, ForeignIntent, ForeignIntentType,
     PresidentialDecree, Decision, DefenseDecree, EconomicDecree, ForeignDecree,
     CabinetBriefing
@@ -41,7 +41,6 @@ def test_opinion_tracing():
         payload=DefensePayload(decision=Decision.APPROVE, moves=[])
     )
     eco_prop = EconomicProposal(
-        intent=EconomicIntent(public_intent=EconomicIntentType.GROWTH, private_intent=EconomicIntentType.GROWTH, reasoning="Grow"),
         payload=EconomicPayload(decision=Decision.APPROVE)
     )
     for_prop = ForeignProposal(
@@ -56,9 +55,7 @@ def test_opinion_tracing():
         foreign=ForeignDecree(action=Decision.APPROVE, reasoning="Good"),
         public_statement="We are strong.",
         defense_public_intent=DefenseIntentType.DEFENSE, defense_private_intent=DefenseIntentType.DEFENSE,
-        economic_public_intent=EconomicIntentType.GROWTH, economic_private_intent=EconomicIntentType.GROWTH,
         foreign_public_intent=ForeignIntentType.IDLE, foreign_private_intent=ForeignIntentType.IDLE,
-        defense_private_reasoning="R1", economic_private_reasoning="R2", foreign_private_reasoning="R3"
     )
 
     # Opinion Response (Sync)

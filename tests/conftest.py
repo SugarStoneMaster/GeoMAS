@@ -24,8 +24,6 @@ def create_test_envelope(
     global_strategy=None,
     defense_public_intent=None,
     defense_private_intent=None,
-    economic_public_intent=None,
-    economic_private_intent=None,
     foreign_public_intent=None,
     foreign_private_intent=None,
     public_statement: str = "Test statement",
@@ -37,7 +35,7 @@ def create_test_envelope(
     """
     from geomas.agents.schemas import (
         CountryEnvelope, GlobalStrategy,
-        DefenseIntentType, EconomicIntentType, ForeignIntentType,
+        DefenseIntentType, ForeignIntentType,
     )
     from geomas.actions.defense import DefensePayload
     from geomas.actions.economy import EconomicPayload
@@ -56,9 +54,6 @@ def create_test_envelope(
         defense_private_reasoning="Test reasoning",
         # Economic
         economic_payload=economic_payload or EconomicPayload(decision=Decision.APPROVE),
-        economic_public_intent=economic_public_intent or EconomicIntentType.IDLE,
-        economic_private_intent=economic_private_intent or EconomicIntentType.IDLE,
-        economic_private_reasoning="Test reasoning",
         # Foreign
         foreign_payload=foreign_payload or ForeignPayload(decision=Decision.APPROVE),
         foreign_public_intent=foreign_public_intent or ForeignIntentType.IDLE,

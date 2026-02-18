@@ -14,7 +14,7 @@ class TestXAIDashboardLogic:
         # Mock LLM to avoid API calls
         client = MagicMock(spec=LLMClient)
         # Mock response for query_agent (President)
-        from geomas.agents.schemas import PresidentialDecree, DefenseDecree, EconomicDecree, ForeignDecree, Decision, DefenseIntentType, EconomicIntentType, ForeignIntentType
+        from geomas.agents.schemas import PresidentialDecree, DefenseDecree, EconomicDecree, ForeignDecree, Decision, DefenseIntentType, ForeignIntentType
         
         client.last_raw_content = "{}"
         client.last_raw_usage = MagicMock()
@@ -29,13 +29,11 @@ class TestXAIDashboardLogic:
             foreign=ForeignDecree(action=Decision.APPROVE, reasoning="."),
             public_statement=".",
             defense_public_intent=DefenseIntentType.IDLE, defense_private_intent=DefenseIntentType.IDLE,
-            economic_public_intent=EconomicIntentType.IDLE, economic_private_intent=EconomicIntentType.IDLE,
             foreign_public_intent=ForeignIntentType.IDLE, foreign_private_intent=ForeignIntentType.IDLE,
-            defense_private_reasoning=".", economic_private_reasoning=".", foreign_private_reasoning="."
         )
         client.query_agent.return_value = decree
         from geomas.agents.schemas import DefenseProposal, DefenseIntent, DefenseIntentType, DefensePayload, Decision
-        from geomas.agents.schemas import EconomicProposal, EconomicIntent, EconomicIntentType, EconomicPayload
+        from geomas.agents.schemas import EconomicProposal, EconomicPayload
         from geomas.agents.schemas import ForeignProposal, ForeignIntent, ForeignIntentType, ForeignPayload
         
         async def mock_minister_response(prompt, user_prompt, schema):
@@ -49,7 +47,6 @@ class TestXAIDashboardLogic:
                  )
              elif "Economic" in name:
                  return EconomicProposal(
-                     intent=EconomicIntent(public_intent=EconomicIntentType.IDLE, private_intent=EconomicIntentType.IDLE, reasoning="."),
                      payload=EconomicPayload(decision=Decision.VETO)
                  )
              elif "Foreign" in name:

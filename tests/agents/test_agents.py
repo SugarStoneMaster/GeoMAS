@@ -18,8 +18,8 @@ from geomas.agents.nation_agent import NationAgent
 from geomas.agents.ministers import DefenseMinister
 from geomas.agents.schemas import ( 
     DefenseProposal, DefenseIntent, DefenseIntentType,
-    CountryEnvelope, GlobalStrategy, EconomicIntent,
-    ForeignIntent, EconomicIntentType, ForeignIntentType,
+    CountryEnvelope, GlobalStrategy,
+    ForeignIntent, ForeignIntentType,
     EconomicProposal, ForeignProposal,
     PresidentialDecree, Decision, DefenseDecree, EconomicDecree, ForeignDecree
 )
@@ -49,11 +49,6 @@ class MockLLMClient(LLMClient):
             )
         elif issubclass(response_model, EconomicProposal):
             return response_model(
-                intent=EconomicIntent(
-                    public_intent=EconomicIntentType.GROWTH,
-                    private_intent=EconomicIntentType.GROWTH,
-                    reasoning="Mock Eco"
-                ),
                 payload={"decision": Decision.APPROVE}
             )
         elif issubclass(response_model, ForeignProposal):
@@ -84,9 +79,6 @@ class MockLLMClient(LLMClient):
                 defense_private_intent=DefenseIntentType.IDLE,
                 defense_private_reasoning="Mock defense reasoning",
                 economic_payload=EconomicPayload(decision=Decision.APPROVE),
-                economic_public_intent=EconomicIntentType.GROWTH,
-                economic_private_intent=EconomicIntentType.IDLE,
-                economic_private_reasoning="Mock economic reasoning",
                 foreign_payload=ForeignPayload(decision=Decision.APPROVE),
                 foreign_public_intent=ForeignIntentType.COOPERATION,
                 foreign_private_intent=ForeignIntentType.IDLE,

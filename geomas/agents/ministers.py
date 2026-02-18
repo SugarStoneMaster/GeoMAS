@@ -192,14 +192,11 @@ class EconomicMinister(BaseMinister):
                 f"{user_prompt}"
             )
         
-        # Dynamic Validation: Enforce valid nation IDs
-        valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
-        ResponseModel = get_dynamic_proposal_model(EconomicProposal, valid_targets)
-        
+        # No dynamic intent restriction for economy (intents removed)
         proposal = self.client.query_agent(
             system_prompt, 
             user_prompt, 
-            ResponseModel
+            EconomicProposal
         )
         
         self.last_trace = {
@@ -233,13 +230,11 @@ class EconomicMinister(BaseMinister):
                 f"{user_prompt}"
             )
         
-        valid_targets = [nid for nid in self.world.nations.keys() if nid != self.nation_id]
-        ResponseModel = get_dynamic_proposal_model(EconomicProposal, valid_targets)
-        
+        # No dynamic intent restriction for economy (intents removed)
         proposal = await self.client.aquery_agent(
             system_prompt, 
             user_prompt, 
-            ResponseModel
+            EconomicProposal
         )
         
         self.last_trace = {

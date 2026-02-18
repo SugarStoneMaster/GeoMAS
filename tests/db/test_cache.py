@@ -6,7 +6,7 @@ import pytest
 from copy import deepcopy
 from geomas.db.cache import TurnCache, TurnSnapshot
 from geomas.schemas.world import WorldState, ProvinceState, NationState, TerrainType
-from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, DefenseIntentType, EconomicIntentType, ForeignIntentType
+from geomas.agents.schemas import CountryEnvelope, GlobalStrategy, DefenseIntentType, ForeignIntentType
 
 
 @pytest.fixture

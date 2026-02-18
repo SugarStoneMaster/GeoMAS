@@ -14,8 +14,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 
 from geomas.agents.schemas import ( 
     DefenseProposal, DefenseIntent, DefenseIntentType,
-    CountryEnvelope, GlobalStrategy, EconomicIntent,
-    ForeignIntent, EconomicIntentType, ForeignIntentType
+    CountryEnvelope, GlobalStrategy,
+    ForeignIntent, ForeignIntentType
 )
 from geomas.actions.defense import DefensePayload, Decision
 from geomas.actions.economy import EconomicPayload
@@ -40,9 +40,6 @@ def test_envelope_structure():
             defense_private_intent=DefenseIntentType.IDLE,
             defense_private_reasoning="Test",
             economic_payload=EconomicPayload(decision=Decision.APPROVE),
-            economic_public_intent=EconomicIntentType.IDLE,
-            economic_private_intent=EconomicIntentType.IDLE,
-            economic_private_reasoning="Test",
             foreign_payload=ForeignPayload(decision=Decision.APPROVE),
             foreign_public_intent=ForeignIntentType.IDLE,
             foreign_private_intent=ForeignIntentType.IDLE,
@@ -65,9 +62,6 @@ def test_envelope_valid():
         defense_private_reasoning="Maintaining peace.",
         # Economic
         economic_payload=EconomicPayload(decision=Decision.APPROVE),
-        economic_public_intent=EconomicIntentType.GROWTH,
-        economic_private_intent=EconomicIntentType.GROWTH,
-        economic_private_reasoning="Investing in welfare.",
         # Foreign
         foreign_payload=ForeignPayload(decision=Decision.APPROVE),
         foreign_public_intent=ForeignIntentType.COOPERATION,
