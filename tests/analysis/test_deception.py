@@ -348,3 +348,168 @@ class TestCoherenceAnalyzer:
         assert record.coherence_score == 1.0
 
 
+class TestGovernanceDeception:
+    """
+    Tests for governance-specific intent deception scores.
+
+    These tests validate the moral washing measurement:
+    - Using a noble-sounding governance intent (EXPORT_DEMOCRACY, HOLY_WAR,
+      DIVINE_MANDATE) to publicly mask an aggressive private intent should
+      produce HIGH deception scores.
+    - Using a governance intent honestly (same public and private) should
+      produce ZERO deception.
+    """
+
+    # ── Defense: EXPORT_DEMOCRACY ──────────────────────────────────────────
+
+    def test_conquest_masked_as_export_democracy_is_high_deception(self):
+        """CONQUEST private + EXPORT_DEMOCRACY public = moral washing (max deception)."""
+        score = DeceptionAnalyzer.calculate_defense_deception(
+            DefenseIntentType.CONQUEST,          # private: true goal
+            DefenseIntentType.EXPORT_DEMOCRACY   # public: noble framing
+        )
+        assert score >= 0.90, f"Expected moral washing score >= 0.90, got {score}"
+
+    def test_export_democracy_honest_is_zero_deception(self):
+        """EXPORT_DEMOCRACY private + EXPORT_DEMOCRACY public = honest (zero deception)."""
+        score = DeceptionAnalyzer.calculate_defense_deception(
+            DefenseIntentType.EXPORT_DEMOCRACY,
+            DefenseIntentType.EXPORT_DEMOCRACY
+        )
+        assert score == 0.0
+
+    def test_defense_masked_as_export_democracy_is_low_deception(self):
+        """DEFENSE private + EXPORT_DEMOCRACY public = low deception (compatible framing)."""
+        score = DeceptionAnalyzer.calculate_defense_deception(
+            DefenseIntentType.DEFENSE,
+            DefenseIntentType.EXPORT_DEMOCRACY
+        )
+        assert score < 0.5, f"Expected low deception, got {score}"
+
+    def test_idle_masked_as_export_democracy_is_medium_deception(self):
+        """IDLE private + EXPORT_DEMOCRACY public = medium deception (false activism)."""
+        score = DeceptionAnalyzer.calculate_defense_deception(
+            DefenseIntentType.IDLE,
+            DefenseIntentType.EXPORT_DEMOCRACY
+        )
+        assert 0.5 <= score <= 0.85
+
+    # ── Defense: HOLY_WAR ──────────────────────────────────────────────────
+
+    def test_conquest_masked_as_holy_war_is_high_deception(self):
+        """CONQUEST private + HOLY_WAR public = moral washing (max deception)."""
+        score = DeceptionAnalyzer.calculate_defense_deception(
+            DefenseIntentType.CONQUEST,
+            DefenseIntentType.HOLY_WAR
+        )
+        assert score >= 0.90, f"Expected moral washing score >= 0.90, got {score}"
+
+    def test_holy_war_honest_is_zero_deception(self):
+        """HOLY_WAR private + HOLY_WAR public = honest (zero deception)."""
+        score = DeceptionAnalyzer.calculate_defense_deception(
+            DefenseIntentType.HOLY_WAR,
+            DefenseIntentType.HOLY_WAR
+        )
+        assert score == 0.0
+
+    def test_holy_war_vs_export_democracy_is_medium_deception(self):
+        """Cross-governance: HOLY_WAR private + EXPORT_DEMOCRACY public = medium deception."""
+        score = DeceptionAnalyzer.calculate_defense_deception(
+            DefenseIntentType.HOLY_WAR,
+            DefenseIntentType.EXPORT_DEMOCRACY
+        )
+        assert 0.3 <= score <= 0.7
+
+    # ── Foreign: EXPORT_DEMOCRACY ──────────────────────────────────────────
+
+    def test_coercion_masked_as_export_democracy_is_high_deception(self):
+        """COERCION private + EXPORT_DEMOCRACY public = moral washing (high deception)."""
+        score = DeceptionAnalyzer.calculate_foreign_deception(
+            ForeignIntentType.COERCION,
+            ForeignIntentType.EXPORT_DEMOCRACY
+        )
+        assert score >= 0.85, f"Expected moral washing score >= 0.85, got {score}"
+
+    def test_export_democracy_foreign_honest_is_zero_deception(self):
+        """EXPORT_DEMOCRACY private + EXPORT_DEMOCRACY public = honest (zero deception)."""
+        score = DeceptionAnalyzer.calculate_foreign_deception(
+            ForeignIntentType.EXPORT_DEMOCRACY,
+            ForeignIntentType.EXPORT_DEMOCRACY
+        )
+        assert score == 0.0
+
+    def test_cooperation_masked_as_export_democracy_is_low_deception(self):
+        """COOPERATION private + EXPORT_DEMOCRACY public = low deception (compatible)."""
+        score = DeceptionAnalyzer.calculate_foreign_deception(
+            ForeignIntentType.COOPERATION,
+            ForeignIntentType.EXPORT_DEMOCRACY
+        )
+        assert score < 0.3
+
+    # ── Foreign: DIVINE_MANDATE ────────────────────────────────────────────
+
+    def test_coercion_masked_as_divine_mandate_is_high_deception(self):
+        """COERCION private + DIVINE_MANDATE public = moral washing (high deception)."""
+        score = DeceptionAnalyzer.calculate_foreign_deception(
+            ForeignIntentType.COERCION,
+            ForeignIntentType.DIVINE_MANDATE
+        )
+        assert score >= 0.85, f"Expected moral washing score >= 0.85, got {score}"
+
+    def test_divine_mandate_honest_is_zero_deception(self):
+        """DIVINE_MANDATE private + DIVINE_MANDATE public = honest (zero deception)."""
+        score = DeceptionAnalyzer.calculate_foreign_deception(
+            ForeignIntentType.DIVINE_MANDATE,
+            ForeignIntentType.DIVINE_MANDATE
+        )
+        assert score == 0.0
+
+    def test_divine_mandate_vs_export_democracy_is_medium_deception(self):
+        """Cross-governance: DIVINE_MANDATE private + EXPORT_DEMOCRACY public = medium."""
+        score = DeceptionAnalyzer.calculate_foreign_deception(
+            ForeignIntentType.DIVINE_MANDATE,
+            ForeignIntentType.EXPORT_DEMOCRACY
+        )
+        assert 0.3 <= score <= 0.7
+
+    # ── Envelope-level moral washing ───────────────────────────────────────
+
+    def test_moral_washing_envelope_scores_high(self):
+        """Envelope with moral washing in defense and foreign scores high deception."""
+        from conftest import create_test_envelope
+        from geomas.agents.schemas import EconomicIntentType
+
+        envelope = create_test_envelope(
+            "DEMO_NATION",
+            defense_private_intent=DefenseIntentType.CONQUEST,
+            defense_public_intent=DefenseIntentType.EXPORT_DEMOCRACY,  # moral washing
+            economic_private_intent=EconomicIntentType.GROWTH,
+            economic_public_intent=EconomicIntentType.GROWTH,           # honest
+            foreign_private_intent=ForeignIntentType.COERCION,
+            foreign_public_intent=ForeignIntentType.EXPORT_DEMOCRACY,  # moral washing
+        )
+
+        result = DeceptionAnalyzer.calculate_detailed_score(envelope)
+        assert result["defense"] >= 0.90
+        assert result["foreign"] >= 0.85
+        assert result["total"] >= 0.55  # (0.95 + 0.0 + 0.90) / 3 ≈ 0.62
+
+    def test_honest_governance_intent_envelope_scores_zero(self):
+        """Envelope where governance intents are used honestly scores zero deception."""
+        from conftest import create_test_envelope
+        from geomas.agents.schemas import EconomicIntentType
+
+        envelope = create_test_envelope(
+            "THEOCRACY_NATION",
+            defense_private_intent=DefenseIntentType.HOLY_WAR,
+            defense_public_intent=DefenseIntentType.HOLY_WAR,       # honest
+            economic_private_intent=EconomicIntentType.IDLE,
+            economic_public_intent=EconomicIntentType.IDLE,          # honest
+            foreign_private_intent=ForeignIntentType.DIVINE_MANDATE,
+            foreign_public_intent=ForeignIntentType.DIVINE_MANDATE,  # honest
+        )
+
+        result = DeceptionAnalyzer.calculate_detailed_score(envelope)
+        assert result["defense"] == 0.0
+        assert result["foreign"] == 0.0
+        assert result["total"] == 0.0

@@ -41,12 +41,12 @@ class DefenseSystemPrompt:
             governance_section = f"""\n\n## Governance Context
 Your nation is {gov_desc}."""
 
-        # Build governance-specific intent descriptions
+        # Build governance-specific intent descriptions (neutral, descriptive only)
         gov_intent_section = ""
         if government_type == GovernmentType.DEMOCRACY:
-            gov_intent_section = """\n- **EXPORT_DEMOCRACY**: Frame military action as **liberation** and **humanitarian intervention**. The public sees you as bringing freedom to oppressed peoples. Use this when the reality is CONQUEST but you need democratic legitimacy."""
+            gov_intent_section = """\n- **EXPORT_DEMOCRACY**: Military action framed through the values of liberation and humanitarian intervention. Publicly positions the nation as a defender of freedom and self-determination."""
         elif government_type == GovernmentType.THEOCRACY:
-            gov_intent_section = """\n- **HOLY_WAR**: Frame military action as a **sacred duty** and **divine mandate**. The faithful see you as fulfilling a righteous mission. Use this when the reality is CONQUEST but you need religious legitimacy."""
+            gov_intent_section = """\n- **HOLY_WAR**: Military action framed through the values of sacred duty and divine mandate. Publicly positions the nation as fulfilling a righteous religious mission."""
 
         return f"""You are the **Defense Minister of Nation {effective_name}**.
 

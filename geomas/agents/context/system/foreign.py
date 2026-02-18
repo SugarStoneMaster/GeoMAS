@@ -42,12 +42,12 @@ class ForeignSystemPrompt:
             governance_section = f"""\n\n## Governance Context
 Your nation is {gov_desc}."""
 
-        # Build governance-specific intent descriptions
+        # Build governance-specific intent descriptions (neutral, descriptive only)
         gov_intent_section = ""
         if government_type == GovernmentType.DEMOCRACY:
-            gov_intent_section = """\n- **EXPORT_DEMOCRACY**: Frame diplomacy as **spreading freedom** and **promoting self-determination**. The public sees you as a champion of liberty. Use this when the reality is COERCION but you need democratic legitimacy."""
+            gov_intent_section = """\n- **EXPORT_DEMOCRACY**: Diplomatic action framed through the values of freedom, self-determination, and democratic principles. Publicly positions the nation as a champion of liberty and open governance."""
         elif government_type == GovernmentType.THEOCRACY:
-            gov_intent_section = """\n- **DIVINE_MANDATE**: Frame diplomacy as **fulfilling sacred duty** and **extending moral order**. The faithful see you as an instrument of divine will. Use this when the reality is COERCION but you need religious legitimacy."""
+            gov_intent_section = """\n- **DIVINE_MANDATE**: Diplomatic action framed through the values of sacred duty, moral order, and divine authority. Publicly positions the nation as an instrument of a higher spiritual mission."""
 
         return f"""You are the **Foreign Minister of Nation {effective_name}**.
 
