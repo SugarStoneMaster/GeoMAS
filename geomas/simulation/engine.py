@@ -397,8 +397,9 @@ class SimulationEngine:
         print(f"--- STARTING TURN {current_turn} ---")
         self.turn_logs.append(f"--- TURN {current_turn} ---")
         
-        # Local RNG for turn determinism (shuffle order)
-        turn_rng = random.Random(self.history_seed + current_turn)
+        # Local RNG for turn determinism (shuffle order) using all simulation parameters
+        combined_seed = f"{self.map_seed}-{self.history_seed}-{self.n_cells}-{current_turn}"
+        turn_rng = random.Random(combined_seed)
         
         # 0. UPKEEP PHASE (resources, consumption, crisis)
         run_upkeep_phase(self.world, self.turn_logs)
