@@ -116,6 +116,13 @@ class SimulationDB:
             )
         """)
         
+        # Migration: Add government_type if missing (RQ2)
+        cols = self.conn.execute("PRAGMA table_info('behaviors')").fetchall()
+        col_names = [c[1] for c in cols]
+        if "government_type" not in col_names:
+            print("[DB] Migrating: Adding 'government_type' to 'behaviors' table")
+            self.conn.execute("ALTER TABLE behaviors ADD COLUMN government_type VARCHAR")
+        
         # 5. Token Usage (Cost Tracking)
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS token_usage (
@@ -305,7 +312,7 @@ class SimulationDB:
         """Load behaviors for specific sim and turn."""
         results = self.conn.execute("""
             SELECT nation_id, deception_total, deception_defense, 
-                   deception_foreign, coherence_score, global_strategy
+                   deception_foreign, coherence_score, global_strategy, government_type
             FROM behaviors 
             WHERE simulation_id = ? AND turn = ?
         """, [simulation_id, turn]).fetchall()
@@ -317,7 +324,8 @@ class SimulationDB:
                 "deception_defense": row[2],
                 "deception_foreign": row[3],
                 "coherence_score": row[4],
-                "global_strategy": row[5]
+                "global_strategy": row[5],
+                "government_type": row[6]
             }
             for row in results
         ]
