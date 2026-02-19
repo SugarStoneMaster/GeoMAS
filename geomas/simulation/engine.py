@@ -140,51 +140,67 @@ class SimulationEngine:
         # Deterministic strategy assignment using map_seed
         rng = random.Random(self.map_seed)
         
-        # 1. Define Strategy Pool logic
-        # Priority order for base assignment (if N < 4)
-        base_priority = [
-            GlobalStrategy.TOTAL_EXPANSIONISM,
-            GlobalStrategy.COALITION_BUILDER,
-            GlobalStrategy.ARMED_ISOLATIONISM,
-            GlobalStrategy.SCORCHED_EARTH
-        ]
-        
-        # Strategies to fill extra slots (Alternating)
-        fill_strategies = [GlobalStrategy.TOTAL_EXPANSIONISM, GlobalStrategy.COALITION_BUILDER]
+        # Determinisitic Setup Profiles mapped to number of nations
+        setup_profiles = {
+            4: [
+                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.AUTHORITARIAN),
+                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.THEOCRACY),
+                (GlobalStrategy.SCORCHED_EARTH, GovernmentType.AUTHORITARIAN),
+            ],
+            6: [
+                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.AUTHORITARIAN),
+                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.DEMOCRACY),
+                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.THEOCRACY),
+                (GlobalStrategy.SCORCHED_EARTH, GovernmentType.AUTHORITARIAN),
+            ],
+            8: [
+                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.AUTHORITARIAN),
+                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.DEMOCRACY),
+                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.DEMOCRACY),
+                (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.THEOCRACY),
+                (GlobalStrategy.SCORCHED_EARTH, GovernmentType.AUTHORITARIAN),
+            ]
+        }
         
         nation_ids = sorted(list(self.world.nations.keys()))
         n_nations = len(nation_ids)
         
-        assigned_strategies = []
-        
-        # 2. Base Assignment (Ensure 1 of each type if possible)
-        for i in range(min(n_nations, 4)):
-            assigned_strategies.append(base_priority[i])
+        # Determine Profiles to Use
+        if n_nations in setup_profiles:
+            combined_profiles = setup_profiles[n_nations].copy()
+            # Shuffle the profiles themselves, keeping Strategy/Gov bound together
+            rng.shuffle(combined_profiles)
             
-        # 3. Fill remaining slots
-        remaining_slots = n_nations - len(assigned_strategies)
-        for i in range(remaining_slots):
-            assigned_strategies.append(fill_strategies[i % 2])
+            # Unpack into separate lists for loop alignment
+            assigned_strategies = [p[0] for p in combined_profiles]
+            assigned_govs = [p[1] for p in combined_profiles]
+
+        else:
+            # --- FALLBACK LOGIC for non-standard n_nations (e.g. 5, 7, 10) ---
+            base_priority = [
+                GlobalStrategy.TOTAL_EXPANSIONISM,
+                GlobalStrategy.COALITION_BUILDER,
+                GlobalStrategy.ARMED_ISOLATIONISM,
+                GlobalStrategy.SCORCHED_EARTH
+            ]
+            fill_strategies = [GlobalStrategy.TOTAL_EXPANSIONISM, GlobalStrategy.COALITION_BUILDER]
             
-        # 4. Shuffle Assignment
-        rng.shuffle(assigned_strategies)
-        
-        # === GovernmentType Assignment (Independent from Strategy) ===
-        gov_pool = [
-            GovernmentType.DEMOCRACY,
-            GovernmentType.AUTHORITARIAN,
-            GovernmentType.THEOCRACY,
-        ]
-        assigned_govs = []
-        # Base assignment: ensure 1 of each if possible
-        for i in range(min(n_nations, 3)):
-            assigned_govs.append(gov_pool[i])
-        # Fill remaining slots (cycling)
-        remaining_gov = n_nations - len(assigned_govs)
-        for i in range(remaining_gov):
-            assigned_govs.append(gov_pool[i % 3])
-        # Independent shuffle (separate rng call from strategy shuffle)
-        rng.shuffle(assigned_govs)
+            assigned_strategies = []
+            for i in range(min(n_nations, 4)): assigned_strategies.append(base_priority[i])
+            for i in range(n_nations - len(assigned_strategies)): assigned_strategies.append(fill_strategies[i % 2])
+            rng.shuffle(assigned_strategies)
+            
+            gov_pool = [GovernmentType.DEMOCRACY, GovernmentType.AUTHORITARIAN, GovernmentType.THEOCRACY]
+            assigned_govs = []
+            for i in range(min(n_nations, 3)): assigned_govs.append(gov_pool[i])
+            for i in range(n_nations - len(assigned_govs)): assigned_govs.append(gov_pool[i % 3])
+            rng.shuffle(assigned_govs)
         
         # 5. Create Agents
         for i, nation_id in enumerate(nation_ids):
