@@ -681,7 +681,7 @@ class ContextManager:
             reasoning = a.reasoning if a.reasoning else "No reasoning provided."
             lines.append(f"- **T{a.turn} {icon} {a.outcome}**: {reasoning}")
             
-        return "\\n".join(lines)
+        return "\n".join(lines)
     
     def _behavior_to_action(self, turn: int, behavior: Any) -> Optional[MyAction]:
         """Convert behavior to MyAction record with descriptive summaries."""
