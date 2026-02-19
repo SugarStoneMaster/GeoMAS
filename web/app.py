@@ -253,30 +253,36 @@ if not st.session_state["sim"] or mode == "Live Simulation":
                 status_desc = "Autoplay" if st.session_state["remaining_turns"] == -1 else f"{st.session_state['remaining_turns']} turns remaining"
                 st.caption(f"Status: **Running ({status_desc})**")
             else:
-                # Not running, show execution presets
                 c1, c2 = st.columns(2)
                 with c1:
                     if st.button("⏭️ Step 1", use_container_width=True):
                         st.session_state["remaining_turns"] = 1
+                        st.session_state["total_run_turns"] = 1
+                        st.session_state["scenario_trigger_turn"] = sim.world.turn
                         st.rerun()
                     if st.button("⏩ Run 5", use_container_width=True):
                         st.session_state["remaining_turns"] = 5
+                        st.session_state["total_run_turns"] = 5
+                        st.session_state["scenario_trigger_turn"] = sim.world.turn + 2
                         st.rerun()
                 with c2:
                     if st.button("🚀 Run 100", use_container_width=True):
                         st.session_state["remaining_turns"] = 100
+                        st.session_state["total_run_turns"] = 100
+                        st.session_state["scenario_trigger_turn"] = sim.world.turn + 50
                         st.rerun()
                     if st.button("▶️ Autoplay", use_container_width=True):
                         st.session_state["remaining_turns"] = -1
                         st.rerun()
                 
-                # Run specific number of turns
                 cols_n = st.columns([1, 2])
                 with cols_n[0]:
                     n_val = st.number_input("Turns", min_value=1, value=10, label_visibility="collapsed", key="run_n_val")
                 with cols_n[1]:
                     if st.button(f"▶️ Run {n_val}", use_container_width=True):
                         st.session_state["remaining_turns"] = n_val
+                        st.session_state["total_run_turns"] = n_val
+                        st.session_state["scenario_trigger_turn"] = sim.world.turn + (n_val // 2)
                         st.rerun()
                 
                 # DB Status bit
@@ -287,6 +293,14 @@ if not st.session_state["sim"] or mode == "Live Simulation":
         else:
             st.markdown("&nbsp;")
             st.info("Click Init/Reset")
+            
+    # --- SCENARIOS (Sidebar bottom) ---
+    st.divider()
+    st.title("🌪️ Scenarios")
+    
+    # Toggle for Mid-Simulation scenarios
+    enable_scenarios = st.toggle("Enable Mid-Point Scenarios", value=False, help="If enabled, a scenario will trigger exactly halfway through the auto-run batch.", key="enable_scenarios")
+    scenario_type = st.selectbox("Scenario Type", ["PANDEMIA"], disabled=not enable_scenarios, key="scenario_type")
 else:
     # Analysis Mode: Ensure 'sim' is available (for compatibility with lower blocks)
     sim = st.session_state["sim"]
@@ -298,8 +312,22 @@ if st.session_state["remaining_turns"] != 0 and sim:
     # Get active injections if any
     active_injections = st.session_state.get("injections", [])
     
+    # Determine Scenario Trigger
+    scenario_trigger = None
+    if st.session_state.get("enable_scenarios", False) and st.session_state["remaining_turns"] > 0:
+        # If we know exactly how many turns total we're running
+        if "total_run_turns" in st.session_state:
+            target_turn = st.session_state["scenario_trigger_turn"]
+            if target_turn == sim.world.turn:
+                scenario_trigger = {
+                    "type": st.session_state.get("scenario_type", "PANDEMIA"),
+                    "turn": target_turn
+                }
+                st.toast(f"🚨 Executing Scenario: {scenario_trigger['type']}!", icon="🔥")
+
+    
     # Perform one step
-    sim.step(injections=active_injections)
+    sim.step(injections=active_injections, scenario_trigger=scenario_trigger)
     
     # Decrement if not Autoplay
     if st.session_state["remaining_turns"] > 0:

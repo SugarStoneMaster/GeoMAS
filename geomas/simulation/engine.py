@@ -405,7 +405,7 @@ class SimulationEngine:
         self.turn_logs.append(msg)
         self.world.global_events.append(f"T{self.world.turn}: {msg}")
 
-    def step(self, injections: Optional[List[dict]] = None):
+    def step(self, injections: Optional[List[dict]] = None, scenario_trigger: Optional[dict] = None):
         """Executes one full turn of the simulation."""
         
         current_turn = self.world.turn
@@ -417,6 +417,13 @@ class SimulationEngine:
         combined_seed = f"{self.map_seed}-{self.history_seed}-{self.n_cells}-{current_turn}"
         turn_rng = random.Random(combined_seed)
         
+        # -1. SCENARIO PHASE (Mid-Simulation Triggers like Pandemics)
+        if scenario_trigger is not None:
+            from geomas.simulation.scenarios import check_and_trigger_scenario
+            scenario_logs = check_and_trigger_scenario(self.world, self.context_manager, current_turn, scenario_trigger)
+            if scenario_logs:
+                self.turn_logs.extend(scenario_logs)
+                
         # 0. UPKEEP PHASE (resources, consumption, crisis)
         run_upkeep_phase(self.world, self.turn_logs)
         
