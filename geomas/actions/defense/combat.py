@@ -53,19 +53,32 @@ def calculate_force(
     return force * terrain_modifier
 
 
+def get_total_defenders(province: ProvinceState) -> Tuple[int, int]:
+    """Return total soldiers and aircraft in a province, including guest troops."""
+    soldiers = province.soldiers
+    aircraft = province.aircraft
+    if province.guest_troops:
+        for force in province.guest_troops.values():
+            soldiers += force.get("soldiers", 0)
+            aircraft += force.get("aircraft", 0)
+    return soldiers, aircraft
+
+
 def resolve_land_combat(
     attacker_soldiers: int,
     defender_province: ProvinceState,
     rng: random.Random
 ) -> CombatResult:
     """
-    Resolve land combat between attacking soldiers and province defenders.
+    Resolve land combat between attacking soldiers and province defenders (including guests).
     
     Binary outcome: attacker wins → conquers, attacker loses → all soldiers lost.
     Undefended provinces are captured automatically without combat roll.
     """
+    total_soldiers, total_aircraft = get_total_defenders(defender_province)
+    
     # Short-circuit: undefended province → automatic capture
-    if defender_province.soldiers == 0 and defender_province.aircraft == 0:
+    if total_soldiers == 0 and total_aircraft == 0:
         return CombatResult(
             attacker_wins=True,
             attacker_losses=0,
@@ -78,8 +91,8 @@ def resolve_land_combat(
     
     attacker_force = calculate_force(soldiers=attacker_soldiers)
     defender_force = calculate_force(
-        soldiers=defender_province.soldiers,
-        aircraft=defender_province.aircraft,
+        soldiers=total_soldiers,
+        aircraft=total_aircraft,
         terrain_modifier=terrain_mod
     )
     
@@ -93,11 +106,11 @@ def resolve_land_combat(
         return CombatResult(
             attacker_wins=True,
             attacker_losses=0,  # Winner doesn't lose units
-            defender_losses=defender_province.soldiers + defender_province.aircraft,
+            defender_losses=total_soldiers + total_aircraft,
             province_conquered=True,
             log_message=f"Attacker wins! {attacker_soldiers} soldiers conquer province. "
-                        f"Defenders lost: {defender_province.soldiers} soldiers, "
-                        f"{defender_province.aircraft} aircraft"
+                        f"Defenders lost: {total_soldiers} soldiers, "
+                        f"{total_aircraft} aircraft"
         )
     else:
         return CombatResult(
@@ -162,10 +175,12 @@ def resolve_air_strike(
     """
     terrain_mod = TERRAIN_DEFENSE_MULTIPLIER.get(defender_province.terrain, 1.0)
     
+    total_soldiers, total_aircraft = get_total_defenders(defender_province)
+    
     attacker_force = calculate_force(aircraft=attacker_aircraft)
     defender_force = calculate_force(
-        soldiers=defender_province.soldiers,
-        aircraft=defender_province.aircraft,
+        soldiers=total_soldiers,
+        aircraft=total_aircraft,
         terrain_modifier=terrain_mod
     )
     
@@ -174,7 +189,7 @@ def resolve_air_strike(
     
     attacker_wins = attacker_roll > defender_roll
     
-    total_defenders = defender_province.soldiers + defender_province.aircraft
+    total_defenders = total_soldiers + total_aircraft
     
     if attacker_wins:
         return CombatResult(
@@ -183,7 +198,7 @@ def resolve_air_strike(
             defender_losses=total_defenders,
             province_conquered=False,  # Aircraft cannot hold territory
             log_message=f"Air strike success! {attacker_aircraft} aircraft destroy "
-                        f"{defender_province.soldiers} soldiers, {defender_province.aircraft} aircraft"
+                        f"{total_soldiers} soldiers, {total_aircraft} aircraft"
         )
     else:
         return CombatResult(
@@ -286,7 +301,8 @@ def execute_naval_landing(
     landing_soldiers = attacker_navy * int(UNIT_COSTS[UnitType.NAVY]["population"])
     
     # Step 4: Check for defenders on coast
-    total_defenders = landing_province.soldiers + landing_province.aircraft
+    total_soldiers, total_aircraft = get_total_defenders(landing_province)
+    total_defenders = total_soldiers + total_aircraft
     
     if total_defenders > 0:
         # Land combat
@@ -347,30 +363,40 @@ def _conquer_province(
             old_nation.total_soldiers -= province.soldiers
             old_nation.total_aircraft -= province.aircraft
 
-            # --- WAR STATS TRACKING ---
-            from geomas.schemas.world import RelationshipState, WarStats
+    # Clear guest troops if present
+    if province.guest_troops:
+        for guest_id, force in province.guest_troops.items():
+            guest_nation = world.nations.get(guest_id)
+            if guest_nation:
+                guest_nation.total_soldiers -= force.get("soldiers", 0)
+                guest_nation.total_aircraft -= force.get("aircraft", 0)
+        province.guest_troops.clear()
+
+    if old_owner_id and old_nation:
+        # --- WAR STATS TRACKING ---
+        from geomas.schemas.world import RelationshipState, WarStats
+        
+        # Check if at WAR
+        rel = world.relationship_matrix.get(old_owner_id, {}).get(new_owner_id, RelationshipState.PEACE)
+        if rel == RelationshipState.WAR:
+            # Update Loser
+            if new_owner_id not in old_nation.active_wars:
+                # Lazy init (should have been done at declaration, but for safety)
+                old_nation.active_wars[new_owner_id] = WarStats(
+                    start_turn=world.turn,
+                    original_provinces=len(old_nation.province_ids) + 1 # +1 because we just removed one
+                )
+            old_nation.active_wars[new_owner_id].lost_provinces += 1
             
-            # Check if at WAR
-            rel = world.relationship_matrix.get(old_owner_id, {}).get(new_owner_id, RelationshipState.PEACE)
-            if rel == RelationshipState.WAR:
-                # Update Loser
-                if new_owner_id not in old_nation.active_wars:
-                    # Lazy init (should have been done at declaration, but for safety)
-                    old_nation.active_wars[new_owner_id] = WarStats(
+            # Update Winner
+            new_nation_ref = world.nations.get(new_owner_id)
+            if new_nation_ref:
+                if old_owner_id not in new_nation_ref.active_wars:
+                     new_nation_ref.active_wars[old_owner_id] = WarStats(
                         start_turn=world.turn,
-                        original_provinces=len(old_nation.province_ids) + 1 # +1 because we just removed one
+                        original_provinces=len(new_nation_ref.province_ids)
                     )
-                old_nation.active_wars[new_owner_id].lost_provinces += 1
-                
-                # Update Winner
-                new_nation_ref = world.nations.get(new_owner_id)
-                if new_nation_ref:
-                    if old_owner_id not in new_nation_ref.active_wars:
-                         new_nation_ref.active_wars[old_owner_id] = WarStats(
-                            start_turn=world.turn,
-                            original_provinces=len(new_nation_ref.province_ids)
-                        )
-                    new_nation_ref.active_wars[old_owner_id].conquered_provinces += 1
+                new_nation_ref.active_wars[old_owner_id].conquered_provinces += 1
     
     # Transfer to new owner
     province.owner_id = new_owner_id

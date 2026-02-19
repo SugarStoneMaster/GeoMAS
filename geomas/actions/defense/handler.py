@@ -324,26 +324,49 @@ def _execute_move_troops(
     _remove_units_from_province(from_province, unit_type, quantity, nation_id)
     
     if is_enemy:
-        # Check for ALLIANCE BETRAYAL (New Logic)
-        target_id = to_province.owner_id
-        if target_id:
-            rel = world.relationship_matrix.get(nation_id, {}).get(target_id, RelationshipState.PEACE)
+        # Check for ALLIANCE BETRAYAL and WAR generation for all defending nations
+        defending_nations = set()
+        if to_province.owner_id:
+            defending_nations.add(to_province.owner_id)
+        if to_province.guest_troops:
+            defending_nations.update(to_province.guest_troops.keys())
+
+        if nation_id in defending_nations:
+            defending_nations.remove(nation_id)  # Should not happen but just in case
+
+        from geomas.schemas.world import WarStats
+        aggressor = world.nations[nation_id]
+
+        for def_nation_id in defending_nations:
+            rel = world.relationship_matrix.get(nation_id, {}).get(def_nation_id, RelationshipState.PEACE)
+            
+            # If Allied: Alliance Betrayal
             if rel in (RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION):
-                # IMMEDIATE RUPTURE
-                world.relationship_matrix[nation_id][target_id] = RelationshipState.WAR
-                world.relationship_matrix[target_id][nation_id] = RelationshipState.WAR
+                world.relationship_matrix.setdefault(nation_id, {})[def_nation_id] = RelationshipState.WAR
+                world.relationship_matrix.setdefault(def_nation_id, {})[nation_id] = RelationshipState.WAR
                 
                 # Massive Trust Penalty
-                engine.adjust_trust(nation_id, target_id, -50.0)
-                engine.adjust_trust(target_id, nation_id, -50.0)
+                engine.adjust_trust(nation_id, def_nation_id, -50.0)
+                engine.adjust_trust(def_nation_id, nation_id, -50.0)
                 
-                # --- INIT WAR STATS ---
-                from geomas.schemas.world import WarStats
-                aggressor = world.nations[nation_id]
-                victim = world.nations[target_id]
+                engine.logs.append(
+                    f"💔 [DIPLOMACY] {nation_id} BROKE ALLIANCE by attacking {def_nation_id}! Relationship set to WAR."
+                )
+            
+            # If Peace/Neutral: Normal Declaration of War by attack
+            elif rel == RelationshipState.PEACE:
+                world.relationship_matrix.setdefault(nation_id, {})[def_nation_id] = RelationshipState.WAR
+                world.relationship_matrix.setdefault(def_nation_id, {})[nation_id] = RelationshipState.WAR
                 
-                if target_id not in aggressor.active_wars:
-                    aggressor.active_wars[target_id] = WarStats(
+                engine.logs.append(
+                    f"⚔️ [DIPLOMACY] {nation_id} initiated hostilities against {def_nation_id}! Relationship set to WAR."
+                )
+
+            # Init War Stats
+            victim = world.nations.get(def_nation_id)
+            if victim:
+                if def_nation_id not in aggressor.active_wars:
+                    aggressor.active_wars[def_nation_id] = WarStats(
                         start_turn=world.turn,
                         original_provinces=len(aggressor.province_ids)
                     )
@@ -352,10 +375,6 @@ def _execute_move_troops(
                         start_turn=world.turn,
                         original_provinces=len(victim.province_ids)
                     )
-
-                engine.logs.append(
-                    f"💔 [DIPLOMACY] {nation_id} BROKE ALLIANCE by attacking {target_id}! Relationship set to WAR."
-                )
 
         # Combat resolution
         from geomas.actions.defense.combat import (
@@ -824,22 +843,30 @@ def _execute_nuclear_option(
     
     # --- CHECK ALLIANCE BREAK ---
     # --- CHECK ALLIANCE BREAK / WAR START ---
+    defending_nations = set()
     if victim_id:
-        rel = world.relationship_matrix.get(nation_id, {}).get(victim_id, RelationshipState.PEACE)
+        defending_nations.add(victim_id)
+    if target_province.guest_troops:
+        defending_nations.update(target_province.guest_troops.keys())
+
+    if nation_id in defending_nations:
+        defending_nations.remove(nation_id)
+
+    from geomas.schemas.world import WarStats
+    aggressor = world.nations[nation_id]
+
+    for def_nation_id in defending_nations:
+        rel = world.relationship_matrix.get(nation_id, {}).get(def_nation_id, RelationshipState.PEACE)
         
-        # Launching a nuke ALWAYS starts a war if not already at war
+        # Launching a nuke ALWAYS starts a war with all forces present
         if rel != RelationshipState.WAR:
-            world.relationship_matrix[nation_id][victim_id] = RelationshipState.WAR
-            world.relationship_matrix[victim_id][nation_id] = RelationshipState.WAR
+            world.relationship_matrix.setdefault(nation_id, {})[def_nation_id] = RelationshipState.WAR
+            world.relationship_matrix.setdefault(def_nation_id, {})[nation_id] = RelationshipState.WAR
             
-            # --- INIT WAR STATS ---
-            from geomas.schemas.world import WarStats
-            aggressor = world.nations[nation_id]
-            victim = world.nations.get(victim_id)
-            
+            victim = world.nations.get(def_nation_id)
             if victim:
-                if victim_id not in aggressor.active_wars:
-                    aggressor.active_wars[victim_id] = WarStats(
+                if def_nation_id not in aggressor.active_wars:
+                    aggressor.active_wars[def_nation_id] = WarStats(
                         start_turn=world.turn,
                         original_provinces=len(aggressor.province_ids)
                     )
@@ -851,19 +878,19 @@ def _execute_nuclear_option(
 
             if rel in (RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION):
                 engine.logs.append(
-                    f"💔 [DIPLOMACY] {nation_id} BROKE ALLIANCE by nuking {victim_id}! Relationship set to WAR."
+                    f"💔 [DIPLOMACY] {nation_id} BROKE ALLIANCE by nuking {def_nation_id}'s troops! Relationship set to WAR."
                 )
             else:
                  engine.logs.append(
-                    f"⚔️ [DIPLOMACY] {nation_id} started WAR with {victim_id} by nuclear aggression."
+                    f"⚔️ [DIPLOMACY] {nation_id} started WAR with {def_nation_id} by nuclear aggression."
                 )
 
     # Consume nuke
     nation.nukes -= quantity
     
     # Store pre-strike values for logging
-    pre_soldiers = target_province.soldiers
-    pre_aircraft = target_province.aircraft
+    from geomas.actions.defense.combat import get_total_defenders
+    pre_soldiers, pre_aircraft = get_total_defenders(target_province)
     pre_navy = target_province.navy
     pre_pop = target_province.population
     
@@ -874,6 +901,15 @@ def _execute_nuclear_option(
             victim_nation.total_soldiers -= target_province.soldiers
             victim_nation.total_aircraft -= target_province.aircraft
             victim_nation.total_navy -= target_province.navy
+            
+    # Clear guest troops
+    if target_province.guest_troops:
+        for guest_id, force in target_province.guest_troops.items():
+            guest_nation = world.nations.get(guest_id)
+            if guest_nation:
+                guest_nation.total_soldiers -= force.get("soldiers", 0)
+                guest_nation.total_aircraft -= force.get("aircraft", 0)
+        target_province.guest_troops.clear()
     
     # Devastating effects on province
     target_province.soldiers = 0

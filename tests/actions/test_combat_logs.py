@@ -21,6 +21,7 @@ def test_combat_log_shows_old_owner():
     attacker.total_navy = 0
     attacker.province_ids = [80]
     attacker.nukes = 0
+    attacker.active_wars = {}
     
     defender = MagicMock(spec=NationState)
     defender.total_soldiers = 50
@@ -28,6 +29,7 @@ def test_combat_log_shows_old_owner():
     defender.total_navy = 0
     defender.province_ids = [91]
     defender.nukes = 0
+    defender.active_wars = {}
     
     # Province being attacked
     target_province = MagicMock(spec=ProvinceState)
@@ -98,6 +100,7 @@ def test_neutral_combat_log():
     attacker.total_navy = 0
     attacker.province_ids = [80]
     attacker.nukes = 0
+    attacker.active_wars = {}
     
     # Neutral Province
     target_province = MagicMock(spec=ProvinceState)

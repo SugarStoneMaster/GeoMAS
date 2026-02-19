@@ -81,6 +81,7 @@ def test_war_stats_update_on_conquest():
     province.aircraft = 0
     province.neighbors = []
     province.terrain = TerrainType.LAND
+    province.guest_troops = {}
     
     world.nations = {"AGRIA": aggressor, "VULCANIA": target}
     world.relationship_matrix = {
