@@ -301,6 +301,19 @@ if not st.session_state["sim"] or mode == "Live Simulation":
     # Toggle for Mid-Simulation scenarios
     enable_scenarios = st.toggle("Enable Mid-Point Scenarios", value=False, help="If enabled, a scenario will trigger exactly halfway through the auto-run batch.", key="enable_scenarios")
     scenario_type = st.selectbox("Scenario Type", ["PANDEMIA"], disabled=not enable_scenarios, key="scenario_type")
+    
+    # Manual Trigger
+    st.markdown("### Manual Override")
+    manual_scenario = st.selectbox("Trigger Scenario Instantly:", ["PANDEMIA"], key="manual_scenario_select")
+    if st.button("🚨 TRIGGER NOW!", type="primary", use_container_width=True):
+        st.session_state["manual_scenario_trigger"] = {
+            "type": manual_scenario,
+            "turn": sim.world.turn if sim else 1
+        }
+        # Force a single step if not running
+        if st.session_state["remaining_turns"] == 0:
+            st.session_state["remaining_turns"] = 1
+        st.rerun()
 else:
     # Analysis Mode: Ensure 'sim' is available (for compatibility with lower blocks)
     sim = st.session_state["sim"]
@@ -314,10 +327,16 @@ if st.session_state["remaining_turns"] != 0 and sim:
     
     # Determine Scenario Trigger
     scenario_trigger = None
-    if st.session_state.get("enable_scenarios", False) and st.session_state["remaining_turns"] > 0:
+    
+    # Check for manual trigger first
+    if "manual_scenario_trigger" in st.session_state:
+        scenario_trigger = st.session_state.pop("manual_scenario_trigger")
+        st.toast(f"🚨 Executing Manual Scenario: {scenario_trigger['type']}!", icon="🔥")
+    # Otherwise check for midpoint trigger
+    elif st.session_state.get("enable_scenarios", False) and st.session_state["remaining_turns"] > 0:
         # If we know exactly how many turns total we're running
         if "total_run_turns" in st.session_state:
-            target_turn = st.session_state["scenario_trigger_turn"]
+            target_turn = st.session_state.get("scenario_trigger_turn", -1)
             if target_turn == sim.world.turn:
                 scenario_trigger = {
                     "type": st.session_state.get("scenario_type", "PANDEMIA"),
