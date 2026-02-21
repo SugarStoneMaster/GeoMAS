@@ -210,6 +210,9 @@ def check_triggers(engine: 'ActionEngine', nation_id: str, rng: random.Random = 
         engine.logs.append(
             f"⚠️ [OPINION] GENERAL STRIKE in {nation_id}! Efficiency is low."
         )
+        world.global_events.append(
+            f"[Turn {world.turn}] GENERAL STRIKE: {nation_id} - Efficiency is critically low!"
+        )
     
     # --- PRODUCTION DECAY LOGGING (starts earlier) ---
     if sat < THRESHOLD_PRODUCTION_DECAY_START and sat >= THRESHOLD_GENERAL_STRIKE:

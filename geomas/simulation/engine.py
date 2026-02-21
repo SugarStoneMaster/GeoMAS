@@ -616,6 +616,25 @@ class SimulationEngine:
         # 4. CONTEXT PHASE (Update agent events)
         self.context_manager.update_after_turn(current_turn, turn_envelopes, self.world)
         
+        # 4b. State-based Event Extraction (Unrest, Strikes, Crisis)
+        # This ensures agents "perceive" these global events as context
+        from geomas.agents.context.events.schemas import EventType, NotableEvent
+        for n_id, nation in self.world.nations.items():
+            if nation.civil_unrest_active:
+                self.context_manager.global_events.append(NotableEvent(
+                    turn=current_turn,
+                    event_type=EventType.CIVIL_UNREST,
+                    actors=[n_id],
+                    summary=f"CIVIL UNREST in {nation.name}! Production halted."
+                ))
+            elif nation.public_satisfaction < 20: # THRESHOLD_GENERAL_STRIKE
+                self.context_manager.global_events.append(NotableEvent(
+                    turn=current_turn,
+                    event_type=EventType.GENERAL_STRIKE,
+                    actors=[n_id],
+                    summary=f"GENERAL STRIKE in {nation.name}! Efficiency is low."
+                ))
+        
         # 5. OPINION PHASE (Population reaction - post execution)
         # We capture prompts from opinion_agents after they react
         run_opinion_phase(

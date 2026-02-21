@@ -10,3 +10,6 @@ shapely
 instructor
 litellm
 duckdb
+seaborn
+pandas
+ipykernel
