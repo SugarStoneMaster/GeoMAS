@@ -268,8 +268,8 @@ class SimulationEngine:
         # Fill remaining slots randomly up to standard quota (2-4 nations)
         target_nuke_nations = max(len(nuke_recipients), min(len(nation_ids), 3))
         import random
-        # Re-using history seed for deterministic distribution
-        nuke_rng = random.Random(self.history_seed + 999) 
+        # Combine map_seed and history_seed for deterministic distribution
+        nuke_rng = random.Random(self.map_seed + self.history_seed + 999) 
         
         candidates = [nid for nid in nation_ids if nid not in nuke_recipients]
         while len(nuke_recipients) < target_nuke_nations and candidates:
@@ -278,7 +278,7 @@ class SimulationEngine:
             nuke_recipients.append(chosen)
             
         for nid in nuke_recipients:
-            self.world.nations[nid].nukes = nuke_rng.randint(3, 8)
+            self.world.nations[nid].nukes = nuke_rng.randint(1, 5)
             print(f"[INIT] {nid} assigned {self.world.nations[nid].nukes} Nuclear Weapons.")
     
     def _init_opinion_agents(self):
