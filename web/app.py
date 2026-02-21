@@ -344,6 +344,12 @@ else:
 
 # --- AUTO-RUN LOOP ---
 if st.session_state["remaining_turns"] != 0 and sim:
+    # 0. Check for Forking Detachment
+    if st.session_state.get("fork_active", False):
+        new_id = sim.fork()
+        st.session_state["fork_active"] = False
+        st.toast(f"🍴 Forked into new Simulation {new_id}!", icon="📂")
+        
     # Get active injections if any
     active_injections = st.session_state.get("injections", [])
     

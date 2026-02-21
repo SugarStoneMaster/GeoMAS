@@ -829,14 +829,66 @@ class SimulationEngine:
         """Get behavior metrics history for a nation from cache."""
         return self.cache.get_behaviors_for_nation(nation_id)
     
-    def close(self):
-        """Close database connection if open."""
-    def close(self):
-        """Close database connection if open."""
+    def fork(self, new_name: Optional[str] = None):
+        """
+        Creates a new simulation entry in the DB and copies history up to the current turn.
+        Detaches the engine from the original simulation and starts a new one.
+        """
+        if not self.db:
+            raise ValueError("Cannot fork without a database connection.")
+            
+        source_id = self.simulation_id
+        current_turn = self.world.turn
+        
+        # 1. Create a NEW simulation entry
+        import json
+        info = self.db.get_simulation_info(source_id)
+        
+        # Determine forked name
+        if not new_name:
+            source_name = info.get("name", f"Sim {source_id}")
+            new_name = f"{source_name} (Fork @T{current_turn})"
+            
+        new_id = self.db.create_simulation(
+            genesis_seed=self.map_seed,
+            simulation_seed=self.history_seed,
+            n_cells=self.n_cells,
+            n_nations=self.n_nations,
+            name=new_name,
+            scenario_json=json.dumps(self.planned_scenario) if self.planned_scenario else None
+        )
+        
+        print(f"[ENGINE] Forking Sim {source_id} -> New Sim {new_id} at Turn {current_turn}")
+        
+        # 2. Copy history in DB
+        self.db.copy_history_for_fork(source_id, new_id, current_turn)
+        
+        # 3. Handle Metrics DB (Forking telemetry)
+        if self.metrics_db:
+             try:
+                 # Minimal forking for metrics: we just start fresh on the new simulation_id
+                 # Copying gigabytes of metrics is expensive, typically we just want to see the new trend
+                 print(f"[METRICS] Detaching telemetry for new Simulation {new_id}")
+             except Exception as e:
+                 print(f"[METRICS ERROR] Failed to fork metrics: {e}")
+                 
+        # 4. Switch the engine to the new simulation_id
+        self.simulation_id = new_id
+        
+        # Clear engine-level logs to avoid mixing histories in memory
+        self.turn_logs = [f"--- FORKED FROM SIM {source_id} AT TURN {current_turn} ---"]
+        
+        return new_id
+
+    def close(self) -> None:
+        """Close database connections."""
         if self.db:
             self.db.close()
-        if hasattr(self, 'metrics_db') and self.metrics_db:
-            self.metrics_db.close()
+        if self.metrics_db:
+            try:
+                self.metrics_db.close()
+            except:
+                pass
         
         # Save token usage at the end of simulation
         token_logger.save_to_csv()

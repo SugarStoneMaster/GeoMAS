@@ -375,6 +375,53 @@ class SimulationDB:
             "scenario_json": result[8]
         }
 
+    def copy_history_for_fork(self, source_sim_id: int, target_sim_id: int, up_to_turn: int) -> None:
+        """
+        Copies all records from source to target simulation up to a specific turn.
+        Used for proper forking.
+        """
+        # 1. Snapshots
+        self.conn.execute("""
+            INSERT INTO snapshots 
+            (simulation_id, turn, provinces_json, nations_json, trust_matrix, relationship_matrix, world_events_json, memory_json)
+            SELECT ?, turn, provinces_json, nations_json, trust_matrix, relationship_matrix, world_events_json, memory_json
+            FROM snapshots 
+            WHERE simulation_id = ? AND turn <= ?
+        """, [target_sim_id, source_sim_id, up_to_turn])
+        
+        # 2. Envelopes
+        self.conn.execute("""
+            INSERT INTO envelopes (simulation_id, turn, nation_id, envelope_json)
+            SELECT ?, turn, nation_id, envelope_json
+            FROM envelopes 
+            WHERE simulation_id = ? AND turn <= ?
+        """, [target_sim_id, source_sim_id, up_to_turn])
+        
+        # 3. Behaviors
+        self.conn.execute("""
+            INSERT INTO behaviors 
+            (simulation_id, turn, nation_id, deception_total, deception_defense, 
+             deception_foreign, coherence_score, global_strategy, government_type)
+            SELECT ?, turn, nation_id, deception_total, deception_defense, 
+                   deception_foreign, coherence_score, global_strategy, government_type
+            FROM behaviors 
+            WHERE simulation_id = ? AND turn <= ?
+        """, [target_sim_id, source_sim_id, up_to_turn])
+        
+        # 4. Token Usage
+        self.conn.execute("""
+            INSERT INTO token_usage 
+            (simulation_id, turn, nation_id, agent_type, prompt_tokens, completion_tokens, total_tokens, model, cost)
+            SELECT ?, turn, nation_id, agent_type, prompt_tokens, completion_tokens, total_tokens, model, cost
+            FROM token_usage 
+            WHERE simulation_id = ? AND turn <= ?
+        """, [target_sim_id, source_sim_id, up_to_turn])
+
+        # 5. Update total_turns in simulation table for the target
+        self.conn.execute("""
+            UPDATE simulation SET total_turns = ? WHERE id = ?
+        """, [up_to_turn, target_sim_id])
+
     def __enter__(self):
         return self
     
