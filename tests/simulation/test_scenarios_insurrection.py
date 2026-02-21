@@ -68,12 +68,13 @@ def test_separatist_insurrection_triggers_correctly(base_engine):
     assert rebel_id in world.nations
     rebel_nation = world.nations[rebel_id]
     
-    # Motherland lost provinces, Rebel gained them
+    # Motherland lost 25% of provinces, Rebel gained them
     final_provinces = len(target_nation.province_ids)
     rebel_provinces = len(rebel_nation.province_ids)
-    assert final_provinces < initial_provinces
-    assert rebel_provinces > 0
-    assert final_provinces + rebel_provinces == initial_provinces
+    expected_stolen = max(1, int(initial_provinces * 0.25))
+    
+    assert rebel_provinces == expected_stolen
+    assert final_provinces == initial_provinces - expected_stolen
     
     # Check province ownership in WorldState
     for p_id in rebel_nation.province_ids:
@@ -96,10 +97,17 @@ def test_separatist_insurrection_triggers_correctly(base_engine):
     elif mother_gov_str == GovernmentType.AUTHORITARIAN.value:
         assert rebel_agent.government_type == GovernmentType.DEMOCRACY
         
-    # Check Trust/Relationship Matrix
+    # Check Trust/Relationship Matrix (Normalized 0-100)
+    # Motherland relationship
     assert world.relationship_matrix[rebel_id][target_id] == RelationshipState.WAR
     assert world.relationship_matrix[target_id][rebel_id] == RelationshipState.WAR
-    assert world.trust_matrix[rebel_id][target_id] == -100.0
+    assert world.trust_matrix[rebel_id][target_id] == 0.0
+    
+    # Other nations relationship
+    for other_id in world.nations:
+        if other_id not in [rebel_id, target_id]:
+            assert world.trust_matrix[rebel_id][other_id] >= 0.0
+            assert world.trust_matrix[rebel_id][other_id] <= 100.0
     
     # Check Global Event logged
     events_t5 = [e for e in cm.global_events if e.turn == 5]

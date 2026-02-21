@@ -150,7 +150,10 @@ def trigger_separatist_insurrection(world: WorldState, context_manager: ContextM
     
     # 2. Pick target provinces using BFS for adjacency
     all_mother_provinces = set(motherland.province_ids)
-    num_to_steal = min(len(all_mother_provinces) - 1, rng.randint(1, 3))
+    
+    # NEW LOGIC: Steal 25% of provinces (minimum 1)
+    target_num = max(1, int(len(all_mother_provinces) * 0.25))
+    num_to_steal = min(len(all_mother_provinces) - 1, target_num)
     
     # Start from a random province
     start_prov_id = rng.choice(list(all_mother_provinces))
@@ -236,24 +239,59 @@ def trigger_separatist_insurrection(world: WorldState, context_manager: ContextM
     rebel_strategy = GlobalStrategy.SCORCHED_EARTH if rng.random() > 0.5 else GlobalStrategy.ARMED_ISOLATIONISM
     
     # 5. Trust and Relationships
-    # Set matrix for rebel
+    # Trust is normalized to a 0-100 scale.
     world.trust_matrix[rebel_id] = {}
     world.relationship_matrix[rebel_id] = {}
     
-    for other_id in world.nations.keys():
+    for other_id, other_nation in world.nations.items():
         if other_id == rebel_id:
             continue
             
         if other_id == motherland.id:
-            # Active civil war
-            world.trust_matrix[rebel_id][other_id] = -100.0
-            world.trust_matrix[other_id][rebel_id] = -100.0
+            # Active civil war: absolute minimum trust (0.0)
+            world.trust_matrix[rebel_id][other_id] = 0.0
+            world.trust_matrix[other_id][rebel_id] = 0.0
             world.relationship_matrix[rebel_id][other_id] = RelationshipState.WAR
             world.relationship_matrix[other_id][rebel_id] = RelationshipState.WAR
         else:
-            # Neutral to others
-            world.trust_matrix[rebel_id][other_id] = 0.0
-            world.trust_matrix[other_id][rebel_id] = 0.0
+            # Baseline neutral trust: 50.0 for both directions
+            base_trust = 50.0
+            
+            # --- Direction 1: Observer -> Rebel ---
+            # How much the existing nation trusts the new rebel state
+            other_gov_str = getattr(other_nation, "government_type", GovernmentType.DEMOCRACY.value)
+            gov_affinity_to_rebel = 15.0 if other_gov_str == rebel_gov.value else -15.0
+            
+            trust_in_mother = world.trust_matrix.get(other_id, {}).get(motherland.id, 50.0)
+            proxy_to_rebel = 0.0
+            if trust_in_mother < 40.0:
+                proxy_to_rebel = 20.0  # Enemy of my enemy is my friend
+            elif trust_in_mother > 60.0:
+                proxy_to_rebel = -20.0 # Friend of my enemy is my enemy
+                
+            final_trust_to_rebel = min(100.0, max(0.0, base_trust + gov_affinity_to_rebel + proxy_to_rebel))
+            
+            # --- Direction 2: Rebel -> Observer ---
+            # How much the new rebel state trusts the existing nation
+            # Rebels trust those who share their ideology
+            gov_affinity_from_rebel = 15.0 if rebel_gov.value == other_gov_str else -15.0
+            
+            # Rebels trust those who are hostile to their Motherland (their oppressor)
+            proxy_from_rebel = 0.0
+            if trust_in_mother < 40.0:
+                proxy_from_rebel = 20.0  # They hate our oppressor, we trust them
+            elif trust_in_mother > 60.0:
+                proxy_from_rebel = -20.0 # They are allies of our oppressor, we distrust them
+                
+            # Rebels might be slightly more paranoid overall (baseline - 5.0) due to their illegitimacy
+            paranoid_baseline = base_trust - 5.0
+            
+            final_trust_from_rebel = min(100.0, max(0.0, paranoid_baseline + gov_affinity_from_rebel + proxy_from_rebel))
+            
+            # Apply to matrix
+            world.trust_matrix[other_id][rebel_id] = float(final_trust_to_rebel)
+            world.trust_matrix[rebel_id][other_id] = float(final_trust_from_rebel)
+            
             world.relationship_matrix[rebel_id][other_id] = RelationshipState.PEACE
             world.relationship_matrix[other_id][rebel_id] = RelationshipState.PEACE
 
