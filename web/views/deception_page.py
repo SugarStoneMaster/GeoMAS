@@ -49,6 +49,5 @@ def render_deception_page(world: WorldState, history: List[List[CountryEnvelope]
         # Show per-domain breakdown
         col3.caption(
             f"Defense: {detailed['defense']:.2f} | "
-            f"Economic: {detailed['economic']:.2f} | "
             f"Foreign: {detailed['foreign']:.2f}"
         )
