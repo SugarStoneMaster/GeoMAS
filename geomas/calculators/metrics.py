@@ -63,7 +63,9 @@ def calculate_deception_score(envelope: CountryEnvelope) -> Dict[str, float]:
             
     # --- Economy Deception ---
     has_economy = False
-    if envelope.original_economic_proposal and envelope.original_economic_proposal.actions:
+    econ_prop = getattr(envelope, 'original_economic_proposal', None)
+    econ_payload = getattr(econ_prop, 'payload', None) if econ_prop else None
+    if econ_payload and getattr(econ_payload, 'actions', None):
         has_economy = True
         # Simple heuristic since economy lacks explicit intents in schema currently
         economy_keywords = ["trade", "econom", "resource", "invest", "develop", "material"]
@@ -127,9 +129,10 @@ def extract_nation_metrics(world: WorldState, envelope: CountryEnvelope, turn: i
                 military_spending += (costs["budget"] * move.quantity) + (costs["materials"] * move.quantity)
                 
     if hasattr(envelope, 'original_economic_proposal') and envelope.original_economic_proposal:
-        if envelope.original_economic_proposal.actions:
-            for act in envelope.original_economic_proposal.actions:
-                if act.action_type == "PROPOSE_TRADE" and getattr(act, 'quantity', None):
+        econ_payload = getattr(envelope.original_economic_proposal, 'payload', None)
+        if econ_payload and getattr(econ_payload, 'actions', None):
+            for act in econ_payload.actions:
+                if getattr(act, 'action_type', None) == "PROPOSE_TRADE" and getattr(act, 'quantity', None):
                     trade_volume += act.quantity
     
     return {

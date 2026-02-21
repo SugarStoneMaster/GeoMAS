@@ -53,7 +53,7 @@ def scenario_selection_dialog():
         trigger_turn = sim.world.turn + 13
         st.session_state["scenario_trigger_turn"] = trigger_turn
         
-        if choice in ["PANDEMIA", "SCOPERTA RISORSE"]:
+        if choice in ["PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE"]:
             scenario_data = {"type": choice, "turn": trigger_turn}
             sim.planned_scenario = scenario_data
             if sim.db:
