@@ -105,6 +105,9 @@ class MapGenerator:
         genesis = GenesisEngine(world, seed=history_seed)
         genesis.initialize_history(years=50)
         
+        # Step 8: Recalculate aggregates after history to ensure accurate power projection
+        self._calculate_nation_aggregates(nations_dict, provinces_dict)
+        
         return world
     
     def _calculate_nation_aggregates(

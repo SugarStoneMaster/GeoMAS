@@ -144,8 +144,26 @@ class SimulationEngine:
 
     def _init_agents(self):
         """Creates a NationAgent for each nation in the world."""
-        # Deterministic strategy assignment using map_seed
-        rng = random.Random(self.map_seed)
+        from geomas.calculators.analytics import calculate_power_projection, calculate_nation_aggregates
+        
+        # 1. Deterministic Ranking by Power Projection
+        # Recalculate to ensure accuracy after genesis
+        for nation in self.world.nations.values():
+            aggr = calculate_nation_aggregates(nation, self.world)
+            nation.total_population = aggr["total_population"]
+            nation.total_soldiers = aggr["total_soldiers"]
+            nation.total_aircraft = aggr["total_aircraft"]
+            nation.total_navy = aggr["total_navy"]
+            nation.power_projection = calculate_power_projection(nation)
+
+        # Sort nations by power (highest power first)
+        # We use nation_id as secondary sort key for absolute determinism
+        ranked_nations = sorted(
+            self.world.nations.keys(),
+            key=lambda nid: (self.world.nations[nid].power_projection, nid),
+            reverse=True
+        )
+        n_nations = len(ranked_nations)
         
         # Determinisitic Setup Profiles mapped to number of nations
         setup_profiles = {
@@ -178,18 +196,15 @@ class SimulationEngine:
         nation_ids = sorted(list(self.world.nations.keys()))
         n_nations = len(nation_ids)
         
-        # Determine Profiles to Use
+        # 2. Determine Profiles to Use (ordered by 'intensity')
         if n_nations in setup_profiles:
-            combined_profiles = setup_profiles[n_nations].copy()
-            # Shuffle the profiles themselves, keeping Strategy/Gov bound together
-            rng.shuffle(combined_profiles)
-            
-            # Unpack into separate lists for loop alignment
+            combined_profiles = setup_profiles[n_nations] # Use original order (Expansionism first)
             assigned_strategies = [p[0] for p in combined_profiles]
             assigned_govs = [p[1] for p in combined_profiles]
 
         else:
             # --- FALLBACK LOGIC for non-standard n_nations (e.g. 5, 7, 10) ---
+            # Order: High Power Profile -> Low Power Profile
             base_priority = [
                 GlobalStrategy.TOTAL_EXPANSIONISM,
                 GlobalStrategy.COALITION_BUILDER,
@@ -199,18 +214,19 @@ class SimulationEngine:
             fill_strategies = [GlobalStrategy.TOTAL_EXPANSIONISM, GlobalStrategy.COALITION_BUILDER]
             
             assigned_strategies = []
-            for i in range(min(n_nations, 4)): assigned_strategies.append(base_priority[i])
-            for i in range(n_nations - len(assigned_strategies)): assigned_strategies.append(fill_strategies[i % 2])
-            rng.shuffle(assigned_strategies)
+            for i in range(min(n_nations, 4)): 
+                assigned_strategies.append(base_priority[i])
+            for i in range(n_nations - len(assigned_strategies)): 
+                assigned_strategies.append(fill_strategies[i % 2])
             
+            # Simple government assignment (can be refined but keeps it logic)
             gov_pool = [GovernmentType.DEMOCRACY, GovernmentType.AUTHORITARIAN, GovernmentType.THEOCRACY]
             assigned_govs = []
-            for i in range(min(n_nations, 3)): assigned_govs.append(gov_pool[i])
-            for i in range(n_nations - len(assigned_govs)): assigned_govs.append(gov_pool[i % 3])
-            rng.shuffle(assigned_govs)
+            for i in range(n_nations):
+                assigned_govs.append(gov_pool[i % 3])
         
-        # 5. Create Agents
-        for i, nation_id in enumerate(nation_ids):
+        # 3. Create Agents for Ranked Nations
+        for i, nation_id in enumerate(ranked_nations):
             strategy = assigned_strategies[i]
             gov_type = assigned_govs[i]
             
