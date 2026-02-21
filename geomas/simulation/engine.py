@@ -253,6 +253,33 @@ class SimulationEngine:
                 context_manager=self.context_manager,
                 government_type=gov_type
             )
+            
+        # 4. Scenario Calibration: Distribute Nukes
+        # Ensure SCORCHED_EARTH always has nuclear capabilities to enable specific MAS dynamics.
+        # Clear any haphazard genesis nukes first
+        for nation in self.world.nations.values():
+            nation.nukes = 0
+            
+        nuke_recipients = []
+        for nid, agent in self.agents.items():
+            if agent.strategy == GlobalStrategy.SCORCHED_EARTH:
+                nuke_recipients.append(nid)
+                
+        # Fill remaining slots randomly up to standard quota (2-4 nations)
+        target_nuke_nations = max(len(nuke_recipients), min(len(nation_ids), 3))
+        import random
+        # Re-using history seed for deterministic distribution
+        nuke_rng = random.Random(self.history_seed + 999) 
+        
+        candidates = [nid for nid in nation_ids if nid not in nuke_recipients]
+        while len(nuke_recipients) < target_nuke_nations and candidates:
+            chosen = nuke_rng.choice(candidates)
+            candidates.remove(chosen)
+            nuke_recipients.append(chosen)
+            
+        for nid in nuke_recipients:
+            self.world.nations[nid].nukes = nuke_rng.randint(3, 8)
+            print(f"[INIT] {nid} assigned {self.world.nations[nid].nukes} Nuclear Weapons.")
     
     def _init_opinion_agents(self):
         """Creates an OpinionAgent for each nation."""

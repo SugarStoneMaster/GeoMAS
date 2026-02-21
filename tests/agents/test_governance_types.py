@@ -441,6 +441,8 @@ class TestEngineGovernmentTypeAssignment:
         engine = SimulationEngine.__new__(SimulationEngine)
         engine.world = world
         engine.map_seed = seed
+        engine.history_seed = seed
+        engine.n_cells = 100
         engine.client = MagicMock()
         engine.context_manager = None
         engine.agents = {}
