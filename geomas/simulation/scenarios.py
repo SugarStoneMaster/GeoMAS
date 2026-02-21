@@ -239,9 +239,9 @@ def trigger_separatist_insurrection(world: WorldState, context_manager: ContextM
     rebel_strategy = GlobalStrategy.SCORCHED_EARTH if rng.random() > 0.5 else GlobalStrategy.ARMED_ISOLATIONISM
     
     # 5. Trust and Relationships
-    # Trust is normalized to a 0-100 scale.
-    world.trust_matrix[rebel_id] = {}
-    world.relationship_matrix[rebel_id] = {}
+    # Initialize the matrices for the new nation, including the self-entry (diagonal)
+    world.trust_matrix[rebel_id] = {rebel_id: 100.0}
+    world.relationship_matrix[rebel_id] = {rebel_id: "SELF"}
     
     for other_id, other_nation in world.nations.items():
         if other_id == rebel_id:

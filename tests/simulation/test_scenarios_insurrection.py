@@ -113,3 +113,27 @@ def test_separatist_insurrection_triggers_correctly(base_engine):
     events_t5 = [e for e in cm.global_events if e.turn == 5]
     assert len(events_t5) > 0
     assert any("CIVIL WAR" in e.summary or "Insurrection" in e.summary for e in events_t5)
+
+def test_trust_matrix_diagonal_initialization(base_engine):
+    """
+    Verifies that a new rebel nation has its self-trust (diagonal) 
+    initialized correctly to 100 in the trust matrix.
+    """
+    world = base_engine.world
+    target_id = list(world.nations.keys())[0]
+    world.nations[target_id].public_satisfaction = 0.0
+    
+    # Trigger Scenario
+    # We call the trigger directly to avoid full engine complexity in this unit test
+    from geomas.simulation.scenarios import trigger_separatist_insurrection
+    trigger_separatist_insurrection(world, base_engine.context_manager, 10)
+    
+    rebel_id = f"{target_id}_FREE"
+    assert rebel_id in world.trust_matrix
+    assert rebel_id in world.trust_matrix[rebel_id]
+    assert world.trust_matrix[rebel_id][rebel_id] == 100.0
+    
+    assert rebel_id in world.relationship_matrix
+    assert rebel_id in world.relationship_matrix[rebel_id]
+    # Check that it's initialized (e.g., to "SELF" or "PEACE")
+    assert world.relationship_matrix[rebel_id][rebel_id] == "SELF"
