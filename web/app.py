@@ -370,6 +370,11 @@ if st.session_state["remaining_turns"] != 0 and sim:
     # Perform one step
     sim.step(injections=active_injections, scenario_trigger=scenario_trigger)
     
+    # CLEAR INJECTIONS after one use (make them one-shot)
+    if active_injections:
+        st.session_state["injections"] = []
+        st.toast("🧪 One-shot injection applied and cleared.", icon="⚡")
+    
     # Decrement if not Autoplay
     if st.session_state["remaining_turns"] > 0:
         st.session_state["remaining_turns"] -= 1
