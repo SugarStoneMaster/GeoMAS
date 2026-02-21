@@ -278,7 +278,7 @@ if not st.session_state["sim"] or mode == "Live Simulation":
         if st.session_state["sim"]:
             if st.button("🔓 Release DB Connection", use_container_width=True, help="Close DuckDB file lock to allow external access"):
                 if st.session_state["sim"].db:
-                    st.session_state["sim"].db.close()
+                    st.session_state["sim"].close()
                     st.success("Database connection released.")
 
     sim = st.session_state["sim"]
@@ -292,8 +292,7 @@ if not st.session_state["sim"] or mode == "Live Simulation":
             if st.session_state["remaining_turns"] != 0:
                 if st.button("⏹️ Stop Simulation", use_container_width=True, type="primary"):
                     st.session_state["remaining_turns"] = 0
-                    if sim.db:
-                        sim.db.close()
+                    sim.close()
                     st.rerun()
                 
                 status_desc = "Autoplay" if st.session_state["remaining_turns"] == -1 else f"{st.session_state['remaining_turns']} turns remaining"
@@ -383,8 +382,7 @@ if st.session_state["remaining_turns"] != 0 and sim:
     
     # If we just reached zero (end of a run), release connection automatically
     if st.session_state["remaining_turns"] == 0:
-        if sim.db:
-            sim.db.close()
+        sim.close()
         
     st.rerun()
 
