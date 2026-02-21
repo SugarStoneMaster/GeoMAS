@@ -16,8 +16,13 @@ def render_trust_matrix(world: WorldState) -> None:
     Scale: 0-100 (Green = high trust, Red = low trust).
     """
     st.subheader("🤝 Diplomatic Trust Matrix")
+    st.caption("Asymmetric Scale 0-100: How much the **Column** nation trusts the **Row** nation.")
     
     df_trust = pd.DataFrame(world.trust_matrix)
+    # pd.DataFrame(dict_of_dicts) makes outer keys (Observer) columns and inner keys (Target) rows.
+    df_trust.index.name = "Target ↓"
+    df_trust.columns.name = "Observer →"
+    
     # Sort for consistency
     df_trust = df_trust.sort_index().sort_index(axis=1)
     
