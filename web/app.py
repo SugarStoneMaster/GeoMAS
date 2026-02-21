@@ -32,6 +32,34 @@ from web.components.event_log import render_event_log
 st.set_page_config(page_title="GeoMAS Dashboard", layout="wide")
 st.title("👑 GeoMAS: Simulation Dashboard")
 
+# --- DIALOGS ---
+@st.dialog("Seleziona Scenario")
+def scenario_selection_dialog():
+    sim = st.session_state.get("sim")
+    if not sim:
+        st.error("Simulation not initialized.")
+        return
+
+    st.markdown("Scegli se attivare uno scenario durante questa run di **25 turni**.")
+    st.info("Lo scenario verrà innescato esattamente a metà (Turno 13 della run).")
+    
+    choice = st.selectbox("Scenario Type", ["Nessuno", "PANDEMIA"], index=0)
+    
+    if st.button("🚀 Conferma e Avvia", type="primary", use_container_width=True):
+        st.session_state["remaining_turns"] = 25
+        st.session_state["total_run_turns"] = 25
+        # Trigger turn relative to current world turn
+        st.session_state["scenario_trigger_turn"] = sim.world.turn + 13
+        
+        if choice == "PANDEMIA":
+            st.session_state["enable_scenarios"] = True
+            st.session_state["scenario_type"] = "PANDEMIA"
+        else:
+            st.session_state["enable_scenarios"] = False
+            
+        st.rerun()
+
+
 # --- SESSION STATE INIT ---
 if "sim" not in st.session_state:
     st.session_state["sim"] = None
@@ -271,9 +299,8 @@ if not st.session_state["sim"] or mode == "Live Simulation":
                         st.session_state["total_run_turns"] = 100
                         st.session_state["scenario_trigger_turn"] = sim.world.turn + 50
                         st.rerun()
-                    if st.button("▶️ Autoplay", use_container_width=True):
-                        st.session_state["remaining_turns"] = -1
-                        st.rerun()
+                    if st.button("🌀 Run 25 Turns", type="primary", use_container_width=True):
+                        scenario_selection_dialog()
                 
                 cols_n = st.columns([1, 2])
                 with cols_n[0]:
@@ -293,27 +320,7 @@ if not st.session_state["sim"] or mode == "Live Simulation":
         else:
             st.markdown("&nbsp;")
             st.info("Click Init/Reset")
-            
-    # --- SCENARIOS (Sidebar bottom) ---
-    st.divider()
-    st.title("🌪️ Scenarios")
-    
-    # Toggle for Mid-Simulation scenarios
-    enable_scenarios = st.toggle("Enable Mid-Point Scenarios", value=False, help="If enabled, a scenario will trigger exactly halfway through the auto-run batch.", key="enable_scenarios")
-    scenario_type = st.selectbox("Scenario Type", ["PANDEMIA"], disabled=not enable_scenarios, key="scenario_type")
-    
-    # Manual Trigger
-    st.markdown("### Manual Override")
-    manual_scenario = st.selectbox("Trigger Scenario Instantly:", ["PANDEMIA"], key="manual_scenario_select")
-    if st.button("🚨 TRIGGER NOW!", type="primary", use_container_width=True):
-        st.session_state["manual_scenario_trigger"] = {
-            "type": manual_scenario,
-            "turn": sim.world.turn if sim else 1
-        }
-        # Force a single step if not running
-        if st.session_state["remaining_turns"] == 0:
-            st.session_state["remaining_turns"] = 1
-        st.rerun()
+
 else:
     # Analysis Mode: Ensure 'sim' is available (for compatibility with lower blocks)
     sim = st.session_state["sim"]
