@@ -99,8 +99,18 @@ class SimulationEngine:
         
         # 7. Initialize Database (optional)
         self.db: Optional[SimulationDB] = None
+        self.metrics_db = None
         if db_path:
             self._init_db(db_path)
+            
+            # Initialize Metrics DB in parallel
+            try:
+                from geomas.db.metrics_db import MetricsDB
+                metrics_path = db_path.replace(".duckdb", "_metrics.duckdb")
+                self.metrics_db = MetricsDB(metrics_path)
+                print(f"[DB] Initialized Telemetry DB: {metrics_path}")
+            except Exception as e:
+                print(f"[DB ERROR] Failed to initialize MetricsDB: {e}")
 
     def _init_db(self, db_path: str) -> None:
         """Initialize database and save initial snapshot (turn 0)."""
@@ -315,6 +325,61 @@ class SimulationEngine:
                 coherence_score=coherence, global_strategy=envelope.global_strategy.value,
                 government_type=envelope.government_type
             )
+            
+        # --- NEW TELEMETRY INSERTION ---
+        if self.metrics_db:
+            try:
+                from geomas.calculators.metrics import extract_nation_metrics
+                
+                # 1. Nation Metrics
+                nation_metrics_list = []
+                # Keep running totals for global aggregates
+                tot_deception = 0.0
+                tot_coherence = 0.0
+                tot_satisfaction = 0.0
+                
+                for envelope in envelopes:
+                    m = extract_nation_metrics(self.world, envelope, turn)
+                    if m:
+                        nation_metrics_list.append(m)
+                        tot_deception += m["deception_overall"]
+                        tot_coherence += m["coherence_score"]
+                        tot_satisfaction += m["public_satisfaction"]
+                
+                if nation_metrics_list:
+                    self.metrics_db.insert_nation_metrics(self.simulation_id, nation_metrics_list)
+                    
+                # 2. Global Metrics
+                n_count = len(envelopes)
+                if n_count > 0:
+                    global_data = {
+                        "global_deception_avg": tot_deception / n_count,
+                        "global_coherence_avg": tot_coherence / n_count,
+                        "global_satisfaction_avg": tot_satisfaction / n_count,
+                        # Detailed events like territories changed would require comparing T and T-1 WorldStates,
+                        # skipping for now to prioritize Agent Metrics, or could be extracted from EventLogs.
+                        "territories_changed_hands": 0, 
+                        "units_created": sum(m["military_spending"] for m in nation_metrics_list), # Rough proxy
+                        "units_destroyed": 0,
+                        "global_trade_volume": sum(m["trade_volume"] for m in nation_metrics_list)
+                    }
+                    self.metrics_db.insert_global_metrics(self.simulation_id, turn, global_data)
+                    
+                # 3. Trust Metrics
+                trust_data = []
+                for observer_id, targets in self.world.trust_matrix.items():
+                    for target_id, trust_val in targets.items():
+                        rel = self.world.relationship_matrix.get(observer_id, {}).get(target_id, RelationshipState.PEACE)
+                        trust_data.append({
+                            "observer_id": observer_id,
+                            "target_id": target_id,
+                            "trust_value": trust_val,
+                            "relationship_state": rel.value if hasattr(rel, 'value') else str(rel)
+                        })
+                self.metrics_db.insert_trust_metrics(self.simulation_id, turn, trust_data)
+                
+            except Exception as e:
+                print(f"[METRICS ERROR] Failed to insert telemetry for turn {turn}: {e}")
 
     def _persist_token_usage(self, turn: int) -> None:
         """Save token usage records for a turn to DB."""
@@ -451,6 +516,8 @@ class SimulationEngine:
             # 1. Handle Logs
             scenario_logs = scenario_result.get("logs", [])
             if scenario_logs:
+                for msg in scenario_logs:
+                    print(msg)
                 self.turn_logs.extend(scenario_logs)
                 
             # 2. Handle Dynamic Nation Creation (Insurrection)
@@ -718,8 +785,12 @@ class SimulationEngine:
     
     def close(self):
         """Close database connection if open."""
+    def close(self):
+        """Close database connection if open."""
         if self.db:
             self.db.close()
+        if hasattr(self, 'metrics_db') and self.metrics_db:
+            self.metrics_db.close()
         
         # Save token usage at the end of simulation
         token_logger.save_to_csv()
