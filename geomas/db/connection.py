@@ -65,7 +65,8 @@ class SimulationDB:
                 created_at TIMESTAMP,
                 completed_at TIMESTAMP,
                 total_turns INTEGER DEFAULT 0,
-                name VARCHAR            -- Optional friendly name
+                name VARCHAR,           -- Optional friendly name
+                scenario_json JSON      -- Planned scenarios metadata
             )
         """)
         
@@ -122,6 +123,13 @@ class SimulationDB:
         if "government_type" not in col_names:
             print("[DB] Migrating: Adding 'government_type' to 'behaviors' table")
             self.conn.execute("ALTER TABLE behaviors ADD COLUMN government_type VARCHAR")
+            
+        # Migration for simulation table: add scenario_json if missing
+        sim_cols = self.conn.execute("PRAGMA table_info('simulation')").fetchall()
+        sim_col_names = [c[1] for c in sim_cols]
+        if "scenario_json" not in sim_col_names:
+            print("[DB] Migrating: Adding 'scenario_json' to 'simulation' table")
+            self.conn.execute("ALTER TABLE simulation ADD COLUMN scenario_json JSON")
         
         # 5. Token Usage (Cost Tracking)
         self.conn.execute("""
@@ -146,7 +154,8 @@ class SimulationDB:
         simulation_seed: int, 
         n_cells: int,
         n_nations: int,
-        name: Optional[str] = None
+        name: Optional[str] = None,
+        scenario_json: Optional[str] = None
     ) -> int:
         """
         Create a new simulation entry and return its ID.
@@ -162,8 +171,8 @@ class SimulationDB:
         
         self.conn.execute("""
             INSERT INTO simulation 
-            (id, uuid, genesis_seed, simulation_seed, n_cells, n_nations, created_at, name)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (id, uuid, genesis_seed, simulation_seed, n_cells, n_nations, created_at, name, scenario_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?::JSON)
         """, [
             next_id,
             sim_uuid,
@@ -172,10 +181,17 @@ class SimulationDB:
             n_cells,
             n_nations,
             datetime.now(),
-            name or f"Simulation {next_id}"
+            name or f"Simulation {next_id}",
+            scenario_json
         ])
         
         return next_id
+    
+    def update_simulation_scenario(self, simulation_id: int, scenario_json: Optional[str]) -> None:
+        """Update the planned scenario metadata for a simulation."""
+        self.conn.execute("""
+            UPDATE simulation SET scenario_json = ?::JSON WHERE id = ?
+        """, [scenario_json, simulation_id])
     
     def get_simulations(self) -> List[Dict[str, Any]]:
         """List all simulations in the DB."""
@@ -340,7 +356,7 @@ class SimulationDB:
     def get_simulation_info(self, simulation_id: int) -> Optional[dict]:
         """Get metadata for a specific simulation."""
         result = self.conn.execute("""
-            SELECT id, genesis_seed, simulation_seed, n_cells, n_nations, created_at, total_turns, name
+            SELECT id, genesis_seed, simulation_seed, n_cells, n_nations, created_at, total_turns, name, scenario_json
             FROM simulation WHERE id = ?
         """, [simulation_id]).fetchone()
         
@@ -355,7 +371,8 @@ class SimulationDB:
             "n_nations": result[4],
             "created_at": result[5],
             "total_turns": result[6],
-            "name": result[7]
+            "name": result[7],
+            "scenario_json": result[8]
         }
 
     def __enter__(self):

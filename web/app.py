@@ -46,15 +46,24 @@ def scenario_selection_dialog():
     choice = st.selectbox("Scenario Type", ["Nessuno", "PANDEMIA"], index=0)
     
     if st.button("🚀 Conferma e Avvia", type="primary", use_container_width=True):
+        import json
         st.session_state["remaining_turns"] = 25
         st.session_state["total_run_turns"] = 25
         # Trigger turn relative to current world turn
-        st.session_state["scenario_trigger_turn"] = sim.world.turn + 13
+        trigger_turn = sim.world.turn + 13
+        st.session_state["scenario_trigger_turn"] = trigger_turn
         
         if choice == "PANDEMIA":
+            scenario_data = {"type": "PANDEMIA", "turn": trigger_turn}
+            sim.planned_scenario = scenario_data
+            if sim.db:
+                sim.db.update_simulation_scenario(sim.simulation_id, json.dumps(scenario_data))
             st.session_state["enable_scenarios"] = True
             st.session_state["scenario_type"] = "PANDEMIA"
         else:
+            sim.planned_scenario = None
+            if sim.db:
+                sim.db.update_simulation_scenario(sim.simulation_id, None)
             st.session_state["enable_scenarios"] = False
             
         st.rerun()
@@ -128,6 +137,15 @@ with st.sidebar:
                             
                             st.session_state["sim"] = new_sim
                             st.session_state["remaining_turns"] = 0
+                            
+                            # Sync Scenario state
+                            if new_sim.planned_scenario:
+                                st.session_state["enable_scenarios"] = True
+                                st.session_state["scenario_type"] = new_sim.planned_scenario.get("type", "PANDEMIA")
+                                st.session_state["scenario_trigger_turn"] = new_sim.planned_scenario.get("turn", -1)
+                            else:
+                                st.session_state["enable_scenarios"] = False
+                                
                             st.rerun()
 
         sim = st.session_state.get("sim")
@@ -317,6 +335,10 @@ if not st.session_state["sim"] or mode == "Live Simulation":
                     st.caption("🟢 Database Connected")
                 else:
                     st.caption("⚪ Database Released")
+                
+                # Planned Scenario Info
+                if sim.planned_scenario:
+                    st.info(f"🌪️ Planned: {sim.planned_scenario['type']} (T{sim.planned_scenario['turn']})")
         else:
             st.markdown("&nbsp;")
             st.info("Click Init/Reset")

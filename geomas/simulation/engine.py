@@ -41,7 +41,8 @@ class SimulationEngine:
         llm_client: LLMClient = None,
         db_path: Optional[str] = None,
         simulation_id: Optional[int] = None,
-        cache_size: int = 20
+        cache_size: int = 20,
+        planned_scenario: Optional[dict] = None
     ):
         """
         Initialize the simulation engine.
@@ -61,6 +62,7 @@ class SimulationEngine:
         self.n_cells = n_cells
         self.n_nations = n_nations
         self.simulation_id = simulation_id
+        self.planned_scenario = planned_scenario
         
         # 1. Initialize World
         self.world = generate_world(
@@ -106,13 +108,15 @@ class SimulationEngine:
         self.db.initialize()
         
         # Get or Create Simulation ID
+        import json
         is_new_sim = self.simulation_id is None
         if is_new_sim:
             self.simulation_id = self.db.create_simulation(
                 genesis_seed=self.map_seed,
                 simulation_seed=self.history_seed,
                 n_cells=self.n_cells,
-                n_nations=self.n_nations
+                n_nations=self.n_nations,
+                scenario_json=json.dumps(self.planned_scenario) if self.planned_scenario else None
             )
             print(f"[DB] Saved as Simulation ID: {self.simulation_id}")
             
@@ -132,8 +136,11 @@ class SimulationEngine:
                 behaviors={}
             )
         else:
-            # For existing simulations, we already have turn 1 in DB
-            pass
+            # For existing simulations, load planned scenario metadata
+            info = self.db.get_simulation_info(self.simulation_id)
+            if info and info.get("scenario_json"):
+                import json
+                self.planned_scenario = json.loads(info["scenario_json"])
 
     def _init_agents(self):
         """Creates a NationAgent for each nation in the world."""
@@ -418,9 +425,12 @@ class SimulationEngine:
         turn_rng = random.Random(combined_seed)
         
         # -1. SCENARIO PHASE (Mid-Simulation Triggers like Pandemics)
-        if scenario_trigger is not None:
+        # Priority: explicit argument > persisted state
+        trigger = scenario_trigger or self.planned_scenario
+        
+        if trigger is not None:
             from geomas.simulation.scenarios import check_and_trigger_scenario
-            scenario_logs = check_and_trigger_scenario(self.world, self.context_manager, current_turn, scenario_trigger)
+            scenario_logs = check_and_trigger_scenario(self.world, self.context_manager, current_turn, trigger)
             if scenario_logs:
                 self.turn_logs.extend(scenario_logs)
                 
