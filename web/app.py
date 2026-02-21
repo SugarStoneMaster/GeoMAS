@@ -43,7 +43,7 @@ def scenario_selection_dialog():
     st.markdown("Scegli se attivare uno scenario durante questa run di **25 turni**.")
     st.info("Lo scenario verrà innescato esattamente a metà (Turno 13 della run).")
     
-    choice = st.selectbox("Scenario Type", ["Nessuno", "PANDEMIA"], index=0)
+    choice = st.selectbox("Scenario Type", ["Nessuno", "PANDEMIA", "SCOPERTA RISORSE"], index=0)
     
     if st.button("🚀 Conferma e Avvia", type="primary", use_container_width=True):
         import json
@@ -53,13 +53,13 @@ def scenario_selection_dialog():
         trigger_turn = sim.world.turn + 13
         st.session_state["scenario_trigger_turn"] = trigger_turn
         
-        if choice == "PANDEMIA":
-            scenario_data = {"type": "PANDEMIA", "turn": trigger_turn}
+        if choice in ["PANDEMIA", "SCOPERTA RISORSE"]:
+            scenario_data = {"type": choice, "turn": trigger_turn}
             sim.planned_scenario = scenario_data
             if sim.db:
                 sim.db.update_simulation_scenario(sim.simulation_id, json.dumps(scenario_data))
             st.session_state["enable_scenarios"] = True
-            st.session_state["scenario_type"] = "PANDEMIA"
+            st.session_state["scenario_type"] = choice
         else:
             sim.planned_scenario = None
             if sim.db:
