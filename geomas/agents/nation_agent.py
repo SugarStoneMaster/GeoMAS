@@ -232,6 +232,16 @@ class NationAgent:
         """
         nation = self.world.nations[self.id]
         
+        # Initialize prompt ONCE if not already done (e.g. if skipped in __init__ in some tests)
+        if self.president_system_prompt is None:
+            self.president_system_prompt = PresidentSystemPrompt.generate(
+                nation_name=nation.name,
+                strategy=self.strategy,
+                cultural_traits=getattr(nation, 'cultural_traits', None),
+                nation_id=self.id,
+                government_type=self.government_type
+            )
+            
         # Use the static system prompt generated at initialization
         system_prompt = self.president_system_prompt
         

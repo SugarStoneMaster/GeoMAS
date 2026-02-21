@@ -1,6 +1,6 @@
 """
-Tests for Strategy-Aware System Prompt Updates.
-Verifies that changing GlobalStrategy triggers prompt regeneration for Agents.
+Tests for Static System Prompts (Strategy-Immune).
+Verifies that changing GlobalStrategy does NOT trigger prompt regeneration for Agents.
 """
 
 import pytest
@@ -42,8 +42,8 @@ def setup_agent(mock_client):
     )
     return agent, world
 
-def test_president_strategy_change(setup_agent, mock_client):
-    """Verify President prompt updates when agent.strategy changes."""
+def test_president_prompt_is_static_after_strategy_change(setup_agent, mock_client):
+    """Verify President prompt remains the same even if agent.strategy changes."""
     agent, world = setup_agent
     
     # 1. First Call: TOTAL_EXPANSIONISM
@@ -51,136 +51,88 @@ def test_president_strategy_change(setup_agent, mock_client):
     mock_briefing.defense = MagicMock(spec=DefenseProposal)
     mock_briefing.economy = MagicMock(spec=EconomicProposal)
     mock_briefing.foreign = MagicMock(spec=ForeignProposal)
-    # Set dummy attributes to prevent downstream errors in summarize methods
-    mock_briefing.defense.payload = MagicMock()
-    mock_briefing.defense.payload.moves = []
-    mock_briefing.defense.intent = MagicMock()
-    mock_briefing.defense.intent.public_intent.value = "DETERRENCE"
+    mock_briefing.defense.payload = MagicMock(); mock_briefing.defense.payload.moves = []
+    mock_briefing.defense.intent = MagicMock(); mock_briefing.defense.intent.public_intent.value = "DETERRENCE"
     mock_briefing.defense.intent.private_intent.value = "DETERRENCE"
-    mock_briefing.defense.intent.reasoning = "Test Reasoning"
+    mock_briefing.defense.intent.reasoning = "Test"
     
-    mock_briefing.economy.payload = MagicMock()
-    mock_briefing.economy.payload.amount = 100.0
-    mock_briefing.economy.payload.give_type = None
-    mock_briefing.economy.payload.want_type = None
-    mock_briefing.economy.intent = MagicMock()
-    mock_briefing.economy.intent.public_intent.value = "GROWTH"
+    mock_briefing.economy.payload = MagicMock(); mock_briefing.economy.payload.amount = 100.0
+    mock_briefing.economy.payload.give_type = None; mock_briefing.economy.payload.want_type = None
+    mock_briefing.economy.intent = MagicMock(); mock_briefing.economy.intent.public_intent.value = "GROWTH"
     mock_briefing.economy.intent.private_intent.value = "GROWTH"
-    mock_briefing.economy.intent.reasoning = "Test Reasoning"
+    mock_briefing.economy.intent.reasoning = "Test"
     
-    mock_briefing.foreign.payload = MagicMock()
-    mock_briefing.foreign.payload.target_nation_id = "B"
-    mock_briefing.foreign.payload.diplomatic_message_type = None
-    mock_briefing.foreign.payload.proposal_ref_type = None
-    mock_briefing.foreign.intent = MagicMock()
-    mock_briefing.foreign.intent.public_intent.value = "COOPERATION"
+    mock_briefing.foreign.payload = MagicMock(); mock_briefing.foreign.payload.target_nation_id = "B"
+    mock_briefing.foreign.payload.diplomatic_message_type = None; mock_briefing.foreign.payload.proposal_ref_type = None
+    mock_briefing.foreign.intent = MagicMock(); mock_briefing.foreign.intent.public_intent.value = "COOPERATION"
     mock_briefing.foreign.intent.private_intent.value = "COOPERATION"
-    mock_briefing.foreign.intent.reasoning = "Test Reasoning"
+    mock_briefing.foreign.intent.reasoning = "Test"
 
     agent._presidential_decision(turn=1, briefing=mock_briefing)
-    
-    # Check arguments passed to query_agent
-    args, _ = mock_client.query_agent.call_args
-    system_prompt_1 = args[0]
-    
-    expansionist_desc = get_strategy_description(GlobalStrategy.TOTAL_EXPANSIONISM)
-    assert expansionist_desc in system_prompt_1
-    assert "TOTAL_EXPANSIONISM" in system_prompt_1
+    prompt_1 = mock_client.query_agent.call_args[0][0]
+    cached_prompt = agent.president_system_prompt
     
     # 2. Change Strategy: ARMED_ISOLATIONISM
     agent.strategy = GlobalStrategy.ARMED_ISOLATIONISM
-    agent._presidential_decision(turn=1, briefing=mock_briefing)
+    agent._presidential_decision(turn=2, briefing=mock_briefing)
     
-    args, _ = mock_client.query_agent.call_args
-    system_prompt_2 = args[0]
+    prompt_2 = mock_client.query_agent.call_args[0][0]
     
-    isolationist_desc = get_strategy_description(GlobalStrategy.ARMED_ISOLATIONISM)
-    assert isolationist_desc in system_prompt_2
-    assert "ARMED_ISOLATIONISM" in system_prompt_2
-    
-    # Verify prompts are different
-    assert system_prompt_1 != system_prompt_2
+    # Verify prompts are IDENTICAL
+    assert prompt_1 == prompt_2
+    assert agent.president_system_prompt == cached_prompt
+    assert "TOTAL_EXPANSIONISM" in prompt_2
+    assert "ARMED_ISOLATIONISM" not in prompt_2 # Should NOT be updated
 
-
-def test_defense_minister_strategy_change(setup_agent, mock_client):
-    """Verify Defense Minister prompt updates when passed strategy changes."""
-    agent, world = setup_agent
+def test_defense_minister_prompt_remains_static(setup_agent, mock_client):
+    """Verify Defense Minister prompt doesn't update when passed strategy differs from init."""
+    agent, _ = setup_agent
     minister = agent.defense_minister
     
-    # 1. Propose with COALITION_BUILDER
-    minister.propose(strategy=GlobalStrategy.COALITION_BUILDER, turn=1)
-    
-    args, _ = mock_client.query_agent.call_args
-    prompt_1 = args[0]
-    assert "COALITION_BUILDER" in prompt_1
-    
-    # 2. Propose with TOTAL_EXPANSIONISM
+    # 1. Propose with its current strategy (TOTAL_EXPANSIONISM from setup)
     minister.propose(strategy=GlobalStrategy.TOTAL_EXPANSIONISM, turn=1)
+    prompt_1 = mock_client.query_agent.call_args[0][0]
+    assert "TOTAL_EXPANSIONISM" in prompt_1
     
-    args, _ = mock_client.query_agent.call_args
-    prompt_2 = args[0]
+    # 2. Propose with DIFFERENT strategy
+    minister.propose(strategy=GlobalStrategy.COALITION_BUILDER, turn=2)
+    prompt_2 = mock_client.query_agent.call_args[0][0]
+    
+    assert prompt_1 == prompt_2
     assert "TOTAL_EXPANSIONISM" in prompt_2
-    
-    assert prompt_1 != prompt_2
+    # Removed incorrect exclusion check for 'COALITION_BUILDER' as it appears in boilerplate examples.
 
-def test_economy_minister_strategy_change(setup_agent, mock_client):
-    """Verify Economy Minister prompt updates."""
-    agent, world = setup_agent
+def test_economy_minister_prompt_remains_static(setup_agent, mock_client):
+    """Verify Economy Minister prompt remains static."""
+    agent, _ = setup_agent
     minister = agent.economy_minister
     
-    # 1. Propose with COALITION_BUILDER
-    minister.propose(strategy=GlobalStrategy.COALITION_BUILDER, turn=1)
+    minister.propose(strategy=GlobalStrategy.TOTAL_EXPANSIONISM, turn=1)
     prompt_1 = mock_client.query_agent.call_args[0][0]
-    assert "COALITION_BUILDER" in prompt_1
     
-    # 2. Propose with ARMED_ISOLATIONISM
-    minister.propose(strategy=GlobalStrategy.ARMED_ISOLATIONISM, turn=1)
+    minister.propose(strategy=GlobalStrategy.ARMED_ISOLATIONISM, turn=2)
     prompt_2 = mock_client.query_agent.call_args[0][0]
-    assert "ARMED_ISOLATIONISM" in prompt_2
     
-    assert prompt_1 != prompt_2
+    assert prompt_1 == prompt_2
 
-def test_caching_efficiency(setup_agent, mock_client):
-    """Verify that if strategy is same, cached prompt is reused (same object)."""
+def test_caching_perfection(setup_agent, mock_client):
+    """Verify that the prompt object reference remains the same (no redundant regeneration)."""
     agent, world = setup_agent
     
-    # Force generation
     mock_briefing = MagicMock()
-    mock_briefing.defense = MagicMock(spec=DefenseProposal)
-    mock_briefing.economy = MagicMock(spec=EconomicProposal)
-    mock_briefing.foreign = MagicMock(spec=ForeignProposal)
-    mock_briefing.defense.payload = MagicMock()
-    mock_briefing.defense.payload.moves = []
-    mock_briefing.defense.intent = MagicMock()
-    mock_briefing.defense.urgency = 5
-    mock_briefing.defense.intent.public_intent.value = "DETERRENCE"
-    mock_briefing.defense.intent.private_intent.value = "DETERRENCE"
-    mock_briefing.defense.intent.reasoning = "Test Reasoning"
-    
-    mock_briefing.economy.payload = MagicMock()
-    mock_briefing.economy.payload.amount = 100.0
-    mock_briefing.economy.payload.give_type = None
-    mock_briefing.economy.payload.want_type = None
-    mock_briefing.economy.intent = MagicMock()
-    mock_briefing.economy.intent.public_intent.value = "GROWTH"
-    mock_briefing.economy.intent.private_intent.value = "GROWTH"
-    mock_briefing.economy.intent.reasoning = "Test Reasoning"
-    
-    mock_briefing.foreign.payload = MagicMock()
-    mock_briefing.foreign.payload.target_nation_id = "B"
-    mock_briefing.foreign.payload.diplomatic_message_type = None
-    mock_briefing.foreign.payload.proposal_ref_type = None
-    mock_briefing.foreign.intent = MagicMock()
-    mock_briefing.foreign.intent.public_intent.value = "COOPERATION"
-    mock_briefing.foreign.intent.private_intent.value = "COOPERATION"
-    mock_briefing.foreign.intent.reasoning = "Test Reasoning"
+    mock_briefing.defense = MagicMock(spec=DefenseProposal); mock_briefing.defense.payload = MagicMock(); mock_briefing.defense.payload.moves = []
+    mock_briefing.defense.intent = MagicMock(); mock_briefing.defense.intent.public_intent.value = "DETERRENCE"
+    mock_briefing.defense.intent.private_intent.value = "DETERRENCE"; mock_briefing.defense.intent.reasoning = "Test"
+    mock_briefing.economy.payload = MagicMock(); mock_briefing.economy.payload.amount = 100.0; mock_briefing.economy.payload.give_type = None; mock_briefing.economy.payload.want_type = None
+    mock_briefing.economy.intent = MagicMock(); mock_briefing.economy.intent.public_intent.value = "GROWTH"; mock_briefing.economy.intent.private_intent.value = "GROWTH"; mock_briefing.economy.intent.reasoning = "Test"
+    mock_briefing.foreign.payload = MagicMock(); mock_briefing.foreign.payload.target_nation_id = "B"; mock_briefing.foreign.payload.diplomatic_message_type = None; mock_briefing.foreign.payload.proposal_ref_type = None
+    mock_briefing.foreign.intent = MagicMock(); mock_briefing.foreign.intent.public_intent.value = "COOPERATION"; mock_briefing.foreign.intent.private_intent.value = "COOPERATION"; mock_briefing.foreign.intent.reasoning = "Test"
 
     agent._presidential_decision(turn=1, briefing=mock_briefing)
     cached_prompt = agent.president_system_prompt
     
-    # Call again with same strategy
-    agent._presidential_decision(turn=1, briefing=mock_briefing)
+    # Change strategy and call again
+    agent.strategy = GlobalStrategy.ARMED_ISOLATIONISM
+    agent._presidential_decision(turn=2, briefing=mock_briefing)
     
-    # Should be identical object (str is immutable but if generated it might be new object with same content, 
-    # but here we assign self.president_system_prompt)
     assert agent.president_system_prompt is cached_prompt

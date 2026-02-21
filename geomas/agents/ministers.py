@@ -82,6 +82,10 @@ class DefenseMinister(BaseMinister):
     prompt_class = DefenseSystemPrompt
     
     def propose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> DefenseProposal:
+        # Initialize prompt ONCE if not already done
+        if self.system_prompt is None:
+            self._update_prompt(strategy)
+            
         # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
@@ -121,6 +125,9 @@ class DefenseMinister(BaseMinister):
 
     async def apropose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> DefenseProposal:
         """Async version of propose."""
+        if self.system_prompt is None:
+            self._update_prompt(strategy)
+            
         # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
@@ -161,6 +168,9 @@ class EconomicMinister(BaseMinister):
     prompt_class = EconomySystemPrompt
     
     def propose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> EconomicProposal:
+        if self.system_prompt is None:
+            self._update_prompt(strategy)
+            
         # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
@@ -196,6 +206,9 @@ class EconomicMinister(BaseMinister):
 
     async def apropose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> EconomicProposal:
         """Async version of propose."""
+        if self.system_prompt is None:
+            self._update_prompt(strategy)
+            
         # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
@@ -234,6 +247,9 @@ class ForeignMinister(BaseMinister):
     prompt_class = ForeignSystemPrompt
     
     def propose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> ForeignProposal:
+        if self.system_prompt is None:
+            self._update_prompt(strategy)
+            
         # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
@@ -276,6 +292,9 @@ class ForeignMinister(BaseMinister):
 
     async def apropose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> ForeignProposal:
         """Async version of propose."""
+        if self.system_prompt is None:
+            self._update_prompt(strategy)
+            
         # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
