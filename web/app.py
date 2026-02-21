@@ -34,23 +34,26 @@ st.title("👑 GeoMAS: Simulation Dashboard")
 
 # --- DIALOGS ---
 @st.dialog("Seleziona Scenario")
-def scenario_selection_dialog():
+def scenario_selection_dialog(num_turns: int):
     sim = st.session_state.get("sim")
     if not sim:
         st.error("Simulation not initialized.")
         return
 
-    st.markdown("Scegli se attivare uno scenario durante questa run di **25 turni**.")
-    st.info("Lo scenario verrà innescato esattamente a metà (Turno 13 della run).")
+    st.markdown(f"Scegli se attivare uno scenario durante questa run di **{num_turns} turni**.")
+    
+    # Calculate midpoint trigger
+    midpoint = num_turns // 2
+    trigger_turn = sim.world.turn + midpoint
+    
+    st.info(f"Lo scenario verrà innescato al turno **{trigger_turn}** (tra {midpoint} turni).")
     
     choice = st.selectbox("Scenario Type", ["Nessuno", "PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE"], index=0)
     
     if st.button("🚀 Conferma e Avvia", type="primary", use_container_width=True):
         import json
-        st.session_state["remaining_turns"] = 25
-        st.session_state["total_run_turns"] = 25
-        # Trigger turn relative to current world turn
-        trigger_turn = sim.world.turn + 13
+        st.session_state["remaining_turns"] = num_turns
+        st.session_state["total_run_turns"] = num_turns
         st.session_state["scenario_trigger_turn"] = trigger_turn
         
         if choice in ["PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE"]:
@@ -306,28 +309,19 @@ if not st.session_state["sim"] or mode == "Live Simulation":
                         st.session_state["scenario_trigger_turn"] = sim.world.turn
                         st.rerun()
                     if st.button("⏩ Run 5", use_container_width=True):
-                        st.session_state["remaining_turns"] = 5
-                        st.session_state["total_run_turns"] = 5
-                        st.session_state["scenario_trigger_turn"] = sim.world.turn + 2
-                        st.rerun()
+                        scenario_selection_dialog(5)
                 with c2:
                     if st.button("🚀 Run 100", use_container_width=True):
-                        st.session_state["remaining_turns"] = 100
-                        st.session_state["total_run_turns"] = 100
-                        st.session_state["scenario_trigger_turn"] = sim.world.turn + 50
-                        st.rerun()
+                        scenario_selection_dialog(100)
                     if st.button("🌀 Run 25 Turns", type="primary", use_container_width=True):
-                        scenario_selection_dialog()
+                        scenario_selection_dialog(25)
                 
                 cols_n = st.columns([1, 2])
                 with cols_n[0]:
                     n_val = st.number_input("Turns", min_value=1, value=10, label_visibility="collapsed", key="run_n_val")
                 with cols_n[1]:
                     if st.button(f"▶️ Run {n_val}", use_container_width=True):
-                        st.session_state["remaining_turns"] = n_val
-                        st.session_state["total_run_turns"] = n_val
-                        st.session_state["scenario_trigger_turn"] = sim.world.turn + (n_val // 2)
-                        st.rerun()
+                        scenario_selection_dialog(n_val)
                 
                 # DB Status bit
                 if sim.db and sim.db._conn is not None:
