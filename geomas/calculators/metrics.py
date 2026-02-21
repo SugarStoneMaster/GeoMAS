@@ -92,14 +92,18 @@ def calculate_coherence_score(envelope: CountryEnvelope) -> float:
     
     if strategy_val == "ARMED_ISOLATIONISM":
         if envelope.original_foreign_proposal:
-            for act in envelope.original_foreign_proposal.actions:
-                if act.action_type == "PROPOSE_ALLIANCE":
-                    score -= 0.5
+            for_payload = getattr(envelope.original_foreign_proposal, 'payload', None)
+            if for_payload and getattr(for_payload, 'actions', None):
+                for act in for_payload.actions:
+                    if getattr(act, 'action_type', None) == "PROPOSE_ALLIANCE":
+                        score -= 0.5
                     
     elif strategy_val == "TOTAL_EXPANSIONISM":
         has_military_action = False
         if envelope.original_defense_proposal:
-            has_military_action = len(envelope.original_defense_proposal.moves) > 0
+            def_payload = getattr(envelope.original_defense_proposal, 'payload', None)
+            if def_payload and getattr(def_payload, 'moves', None):
+                has_military_action = len(def_payload.moves) > 0
         if not has_military_action:
             score -= 0.2
             
@@ -123,10 +127,12 @@ def extract_nation_metrics(world: WorldState, envelope: CountryEnvelope, turn: i
     
     if hasattr(envelope, 'original_defense_proposal') and envelope.original_defense_proposal:
         from geomas.actions.defense.schemas import UNIT_COSTS
-        for move in envelope.original_defense_proposal.moves:
-            if move.action_type == "CREATE_UNIT" and getattr(move, 'unit_type', None) and getattr(move, 'quantity', None):
-                costs = UNIT_COSTS.get(move.unit_type, {"budget": 0, "materials": 0})
-                military_spending += (costs["budget"] * move.quantity) + (costs["materials"] * move.quantity)
+        def_payload = getattr(envelope.original_defense_proposal, 'payload', None)
+        if def_payload and getattr(def_payload, 'moves', None):
+            for move in def_payload.moves:
+                if getattr(move, 'action_type', None) == "CREATE_UNIT" and getattr(move, 'unit_type', None) and getattr(move, 'quantity', None):
+                    costs = UNIT_COSTS.get(move.unit_type, {"budget": 0, "materials": 0})
+                    military_spending += (costs["budget"] * move.quantity) + (costs["materials"] * move.quantity)
                 
     if hasattr(envelope, 'original_economic_proposal') and envelope.original_economic_proposal:
         econ_payload = getattr(envelope.original_economic_proposal, 'payload', None)
