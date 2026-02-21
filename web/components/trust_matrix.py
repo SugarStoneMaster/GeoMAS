@@ -26,8 +26,8 @@ def render_trust_matrix(world: WorldState) -> None:
     # Sort for consistency
     df_trust = df_trust.sort_index().sort_index(axis=1)
     
-    # Convert to integer for cleaner display
-    df_trust = df_trust.astype(int)
+    # Convert to integer for cleaner display, filling any NaN with neutral 50
+    df_trust = df_trust.fillna(50).astype(int)
     
     st.dataframe(
         df_trust.style.background_gradient(cmap="RdYlGn", vmin=0, vmax=100),
