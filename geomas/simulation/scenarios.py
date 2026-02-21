@@ -125,18 +125,180 @@ def trigger_resource_discovery(world: WorldState, context_manager: ContextManage
     
     return [f"💎 [SCENARIO DETECTED] Resource Discovery in province #{target.id} ({owner_name})! Production skyrocketed."]
 
-def check_and_trigger_scenario(world: WorldState, context_manager: ContextManager, current_turn: int, scenario_trigger: Dict[str, Any]):
+def trigger_separatist_insurrection(world: WorldState, context_manager: ContextManager, turn: int) -> Dict[str, Any]:
+    """
+    Executes the Separatist Insurrection Scenario.
+    - Finds the nation with the lowest public satisfaction.
+    - Steals 1-3 provinces to form a new rebel state.
+    - Transfers units and recalibrates resource statistics.
+    - Updates Trust & Relationship matrices to WAR state.
+    """
+    import random
+    from geomas.schemas.world import NationState, RelationshipState
+    from geomas.agents.schemas.protocol import GovernmentType
+    from geomas.agents.schemas import GlobalStrategy
+    from geomas.calculators.analytics import calculate_nation_aggregates, calculate_power_projection
+    
+    rng = random.Random(turn + 142)
+    
+    # 1. Find Motherland (lowest satisfaction)
+    nations_with_provinces = [n for n in world.nations.values() if len(n.province_ids) > 1]
+    if not nations_with_provinces:
+        return {"logs": ["⚠️ [SCENARIO FAILED] No nation found with enough provinces to rebel."]}
+        
+    motherland = min(nations_with_provinces, key=lambda n: n.public_satisfaction)
+    
+    # 2. Pick target provinces using BFS for adjacency
+    all_mother_provinces = set(motherland.province_ids)
+    num_to_steal = min(len(all_mother_provinces) - 1, rng.randint(1, 3))
+    
+    # Start from a random province
+    start_prov_id = rng.choice(list(all_mother_provinces))
+    stolen_ids = {start_prov_id}
+    queue = [start_prov_id]
+    
+    while queue and len(stolen_ids) < num_to_steal:
+        curr_id = queue.pop(0)
+        curr_prov = world.provinces[curr_id]
+        neighbors = [n_id for n_id in curr_prov.neighbors if n_id in all_mother_provinces and n_id not in stolen_ids]
+        rng.shuffle(neighbors)
+        for n_id in neighbors:
+            if len(stolen_ids) < num_to_steal:
+                stolen_ids.add(n_id)
+                queue.append(n_id)
+                
+    if not stolen_ids:
+        return {"logs": ["⚠️ [SCENARIO FAILED] Rebellion failed to secure adjacent provinces."]}
+        
+    # 3. Create Rebel State
+    # A distinct color
+    colors = ['#FF4136', '#FF851B', '#FFDC00', '#2ECC40', '#0074D9', '#B10DC9', '#E0A899', '#AAAAAA']
+    color = rng.choice(colors)
+    
+    rebel_id = f"{motherland.id}_FREE"
+    rebel_name = f"Free State of {motherland.name}"
+    
+    rebel_nation = NationState(
+        id=rebel_id,
+        name=rebel_name,
+        color=color,
+        province_ids=list(stolen_ids),
+        total_budget=0, total_food=0, total_energy=0, total_materials=0,
+        total_population=0, power_projection=0.0,
+        public_satisfaction=80.0, # High early enthusiasm
+        cultural_traits=motherland.cultural_traits.copy()
+    )
+    
+    # Transfer provinces
+    for p_id in stolen_ids:
+        motherland.province_ids.remove(p_id)
+        world.provinces[p_id].owner_id = rebel_id
+        # Note: soldiers, aircraft, and navy are native attributes of the ProvinceState.
+        # By changing the owner_id, they automatically belong to the new nation.
+        # Guest troops from allies are cleared to reflect the chaos of rebellion.
+        world.provinces[p_id].guest_troops = {}
+    
+    # Recalculate Aggregates
+    for target_nation in [motherland, rebel_nation]:
+        aggr = calculate_nation_aggregates(target_nation, world)
+        target_nation.total_population = aggr["total_population"]
+        target_nation.total_soldiers = aggr["total_soldiers"]
+        target_nation.total_aircraft = aggr["total_aircraft"]
+        target_nation.total_navy = aggr["total_navy"]
+        target_nation.power_projection = calculate_power_projection(target_nation)
+        
+    # Give rebels a small stash stolen from motherland
+    stolen_share = len(stolen_ids) / (len(stolen_ids) + len(motherland.province_ids))
+    rebel_nation.total_budget = motherland.total_budget * stolen_share
+    rebel_nation.total_food = motherland.total_food * stolen_share
+    rebel_nation.total_energy = motherland.total_energy * stolen_share
+    rebel_nation.total_materials = motherland.total_materials * stolen_share
+    
+    motherland.total_budget *= (1 - stolen_share)
+    motherland.total_food *= (1 - stolen_share)
+    motherland.total_energy *= (1 - stolen_share)
+    motherland.total_materials *= (1 - stolen_share)
+    
+    world.nations[rebel_id] = rebel_nation
+    
+    # 4. Determine New Attributes
+    # Opposing Government
+    gov_map = {
+        GovernmentType.DEMOCRACY.value: GovernmentType.AUTHORITARIAN,
+        GovernmentType.AUTHORITARIAN.value: GovernmentType.DEMOCRACY,
+        GovernmentType.THEOCRACY.value: GovernmentType.DEMOCRACY,
+    }
+    mother_gov_str = getattr(motherland, "government_type", GovernmentType.DEMOCRACY.value)
+    rebel_gov = gov_map.get(mother_gov_str, GovernmentType.AUTHORITARIAN)
+    rebel_nation.government_type = rebel_gov.value
+    
+    # Strategy
+    rebel_strategy = GlobalStrategy.SCORCHED_EARTH if rng.random() > 0.5 else GlobalStrategy.ARMED_ISOLATIONISM
+    
+    # 5. Trust and Relationships
+    # Set matrix for rebel
+    world.trust_matrix[rebel_id] = {}
+    world.relationship_matrix[rebel_id] = {}
+    
+    for other_id in world.nations.keys():
+        if other_id == rebel_id:
+            continue
+            
+        if other_id == motherland.id:
+            # Active civil war
+            world.trust_matrix[rebel_id][other_id] = -100.0
+            world.trust_matrix[other_id][rebel_id] = -100.0
+            world.relationship_matrix[rebel_id][other_id] = RelationshipState.WAR
+            world.relationship_matrix[other_id][rebel_id] = RelationshipState.WAR
+        else:
+            # Neutral to others
+            world.trust_matrix[rebel_id][other_id] = 0.0
+            world.trust_matrix[other_id][rebel_id] = 0.0
+            world.relationship_matrix[rebel_id][other_id] = RelationshipState.PEACE
+            world.relationship_matrix[other_id][rebel_id] = RelationshipState.PEACE
+
+    # 6. Global Event
+    event_msg = f"🔥 [CIVIL WAR] Separatists in {motherland.name} have violently seceded, forming the {rebel_name}! The newly independent state has seized {len(stolen_ids)} provinces and local military assets."
+    world.global_events.append(f"T{turn}: {event_msg}")
+    
+    event = NotableEvent(
+        turn=turn,
+        event_type=EventType.GLOBAL_SCENARIO,
+        actors=[motherland.id, rebel_id],
+        summary=event_msg,
+        relevance_to=None  # Global
+    )
+    context_manager.global_events.append(event)
+    
+    logs = [f"🔥 [SCENARIO DETECTED] Insurrection triggered in {motherland.name}. {rebel_name} formed."]
+    
+    # Return instructions for the Engine to instantiate the new agent
+    return {
+        "logs": logs,
+        "new_nation": {
+            "id": rebel_id,
+            "strategy": rebel_strategy,
+            "government_type": rebel_gov
+        }
+    }
+
+def check_and_trigger_scenario(world: WorldState, context_manager: ContextManager, current_turn: int, scenario_trigger: Dict[str, Any]) -> Dict[str, Any]:
     """
     Router for executing a scenario if conditions match.
+    Returns a dictionary which can contain 'logs' and other scenario-specific commands for the engine.
     """
     if scenario_trigger.get("turn") != current_turn:
-        return []
+        return {"logs": []}
         
     s_type = scenario_trigger.get("type", "").upper()
     
     if s_type == "PANDEMIA":
-        return trigger_pandemic(world, context_manager, current_turn)
+        logs = trigger_pandemic(world, context_manager, current_turn)
+        return {"logs": logs}
     elif s_type == "RESOURCE_DISCOVERY" or s_type == "SCOPERTA RISORSE":
-        return trigger_resource_discovery(world, context_manager, current_turn)
+        logs = trigger_resource_discovery(world, context_manager, current_turn)
+        return {"logs": logs}
+    elif s_type == "INSURREZIONE" or s_type == "SEPARATIST_INSURRECTION":
+        return trigger_separatist_insurrection(world, context_manager, current_turn)
         
-    return []
+    return {"logs": []}

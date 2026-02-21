@@ -43,7 +43,7 @@ def scenario_selection_dialog():
     st.markdown("Scegli se attivare uno scenario durante questa run di **25 turni**.")
     st.info("Lo scenario verrà innescato esattamente a metà (Turno 13 della run).")
     
-    choice = st.selectbox("Scenario Type", ["Nessuno", "PANDEMIA", "SCOPERTA RISORSE"], index=0)
+    choice = st.selectbox("Scenario Type", ["Nessuno", "PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE"], index=0)
     
     if st.button("🚀 Conferma e Avvia", type="primary", use_container_width=True):
         import json

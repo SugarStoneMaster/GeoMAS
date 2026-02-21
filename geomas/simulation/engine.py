@@ -446,9 +446,42 @@ class SimulationEngine:
         
         if trigger is not None:
             from geomas.simulation.scenarios import check_and_trigger_scenario
-            scenario_logs = check_and_trigger_scenario(self.world, self.context_manager, current_turn, trigger)
+            scenario_result = check_and_trigger_scenario(self.world, self.context_manager, current_turn, trigger)
+            
+            # 1. Handle Logs
+            scenario_logs = scenario_result.get("logs", [])
             if scenario_logs:
                 self.turn_logs.extend(scenario_logs)
+                
+            # 2. Handle Dynamic Nation Creation (Insurrection)
+            new_nation_data = scenario_result.get("new_nation")
+            if new_nation_data:
+                rebel_id = new_nation_data["id"]
+                rebel_strategy = new_nation_data["strategy"]
+                rebel_gov = new_nation_data["government_type"]
+                
+                print(f"[SCENARIO] Initializing new Rebel Agent: {rebel_id}")
+                
+                # Instantiate NationAgent
+                self.agents[rebel_id] = NationAgent(
+                    nation_id=rebel_id,
+                    world=self.world,
+                    llm_client=self.client,
+                    global_strategy=rebel_strategy,
+                    context_manager=self.context_manager,
+                    government_type=rebel_gov
+                )
+                
+                # Instantiate OpinionAgent
+                nation_state = self.world.nations[rebel_id]
+                self.opinion_agents[rebel_id] = OpinionAgent(
+                    nation_id=rebel_id,
+                    nation_name=nation_state.name,
+                    cultural_traits=nation_state.cultural_traits,
+                    llm_client=self.client,
+                    world=self.world,
+                    government_type=rebel_gov
+                )
                 
         # 0. UPKEEP PHASE (resources, consumption, crisis)
         run_upkeep_phase(self.world, self.turn_logs)
