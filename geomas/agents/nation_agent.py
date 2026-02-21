@@ -232,16 +232,7 @@ class NationAgent:
         """
         nation = self.world.nations[self.id]
         
-        # Generate/Update system prompt if needed
-        if not self.president_system_prompt or self.strategy != self.last_strategy:
-            self.president_system_prompt = PresidentSystemPrompt.generate(
-                nation_name=nation.name,
-                strategy=self.strategy,
-                cultural_traits=getattr(nation, 'cultural_traits', None),
-                nation_id=self.id
-            )
-            self.last_strategy = self.strategy
-            
+        # Use the static system prompt generated at initialization
         system_prompt = self.president_system_prompt
         
         # Build input context

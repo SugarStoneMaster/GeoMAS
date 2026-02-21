@@ -82,12 +82,7 @@ class DefenseMinister(BaseMinister):
     prompt_class = DefenseSystemPrompt
     
     def propose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> DefenseProposal:
-        nation = self.world.nations[self.nation_id]
-        
-        # Generate/Update system prompt if needed
-        if not self.system_prompt or strategy != self.last_strategy:
-            self._update_prompt(strategy)
-            
+        # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
         # Build input context using new architecture
@@ -126,11 +121,7 @@ class DefenseMinister(BaseMinister):
 
     async def apropose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> DefenseProposal:
         """Async version of propose."""
-        nation = self.world.nations[self.nation_id]
-        
-        if not self.system_prompt or strategy != self.last_strategy:
-            self._update_prompt(strategy)
-            
+        # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
         input_builder = DefenseInputBuilder(self.world)
@@ -170,12 +161,7 @@ class EconomicMinister(BaseMinister):
     prompt_class = EconomySystemPrompt
     
     def propose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> EconomicProposal:
-        nation = self.world.nations[self.nation_id]
-        
-        # Generate/Update system prompt if needed
-        if not self.system_prompt or strategy != self.last_strategy:
-            self._update_prompt(strategy)
-            
+        # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
         # Build input context using new architecture
@@ -210,11 +196,7 @@ class EconomicMinister(BaseMinister):
 
     async def apropose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> EconomicProposal:
         """Async version of propose."""
-        nation = self.world.nations[self.nation_id]
-        
-        if not self.system_prompt or strategy != self.last_strategy:
-            self._update_prompt(strategy)
-            
+        # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
         input_builder = EconomyInputBuilder(self.world)
@@ -252,12 +234,7 @@ class ForeignMinister(BaseMinister):
     prompt_class = ForeignSystemPrompt
     
     def propose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> ForeignProposal:
-        nation = self.world.nations[self.nation_id]
-        
-        # Generate/Update system prompt if needed
-        if not self.system_prompt or strategy != self.last_strategy:
-            self._update_prompt(strategy)
-            
+        # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
         # Build input context using new architecture
@@ -299,11 +276,7 @@ class ForeignMinister(BaseMinister):
 
     async def apropose(self, strategy: GlobalStrategy, turn: int, injection: Optional[str] = None) -> ForeignProposal:
         """Async version of propose."""
-        nation = self.world.nations[self.nation_id]
-        
-        if not self.system_prompt or strategy != self.last_strategy:
-            self._update_prompt(strategy)
-            
+        # Use the static system prompt generated at initialization
         system_prompt = self.system_prompt
         
         input_builder = ForeignInputBuilder(self.world)
