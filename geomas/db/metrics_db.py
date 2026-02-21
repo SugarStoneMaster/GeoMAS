@@ -14,11 +14,18 @@ class MetricsDB:
     def __init__(self, db_path: str = "metrics.duckdb"):
         """Initializes the metrics database and creates schemas if they don't exist."""
         self.db_path = db_path
+        self._conn = None
         # Ensure directory exists
         os.makedirs(os.path.dirname(os.path.abspath(db_path)) if os.path.dirname(db_path) else ".", exist_ok=True)
         
-        self.conn = duckdb.connect(db_path)
         self._create_tables()
+
+    @property
+    def conn(self):
+        """Lazy connection initialization."""
+        if self._conn is None:
+            self._conn = duckdb.connect(self.db_path)
+        return self._conn
 
     def _create_tables(self):
         """Creates the relational tables for metrics."""
@@ -192,4 +199,6 @@ class MetricsDB:
 
     def close(self):
         """Closes the connection to DuckDB."""
-        self.conn.close()
+        if self._conn is not None:
+            self._conn.close()
+            self._conn = None
