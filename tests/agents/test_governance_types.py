@@ -447,34 +447,22 @@ class TestEngineGovernmentTypeAssignment:
         engine.opinion_agents = {}
         engine.simulation_id = 1
         engine.db = None
-        
-        # Patch calculators to return real numbers, otherwise sorted() fails on MagicMocks
-        from unittest.mock import patch
-        self.calc_patch = patch("geomas.calculators.analytics.calculate_power_projection", side_effect=lambda n: float(n.name[1:]))
-        self.aggr_patch = patch("geomas.calculators.analytics.calculate_nation_aggregates", return_value={
-            "total_population": 0, "total_workers": 0, "total_soldiers": 0, 
-            "total_aircraft": 0, "total_navy": 0, "total_food_production": 0,
-            "total_energy_production": 0, "total_materials_production": 0
-        })
-        self.calc_patch.start()
-        self.aggr_patch.start()
-
         return engine, nation_ids
-
-    def teardown_method(self, method):
-        """Stop patches if they exist."""
-        if hasattr(self, 'calc_patch'):
-            self.calc_patch.stop()
-        if hasattr(self, 'aggr_patch'):
-            self.aggr_patch.stop()
 
     def test_all_nations_get_government_type(self):
         """Every nation gets a government_type after _init_agents."""
         engine, nation_ids = self._make_engine(n_nations=3)
 
-        with pytest.MonkeyPatch().context() as mp:
+        from unittest.mock import MagicMock, patch
+        with patch("geomas.calculators.analytics.calculate_power_projection", side_effect=lambda n: float(n.name[1:]) if n.name.startswith("N") else 0.0), \
+             patch("geomas.calculators.analytics.calculate_nation_aggregates", return_value={
+                "total_population": 0, "total_workers": 0, "total_soldiers": 0, 
+                "total_aircraft": 0, "total_navy": 0, "total_food_production": 0,
+                "total_energy_production": 0, "total_materials_production": 0
+             }), \
+             pytest.MonkeyPatch().context() as mp:
+            
             # Patch NationAgent to avoid real LLM setup
-            from unittest.mock import MagicMock
             mp.setattr(
                 "geomas.simulation.engine.NationAgent",
                 lambda **kwargs: MagicMock()
@@ -491,8 +479,15 @@ class TestEngineGovernmentTypeAssignment:
         results = []
         for _ in range(2):
             engine, nation_ids = self._make_engine(n_nations=3, seed=99)
-            with pytest.MonkeyPatch().context() as mp:
-                from unittest.mock import MagicMock
+            from unittest.mock import MagicMock, patch
+            with patch("geomas.calculators.analytics.calculate_power_projection", side_effect=lambda n: float(n.name[1:]) if n.name.startswith("N") else 0.0), \
+                 patch("geomas.calculators.analytics.calculate_nation_aggregates", return_value={
+                    "total_population": 0, "total_workers": 0, "total_soldiers": 0, 
+                    "total_aircraft": 0, "total_navy": 0, "total_food_production": 0,
+                    "total_energy_production": 0, "total_materials_production": 0
+                 }), \
+                 pytest.MonkeyPatch().context() as mp:
+                
                 mp.setattr(
                     "geomas.simulation.engine.NationAgent",
                     lambda **kwargs: MagicMock()
@@ -508,8 +503,15 @@ class TestEngineGovernmentTypeAssignment:
     def test_all_three_types_assigned_with_three_nations(self):
         """With exactly 3 nations, all 3 government types are assigned."""
         engine, nation_ids = self._make_engine(n_nations=3, seed=42)
-        with pytest.MonkeyPatch().context() as mp:
-            from unittest.mock import MagicMock
+        from unittest.mock import MagicMock, patch
+        with patch("geomas.calculators.analytics.calculate_power_projection", side_effect=lambda n: float(n.name[1:]) if n.name.startswith("N") else 0.0), \
+             patch("geomas.calculators.analytics.calculate_nation_aggregates", return_value={
+                "total_population": 0, "total_workers": 0, "total_soldiers": 0, 
+                "total_aircraft": 0, "total_navy": 0, "total_food_production": 0,
+                "total_energy_production": 0, "total_materials_production": 0
+             }), \
+             pytest.MonkeyPatch().context() as mp:
+            
             mp.setattr(
                 "geomas.simulation.engine.NationAgent",
                 lambda **kwargs: MagicMock()
