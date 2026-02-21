@@ -192,7 +192,8 @@ def can_afford_unit(
     budget: float,
     materials: float,
     energy: float,
-    available_population: int
+    available_population: int,
+    bureaucracy_multiplier: float = 1.0
 ) -> tuple[bool, str]:
     """
     Check if a nation can afford to create units.
@@ -202,9 +203,9 @@ def can_afford_unit(
     """
     costs = UNIT_COSTS[unit_type]
     
-    total_budget = costs["budget"] * quantity
-    total_materials = costs["materials"] * quantity
-    total_energy = costs["energy"] * quantity
+    total_budget = costs["budget"] * quantity * bureaucracy_multiplier
+    total_materials = costs["materials"] * quantity * bureaucracy_multiplier
+    total_energy = costs["energy"] * quantity * bureaucracy_multiplier
     total_pop = int(costs["population"]) * quantity
     
     if budget < total_budget:

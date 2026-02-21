@@ -21,6 +21,7 @@ from geomas.actions.defense import (
 )
 from geomas.actions.common import Decision
 from geomas.schemas.world import TerrainType
+from geomas.calculators.consumption import calculate_bureaucracy_multiplier
 
 
 class TestCreateUnitValidation:
@@ -137,9 +138,9 @@ class TestCreateUnitExecution:
             pytest.skip("No land province found")
         
         # Setup resources
-        nation.total_budget = 100.0
-        nation.total_materials = 50.0
-        nation.total_energy = 20.0
+        nation.total_budget = 1000.0
+        nation.total_materials = 1000.0
+        nation.total_energy = 1000.0
         nation.total_workers = 20
         
         initial_soldiers = world.provinces[target_province].soldiers
@@ -164,9 +165,10 @@ class TestCreateUnitExecution:
         assert world.provinces[target_province].soldiers == initial_soldiers + 5
         assert nation.total_soldiers == initial_total_soldiers + 5
         
+        bureaucracy_mult = calculate_bureaucracy_multiplier(nation)
         # Verify resources deducted (SOLDIER: 5 budget, 2 materials per unit)
-        assert nation.total_budget == 100.0 - (5 * 5)  # 75
-        assert nation.total_materials == 50.0 - (5 * 2)  # 40
+        assert nation.total_budget == 1000.0 - (5 * 5 * bureaucracy_mult)
+        assert nation.total_materials == 1000.0 - (5 * 2 * bureaucracy_mult)
         assert nation.total_workers == 20 - 5  # Workers become soldiers
         
         assert any("Created 5x SOLDIER" in log for log in logs)
@@ -182,9 +184,10 @@ class TestCreateUnitExecution:
         target_province = nation.province_ids[0]
         
         # Setup resources (AIRCRAFT: 80 budget, 40 materials, 10 energy, 5 pop)
-        nation.total_budget = 200.0
-        nation.total_materials = 100.0
-        nation.total_energy = 30.0
+        # Use large starting pool to accommodate bureaucracy multiplier
+        nation.total_budget = 1000.0
+        nation.total_materials = 1000.0
+        nation.total_energy = 1000.0
         nation.total_workers = 20
         
         initial_aircraft = world.provinces[target_province].aircraft
@@ -208,10 +211,11 @@ class TestCreateUnitExecution:
         assert world.provinces[target_province].aircraft == initial_aircraft + 2
         assert nation.total_aircraft >= 2
         
+        bureaucracy_mult = calculate_bureaucracy_multiplier(nation)
         # Verify resources deducted
-        assert nation.total_budget == 200.0 - (2 * 80)  # 40
-        assert nation.total_materials == 100.0 - (2 * 40)  # 20
-        assert nation.total_energy == 30.0 - (2 * 10)  # 10
+        assert nation.total_budget == 1000.0 - (2 * 80 * bureaucracy_mult)
+        assert nation.total_materials == 1000.0 - (2 * 40 * bureaucracy_mult)
+        assert nation.total_energy == 1000.0 - (2 * 10 * bureaucracy_mult)
         
         assert any("Created 2x AIRCRAFT" in log for log in logs)
     
@@ -229,9 +233,10 @@ class TestCreateUnitExecution:
         target_water = nation.territorial_water_ids[0]
         
         # Setup resources (NAVY: 50 budget, 30 materials, 5 energy, 10 pop)
-        nation.total_budget = 200.0
-        nation.total_materials = 100.0
-        nation.total_energy = 20.0
+        # Use large starting pool to accommodate bureaucracy multiplier
+        nation.total_budget = 1000.0
+        nation.total_materials = 1000.0
+        nation.total_energy = 1000.0
         nation.total_workers = 30
         
         initial_navy = world.provinces[target_water].navy

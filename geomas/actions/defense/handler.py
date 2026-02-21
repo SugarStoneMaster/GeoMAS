@@ -5,6 +5,7 @@ Executes military/defense actions using waterfall priority logic.
 """
 
 from typing import TYPE_CHECKING, Optional, List
+from geomas.calculators.consumption import calculate_bureaucracy_multiplier
 from geomas.actions.defense.schemas import (
     DefenseActionType, 
     DefensePayload,
@@ -126,9 +127,11 @@ def _execute_create_unit(
     
     # Get costs
     costs = UNIT_COSTS[unit_type]
-    total_budget = costs["budget"] * quantity
-    total_materials = costs["materials"] * quantity
-    total_energy = costs["energy"] * quantity
+    
+    bureaucracy_mult = calculate_bureaucracy_multiplier(nation)
+    total_budget = costs["budget"] * quantity * bureaucracy_mult
+    total_materials = costs["materials"] * quantity * bureaucracy_mult
+    total_energy = costs["energy"] * quantity * bureaucracy_mult
     total_pop = int(costs["population"]) * quantity
     
     # Validate affordability
@@ -138,7 +141,8 @@ def _execute_create_unit(
         budget=nation.total_budget,
         materials=nation.total_materials,
         energy=nation.total_energy,
-        available_population=nation.total_workers
+        available_population=nation.total_workers,
+        bureaucracy_multiplier=bureaucracy_mult
     )
     
     if not can_afford:

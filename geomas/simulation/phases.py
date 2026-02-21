@@ -77,6 +77,37 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
         nation.total_materials -= materials_consumed
         nation.total_budget -= budget_consumed
         
+        # --- RESOURCE SPOILAGE (Option E) ---
+        # Nations cannot hoard unlimited resources. Capped to N turns of consumption.
+        MAX_STORAGE_TURNS = 4
+        BUDGET_STORAGE_TURNS = 10  # Budget is easier to hoard
+        
+        max_food = max(100.0, food_consumed * MAX_STORAGE_TURNS)
+        max_energy = max(100.0, energy_consumed * MAX_STORAGE_TURNS)
+        max_materials = max(100.0, materials_consumed * MAX_STORAGE_TURNS)
+        max_budget = max(5000.0, budget_consumed * BUDGET_STORAGE_TURNS)
+        
+        spoiled = []
+        if nation.total_food > max_food:
+            spoiled.append("Food")
+            nation.total_food = max_food
+        if nation.total_energy > max_energy:
+            spoiled.append("Energy")
+            nation.total_energy = max_energy
+        if nation.total_materials > max_materials:
+            spoiled.append("Materials")
+            nation.total_materials = max_materials
+        if nation.total_budget > max_budget:
+            spoiled.append("Budget")
+            nation.total_budget = max_budget
+            
+        if spoiled:
+            turn_logs.append(
+                f"📦 [ECONOMY] {nation_id}: Excess {', '.join(spoiled)} "
+                f"spoiled/inflated due to storage capacity limits."
+            )
+        # ------------------------------------
+        
         # 6. Handle deficits
         if nation.total_food < 0:
             casualties = economy.calculate_starvation_casualties(

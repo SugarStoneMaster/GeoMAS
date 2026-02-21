@@ -85,3 +85,12 @@ def calculate_budget_upkeep(
         total_aircraft * SALARY_AIRCRAFT +
         total_navy * SALARY_NAVY
     )
+
+
+def calculate_bureaucracy_multiplier(nation: 'NationState') -> float:
+    """
+    Calculate the bureaucratic cost multiplier based on empire size.
+    Base size is 5 provinces. Each additional province adds 10% cost to unit creation.
+    """
+    num_provinces = len(nation.province_ids)
+    return max(1.0, 1.0 + (num_provinces - 5) * 0.10)

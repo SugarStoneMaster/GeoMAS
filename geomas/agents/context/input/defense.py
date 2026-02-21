@@ -99,6 +99,9 @@ class DefenseInputBuilder(BaseInputBuilder):
     
     def _build_budget_section(self, nation: NationState) -> str:
         """Build available budget section with real constants and maintenance awareness."""
+        from geomas.calculators.consumption import calculate_bureaucracy_multiplier
+        bureaucracy_mult = calculate_bureaucracy_multiplier(nation)
+        
         # Use real constants from defense schemas
         s_cost = UNIT_COSTS[UnitType.SOLDIER]
         a_cost = UNIT_COSTS[UnitType.AIRCRAFT]
@@ -109,9 +112,9 @@ class DefenseInputBuilder(BaseInputBuilder):
         n_maint = UNIT_MAINTENANCE[UnitType.NAVY]
         
         # What can be afforded (budget is the main constraint)
-        affordable_soldiers = int(nation.total_budget / s_cost["budget"]) if s_cost["budget"] > 0 else 0
-        affordable_aircraft = int(nation.total_budget / a_cost["budget"]) if a_cost["budget"] > 0 else 0
-        affordable_navy = int(nation.total_budget / n_cost["budget"]) if n_cost["budget"] > 0 else 0
+        affordable_soldiers = int(nation.total_budget / (s_cost["budget"] * bureaucracy_mult)) if s_cost["budget"] > 0 else 0
+        affordable_aircraft = int(nation.total_budget / (a_cost["budget"] * bureaucracy_mult)) if a_cost["budget"] > 0 else 0
+        affordable_navy = int(nation.total_budget / (n_cost["budget"] * bureaucracy_mult)) if n_cost["budget"] > 0 else 0
         
         # Current maintenance burn per turn
         current_maint_budget = (
@@ -130,14 +133,16 @@ class DefenseInputBuilder(BaseInputBuilder):
             nation.total_navy * n_maint.get("energy", 0)
         )
         
+        bureaucracy_pct_str = f"+{int((bureaucracy_mult - 1.0) * 100)}%" if bureaucracy_mult > 1.0 else "None"
+        
         lines = [
             "## Military budget",
             f"**Available Treasury:** {nation.total_budget:,.0f}",
             "",
-            "**Creation Costs (Budget / Materials / Energy / Pop):**",
-            f"- Soldier: {s_cost['budget']:.0f} / {s_cost['materials']:.0f} / {s_cost['energy']:.0f} / {s_cost['population']} → Can afford: {affordable_soldiers:,}",
-            f"- Aircraft: {a_cost['budget']:.0f} / {a_cost['materials']:.0f} / {a_cost['energy']:.0f} / {a_cost['population']} → Can afford: {affordable_aircraft:,}",
-            f"- Navy: {n_cost['budget']:.0f} / {n_cost['materials']:.0f} / {n_cost['energy']:.0f} / {n_cost['population']} → Can afford: {affordable_navy:,}",
+            f"**Creation Costs (Budget / Materials / Energy / Pop) | Bureaucracy Overhead: {bureaucracy_pct_str} (Empire Size: {len(nation.province_ids)})**",
+            f"- Soldier: {s_cost['budget'] * bureaucracy_mult:.0f} / {s_cost['materials'] * bureaucracy_mult:.0f} / {s_cost['energy'] * bureaucracy_mult:.0f} / {s_cost['population']} → Can afford: {affordable_soldiers:,}",
+            f"- Aircraft: {a_cost['budget'] * bureaucracy_mult:.0f} / {a_cost['materials'] * bureaucracy_mult:.0f} / {a_cost['energy'] * bureaucracy_mult:.0f} / {a_cost['population']} → Can afford: {affordable_aircraft:,}",
+            f"- Navy: {n_cost['budget'] * bureaucracy_mult:.0f} / {n_cost['materials'] * bureaucracy_mult:.0f} / {n_cost['energy'] * bureaucracy_mult:.0f} / {n_cost['population']} → Can afford: {affordable_navy:,}",
             "",
             "**Maintenance burn (per turn for current army):**",
             f"- Budget: {current_maint_budget:,.0f}/turn (Treasury: {nation.total_budget:,.0f})",

@@ -18,6 +18,7 @@ from geomas.actions.defense import DefensePayload, DefenseActionItem, DefenseAct
 from geomas.actions.economy import EconomicPayload
 from geomas.actions.foreign import ForeignPayload
 from geomas.agents.schemas import DefenseIntentType
+from geomas.calculators.consumption import calculate_bureaucracy_multiplier
 
 
 def test_movement_rules():
@@ -123,10 +124,11 @@ def test_execution_waterfall():
     
     # Setup: Limited resources to test affordability
     # SOLDIER costs: 5 budget, 2 materials, 0 energy, 1 population
-    # We set up to afford 2 units but not 3
-    world.nations[nation_id].total_budget = 12.0  # Enough for 2 (10) but not 3 (15)
-    world.nations[nation_id].total_materials = 10.0  # Enough for all
-    world.nations[nation_id].total_energy = 10.0
+    # We set up to afford exactly 2 units but not 3
+    bureaucracy_mult = calculate_bureaucracy_multiplier(world.nations[nation_id])
+    world.nations[nation_id].total_budget = (2 * 5 * bureaucracy_mult) + 1.0  # Enough for 2 but not 3
+    world.nations[nation_id].total_materials = 100.0  # Enough for all
+    world.nations[nation_id].total_energy = 100.0
     world.nations[nation_id].total_workers = 10  # Enough for all
     
     # Get an owned province
@@ -173,10 +175,10 @@ def test_execution_waterfall():
     
     logs = engine.execute_envelope(envelope)
     
-    # Verify State: 2 units created (2 * 5 = 10), remaining 2 budget
-    assert world.nations[nation_id].total_budget == 2.0
-    # Materials: 10 - (2 * 2) = 6
-    assert world.nations[nation_id].total_materials == 6.0
+    # Verify State: 2 units created
+    assert world.nations[nation_id].total_budget == 1.0
+    # Materials deducted
+    assert world.nations[nation_id].total_materials == 100.0 - (2 * 2 * bureaucracy_mult)
     
     # Verify Logs: 2 created, 1 failed
     created_count = sum(1 for l in logs if "Created" in l)
