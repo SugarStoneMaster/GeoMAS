@@ -8,6 +8,7 @@ The agent runs POST-EXECUTION and returns multipliers that modulate
 how strongly the population reacts to positive/negative events.
 """
 
+import os
 from typing import TYPE_CHECKING, Dict, Any, Optional, List
 from pydantic import BaseModel, Field
 
@@ -102,7 +103,10 @@ class OpinionAgent:
         Returns:
             OpinionResponse with multipliers
         """
-        if not self.llm_client:
+        # Check Environment Variable
+        opinion_enabled = os.environ.get("PUBLIC_OPINION_ENABLED", "true").lower() == "true"
+        
+        if not self.llm_client or not opinion_enabled:
             # Fallback: deterministic reaction based on traits
             response = self._deterministic_reaction(
                 events, government_actions, current_satisfaction, at_war
@@ -242,6 +246,23 @@ Based on cultural traits and events, how does the population react?"""
         mult_dec = 1.0
         mood = "NEUTRAL"
         
+        # Determine mood
+        if current_satisfaction < 30:
+            mood = "DISCONTENT"
+        elif current_satisfaction >= 70:
+            mood = "CONTENT"
+            
+        # Check Environment Variable
+        opinion_enabled = os.environ.get("PUBLIC_OPINION_ENABLED", "true").lower() == "true"
+        if not opinion_enabled:
+            # Fully disabled: return flat multipliers, ignore traits
+            return OpinionResponse(
+                multiplier_increase=1.0,
+                multiplier_decrease=1.0,
+                mood=mood,
+                reasoning="Opinion disabled. Flat 1.0 multipliers."
+            )
+            
         # Trait-based adjustments
         if "Nationalist" in self.cultural_traits:
             mult_dec *= 1.3  # More sensitive to defeats
@@ -273,12 +294,6 @@ Based on cultural traits and events, how does the population react?"""
         # Clamp values
         mult_inc = max(0.1, min(2.0, mult_inc))
         mult_dec = max(0.1, min(2.0, mult_dec))
-        
-        # Determine mood
-        if current_satisfaction < 30:
-            mood = "DISCONTENT"
-        elif current_satisfaction >= 70:
-            mood = "CONTENT"
         
         return OpinionResponse(
             multiplier_increase=mult_inc,
