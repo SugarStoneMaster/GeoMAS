@@ -312,80 +312,100 @@ def _execute_move_troops(
         )
         return
     
-    # Validating if it's actually an attack or just guest stationing
-    is_enemy = _is_enemy_territory(world, nation_id, to_province_id, unit_type)
+    # Identify ALL defending nations for fallout (owner + guests)
+    defending_nations = set()
+    if to_province.owner_id:
+        defending_nations.add(to_province.owner_id)
+    if to_province.guest_troops:
+        defending_nations.update(to_province.guest_troops.keys())
     
-    if is_enemy:
-        target_owner = to_province.owner_id
-        rel = world.relationship_matrix.get(nation_id, {}).get(target_owner, RelationshipState.PEACE)
-        if rel in [RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION]:
-            is_enemy = False # It's a friendly stationing
-            engine.logs.append(f"🛡️ [DEFENSE] Stationing {quantity} {unit_type.value} in Allied {target_owner} province {to_province_id}")
-    
+    # For navy, also consider territorial water owners as defenders
+    if unit_type == UnitType.NAVY:
+        for n_id, n_state in world.nations.items():
+            if to_province.id in n_state.territorial_water_ids:
+                defending_nations.add(n_id)
+        # FIX: Also add nations with guest naval troops in this water province.
+        if to_province.guest_troops:
+            for guest_id, guest_force in to_province.guest_troops.items():
+                if guest_force.get("navy", 0) > 0:
+                    defending_nations.add(guest_id)
+
+    if nation_id in defending_nations:
+        defending_nations.remove(nation_id)
+
+    # Determine if this is an attack or a friendly move (Stationing)
+    is_attack = False
+
+    # FIX: Unowned (neutral) territory is always an attack target — move soldiers into it to conquer.
+    if to_province.owner_id is None and unit_type == UnitType.SOLDIER:
+        is_attack = True
+
+    # Check if we are attacking the owner OR any guests
+    for def_id in defending_nations:
+        rel = world.relationship_matrix.get(nation_id, {}).get(def_id, RelationshipState.PEACE)
+        # If any force present is an ENEMY (War or Peace), it's an attack.
+        # Allies (MUTUAL_DEFENSE, NON_AGGRESSION) or OWN land are NOT targets for attack.
+        if rel not in (RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION):
+            is_attack = True
+            break
+
+    # If the province owner is an ENEMY (Neutral or War), it's definitely an attack
+    if to_province.owner_id and to_province.owner_id != nation_id:
+        rel = world.relationship_matrix.get(nation_id, {}).get(to_province.owner_id, RelationshipState.PEACE)
+        if rel not in (RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION):
+            is_attack = True
+
+    # --- EXECUTE MOVEMENT ---
+
     # --- EXECUTE: Deduct energy first ---
     nation.total_energy -= total_energy_cost
     
     # Remove units from source
     _remove_units_from_province(from_province, unit_type, quantity, nation_id)
-    
-    if is_enemy:
-        # Check for ALLIANCE BETRAYAL and WAR generation for all defending nations
-        defending_nations = set()
-        if to_province.owner_id:
-            defending_nations.add(to_province.owner_id)
-        if to_province.guest_troops:
-            defending_nations.update(to_province.guest_troops.keys())
 
-        if nation_id in defending_nations:
-            defending_nations.remove(nation_id)  # Should not happen but just in case
-
+    if is_attack:
+        # --- DIPLOMATIC FALLOUT ---
         from geomas.schemas.world import WarStats
         aggressor = world.nations[nation_id]
 
         for def_nation_id in defending_nations:
             rel = world.relationship_matrix.get(nation_id, {}).get(def_nation_id, RelationshipState.PEACE)
             
-            # If Allied: Alliance Betrayal
-            if rel in (RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION):
+            # We hit them if they are an enemy OR if they are an ally that we are hitting by attacking this province
+            if rel != RelationshipState.WAR:
                 world.relationship_matrix.setdefault(nation_id, {})[def_nation_id] = RelationshipState.WAR
                 world.relationship_matrix.setdefault(def_nation_id, {})[nation_id] = RelationshipState.WAR
                 
-                # Massive Trust Penalty
-                engine.adjust_trust(nation_id, def_nation_id, -50.0)
-                engine.adjust_trust(def_nation_id, nation_id, -50.0)
-                
-                engine.logs.append(
-                    f"💔 [DIPLOMACY] {nation_id} BROKE ALLIANCE by attacking {def_nation_id}! Relationship set to WAR."
-                )
-            
-            # If Peace/Neutral: Normal Declaration of War by attack
-            elif rel == RelationshipState.PEACE:
-                world.relationship_matrix.setdefault(nation_id, {})[def_nation_id] = RelationshipState.WAR
-                world.relationship_matrix.setdefault(def_nation_id, {})[nation_id] = RelationshipState.WAR
-                
-                engine.logs.append(
-                    f"⚔️ [DIPLOMACY] {nation_id} initiated hostilities against {def_nation_id}! Relationship set to WAR."
-                )
-                # SNEAK ATTACK CALL TO ARMS
-                _generate_call_to_arms(engine, nation_id, def_nation_id, attack_type="SNEAK ATTACKED")
-
-            # Init War Stats
-            victim = world.nations.get(def_nation_id)
-            if victim:
-                if def_nation_id not in aggressor.active_wars:
-                    aggressor.active_wars[def_nation_id] = WarStats(
-                        start_turn=world.turn,
-                        initiator_id=nation_id,
-                        original_provinces=len(victim.province_ids)
+                # Trust penalty for betrayal vs peace aggression
+                if rel in (RelationshipState.MUTUAL_DEFENSE, RelationshipState.NON_AGGRESSION):
+                    engine.adjust_trust(nation_id, def_nation_id, -50.0)
+                    engine.adjust_trust(def_nation_id, nation_id, -50.0)
+                    engine.logs.append(
+                        f"💔 [DIPLOMACY] {nation_id} BROKE ALLIANCE by attacking {def_nation_id}! Relationship set to WAR."
                     )
-                if nation_id not in victim.active_wars:
-                    victim.active_wars[nation_id] = WarStats(
-                        start_turn=world.turn,
-                        initiator_id=nation_id,
-                        original_provinces=len(victim.province_ids)
+                else:
+                    engine.logs.append(
+                        f"⚔️ [DIPLOMACY] {nation_id} started WAR with {def_nation_id} by aggression."
                     )
+                    _generate_call_to_arms(engine, nation_id, def_nation_id, attack_type="SNEAK ATTACKED")
 
-        # Combat resolution
+                # Init War Stats
+                victim = world.nations.get(def_nation_id)
+                if victim:
+                    if def_nation_id not in aggressor.active_wars:
+                        aggressor.active_wars[def_nation_id] = WarStats(
+                            start_turn=world.turn,
+                            initiator_id=nation_id,
+                            original_provinces=len(victim.province_ids)
+                        )
+                    if nation_id not in victim.active_wars:
+                        victim.active_wars[nation_id] = WarStats(
+                            start_turn=world.turn,
+                            initiator_id=nation_id,
+                            original_provinces=len(victim.province_ids)
+                        )
+
+        # --- COMBAT RESOLUTION ---
         from geomas.actions.defense.combat import (
             resolve_land_combat,
             execute_naval_landing,
@@ -394,51 +414,36 @@ def _execute_move_troops(
         import random
         rng = random.Random(engine.world.turn + hash(nation_id))
         
-        # --- SUICIDE CHECK ---
-        # Prevent attacks with negligible forces (<10% of defenders)
+        # Suicide check (Warning but no abort)
+        from geomas.actions.defense.combat import get_total_defenders, get_terrain_defense_bonus
+        
         defending_force = 0
         if unit_type == UnitType.SOLDIER:
-            defending_force = to_province.soldiers
+            defending_force, _, _ = get_total_defenders(to_province)
         elif unit_type == UnitType.NAVY:
-            defending_force = to_province.navy
+            _, _, defending_force = get_total_defenders(to_province)
         elif unit_type == UnitType.AIRCRAFT:
-            defending_force = to_province.aircraft
+            _, defending_force, _ = get_total_defenders(to_province)
             
-        # Apply terrain defense bonus to estimate effective defense strength
         defense_bonus = get_terrain_defense_bonus(to_province.terrain)
         effective_defense = defending_force * defense_bonus
         
         if defending_force > 0 and quantity < (effective_defense * 0.1):
-            # Just warn, do NOT abort (User preference: let LLM makes its own mistakes)
             engine.logs.append(
-                f"⚔️ [COMBAT] ⚠️ RISKY ATTACK: {quantity} {unit_type.value} vs {defending_force} defenders "
-                f"(Effective Defense: {int(effective_defense)}). High probability of defeat."
+                f"⚔️ [COMBAT] ⚠️ RISKY ATTACK: {quantity} {unit_type.value} vs {defending_force} defenders. High probability of defeat."
             )
-            # Proceed with combat...
 
+        # Branch by Unit Type
         if unit_type == UnitType.NAVY:
-            # Naval landing logic
-            result = execute_naval_landing(
-                world=world,
-                attacker_nation_id=nation_id,
-                attacker_navy=quantity,
-                target_water_province_id=to_province_id,
-                rng=rng
-            )
-            
-            # Update attacker navy count
+            result = execute_naval_landing(world, nation_id, quantity, to_province_id, rng)
             nation.total_navy -= quantity
-            
-            # Update outcome
             move.execution_outcome.status = "SUCCESS" if result.attacker_wins else "FAILED"
-            move.execution_outcome.reason = result.log_message
             move.execution_outcome.details = {
                 "attacker_wins": result.attacker_wins,
                 "landing_province_id": result.landing_province_id,
                 "attacker_losses_navy": quantity,  # Navy is consumed on landing in this version
                 "defender_losses": result.defender_losses_navy if hasattr(result, 'defender_losses_navy') else 0
             }
-            
             engine.logs.append(f"⚔️ [COMBAT] {result.log_message}")
             
             if result.attacker_wins:
@@ -504,8 +509,7 @@ def _execute_move_troops(
             # Air strike: combat but no conquest
             from geomas.actions.defense.combat import resolve_air_strike
             
-            defender_id = to_province.owner_id
-            
+            # --- COMBAT RESOLUTION ---
             result = resolve_air_strike(
                 attacker_aircraft=quantity,
                 defender_province=to_province,
@@ -522,33 +526,41 @@ def _execute_move_troops(
             }
 
             engine.logs.append(f"⚔️ [COMBAT] {result.log_message}")
-            
+
             if result.attacker_wins:
-                # Aircraft wins: kill all defenders and return to base
-                defender_nation = world.nations.get(defender_id)
-                if defender_nation:
-                    defender_nation.total_soldiers -= to_province.soldiers
-                    defender_nation.total_aircraft -= to_province.aircraft
-                
+                # Cleanup Units for ALL defending nations
+                for def_id in defending_nations:
+                    def_nation = world.nations.get(def_id)
+                    if def_nation:
+                        if def_id == to_province.owner_id:
+                            def_nation.total_soldiers -= to_province.soldiers
+                            def_nation.total_aircraft -= to_province.aircraft
+                        elif def_id in to_province.guest_troops:
+                            guest_force = to_province.guest_troops[def_id]
+                            def_nation.total_soldiers -= guest_force.get("soldiers", 0)
+                            def_nation.total_aircraft -= guest_force.get("aircraft", 0)
+
                 to_province.soldiers = 0
                 to_province.aircraft = 0
-                
+                to_province.guest_troops.clear()
+
                 # Return aircraft to source
                 _add_units_to_province(from_province, unit_type, quantity, nation_id)
                 engine.logs.append(
                     f"⚔️ [COMBAT] Air strike successful! {quantity} aircraft return to base"
                 )
+                
+                # Trust impact for ALL defending nations hit
+                for def_id in defending_nations:
+                    engine.adjust_trust(nation_id, def_id, -20)
+                    engine.adjust_trust(def_id, nation_id, -20)
+                    engine.logs.append(f"💔 [DIPLOMACY] Trust between {nation_id} and {def_id} decreased")
             else:
                 # Aircraft destroyed
                 nation.total_aircraft -= quantity
                 engine.logs.append(
                     f"⚔️ [COMBAT] Air strike failed - {quantity} aircraft shot down"
                 )
-            
-            # Trust impact
-            if defender_id:
-                engine.adjust_trust(nation_id, defender_id, -20)
-                engine.adjust_trust(defender_id, nation_id, -20)
         
         return
     
@@ -604,6 +616,8 @@ def _get_units_in_province(province, unit_type: UnitType, nation_id: str = None)
             return guest_force.get("soldiers", 0)
         elif unit_type == UnitType.AIRCRAFT:
             return guest_force.get("aircraft", 0)
+        elif unit_type == UnitType.NAVY:
+            return guest_force.get("navy", 0)
             
     return 0
 
@@ -623,7 +637,7 @@ def _remove_units_from_province(province, unit_type: UnitType, quantity: int, na
     # Guest Removal
     elif province.guest_troops and nation_id in province.guest_troops:
         guest_force = province.guest_troops[nation_id]
-        key = "soldiers" if unit_type == UnitType.SOLDIER else "aircraft"
+        key = "soldiers" if unit_type == UnitType.SOLDIER else ("aircraft" if unit_type == UnitType.AIRCRAFT else "navy")
         
         if key in guest_force:
             guest_force[key] -= quantity
@@ -653,7 +667,7 @@ def _add_units_to_province(province, unit_type: UnitType, quantity: int, nation_
             province.guest_troops = {}
             
         if nation_id not in province.guest_troops:
-            province.guest_troops[nation_id] = {"soldiers": 0, "aircraft": 0}
+            province.guest_troops[nation_id] = {"soldiers": 0, "aircraft": 0, "navy": 0}
             
         guest_force = province.guest_troops[nation_id]
         
@@ -661,6 +675,8 @@ def _add_units_to_province(province, unit_type: UnitType, quantity: int, nation_
             guest_force["soldiers"] += quantity
         elif unit_type == UnitType.AIRCRAFT:
             guest_force["aircraft"] += quantity
+        elif unit_type == UnitType.NAVY:
+            guest_force["navy"] += quantity
         # Navy cannot be guest (must be in water)
 
 
@@ -901,7 +917,7 @@ def _execute_nuclear_option(
     
     # Store pre-strike values for logging
     from geomas.actions.defense.combat import get_total_defenders
-    pre_soldiers, pre_aircraft = get_total_defenders(target_province)
+    pre_soldiers, pre_aircraft, pre_navy = get_total_defenders(target_province)
     pre_navy = target_province.navy
     pre_pop = target_province.population
     

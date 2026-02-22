@@ -12,6 +12,8 @@ from geomas.actions.defense.schemas import (
     UnitType,
     UNIT_COSTS,
     TERRAIN_DEFENSE_MULTIPLIER,
+    # FIX: Re-export so handler.py's lazy import `from combat import get_terrain_defense_bonus` resolves correctly.
+    get_terrain_defense_bonus,
 )
 from geomas.schemas.world import TerrainType, ProvinceState
 
@@ -53,15 +55,17 @@ def calculate_force(
     return force * terrain_modifier
 
 
-def get_total_defenders(province: ProvinceState) -> Tuple[int, int]:
-    """Return total soldiers and aircraft in a province, including guest troops."""
+def get_total_defenders(province: ProvinceState) -> Tuple[int, int, int]:
+    """Return total soldiers, aircraft, and navy in a province, including guest troops."""
     soldiers = province.soldiers
     aircraft = province.aircraft
+    navy = province.navy
     if province.guest_troops:
         for force in province.guest_troops.values():
             soldiers += force.get("soldiers", 0)
             aircraft += force.get("aircraft", 0)
-    return soldiers, aircraft
+            navy += force.get("navy", 0)
+    return soldiers, aircraft, navy
 
 
 def resolve_land_combat(
@@ -75,7 +79,7 @@ def resolve_land_combat(
     Binary outcome: attacker wins → conquers, attacker loses → all soldiers lost.
     Undefended provinces are captured automatically without combat roll.
     """
-    total_soldiers, total_aircraft = get_total_defenders(defender_province)
+    total_soldiers, total_aircraft, total_navy = get_total_defenders(defender_province)
     
     # Short-circuit: undefended province → automatic capture
     if total_soldiers == 0 and total_aircraft == 0:
@@ -175,7 +179,7 @@ def resolve_air_strike(
     """
     terrain_mod = TERRAIN_DEFENSE_MULTIPLIER.get(defender_province.terrain, 1.0)
     
-    total_soldiers, total_aircraft = get_total_defenders(defender_province)
+    total_soldiers, total_aircraft, total_navy = get_total_defenders(defender_province)
     
     attacker_force = calculate_force(aircraft=attacker_aircraft)
     defender_force = calculate_force(
@@ -255,12 +259,12 @@ def execute_naval_landing(
             log_message="Water province has no owner"
         )
     
-    # Step 1: Check for enemy navy in the water cell
-    defender_navy = water_province.navy
+    # Step 1: Check for enemy navy in the water cell (including guests)
+    _, _, total_defender_navy = get_total_defenders(water_province)
     
-    if defender_navy > 0:
-        # Naval combat first
-        naval_result = resolve_naval_combat(attacker_navy, defender_navy, rng)
+    if total_defender_navy > 0:
+        # Naval combat
+        naval_result = resolve_naval_combat(attacker_navy, total_defender_navy, rng)
         
         if not naval_result.attacker_wins:
             # Attacker loses, no landing
@@ -269,12 +273,28 @@ def execute_naval_landing(
                 attacker_losses=attacker_navy,
                 defender_losses=0,
                 province_conquered=False,
-                log_message=f"Naval landing failed! {attacker_navy} ships sunk by {defender_navy} defenders"
+                log_message=f"Naval landing failed! {attacker_navy} ships sunk by {total_defender_navy} defenders"
             )
         
-        # Attacker won naval combat, destroy defender navy
+        # Attacker won naval combat, destroy ALL defender navies in cell
+        if defender_nation_id:
+             world.nations[defender_nation_id].total_navy -= water_province.navy  # Primary owner
         water_province.navy = 0
-        world.nations[defender_nation_id].total_navy -= defender_navy
+
+        if water_province.guest_troops:
+            to_remove = []
+            for guest_id, guest_force in water_province.guest_troops.items():
+                g_nav = guest_force.get("navy", 0)
+                if g_nav > 0:
+                    g_nation = world.nations.get(guest_id)
+                    if g_nation:
+                        g_nation.total_navy -= g_nav
+                    guest_force["navy"] = 0
+                # Clean up the entry if all unit types are now at zero
+                if all(v == 0 for v in guest_force.values()):
+                    to_remove.append(guest_id)
+            for guest_id in to_remove:
+                del water_province.guest_troops[guest_id]
     
     # Step 2: Find adjacent coastal provinces (enemy land)
     adjacent_coasts = []
@@ -288,7 +308,7 @@ def execute_naval_landing(
         return CombatResult(
             attacker_wins=False,
             attacker_losses=attacker_navy,
-            defender_losses=defender_navy if defender_navy > 0 else 0,
+            defender_losses=total_defender_navy,
             province_conquered=False,
             log_message="No adjacent coastal province to land on"
         )
@@ -301,7 +321,7 @@ def execute_naval_landing(
     landing_soldiers = attacker_navy * int(UNIT_COSTS[UnitType.NAVY]["population"])
     
     # Step 4: Check for defenders on coast
-    total_soldiers, total_aircraft = get_total_defenders(landing_province)
+    total_soldiers, total_aircraft, _ = get_total_defenders(landing_province)
     total_defenders = total_soldiers + total_aircraft
     
     if total_defenders > 0:
@@ -312,7 +332,7 @@ def execute_naval_landing(
             return CombatResult(
                 attacker_wins=False,
                 attacker_losses=attacker_navy,
-                defender_losses=defender_navy if defender_navy > 0 else 0,
+                defender_losses=total_defender_navy,
                 province_conquered=False,
                 log_message=f"Landing repelled! {landing_soldiers} soldiers defeated by coastal defenders"
             )
@@ -325,7 +345,7 @@ def execute_naval_landing(
         return CombatResult(
             attacker_wins=True,
             attacker_losses=attacker_navy,  # Navy is always destroyed
-            defender_losses=defender_navy + total_defenders,
+            defender_losses=total_defender_navy + total_defenders,
             province_conquered=True,
             landing_province_id=landing_province_id,
             log_message=f"Amphibious assault successful! {landing_soldiers} soldiers landed and "
@@ -336,11 +356,11 @@ def execute_naval_landing(
     _conquer_province(world, attacker_nation_id, landing_province)
     landing_province.soldiers = landing_soldiers
     world.nations[attacker_nation_id].total_soldiers += landing_soldiers
-    
+
     return CombatResult(
         attacker_wins=True,
         attacker_losses=attacker_navy,  # Navy destroyed
-        defender_losses=defender_navy if defender_navy > 0 else 0,
+        defender_losses=total_defender_navy,
         province_conquered=True,
         landing_province_id=landing_province_id,
         log_message=f"Unopposed landing! {landing_soldiers} soldiers occupy province {landing_province_id} (from {defender_nation_id})"

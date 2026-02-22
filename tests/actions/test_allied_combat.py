@@ -96,7 +96,7 @@ def test_allied_guest_troops_defense():
     engine.spatial.get_permitted_path.return_value = [80, province_id]
     
     # Validate Total Defenders includes guest
-    t_sol, t_air = get_total_defenders(target_province)
+    t_sol, t_air, t_nav = get_total_defenders(target_province)
     assert t_sol == 30  # 10 owner + 20 guest
     
     # Attack with Overwhelming Force

@@ -174,15 +174,16 @@ def _execute_declare_war(
     """Formally declare war on target nation."""
     world = engine.world
     
-    current_rel = world.relationship_matrix.get(aggressor_id, {}).get(target_id, "PEACE")
+    from geomas.schemas.world import RelationshipState
+    current_rel = world.relationship_matrix.get(aggressor_id, {}).get(target_id, RelationshipState.PEACE)
     
-    if current_rel == "WAR":
+    if current_rel == RelationshipState.WAR:
         engine.logs.append(f"⚔️ [FOREIGN] {aggressor_id} already at war with {target_id}")
         return False, "Already at war"
     
     # Set relationship to WAR (both directions)
-    world.relationship_matrix.setdefault(aggressor_id, {})[target_id] = "WAR"
-    world.relationship_matrix.setdefault(target_id, {})[aggressor_id] = "WAR"
+    world.relationship_matrix.setdefault(aggressor_id, {})[target_id] = RelationshipState.WAR
+    world.relationship_matrix.setdefault(target_id, {})[aggressor_id] = RelationshipState.WAR
     
     # Trust → 0 between the two
     world.trust_matrix.setdefault(aggressor_id, {})[target_id] = 0

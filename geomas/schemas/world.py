@@ -61,7 +61,7 @@ class ProvinceState(BaseModel):
     # --- GUEST TROOPS (Allied Stationing) ---
     # Troops from other nations stationed here (e.g. Allies).
     # They do NOT defend the province automatically (unless programmed to).
-    # Format: {nation_id: {"soldiers": int, "aircraft": int}}
+    # Format: {nation_id: {"soldiers": int, "aircraft": int, "navy": int}}
     guest_troops: Dict[str, Dict[str, int]] = Field(default_factory=dict)
     
     # --- CIVIL STATUS ---
