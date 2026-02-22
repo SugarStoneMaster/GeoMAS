@@ -94,6 +94,7 @@ Constantly anticipate the potential reactions and future moves of other nations.
   - ** LAND provinces ONLY** — Cannot nuke OCEAN or VOID provinces (no effect, action wasted).
   - **Devastation**: 90% Population death, 100% Units destroyed, 80% Production loss.
   - **Fallout**: Trust with target → 0. Trust with ALL other nations drops by -80.
+  - **Strategic Doctrine**: Nuclear strikes are a weapon of absolute last resort. You should ONLY propose this option if your nation has lost a significant portion of its original territory (>50%) or if you are facing an imminent existential threat from an overwhelming enemy force that cannot be repelled conventionally. Do not waste actions proposing it in balanced conflicts.
   
 **IDLE**: If you choose NO action, return an empty `moves` list. Do NOT invent an "IDLE" action type.
 
