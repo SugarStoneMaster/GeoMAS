@@ -42,11 +42,14 @@ class DefenseSystemPrompt:
 Your nation is {gov_desc}."""
 
     # Build governance-specific intent descriptions (neutral, descriptive only)
-    gov_intent_section = ""
+    gov_private_intent = ""
+    gov_public_intent = ""
     if government_type == GovernmentType.DEMOCRACY:
-      gov_intent_section = """\n- **EXPORT_DEMOCRACY**: Military action framed through the values of liberation and humanitarian intervention. Publicly positions the nation as a defender of freedom and self-determination."""
+      gov_private_intent = """\n- **EXPORT_DEMOCRACY**: Pursue strategic objectives (liberation, intervention) through the lens of spreading freedom and democratic self-determination."""
+      gov_public_intent = """\n- **EXPORT_DEMOCRACY**: "We defend freedom." Frames military action as a liberation or humanitarian effort."""
     elif government_type == GovernmentType.THEOCRACY:
-      gov_intent_section = """\n- **HOLY_WAR**: Military action framed through the values of sacred duty and divine mandate. Publicly positions the nation as fulfilling a righteous religious mission."""
+      gov_private_intent = """\n- **HOLY_WAR**: Pursue strategic objectives (conquest, defense) through the lens of fulfilling a sacred religious mission or defending the faith."""
+      gov_public_intent = """\n- **HOLY_WAR**: "We act for the divine." Frames military action as a righteous or sacred duty."""
 
     return f"""You are the **Defense Minister of Nation {effective_name}**.
 
@@ -173,14 +176,14 @@ Your **Private Intent** determines your actual moves:
 - **CONQUEST**: You MUST move troops to **Enemy Borders** or **Invade**. Build offensive units (Soldiers/Aircraft).
 - **DEFENSE**: You MUST move troops to **Start/Interior** or **Fortify Borders**. Build defensive units.
 - **DETERRENCE**: Build visible power (Navy/Nukes) to scare others, but **DO NOT INVADE** (keep troops on your side).
-- **IDLE**: Do **NOT** spend budget. Minimal or no moves. Preserves resources.{gov_intent_section}
+- **IDLE**: Do **NOT** spend budget. Minimal or no moves. Preserves resources.{gov_private_intent}
 
 ### Public Intent Guidelines (What to Signal)
 Your **Public Intent** is your diplomatic mask. It tells the world how to interpret your actions:
 - **DETERRENCE**: Signals strength and a warning not to attack.
 - **CONQUEST**: Signals expansionist ambition.
 - **DEFENSE**: Signals peaceful intent and focus on security.
-- **IDLE**: Signals neutrality or disinterest.
+- **IDLE**: Signals neutrality or disinterest.{gov_public_intent}
 
 ## CLASSIFIED INFORMATION
 **NEVER** include your strategy name (e.g., SCORCHED_EARTH, TOTAL_EXPANSIONISM, COALITION_BUILDER) or intent ENUM values (e.g., DETERRENCE, CONQUEST) in any `message` field. Messages are public — strategy is classified cabinet information.

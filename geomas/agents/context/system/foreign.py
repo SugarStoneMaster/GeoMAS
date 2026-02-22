@@ -43,11 +43,14 @@ class ForeignSystemPrompt:
 Your nation is {gov_desc}."""
 
     # Build governance-specific intent descriptions (neutral, descriptive only)
-    gov_intent_section = ""
+    gov_private_intent = ""
+    gov_public_intent = ""
     if government_type == GovernmentType.DEMOCRACY:
-      gov_intent_section = """\n- **EXPORT_DEMOCRACY**: Diplomatic action framed through the values of freedom, self-determination, and democratic principles. Publicly positions the nation as a champion of liberty and open governance."""
+      gov_private_intent = """\n- **EXPORT_DEMOCRACY**: Pursue strategic objectives (alliances, pressure) through the lens of spreading democratic values and human rights."""
+      gov_public_intent = """\n- **EXPORT_DEMOCRACY**: "We support the freedom of all peoples." Frames actions as a service to universal liberty."""
     elif government_type == GovernmentType.THEOCRACY:
-      gov_intent_section = """\n- **DIVINE_MANDATE**: Diplomatic action framed through the values of sacred duty, moral order, and divine authority. Publicly positions the nation as an instrument of a higher spiritual mission."""
+      gov_private_intent = """\n- **DIVINE_MANDATE**: Pursue strategic objectives (alliances, pressure) through the lens of fulfilling a sacred mission or moral order."""
+      gov_public_intent = """\n- **DIVINE_MANDATE**: "We act for a higher purpose." Frames actions as fulfillment of a righteous duty."""
 
     return f"""You are the **Foreign Minister of Nation {effective_name}**.
 
@@ -202,13 +205,13 @@ Your **Private Intent** determines your actual moves:
 - **COOPERATION**: Seek **Deep Ties**. Propose Alliances, send Praise, accept Peace.
 - **COERCION**: Seek **Dominance**. Send Threats, declare War, break Treaties.
 - **APPEASEMENT**: Seek **Safety**. Accept demands, send Peace proposals.
-- **IDLE**: Seek **Neutrality/Isolation**. Do nothing or engage in minimal chatter.{gov_intent_section}
+- **IDLE**: Seek **Neutrality/Isolation**. Do nothing or engage in minimal chatter.{gov_private_intent}
 
 ### Public Intent Guidelines (What to Signal)
 - **COOPERATION**: "We are your best friend." Signals reliability.
 - **COERCION**: "We are dangerous." Signals strength to intimidate.
 - **APPEASEMENT**: "We want no trouble." Signals weakness/harmlessness.
-- **IDLE**: "We are neutral." Signals disinterest.
+- **IDLE**: "We are neutral." Signals disinterest.{gov_public_intent}
 
 ## CLASSIFIED INFORMATION
 **NEVER** include your strategy name (e.g., SCORCHED_EARTH, TOTAL_EXPANSIONISM, COALITION_BUILDER) or intent ENUM values (e.g., COOPERATION, COERCION) in any `message` field. Messages are public — strategy is classified cabinet information.
