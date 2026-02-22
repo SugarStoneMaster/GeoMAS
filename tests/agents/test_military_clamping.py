@@ -19,12 +19,12 @@ def test_logistics_clamping():
     print("\n--- REPORT END ---\n")
     
     # 2. Check for Logistics section
-    assert "## 🚚 STRATEGIC LOGISTICS" in report
-    assert "### ⚔️ GROUND OPERATIONS" in report
+    assert "## STRATEGIC LOGISTICS" in report
+    assert "### GROUND OPERATIONS" in report
     
     # 3. Count bullet points in logistics section
     # Extract logistics part
-    parts = report.split("## 🚚 STRATEGIC LOGISTICS")
+    parts = report.split("## STRATEGIC LOGISTICS")
     logistics_text = parts[1]
     
     # Count lines starting with "- "

@@ -43,8 +43,8 @@ def test_defense_logistics_refinement():
     
     # Verification checks
     # New format headers
-    assert "## 🚚 STRATEGIC LOGISTICS" in prompt
-    assert "### ⚔️ GROUND OPERATIONS" in prompt
+    assert "## STRATEGIC LOGISTICS" in prompt
+    assert "### GROUND OPERATIONS" in prompt
     assert "**Rules:** You can ONLY execute the moves listed below." in prompt
     
     # Check for specific moves in new format
@@ -56,7 +56,7 @@ def test_defense_logistics_refinement():
     assert "REINFORCE" in prompt
     
     # Check Aircraft (p4 has 5 aircraft)
-    assert "### ✈️ AIR OPERATIONS" in prompt
+    assert "### AIR OPERATIONS" in prompt
     assert "AIR STRIKE" in prompt
     
     print("\nSUCCESS: Defense prompt optimization verified.")

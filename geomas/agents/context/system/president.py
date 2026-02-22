@@ -11,52 +11,52 @@ from geomas.agents.context.system.strategies import get_strategy_description, ge
 
 
 class PresidentSystemPrompt:
+  """
+  Generates static system prompt for the President agent.
+  
+  The President:
+  - Receives summary reports from all ministers
+  - Sets strategic priorities based on current situation
+  - Does NOT change GlobalStrategy (it's fixed for the simulation)
+  - Balances security, economy, diplomacy, and public satisfaction
+  """
+  
+  @staticmethod
+  def generate(
+    nation_name: str, # Kept for compat
+    strategy: GlobalStrategy,
+    cultural_traits: list[str] | None = None,
+    nation_id: str = None,
+    government_type: GovernmentType | None = None
+  ) -> str:
     """
-    Generates static system prompt for the President agent.
+    Generate the system prompt for a President.
     
-    The President:
-    - Receives summary reports from all ministers
-    - Sets strategic priorities based on current situation
-    - Does NOT change GlobalStrategy (it's fixed for the simulation)
-    - Balances security, economy, diplomacy, and public satisfaction
+    Args:
+      nation_name: Name of the nation
+      strategy: The nation's GlobalStrategy (fixed)
+      cultural_traits: Optional cultural characteristics
+      
+    Returns:
+      System prompt string (~400 tokens)
     """
+    effective_name = nation_id if nation_id else nation_name
     
-    @staticmethod
-    def generate(
-        nation_name: str, # Kept for compat
-        strategy: GlobalStrategy,
-        cultural_traits: list[str] | None = None,
-        nation_id: str = None,
-        government_type: GovernmentType | None = None
-    ) -> str:
-        """
-        Generate the system prompt for a President.
-        
-        Args:
-            nation_name: Name of the nation
-            strategy: The nation's GlobalStrategy (fixed)
-            cultural_traits: Optional cultural characteristics
-            
-        Returns:
-            System prompt string (~400 tokens)
-        """
-        effective_name = nation_id if nation_id else nation_name
-        
-        traits_text = ""
-        if cultural_traits:
-            traits_text = f"\nYour people are known for being: {', '.join(sorted(cultural_traits))}."
-        
-        strategy_desc = get_strategy_description(strategy)
+    traits_text = ""
+    if cultural_traits:
+      traits_text = f"\nYour people are known for being: {', '.join(sorted(cultural_traits))}."
+    
+    strategy_desc = get_strategy_description(strategy)
 
-        # Governance persona section
-        governance_text = ""
-        if government_type:
-            gov_desc = get_governance_description(government_type)
-            governance_text = f"""\n\n## Governance Persona
+    # Governance persona section
+    governance_text = ""
+    if government_type:
+      gov_desc = get_governance_description(government_type)
+      governance_text = f"""\n\n## Governance Persona
 Your nation is {gov_desc}.
 All public statements, justifications, and diplomatic messages MUST be framed consistently with this governance identity."""
-        
-        return f"""You are the **President of Nation {effective_name}**.
+    
+    return f"""You are the **President of Nation {effective_name}**.
 
 ## Strategic Doctrine
 Your nation is governed by the principles of **{strategy.value}**: {strategy_desc}.

@@ -254,7 +254,7 @@ class BaseInputBuilder:
         if not injections:
             return ""
             
-        lines = ["## ⚠️ ACTIVE STRATEGIC CONSTRAINTS (MANDATORY)"]
+        lines = ["## ACTIVE STRATEGIC CONSTRAINTS (MANDATORY)"]
         lines.append("The Supreme Council has imposed the following directives for this turn. As President, you MUST ensure your Cabinet follows these instructions:")
         
         for inj in injections:
@@ -263,3 +263,18 @@ class BaseInputBuilder:
                 
         lines.append("\n**Presidential Override**: If a Minister proposes an action that violates these directives, you MUST use your **VETO** power.")
         return "\n".join(lines)
+
+    def _sanitize_prompt(self, text: str) -> str:
+        """
+        Remove emojis from the prompt text. Emojis are useful for terminal debugging
+        but they waste tokens and can confuse the LLM.
+        """
+        import re
+        # Regex capturing most standard emojis and graphical symbols
+        emoji_pattern = re.compile(r"[\U00010000-\U0010ffff\u2600-\u27bf]")
+        
+        # We also manually remove some common ascii/unicode symbols used as graphics
+        sanitized = emoji_pattern.sub(r"", text)
+        sanitized = sanitized.replace("  ", " ") # Clean up double spaces left by removed emojis
+        return sanitized.strip()
+

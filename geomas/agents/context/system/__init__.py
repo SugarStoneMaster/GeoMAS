@@ -12,9 +12,9 @@ from geomas.agents.context.system.foreign import ForeignSystemPrompt
 from geomas.agents.context.system.opinion import OpinionSystemPrompt
 
 __all__ = [
-    "PresidentSystemPrompt",
-    "DefenseSystemPrompt",
-    "EconomySystemPrompt",
-    "ForeignSystemPrompt",
-    "OpinionSystemPrompt",
+  "PresidentSystemPrompt",
+  "DefenseSystemPrompt",
+  "EconomySystemPrompt",
+  "ForeignSystemPrompt",
+  "OpinionSystemPrompt",
 ]

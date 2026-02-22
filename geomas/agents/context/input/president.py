@@ -82,7 +82,7 @@ class PresidentInputBuilder(BaseInputBuilder):
             # President-specific: Decision history
             sections.append(self._build_recent_decisions(nation_id, context_manager))
         
-        return "\n\n".join(sections)
+        return self._sanitize_prompt("\n\n".join(sections))
     
     def _build_state_overview(self, nation: NationState) -> str:
         """Detailed nation state overview."""

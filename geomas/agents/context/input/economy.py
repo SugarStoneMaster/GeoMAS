@@ -85,7 +85,7 @@ class EconomyInputBuilder(BaseInputBuilder):
         # 8. Global Market Intelligence
         sections.append(self._build_global_market(nation_id))
         
-        return "\n\n".join(sections)
+        return self._sanitize_prompt("\n\n".join(sections))
     
     def _build_treasury_section(self, nation: NationState) -> str:
         """Build treasury section with all resources."""
@@ -142,10 +142,10 @@ class EconomyInputBuilder(BaseInputBuilder):
         
         for name, value in resources.items():
             if value < 50:
-                status = "⚠️ SHORTAGE"
+                status = "SHORTAGE"
                 shortages.append(name.lower())
             elif value > 500:
-                status = "✅ SURPLUS"
+                status = "SURPLUS"
                 surpluses.append(name.lower())
             else:
                 status = "→ ADEQUATE"
@@ -165,19 +165,19 @@ class EconomyInputBuilder(BaseInputBuilder):
         
         # Status and recommendations
         if sat < 20:
-            status = "⚠️ CRISIS"
+            status = "CRISIS"
             recommendation = "URGENT: Use INVEST_IN_WELFARE immediately. Avoid WAR_TAX."
         elif sat < 30:
-            status = "⚠️ DANGEROUSLY LOW"
+            status = "DANGEROUSLY LOW"
             recommendation = "Consider INVEST_IN_WELFARE. WAR_TAX not possible."
         elif sat < 50:
-            status = "⚠️ BELOW OPTIMAL"
+            status = "BELOW OPTIMAL"
             recommendation = "INVEST_IN_WELFARE recommended if budget allows."
         elif sat < 70:
-            status = "✅ STABLE"
+            status = "STABLE"
             recommendation = "Population is content. WAR_TAX possible if needed."
         else:
-            status = "✅ HIGH"
+            status = "HIGH"
             recommendation = "Excellent morale. War operations well-tolerated."
         
         return f"""## Public satisfaction
@@ -204,7 +204,7 @@ class EconomyInputBuilder(BaseInputBuilder):
         """Build global market intelligence with dynamic thresholds."""
         nations = [n for nid, n in self.world.nations.items() if nid != nation_id]
         if not nations:
-            return "## 🌍 GLOBAL MARKET INTELLIGENCE\nNo other nations found."
+            return "## GLOBAL MARKET INTELLIGENCE\nNo other nations found."
 
         # 1. Calculate Global Averages
         total_food = sum(n.total_food for n in nations)
@@ -220,7 +220,7 @@ class EconomyInputBuilder(BaseInputBuilder):
         lines.append(f"Global Averages: Food {avg_food:.0f}, Energy {avg_energy:.0f}, Materials {avg_materials:.0f}.")
         lines.append("- **SURPLUS**: > 120% of Avg. Ask them for this!")
         lines.append("- **DEFICIT**: < 80% of Avg. Sell this to them!")
-        lines.append("⚠️ **IMPORTANT**: Trades are CAPPED at 15% of the source nation's current stock. Requests > 15% will be automatically CLAMPED. Ask for CONSERVATIVE amounts (<15% of surplus) to ensure full value.")
+        lines.append("**IMPORTANT**: Trades are CAPPED at 15% of the source nation's current stock. Requests > 15% will be automatically CLAMPED. Ask for CONSERVATIVE amounts (<15% of surplus) to ensure full value.")
         
         has_data = False
         
@@ -245,7 +245,7 @@ class EconomyInputBuilder(BaseInputBuilder):
                 trust_val = self.world.trust_matrix.get(nation_id, {}).get(other.id, 50.0)
                 rel = self.world.relationship_matrix.get(nation_id, {}).get(other.id, "PEACE")
                 is_eligible = trust_val >= 40 and rel != "WAR"
-                eligibility_tag = "✅ [TRADE ELIGIBLE]" if is_eligible else "❌ [NO TRADE - Trust too low or War]"
+                eligibility_tag = "[TRADE ELIGIBLE]" if is_eligible else "[NO TRADE - Trust too low or War]"
                 
                 info = f"- **{other.name} ({other.id})** {eligibility_tag}:"
                 if surpluses:

@@ -252,7 +252,7 @@ def test_proposal_tracking_lifecycle(world):
     ib = ForeignInputBuilder(world)
     context = ib.build(sender, 10)
     assert "## Sent proposals" in context
-    assert "⏳ **ALLIANCE (MUTUAL_DEFENSE) to Nation B**" in context
+    assert "**ALLIANCE (MUTUAL_DEFENSE) to Nation B**" in context
     assert "Status: **PENDING**" in context
     
     # 3. Respond (Turn 11)
@@ -283,7 +283,7 @@ def test_proposal_tracking_lifecycle(world):
     
     # 4. Check Input Builder again (Sender sees result)
     context_resolved = ib.build(sender, 11)
-    assert "✅ **ALLIANCE (MUTUAL_DEFENSE) to Nation B**" in context_resolved
+    assert "**ALLIANCE (MUTUAL_DEFENSE) to Nation B**" in context_resolved
     assert ": **ACCEPTED**" in context_resolved
     
     # 5. Cleanup (Turn 13 - >1 turn after resolution)
@@ -296,7 +296,7 @@ def test_proposal_tracking_lifecycle(world):
     # Check updated Input Builder (History Section)
     context_history = ib.build(sender, 12)
     assert "## Proposal history" in context_history
-    assert "✅ **ALLIANCE (MUTUAL_DEFENSE) to Nation B**" in context_history
+    assert "**ALLIANCE (MUTUAL_DEFENSE) to Nation B**" in context_history
     
     # Turn 35: Still visible (11 + 24 <= 35)
     world.turn = 35

@@ -88,11 +88,11 @@ class DefenseInputBuilder(BaseInputBuilder):
         # 7. Logistics Reminder (Repeat rules near the end for recency)
         sections.append(self._build_logistics_reminder())
         
-        return "\n\n".join(sections)
+        return self._sanitize_prompt("\n\n".join(sections))
 
     def _build_logistics_reminder(self) -> str:
         """Reinforce movement rules at the end of the prompt."""
-        return """## 👮 RULES OF ENGAGEMENT
+        return """## RULES OF ENGAGEMENT
 1. **VALID MOVES ONLY**: Use the EXACT destinations listed in 'TROOP POSITIONS'. Do not hallucinate paths.
 2. **PRIORITY**: If under threat, prioritze **REINFORCE** moves to borders.
 3. **ATTACK**: Moving to an enemy province initiates combat. Ensure you have force superiority."""

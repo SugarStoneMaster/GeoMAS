@@ -108,7 +108,7 @@ class MilitaryTranslator:
         if nation.nukes > 0:
             nuke_status = f"\n**NUCLEAR ARSENAL:** {nation.nukes} warheads available."
         
-        return f"""## ⚔️ MILITARY OVERVIEW
+        return f"""## MILITARY OVERVIEW
 
 **Ground Forces:** {total_soldiers:,} soldiers
 **Air Force:** {total_aircraft:,} aircraft
@@ -146,7 +146,7 @@ class MilitaryTranslator:
                     interior_count += 1
                     interior_units += total_units
         
-        lines = ["## 🗺️ FORCE DEPLOYMENT"]
+        lines = ["## FORCE DEPLOYMENT"]
         
         if heavily_defended:
             hd_str = ", ".join(f"{p_id}({u})" for p_id, u in heavily_defended[:8])
@@ -158,7 +158,7 @@ class MilitaryTranslator:
         
         if undefended:
             ud_str = ", ".join(str(p_id) for p_id in undefended[:10])
-            lines.append(f"**⚠️ UNDEFENDED BORDERS ({len(undefended)}):** {ud_str}")
+            lines.append(f"**UNDEFENDED BORDERS ({len(undefended)}):** {ud_str}")
             lines.append("  → Consider CREATE_UNIT or MOVE_TROOPS to fill these gaps!")
         
         if interior_units > 0:
@@ -176,7 +176,7 @@ class MilitaryTranslator:
                     guest_locs.append(f"{p_id} ({s}S/{a_count}A in {owner_name})")
         
         if guest_locs:
-            lines.append(f"\n**🌍 EXPEDITIONARY FORCES (Guest):** {', '.join(guest_locs)}")
+            lines.append(f"\n**EXPEDITIONARY FORCES (Guest):** {', '.join(guest_locs)}")
             lines.append("  → These troops are stationed in Allied territory. You can move them freely.")
         
         return "\n".join(lines)
@@ -218,7 +218,7 @@ class MilitaryTranslator:
                         neighbor_analysis[enemy_id]["enemy_forces"] += enemy_forces
                         neighbor_analysis[enemy_id]["enemy_provinces"].add(n_id)
         
-        lines = ["## 🛡️ BORDER DEFENSE STATUS"]
+        lines = ["## BORDER DEFENSE STATUS"]
         
         for enemy_id, data in neighbor_analysis.items():
             # Skip nations that were filtered out
@@ -283,7 +283,7 @@ class MilitaryTranslator:
         if not threats:
             return ""
         
-        lines = ["## ⚠️ THREAT ASSESSMENT"]
+        lines = ["## THREAT ASSESSMENT"]
         
         # Sort by severity (enemy force advantage)
         threats.sort(key=lambda t: t["enemy_forces"] - t["my_defense"], reverse=True)
@@ -358,7 +358,7 @@ class MilitaryTranslator:
         lines = []
         
         if attack_options:
-            lines.append("## 🎯 ATTACK OPTIONS")
+            lines.append("## ATTACK OPTIONS")
             # Sort by advantage ratio
             attack_options.sort(key=lambda a: a["my_forces"] / max(a["enemy_forces"], 1), reverse=True)
             
@@ -370,7 +370,7 @@ class MilitaryTranslator:
                 )
         
         if reinforce_needs:
-            lines.append("\n## 🔧 REINFORCEMENT PRIORITIES")
+            lines.append("\n## REINFORCEMENT PRIORITIES")
             reinforce_needs.sort(key=lambda r: r["enemy_threat"], reverse=True)
             
             for need in reinforce_needs[:3]:
@@ -385,7 +385,7 @@ class MilitaryTranslator:
             lines.append(recruit_lines)
         
         if not lines:
-            lines.append("## 📊 MILITARY STATUS\n\nNo immediate attack options or reinforcement priorities.")
+            lines.append("## MILITARY STATUS\n\nNo immediate attack options or reinforcement priorities.")
         
         return "\n".join(lines)
     
@@ -422,7 +422,7 @@ class MilitaryTranslator:
         ]
         
         if needs_troops or needs_navy or needs_aircraft:
-            lines.append("\n## 🏭 RECRUITMENT ADVICE")
+            lines.append("\n## RECRUITMENT ADVICE")
             lines.append("Use **CREATE_UNIT** to build more military strength:")
             
             if needs_troops:
@@ -620,10 +620,10 @@ class MilitaryTranslator:
 
         # Generate Output
         lines = []
-        lines.append("## 🚚 STRATEGIC LOGISTICS (Approved Moves)")
+        lines.append("## STRATEGIC LOGISTICS (Approved Moves)")
         lines.append("**Rules:** You can ONLY execute the moves listed below.")
         
-        lines.append(f"\n### ⚔️ GROUND OPERATIONS (Top {len(top_soldier)})")
+        lines.append(f"\n### GROUND OPERATIONS (Top {len(top_soldier)})")
         if top_soldier:
             for score, desc in top_soldier:
                 lines.append(f"- {desc}")
@@ -631,18 +631,18 @@ class MilitaryTranslator:
             lines.append("- No recommended ground moves.")
 
         if top_navy:
-            lines.append(f"\n### ⚓ NAVAL OPERATIONS (Top {len(top_navy)})")
+            lines.append(f"\n### NAVAL OPERATIONS (Top {len(top_navy)})")
             for score, desc in top_navy:
                 lines.append(f"- {desc}")
         
         if top_air:
-            lines.append(f"\n### ✈️ AIR OPERATIONS (Top {len(top_air)})")
+            lines.append(f"\n### AIR OPERATIONS (Top {len(top_air)})")
             for score, desc in top_air:
                 lines.append(f"- {desc}")
         elif len(air_moves) == 0:
              # Basic summary if no attacks found
              if sum(p.aircraft for p in self.world.provinces.values() if p.owner_id == nation_id) > 0:
-                 lines.append("\n### ✈️ AIR OPERATIONS")
+                 lines.append("\n### AIR OPERATIONS")
                  lines.append("- Aircraft are ready. Use ATTACK on any enemy within range 6.")
 
         return "\n".join(lines)

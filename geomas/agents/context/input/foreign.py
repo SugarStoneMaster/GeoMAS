@@ -95,8 +95,8 @@ class ForeignInputBuilder(BaseInputBuilder):
         if nation.sent_proposals:
             sections.append(self._build_sent_proposals(nation))
         
-        return "\n\n".join(sections)
-
+        return self._sanitize_prompt("\n\n".join(sections))
+    
     def _build_call_to_arms_header(self, nation_id: str, cm: 'ContextManager') -> str:
         """Scan for CALL_TO_ARMS targeting this nation and create a loud header."""
         events = cm.get_events_for(nation_id, current_turn=self.world.turn, max_events=10)
@@ -105,10 +105,10 @@ class ForeignInputBuilder(BaseInputBuilder):
         if not cta_events:
             return ""
             
-        lines = ["# 🚨 CRITICAL: CALL TO ARMS - MUTUAL DEFENSE PACT ACTIVATED 🚨"]
+        lines = ["# CRITICAL: CALL TO ARMS - MUTUAL DEFENSE PACT ACTIVATED"]
         lines.append("An ally has been attacked. Under the MUTUAL_DEFENSE treaty, you are expected to declare war on the aggressor.")
         lines.append("")
-        lines.append("**⚠️ CONSEQUENCES OF INACTION:**")
+        lines.append("**CONSEQUENCES OF INACTION:**")
         lines.append("- If you ignore this for **3 consecutive turns**, your alliance will be AUTOMATICALLY BROKEN.")
         lines.append("- **Global Trust Penalty**: All nations will reduce trust in you by **-30** (Reputation: Unreliable).")
         lines.append("")
@@ -189,7 +189,7 @@ class ForeignInputBuilder(BaseInputBuilder):
                 # Extract tier value if it's an enum
                 tier_value = tier.value if hasattr(tier, 'value') else tier
                 tier_str = f" ({tier_value})" if tier else ""
-                lines.append(f"- ⏳ **{p_type}{tier_str} to {to_name}** (Sent Turn {turn}). Status: **PENDING**")
+                lines.append(f"- **{p_type}{tier_str} to {to_name}** (Sent Turn {turn}). Status: **PENDING**")
         
         # 2. Proposal History
         if history:

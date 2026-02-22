@@ -80,7 +80,7 @@ def test_nation_agent_collects_injections_for_president(clean_world):
     call_args = client.query_agent.call_args[0]
     user_prompt = call_args[1]
     
-    assert "## ⚠️ ACTIVE STRATEGIC CONSTRAINTS (MANDATORY)" in user_prompt
+    assert "## ACTIVE STRATEGIC CONSTRAINTS (MANDATORY)" in user_prompt
     assert "DEFENSE: NOT PERFORM ACTION MOVE_TROOPS" in user_prompt
     assert "ECONOMY: PERFORM ACTION INVEST_WELFARE" in user_prompt
 

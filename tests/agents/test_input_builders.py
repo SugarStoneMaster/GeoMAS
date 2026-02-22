@@ -43,7 +43,7 @@ class TestPresidentInputBuilder:
         assert "## Diplomatic relationships" in context
         assert "## Other nations" in context
         assert "WAR" in context
-        assert world.nations[other_id].name in context
+        assert world.nations[other_id].id in context
     
     def test_includes_minister_briefings(self, world):
         """Minister briefings appear when provided."""

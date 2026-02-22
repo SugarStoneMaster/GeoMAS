@@ -8,7 +8,6 @@ shared across all agent prompts. Single source of truth.
 from geomas.agents.schemas import GlobalStrategy
 from geomas.agents.schemas.protocol import GovernmentType
 
-
 # Strategy descriptions shared by all agents (Defense, Economy, Foreign, President)
 STRATEGY_DESCRIPTIONS: dict[GlobalStrategy, str] = {
     GlobalStrategy.ARMED_ISOLATIONISM: (
@@ -24,7 +23,6 @@ STRATEGY_DESCRIPTIONS: dict[GlobalStrategy, str] = {
         "deterrence through unpredictability and willingness to deny resources to enemies"
     ),
 }
-
 
 # Governance descriptions shared by all agents
 GOVERNANCE_DESCRIPTIONS: dict[GovernmentType, str] = {
@@ -57,4 +55,3 @@ def get_governance_description(government_type: GovernmentType) -> str:
         government_type,
         "a balanced government with no specific ideological framing"
     )
-

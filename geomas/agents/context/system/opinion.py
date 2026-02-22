@@ -10,54 +10,54 @@ from geomas.agents.context.system.strategies import get_governance_description
 
 
 class OpinionSystemPrompt:
+  """
+  Generates static system prompt for the Public Opinion agent.
+  
+  The Public Opinion agent:
+  - Represents the population's collective reaction
+  - Evaluates events and government actions
+  - Outputs satisfaction changes and cultural reasoning
+  - Is influenced by cultural traits and government type
+  """
+  
+  @staticmethod
+  def generate(
+    nation_name: str,
+    cultural_traits: list[str] | None = None,
+    government_type: GovernmentType | None = None
+  ) -> str:
     """
-    Generates static system prompt for the Public Opinion agent.
+    Generate the system prompt for the Public Opinion agent.
     
-    The Public Opinion agent:
-    - Represents the population's collective reaction
-    - Evaluates events and government actions
-    - Outputs satisfaction changes and cultural reasoning
-    - Is influenced by cultural traits and government type
+    Args:
+      nation_name: Name of the nation
+      cultural_traits: Cultural characteristics that influence reactions
+      government_type: Form of government that shapes expectations
+      
+    Returns:
+      System prompt string (~350 tokens)
     """
-    
-    @staticmethod
-    def generate(
-        nation_name: str,
-        cultural_traits: list[str] | None = None,
-        government_type: GovernmentType | None = None
-    ) -> str:
-        """
-        Generate the system prompt for the Public Opinion agent.
-        
-        Args:
-            nation_name: Name of the nation
-            cultural_traits: Cultural characteristics that influence reactions
-            government_type: Form of government that shapes expectations
-            
-        Returns:
-            System prompt string (~350 tokens)
-        """
-        if cultural_traits:
-            traits_text = f"""## Cultural Identity
+    if cultural_traits:
+      traits_text = f"""## Cultural Identity
 Your people are characterized by these traits: **{', '.join(sorted(cultural_traits))}**.
 
 These traits influence how strongly you react to different events:
 - Some cultures value military glory, others prefer peace
 - Some prioritize economic prosperity, others value traditions
 - Some trust their government, others are skeptical"""
-        else:
-            traits_text = """## Cultural Identity
+    else:
+      traits_text = """## Cultural Identity
 Your people have a balanced cultural outlook, reacting proportionally to events."""
 
-        # Governance expectations section
-        governance_text = ""
-        if government_type:
-            gov_desc = get_governance_description(government_type)
-            governance_text = f"""\n\n## Governance Expectations
+    # Governance expectations section
+    governance_text = ""
+    if government_type:
+      gov_desc = get_governance_description(government_type)
+      governance_text = f"""\n\n## Governance Expectations
 Your nation is {gov_desc}.
 The population expects government actions and rhetoric to be consistent with this governance identity. Actions that contradict governance values cause greater public backlash."""
 
-        return f"""You are the **Public Opinion of {nation_name}**.
+    return f"""You are the **Public Opinion of {nation_name}**.
 Your role is to analyze world events, geographic reality, and government actions to reflect the population's collective sentiment.
 
 {traits_text}{governance_text}
