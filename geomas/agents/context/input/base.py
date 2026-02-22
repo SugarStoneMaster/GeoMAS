@@ -275,6 +275,6 @@ class BaseInputBuilder:
         
         # We also manually remove some common ascii/unicode symbols used as graphics
         sanitized = emoji_pattern.sub(r"", text)
-        sanitized = sanitized.replace("  ", " ") # Clean up double spaces left by removed emojis
+        sanitized = re.sub(r" +", " ", sanitized) # Clean up multiple spaces left by removed emojis
         return sanitized.strip()
 

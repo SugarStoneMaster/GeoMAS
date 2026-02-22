@@ -19,6 +19,24 @@ def world():
     return generate_world(seed=42, history_seed=99, n_cells=200, n_nations=4)
 
 
+class TestBaseInputBuilder:
+    """Tests for base input builder utilities."""
+    
+    def test_sanitize_prompt(self, world):
+        """Removes emojis and cleans up spacing."""
+        from geomas.agents.context.input.base import BaseInputBuilder
+        builder = BaseInputBuilder(world)
+        
+        dirty = "Hello 🌍 World! 🚨 Danger 🚨  Too   much space. 🚚 Logistics ✅ Approved"
+        clean = builder._sanitize_prompt(dirty)
+        
+        assert "🌍" not in clean
+        assert "🚨" not in clean
+        assert "🚚" not in clean
+        assert "✅" not in clean
+        assert clean == "Hello World! Danger Too much space. Logistics Approved"
+
+
 class TestPresidentInputBuilder:
     """Tests for President input builder."""
     
