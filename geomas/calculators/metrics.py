@@ -93,9 +93,11 @@ def calculate_coherence_score(envelope: CountryEnvelope) -> float:
     if strategy_val == "ARMED_ISOLATIONISM":
         if envelope.original_foreign_proposal:
             for_payload = getattr(envelope.original_foreign_proposal, 'payload', None)
-            if for_payload and getattr(for_payload, 'actions', None):
-                for act in for_payload.actions:
-                    if getattr(act, 'action_type', None) == "PROPOSE_ALLIANCE":
+            if for_payload:
+                action_type = getattr(for_payload, 'action_type', None)
+                if action_type:
+                    action_str = action_type.value if hasattr(action_type, 'value') else str(action_type)
+                    if action_str == "PROPOSE_ALLIANCE":
                         score -= 0.5
                     
     elif strategy_val == "TOTAL_EXPANSIONISM":
@@ -136,10 +138,15 @@ def extract_nation_metrics(world: WorldState, envelope: CountryEnvelope, turn: i
                 
     if hasattr(envelope, 'original_economic_proposal') and envelope.original_economic_proposal:
         econ_payload = getattr(envelope.original_economic_proposal, 'payload', None)
-        if econ_payload and getattr(econ_payload, 'actions', None):
-            for act in econ_payload.actions:
-                if getattr(act, 'action_type', None) == "PROPOSE_TRADE" and getattr(act, 'quantity', None):
-                    trade_volume += act.quantity
+        if econ_payload:
+            action_type = getattr(econ_payload, 'action_type', None)
+            if action_type:
+                action_str = action_type.value if hasattr(action_type, 'value') else str(action_type)
+                # The Enum is EconomicActionType.TRADE_PROPOSAL
+                if action_str == "TRADE_PROPOSAL":
+                    amount = getattr(econ_payload, 'give_amount', 0.0)
+                    if amount:
+                        trade_volume += float(amount)
     
     return {
         "simulation_id": None, # Injected by the DB layer
