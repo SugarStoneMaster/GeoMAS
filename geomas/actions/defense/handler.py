@@ -877,11 +877,13 @@ def _execute_nuclear_option(
                 if def_nation_id not in aggressor.active_wars:
                     aggressor.active_wars[def_nation_id] = WarStats(
                         start_turn=world.turn,
-                        original_provinces=len(aggressor.province_ids)
+                        initiator_id=nation_id,
+                        original_provinces=len(victim.province_ids)
                     )
                 if nation_id not in victim.active_wars:
                     victim.active_wars[nation_id] = WarStats(
                         start_turn=world.turn,
+                        initiator_id=nation_id,
                         original_provinces=len(victim.province_ids)
                     )
 

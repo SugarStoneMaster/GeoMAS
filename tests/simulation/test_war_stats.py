@@ -39,12 +39,14 @@ def test_war_stats_initialization():
     
     stats_agg = aggressor.active_wars["VULCANIA"]
     assert stats_agg.start_turn == 5
-    assert stats_agg.original_provinces == 3
+    assert stats_agg.initiator_id == "AGRIA"
+    assert stats_agg.original_provinces == 2 # Target size
     assert stats_agg.lost_provinces == 0
     
     stats_tgt = target.active_wars["AGRIA"]
     assert stats_tgt.start_turn == 5
-    assert stats_tgt.original_provinces == 2
+    assert stats_tgt.initiator_id == "AGRIA"
+    assert stats_tgt.original_provinces == 2 # Target size
 
 def test_war_stats_update_on_conquest():
     """Verify WarStats update when provinces are conquered."""
@@ -57,7 +59,7 @@ def test_war_stats_update_on_conquest():
     aggressor.id = "AGRIA"
     aggressor.province_ids = [1, 2]
     aggressor.active_wars = {
-        "VULCANIA": WarStats(start_turn=5, original_provinces=2)
+        "VULCANIA": WarStats(start_turn=5, initiator_id="AGRIA", original_provinces=1)
     }
     aggressor.total_soldiers = 100
     aggressor.total_aircraft = 0
@@ -67,7 +69,7 @@ def test_war_stats_update_on_conquest():
     target.id = "VULCANIA"
     target.province_ids = [10]
     target.active_wars = {
-        "AGRIA": WarStats(start_turn=5, original_provinces=1)
+        "AGRIA": WarStats(start_turn=5, initiator_id="AGRIA", original_provinces=1)
     }
     target.total_soldiers = 50
     target.total_aircraft = 0

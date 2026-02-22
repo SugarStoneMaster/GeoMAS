@@ -127,6 +127,10 @@ class TestAmbiguityPenalty:
         world.relationship_matrix[ally_id][victim_id] = RelationshipState.MUTUAL_DEFENSE
         
         # 2. Setup WAR between Victim and Aggressor
+        from geomas.schemas.world import WarStats
+        world.nations[victim_id].active_wars[aggressor_id] = WarStats(start_turn=1, initiator_id=aggressor_id, original_provinces=1)
+        world.nations[aggressor_id].active_wars[victim_id] = WarStats(start_turn=1, initiator_id=aggressor_id, original_provinces=1)
+        
         world.relationship_matrix[victim_id][aggressor_id] = RelationshipState.WAR
         world.relationship_matrix[aggressor_id][victim_id] = RelationshipState.WAR
         

@@ -384,6 +384,7 @@ def _conquer_province(
                 # Lazy init (should have been done at declaration, but for safety)
                 old_nation.active_wars[new_owner_id] = WarStats(
                     start_turn=world.turn,
+                    initiator_id=new_owner_id,
                     original_provinces=len(old_nation.province_ids) + 1 # +1 because we just removed one
                 )
             old_nation.active_wars[new_owner_id].lost_provinces += 1
@@ -394,7 +395,8 @@ def _conquer_province(
                 if old_owner_id not in new_nation_ref.active_wars:
                      new_nation_ref.active_wars[old_owner_id] = WarStats(
                         start_turn=world.turn,
-                        original_provinces=len(new_nation_ref.province_ids)
+                        initiator_id=new_owner_id,
+                        original_provinces=len(old_nation.province_ids) + 1 # Use victim's size
                     )
                 new_nation_ref.active_wars[old_owner_id].conquered_provinces += 1
     

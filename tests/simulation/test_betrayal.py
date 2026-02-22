@@ -1,5 +1,5 @@
 import pytest
-from geomas.schemas.world import WorldState, NationState, RelationshipState
+from geomas.schemas.world import WorldState, NationState, RelationshipState, WarStats
 from geomas.simulation.engine import SimulationEngine
 from geomas.actions import ActionEngine
 
@@ -43,7 +43,10 @@ def test_global_betrayal_trigger():
     w.relationship_matrix["NAT_A"]["NAT_B"] = RelationshipState.MUTUAL_DEFENSE
     w.relationship_matrix["NAT_B"]["NAT_A"] = RelationshipState.MUTUAL_DEFENSE
     
-    # B is at war with C
+    # B is at war with C (C is aggressor)
+    w.nations["NAT_B"].active_wars["NAT_C"] = WarStats(start_turn=1, initiator_id="NAT_C", original_provinces=1)
+    w.nations["NAT_C"].active_wars["NAT_B"] = WarStats(start_turn=1, initiator_id="NAT_C", original_provinces=1)
+    
     w.relationship_matrix["NAT_B"]["NAT_C"] = RelationshipState.WAR
     w.relationship_matrix["NAT_C"]["NAT_B"] = RelationshipState.WAR
     
@@ -91,6 +94,11 @@ def test_betrayal_tracker_reset_on_compliance():
     # Setup Conflict
     w.relationship_matrix["NAT_A"]["NAT_B"] = RelationshipState.MUTUAL_DEFENSE
     w.relationship_matrix["NAT_B"]["NAT_A"] = RelationshipState.MUTUAL_DEFENSE
+    
+    # B is at war with C (C is aggressor)
+    w.nations["NAT_B"].active_wars["NAT_C"] = WarStats(start_turn=1, initiator_id="NAT_C", original_provinces=1)
+    w.nations["NAT_C"].active_wars["NAT_B"] = WarStats(start_turn=1, initiator_id="NAT_C", original_provinces=1)
+    
     w.relationship_matrix["NAT_B"]["NAT_C"] = RelationshipState.WAR
     w.relationship_matrix["NAT_C"]["NAT_B"] = RelationshipState.WAR
     
