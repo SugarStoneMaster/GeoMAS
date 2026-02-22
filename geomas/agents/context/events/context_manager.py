@@ -243,12 +243,13 @@ class ContextManager:
             nation_name = world.nations[nation_id].name if nation_id in world.nations else nation_id
 
             # 1. Log President Public Statement
-            if envelope.public_statement and envelope.public_statement != "No action taken.":
+            pub_stmt = getattr(envelope, "public_statement", None)
+            if pub_stmt and pub_stmt != "No action taken.":
                 event = NotableEvent(
                     turn=turn,
                     event_type=EventType.PUBLIC_STATEMENT,
                     actors=[nation_id],
-                    summary=f"📢 [PRESIDENT] {nation_name}: {envelope.public_statement}",
+                    summary=f"📢 [PRESIDENT] {nation_name}: {pub_stmt}",
                     relevance_to=None # Global
                 )
                 self.global_events.append(event)
