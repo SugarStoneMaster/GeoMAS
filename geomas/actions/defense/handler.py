@@ -18,7 +18,8 @@ from geomas.actions.defense.schemas import (
     can_place_unit,
     get_terrain_defense_bonus,
 )
-from geomas.schemas.world import TerrainType, RelationshipState
+from geomas.schemas.world import TerrainType, RelationshipState, WarStats
+from geomas.actions.foreign.handler import _generate_call_to_arms
 
 if TYPE_CHECKING:
     from geomas.actions.engine import ActionEngine
@@ -365,6 +366,8 @@ def _execute_move_troops(
                 engine.logs.append(
                     f"⚔️ [DIPLOMACY] {nation_id} initiated hostilities against {def_nation_id}! Relationship set to WAR."
                 )
+                # SNEAK ATTACK CALL TO ARMS
+                _generate_call_to_arms(engine, nation_id, def_nation_id, attack_type="SNEAK ATTACKED")
 
             # Init War Stats
             victim = world.nations.get(def_nation_id)
@@ -947,6 +950,9 @@ def _execute_nuclear_option(
         engine.world.trust_matrix.setdefault(nation_id, {})[victim_id] = 0
         engine.world.trust_matrix.setdefault(victim_id, {})[nation_id] = 0
         engine.logs.append(f"💔 [DIPLOMACY] Trust between {nation_id} and {victim_id} → 0")
+        
+        # NUCLEAR CALL TO ARMS
+        _generate_call_to_arms(engine, nation_id, victim_id, attack_type="NUKED")
     
     # ALL other nations: trust -= 80 toward attacker (high penalty)
     for other_nation_id in world.nations:

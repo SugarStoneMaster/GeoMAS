@@ -244,6 +244,27 @@ class ContextManager:
                     if event:
                         self.global_events.append(event)
                         self._add_event_to_relationships(turn, nation_id, event)
+        
+        # === RAW STRING EVENTS (Global Logs) ===
+        # Capture specialized notifications like [CALL_TO_ARMS] or [BETRAYAL]
+        for log in world.global_events:
+            if isinstance(log, str) and "[" in log and "]" in log:
+                # Basic parsing: summary is the whole line
+                # Actors are often mentioned in text (e.g. "NAT_A")
+                found_actors = [nid for nid in world.nations.keys() if nid in log]
+                
+                # Check for duplicates (don't re-add if we already have it)
+                if any(e.summary == log for e in self.global_events):
+                    continue
+                    
+                from geomas.agents.context.events.schemas import NotableEvent, EventType
+                self.global_events.append(NotableEvent(
+                    turn=turn,
+                    event_type=EventType.DIPLOMATIC_MESSAGE, # Generic trigger
+                    actors=found_actors,
+                    summary=log,
+                    relevance_to=None # Global
+                ))
     
     def _behavior_to_event(
         self, 

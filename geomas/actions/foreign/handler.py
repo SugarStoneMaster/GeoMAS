@@ -221,7 +221,8 @@ def _execute_declare_war(
 def _generate_call_to_arms(
     engine: 'ActionEngine',
     aggressor_id: str,
-    victim_id: str
+    victim_id: str,
+    attack_type: str = "attacked"
 ) -> None:
     """Generate specialized notification for nations with Mutual Defense pacts with the victim."""
     world = engine.world
@@ -231,7 +232,7 @@ def _generate_call_to_arms(
             # Check if the ally is already at war with the aggressor
             current_ally_rel = world.relationship_matrix.get(ally_id, {}).get(aggressor_id, RelationshipState.PEACE)
             if current_ally_rel != RelationshipState.WAR:
-                summary = f"🚨 [CALL_TO_ARMS] {ally_id}: Your ally {victim_id} was attacked by {aggressor_id}! You are summoned to honor your MUTUAL_DEFENSE pact."
+                summary = f"🚨 [CALL_TO_ARMS] {ally_id}: Your ally {victim_id} was {attack_type} by {aggressor_id}! You are summoned to honor your MUTUAL_DEFENSE pact."
                 engine.logs.append(summary)
                 world.global_events.append(summary)
 
