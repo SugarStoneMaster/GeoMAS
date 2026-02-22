@@ -46,6 +46,39 @@ class EventType(str, Enum):
     # Global Scenarios
     GLOBAL_SCENARIO = "GLOBAL_SCENARIO"
 
+# Base Importance Scores for Salience Calculation
+EVENT_IMPORTANCE = {
+    # Tier S (100)
+    EventType.WAR_DECLARED: 100,
+    EventType.NUCLEAR_STRIKE: 100,
+    EventType.CIVIL_UNREST: 100,
+    EventType.ECONOMIC_CRISIS: 100,
+    EventType.TERRITORY_LOST: 100,
+    EventType.TERRITORY_GAINED: 100,
+    EventType.GLOBAL_SCENARIO: 100,
+    
+    # Tier A (70)
+    EventType.ALLIANCE_FORMED: 70,
+    EventType.ALLIANCE_BROKEN: 70,
+    EventType.ALLIANCE_UPGRADED: 70,
+    EventType.PEACE_SIGNED: 70,
+    
+    # Tier B (40)
+    EventType.TRADE_DEAL: 40,
+    EventType.GENERAL_STRIKE: 40,
+    EventType.TROOPS_MOBILIZED: 40,
+    EventType.ATTACK: 40,
+    EventType.COMBAT_RESULT: 40,
+    
+    # Tier C (20)
+    EventType.DIPLOMATIC_MESSAGE: 20,
+    EventType.REQUEST_PEACE: 20,
+    EventType.PEACE_REJECTED: 20,
+    EventType.PROPOSE_ALLIANCE: 20,
+    EventType.ALLIANCE_REJECTED: 20,
+    EventType.ALLIANCE_DOWNGRADED: 20,
+}
+
 
 class RelationshipSummary(BaseModel):
     """
@@ -131,6 +164,29 @@ class NotableEvent(BaseModel):
         }
         return self.event_type in critical_types
 
+    def calculate_salience(self, current_turn: int, evaluate_for_nation_id: Optional[str] = None) -> float:
+        """
+        Calculate the salience score of this event.
+        Salience = Base Importance * (0.90 ^ Age) * Relevance Multiplier
+        """
+        # 1. Base Importance
+        base_score = EVENT_IMPORTANCE.get(self.event_type, 10.0) # Default to 10 if missing
+        
+        # 2. Time Decay (10% decay per turn)
+        age = max(0, current_turn - self.turn)
+        time_factor = 0.90 ** age
+        
+        # 3. Relevance Multiplier
+        relevance_mult = 1.0
+        if evaluate_for_nation_id:
+            # If they are a direct actor, boost importance by 50%
+            if evaluate_for_nation_id in self.actors:
+                relevance_mult = 1.5
+            # If the event is specifically relevant to them (e.g., targeted crisis)
+            elif self.relevance_to and evaluate_for_nation_id in self.relevance_to:
+                relevance_mult = 1.5
+                
+        return base_score * time_factor * relevance_mult
 
 class MyAction(BaseModel):
     """
@@ -165,3 +221,24 @@ class MyAction(BaseModel):
             line += f" | Reasoning: {self.reasoning[:60]}..."
             
         return line
+
+    def calculate_salience(self, current_turn: int) -> float:
+        """
+        Calculate the salience score of this action.
+        Actions generally have lower base importance (25) but decay slower for continuity.
+        """
+        base_score = 25.0
+        
+        # Boost successful actions slightly (more salient for planning next steps)
+        if self.outcome in ["SUCCESS", "ACCEPTED", "APPROVED"]:
+            base_score = 35.0
+            
+        # Treat Presidential VETOs as highly salient (70) so they aren't quickly forgotten
+        if self.domain == "President" and self.outcome == "VETOED":
+            base_score = 70.0
+        
+        # Time Decay (10% decay per turn)
+        age = max(0, current_turn - self.turn)
+        time_factor = 0.90 ** age
+        
+        return base_score * time_factor

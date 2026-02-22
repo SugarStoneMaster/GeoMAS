@@ -132,13 +132,43 @@ class BaseInputBuilder:
         return "\n".join(lines)
 
     def _build_world_events(self, nation_id: str, cm: 'ContextManager') -> str:
-        """Standard world events (news) layer."""
+        """Standard world events (news) layer split into recent and historical."""
         lines = ["## World events"]
-        event_lines = cm.get_events_for(nation_id, current_turn=self.world.turn, max_events=10)
-        if event_lines:
-            lines.extend(event_lines)
-        else:
+        
+        # 1. Breaking News (Pure Recency - max 6)
+        recent_events = cm.get_events_for(
+            nation_id, 
+            current_turn=self.world.turn, 
+            max_events=6, 
+            use_salience=False
+        )
+        
+        # 2. Historical Context (Salience - max 5)
+        salient_events = cm.get_events_for(
+            nation_id, 
+            current_turn=self.world.turn, 
+            max_events=5, 
+            use_salience=True
+        )
+        
+        # Filter intersection (don't show a breaking news event twice)
+        historical_events = [e for e in salient_events if e not in recent_events]
+        
+        has_events = False
+        
+        if recent_events:
+            lines.append("### Breaking News")
+            lines.extend(recent_events)
+            has_events = True
+            
+        if historical_events:
+            lines.append("### Historical Context")
+            lines.extend(historical_events)
+            has_events = True
+            
+        if not has_events:
             lines.append("- No notable world events.")
+            
         return "\n".join(lines)
 
     def _build_self_history(
@@ -155,8 +185,14 @@ class BaseInputBuilder:
         
         lines = ["## Your history"]
         
-        # 1. Get Actions (Filtered by domain if provided)
-        action_lines = cm.get_actions_for(nation_id, domain=domain, max_actions=8)
+        # 1. Get Actions (Filtered by domain if provided, using salience to remember important actions)
+        action_lines = cm.get_actions_for(
+            nation_id, 
+            current_turn=self.world.turn,
+            domain=domain, 
+            max_actions=8,
+            use_salience=True
+        )
         
         # 2. Get Events (Relevant to domain or general)
         event_types = None
@@ -180,7 +216,13 @@ class BaseInputBuilder:
             ]
             title_suffix = "Foreign Events"
             
-        event_lines = cm.get_events_for(nation_id, current_turn=self.world.turn, max_events=8, event_types=event_types)
+        event_lines = cm.get_events_for(
+            nation_id, 
+            current_turn=self.world.turn, 
+            max_events=8, 
+            event_types=event_types,
+            use_salience=True
+        )
         
         if action_lines:
             lines.append(f"### Recent {domain or ''} Actions".replace("  ", " "))

@@ -881,7 +881,8 @@ class ContextManager:
         nation_id: str, 
         current_turn: int,
         max_events: int = 15,
-        event_types: Optional[List[EventType]] = None
+        event_types: Optional[List[EventType]] = None,
+        use_salience: bool = False
     ) -> List[str]:
         """
         Get formatted event lines relevant to a nation.
@@ -913,20 +914,38 @@ class ContextManager:
                 nation_id in event.actors):
                 relevant.append(event)
         
-        # Sort by turn descending, take most recent
-        relevant = sorted(relevant, key=lambda e: e.turn, reverse=True)[:max_events]
-        relevant = sorted(relevant, key=lambda e: e.turn)  # Re-sort chronologically
+        # Sort and trim
+        if use_salience:
+            # Sort by salience descending
+            relevant = sorted(relevant, key=lambda e: e.calculate_salience(current_turn, evaluate_for_nation_id=nation_id), reverse=True)[:max_events]
+        else:
+            # Sort by turn descending, take most recent
+            relevant = sorted(relevant, key=lambda e: e.turn, reverse=True)[:max_events]
+            
+        # Finally, always re-sort chronologically ascending for the prompt
+        relevant = sorted(relevant, key=lambda e: e.turn)
+
         
         return [e.to_prompt_line() for e in relevant]
     
-    def get_actions_for(self, nation_id: str, domain: Optional[str] = None, max_actions: int = 10) -> List[str]:
+    def get_actions_for(
+        self, 
+        nation_id: str, 
+        current_turn: int = 0, # Added for salience calculation 
+        domain: Optional[str] = None, 
+        max_actions: int = 10,
+        use_salience: bool = False
+    ) -> List[str]:
         """
         Get formatted action lines for a nation.
         
         Args:
             nation_id: Nation to get actions for
+            current_turn: Current turn (needed for salience)
             domain: Optional domain filter ("Defense", "Economy", "Foreign")
             max_actions: Maximum actions to return
+            use_salience: If True, uses Salience score to keep important actions
+
             
         Returns:
             List of formatted action strings
@@ -939,7 +958,15 @@ class ContextManager:
         if domain:
             actions = [a for a in actions if a.domain == domain]
         
-        # Most recent
-        actions = actions[-max_actions:]
+        # Sort and trim
+        if use_salience:
+            # Sort by salience descending
+            actions = sorted(actions, key=lambda a: a.calculate_salience(current_turn), reverse=True)[:max_actions]
+        else:
+            # Most recent
+            actions = actions[-max_actions:]
+            
+        # Re-sort chronologically
+        actions = sorted(actions, key=lambda a: a.turn)
         
         return [a.to_prompt_line() for a in actions]
