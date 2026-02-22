@@ -32,15 +32,15 @@ class DiplomaticMessageType(str, Enum):
     PRAISE = "PRAISE"    # Positive message, increases trust
     THREAT = "THREAT"    # Strong warning, decreases trust significantly
     INSULT = "INSULT"    # Mild disrespect, decreases trust slightly
-    NUCLEAR_THREAT = "NUCLEAR_THREAT" # Ultimate warning involving nuclear arsenal
+    NUCLEAR_THREAT = "NUCLEAR_THREAT" # Diplomatic communication referencing nuclear capabilities
 
 
 # Trust impact per message type
 MESSAGE_TRUST_IMPACT: dict[DiplomaticMessageType, float] = {
     DiplomaticMessageType.PRAISE: +10.0,
-    DiplomaticMessageType.THREAT: -30.0,   # Stronger than insult
+    DiplomaticMessageType.THREAT: -30.0,
     DiplomaticMessageType.INSULT: -10.0,
-    DiplomaticMessageType.NUCLEAR_THREAT: -50.0, # Devastating trust impact
+    DiplomaticMessageType.NUCLEAR_THREAT: -50.0,
 }
 
 
@@ -76,7 +76,7 @@ class ForeignProposalPayload(BaseModel):
     # Explicit fields for strong typing
     diplomatic_message_type: Optional[DiplomaticMessageType] = Field(
         None, 
-        description="Required for SEND_DIPLOMATIC_MESSAGE. Enum: PRAISE, THREAT, INSULT."
+        description="Required for SEND_DIPLOMATIC_MESSAGE. Enum: PRAISE, THREAT, INSULT, NUCLEAR_THREAT."
     )
     treaty_tier: Optional[TreatyTier] = Field(
         None,
