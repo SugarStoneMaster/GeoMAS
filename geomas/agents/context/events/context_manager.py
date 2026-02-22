@@ -135,6 +135,34 @@ class ContextManager:
                      summary=e
                  ))
     
+    def log_nation_fallen(
+        self,
+        turn: int,
+        victim_id: str,
+        victim_name: str,
+        conqueror_id: str,
+        conqueror_name: str
+    ) -> None:
+        """
+        Register a nation fallen event in the structural memory.
+        """
+        summary = f"🚩 [NATION FALLEN] {victim_name} ({victim_id}) has been fully annexed by {conqueror_name} ({conqueror_id})!"
+        
+        event = NotableEvent(
+            turn=turn,
+            event_type=EventType.NATION_FALLEN,
+            actors=[victim_id, conqueror_id],
+            summary=summary,
+            relevance_to=None  # Global
+        )
+        
+        # Add to global events
+        self.global_events.append(event)
+        
+        # Also add to relationship histories for direct actors
+        # (Though victim won't see it, others will see it in history with conqueror)
+        self._add_event_to_relationships(turn, conqueror_id, event)
+
     def update_after_turn(
         self,
         turn: int,

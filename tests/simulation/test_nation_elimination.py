@@ -49,13 +49,27 @@ class TestNationElimination:
         assert len(victim.province_ids) == 1
         
         # Conquer the last province
-        _conquer_province(world, conqueror_id, world.provinces[last_prov_id])
+        from geomas.actions.engine import ActionEngine
+        engine = MagicMock(spec=ActionEngine)
+        engine.context_manager = MagicMock()
+        engine.world = world
+        
+        _conquer_province(world, conqueror_id, world.provinces[last_prov_id], engine=engine)
         
         assert len(victim.province_ids) == 0
         assert victim.is_active is False
         
-        # Check global event
-        assert any("NATION FALLEN" in e and victim_id in e for e in world.global_events)
+        # Check structured event logging
+        engine.context_manager.log_nation_fallen.assert_called_with(
+            turn=world.turn,
+            victim_id=victim_id,
+            victim_name=victim.name,
+            conqueror_id=conqueror_id,
+            conqueror_name=world.nations[conqueror_id].name
+        )
+        
+        # Check global event (fallback/news feed)
+        assert any("NATION FALLEN" in str(e) and victim_id in str(e) for e in world.global_events)
 
     def test_simulation_skips_inactive_nations(self):
         """Verify SimulationEngine.step skips agents of inactive nations."""

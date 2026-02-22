@@ -475,7 +475,7 @@ def _execute_move_troops(
             if result.attacker_wins:
                 # Conquer the province
                 old_owner = to_province.owner_id
-                _conquer_province(world, nation_id, to_province)
+                _conquer_province(world, nation_id, to_province, engine=engine)
                 
                 # Place attacking soldiers in conquered province
                 to_province.soldiers = quantity

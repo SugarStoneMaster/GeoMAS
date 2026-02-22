@@ -370,7 +370,8 @@ def execute_naval_landing(
 def _conquer_province(
     world: 'WorldState',
     new_owner_id: str,
-    province: ProvinceState
+    province: 'ProvinceState',
+    engine: Optional['ActionEngine'] = None
 ) -> None:
     """Transfer province ownership from defender to attacker."""
     old_owner_id = province.owner_id
@@ -433,15 +434,34 @@ def _conquer_province(
     if old_owner_id and old_nation:
         if not old_nation.province_ids:
             old_nation.is_active = False
-            fall_msg = f"🚩 [NATION FALLEN] {old_owner_id} has been fully annexed by {new_owner_id}!"
+            victim_name = getattr(old_nation, 'name', old_owner_id)
+            conqueror_name = getattr(new_nation, 'name', new_owner_id) if new_nation else new_owner_id
             
-            # Safely append to global_events if it exists (handles mocks in tests)
+            fall_msg = f"🚩 [NATION FALLEN] {victim_name} ({old_owner_id}) has been fully annexed by {conqueror_name} ({new_owner_id})!"
+            
+            # 1. Structural Logging (Memory for Agents)
+            # Use getattr for robustness against mocks or incomplete ActionEngine objects
+            cm = getattr(engine, 'context_manager', None)
+            if cm:
+                cm.log_nation_fallen(
+                    turn=world.turn,
+                    victim_id=old_owner_id,
+                    victim_name=victim_name,
+                    conqueror_id=new_owner_id,
+                    conqueror_name=conqueror_name
+                )
+            
+            # 2. Global Event Logging (News feed)
             events = getattr(world, 'global_events', None)
             if events is not None:
-                events.append(f"T{world.turn}: {fall_msg}")
-            # We don't have direct access to engine.logs here easily without passing engine, 
-            # but _conquer_province is called from handler.py which has engine.
-            # However, global_events is the primary source for agents and UI.
+                # Deduplicate: CM already adds to global_events
+                already_logged = any(
+                    (hasattr(e, 'event_type') and getattr(e, 'event_type') == 'NATION_FALLEN' and old_owner_id in getattr(e, 'actors', []))
+                    or fall_msg in str(e)
+                    for e in events
+                )
+                if not already_logged:
+                    events.append(f"T{world.turn}: {fall_msg}")
             
     # --- UPDATE TERRITORIAL WATERS ---
     if province.terrain == TerrainType.COASTAL:

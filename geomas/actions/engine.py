@@ -38,10 +38,11 @@ class ActionEngine:
     WAR_TAX_BUDGET_BOOST_RATIO = WAR_TAX_BUDGET_BOOST_RATIO
 
 
-    def __init__(self, world: WorldState):
+    def __init__(self, world: WorldState, context_manager=None):
         self.world = world
         self.spatial = SpatialManager(world)
         self.logs: List[str] = LogList()
+        self.context_manager = context_manager
 
     # --- VALIDATION DELEGATION ---
 

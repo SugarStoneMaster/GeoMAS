@@ -16,6 +16,7 @@ class EventType(str, Enum):
     """Types of notable events."""
     # Diplomatic events (world news)
     WAR_DECLARED = "WAR_DECLARED"
+    NATION_FALLEN = "NATION_FALLEN"
     PEACE_SIGNED = "PEACE_SIGNED"
     PEACE_REJECTED = "PEACE_REJECTED"
     ALLIANCE_FORMED = "ALLIANCE_FORMED"
@@ -50,6 +51,7 @@ class EventType(str, Enum):
 EVENT_IMPORTANCE = {
     # Tier S (100)
     EventType.WAR_DECLARED: 100,
+    EventType.NATION_FALLEN: 100,
     EventType.NUCLEAR_STRIKE: 100,
     EventType.CIVIL_UNREST: 100,
     EventType.ECONOMIC_CRISIS: 100,
@@ -154,6 +156,7 @@ class NotableEvent(BaseModel):
         """Check if this is a critical event (never pruned)."""
         critical_types = {
             EventType.WAR_DECLARED,
+            EventType.NATION_FALLEN,
             EventType.PEACE_SIGNED,
             EventType.ALLIANCE_FORMED,
             EventType.ALLIANCE_BROKEN,

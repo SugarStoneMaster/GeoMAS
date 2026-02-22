@@ -82,6 +82,9 @@ class SimulationEngine:
         self.context_manager = ContextManager()
         self.context_manager.initialize_from_world(self.world)
         
+        # Link Context Manager to Engine
+        self.engine.context_manager = self.context_manager
+        
         # 5. Initialize Agents (needs context_manager)
         self.agents: Dict[str, NationAgent] = {}
         self.client = llm_client or LLMClient() 
