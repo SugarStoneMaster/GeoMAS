@@ -59,6 +59,11 @@ class DefenseInputBuilder(BaseInputBuilder):
         # 1. Month Header
         sections.append(self._build_month_header(turn))
         
+        # 1b. CRITICAL ALERTS
+        alerts = self._build_critical_alerts(nation_id)
+        if alerts:
+            sections.append(alerts)
+            
         # 2. Common Layers
         sections.append(self._build_relationships(nation_id))
         sections.append(self._build_other_nations(nation_id))

@@ -55,6 +55,11 @@ class ForeignInputBuilder(BaseInputBuilder):
         # 1. Month Header
         sections.append(self._build_month_header(turn))
 
+        # 1a. CRITICAL ALERTS
+        alerts = self._build_critical_alerts(nation_id)
+        if alerts:
+            sections.append(alerts)
+            
         # 1b. CRITICAL: Call to Arms (Priority notification)
         if context_manager:
             cta = self._build_call_to_arms_header(nation_id, context_manager)

@@ -58,7 +58,12 @@ class PresidentInputBuilder(BaseInputBuilder):
         # 1. Month Header
         sections.append(self._build_month_header(turn))
         
-        # 1b. Active Constraints (XAI Injections)
+        # 1b. CRITICAL ALERTS
+        alerts = self._build_critical_alerts(nation_id)
+        if alerts:
+            sections.append(alerts)
+        
+        # 1c. Active Constraints (XAI Injections)
         if injections:
             sections.append(self._build_active_constraints(injections))
         

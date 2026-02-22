@@ -44,6 +44,56 @@ class BaseInputBuilder:
         else:
             return "Extremely High"
 
+    def _build_critical_alerts(self, nation_id: str) -> str:
+        """
+        Build a high-visibility alert section for critical domestic issues.
+        Alerts include Civil Unrest, Strikes, and Production Decay.
+        """
+        nation = self.world.nations.get(nation_id)
+        if not nation:
+            return ""
+
+        alerts = []
+        sat = nation.public_satisfaction
+
+        # 1. Civil Unrest (Total Halt)
+        if nation.civil_unrest_active:
+            alerts.append("- **🔥 CRITICAL: CIVIL UNREST ACTIVE!** Total production and recruitment halt. Protests have turned into open rebellion. You must reach **50% satisfaction** to restore order.")
+        
+        # 2. General Strike (Sat < 20)
+        elif sat < 20:
+            alerts.append("- **⚠️ ALERT: GENERAL STRIKE!** Economy is paralyzed. Production efficiency is at its minimum (50%). Civil war is imminent if satisfaction drops further.")
+        
+        # 3. Production Decay (Sat < 50)
+        elif sat < 50:
+            alerts.append(f"- **📉 WARNING: PRODUCTION DECAY.** Public dissatisfaction is affecting industrial output. Current efficiency: {self._get_production_efficiency(sat)*100:.0f}%.")
+
+        # 4. Resource Shortages (Stockpiles < 50)
+        shortages = []
+        if nation.total_food < 50: shortages.append("FOOD")
+        if nation.total_energy < 50: shortages.append("ENERGY")
+        if nation.total_materials < 50: shortages.append("MATERIALS")
+        
+        if shortages:
+            alerts.append(f"- **🚨 SHORTAGE ALERT: {', '.join(shortages)}.** Stockpiles are critically low. Risk of starvation, blackouts, or military maintenance failure.")
+
+        if not alerts:
+            return ""
+
+        return "## CRITICAL ALERTS\n" + "\n".join(alerts)
+
+    def _get_production_efficiency(self, satisfaction: float) -> float:
+        """Helper to estimate production efficiency based on satisfaction thresholds."""
+        # Mirroring logic from geomas/actions/opinion/schemas.py and handler.py
+        # THRESHOLD_PRODUCTION_DECAY_START = 50
+        # THRESHOLD_PRODUCTION_DECAY_FLOOR = 10
+        # MIN_PRODUCTION_MULTIPLIER = 0.5
+        if satisfaction >= 50: return 1.0
+        if satisfaction <= 10: return 0.5
+        
+        # Linear interp: (sat - 10) / (50 - 10) * (1.0 - 0.5) + 0.5
+        return 0.5 + ((satisfaction - 10) / 40) * 0.5
+
     def _build_month_header(self, turn: int) -> str:
         """Build a standardized month/turn header."""
         return f"## Month {turn}"
