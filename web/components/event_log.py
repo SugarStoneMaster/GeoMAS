@@ -30,7 +30,7 @@ def render_event_log(global_events: List[NotableEvent]):
     
     st.dataframe(
         df, 
-        use_container_width=True,
+        width="stretch",
         column_config={
             "Turn": st.column_config.NumberColumn("Turn", format="%d"),
             "Type": "Event Type",

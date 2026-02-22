@@ -31,6 +31,6 @@ def render_trust_matrix(world: WorldState) -> None:
     
     st.dataframe(
         df_trust.style.background_gradient(cmap="RdYlGn", vmin=0, vmax=100),
-        use_container_width=True
+        width="stretch"
     )
 
