@@ -98,6 +98,43 @@ class BaseInputBuilder:
             lines.append("### NEUTRAL")
             lines.extend(neutral)
             
+        # Add Global Treaty Network (Third-party alliances)
+        global_network = self._build_global_treaty_network(nation_id)
+        if global_network:
+            lines.append("\n" + global_network)
+            
+        return "\n".join(lines)
+
+    def _build_global_treaty_network(self, nation_id: str) -> str:
+        """
+        Build a list of all active treaties between third-party nations.
+        """
+        lines = ["### GLOBAL TREATY NETWORK (Third-Party Alliances)"]
+        alliances = []
+        
+        # We need a stable order for determinism
+        sorted_nation_ids = sorted(self.world.nations.keys())
+        processed_pairs = set()
+        
+        for i, id1 in enumerate(sorted_nation_ids):
+            if id1 == nation_id:
+                continue
+            
+            for id2 in sorted_nation_ids[i+1:]:
+                if id2 == nation_id:
+                    continue
+                
+                # Check relationship
+                rel = self.world.relationship_matrix.get(id1, {}).get(id2, RelationshipState.PEACE)
+                if rel in [RelationshipState.NON_AGGRESSION, RelationshipState.MUTUAL_DEFENSE]:
+                    name1 = self.world.nations[id1].name
+                    name2 = self.world.nations[id2].name
+                    alliances.append(f"- **{name1}** & **{name2}**: {rel}")
+        
+        if not alliances:
+            return ""
+            
+        lines.extend(alliances)
         return "\n".join(lines)
 
     def _build_other_nations(self, nation_id: str) -> str:
@@ -148,16 +185,7 @@ class BaseInputBuilder:
             
             res_desc = ", ".join(res_tags) if res_tags else "Balanced"
             
-            # 4. Treaties (Find who they are allied with)
-            treaties = []
-            if other_id in self.world.relationship_matrix:
-                for target_id, rel in self.world.relationship_matrix[other_id].items():
-                    if rel in [RelationshipState.NON_AGGRESSION, RelationshipState.MUTUAL_DEFENSE] and target_id in self.world.nations:
-                        treaties.append(f"{self.world.nations[target_id].name} ({rel})")
-            
-            treaties_desc = ", ".join(treaties) if treaties else "None"
-            
-            lines.append(f"- **{other.name}** ({other_id}): Power: {power_desc} | Neighbor: {is_neighbor} | Resources: {res_desc} | Treaties: {treaties_desc}")
+            lines.append(f"- **{other.name}** ({other_id}): Power: {power_desc} | Neighbor: {is_neighbor} | Resources: {res_desc}")
             
         return "\n".join(lines)
 
