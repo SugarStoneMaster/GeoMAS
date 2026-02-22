@@ -170,7 +170,8 @@ class TestContextManager:
     
     def test_get_events_for_empty(self, manager):
         """Returns empty list when no events."""
-        events = manager.get_events_for("nation_a")
+        manager.global_events = []
+        events = manager.get_events_for("nation_a", current_turn=1)
         assert events == []
     
     def test_get_actions_for_empty(self, manager):
@@ -191,7 +192,7 @@ class TestContextManager:
         
         manager._prune_if_needed()
         
-        assert len(manager.global_events) == 100 # No pruning for global events anymore
+        assert len(manager.global_events) == 168 # No pruning for global events anymore (100 new + 68 genesis)
     
     def test_critical_events_preserved(self, manager):
         """Critical events are preserved during pruning."""

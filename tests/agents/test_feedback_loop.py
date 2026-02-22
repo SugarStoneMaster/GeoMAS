@@ -73,6 +73,7 @@ class TestFeedbackLoop:
         """Verify DefenseInputBuilder includes the feedback section."""
         # Setup World
         world = MagicMock(spec=WorldState)
+        world.turn = 2
         nation = MagicMock(spec=NationState)
         nation.name = "Nation A"
         nation.public_satisfaction = 50.0

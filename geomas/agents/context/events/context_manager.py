@@ -102,8 +102,38 @@ class ContextManager:
                     trust=trust,
                     trust_trend="→",
                 )
-                
                 self._trust_history[nation_id][other_id] = [trust]
+
+        # Load structured Genesis events if present
+        self.global_events = []
+        for event_data in world.global_events:
+            # Check if it's already a NotableEvent (backwards compatibility)
+            if isinstance(event_data, NotableEvent):
+                self.global_events.append(event_data)
+                continue
+                
+            # Parse dict from Genesis
+            if isinstance(event_data, dict):
+                try:
+                    event = NotableEvent(
+                        turn=event_data.get("turn", 0),
+                        event_type=event_data.get("event_type", EventType.DIPLOMATIC_MESSAGE.value),
+                        actors=event_data.get("actors", []),
+                        summary=event_data.get("summary", "")
+                    )
+                    self.global_events.append(event)
+                except Exception as e:
+                    print(f"Failed to parse Genesis event: {e}")
+                    
+        # Backward compatibility: if global_events still contains strings from old saves
+        for e in world.global_events:
+            if isinstance(e, str):
+                 self.global_events.append(NotableEvent(
+                     turn=0, 
+                     event_type=EventType.DIPLOMATIC_MESSAGE,
+                     actors=[],
+                     summary=e
+                 ))
     
     def update_after_turn(
         self,
@@ -849,6 +879,7 @@ class ContextManager:
     def get_events_for(
         self, 
         nation_id: str, 
+        current_turn: int,
         max_events: int = 15,
         event_types: Optional[List[EventType]] = None
     ) -> List[str]:
@@ -857,6 +888,7 @@ class ContextManager:
         
         Args:
             nation_id: Nation to get events for
+            current_turn: Current turn of the simulation used for expiry logic
             max_events: Maximum events to return
             event_types: Optional list of EventTypes to filter by
             
@@ -866,6 +898,10 @@ class ContextManager:
         relevant = []
         
         for event in self.global_events:
+            # Expiry logic for Genesis/Startup events
+            if getattr(event, 'turn', 1) <= 0 and current_turn > 5:
+                continue
+                
             # Domain filter if provided
             if event_types and event.event_type not in event_types:
                 continue

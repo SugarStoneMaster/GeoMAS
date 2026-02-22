@@ -156,7 +156,8 @@ class TestStressBudget:
         
         cm._prune_if_needed()
         
-        assert len(cm.global_events) == 100 # No pruning for global events anymore
+        # 100 manual + initial genesis events depending on seed/nations (~55 for 6 nations)
+        assert len(cm.global_events) > 100 
         # Actions pruned per domain (10 per domain)
         defense_actions = [a for a in cm.nation_actions[nation_id] if a.domain == "Defense"]
         assert len(defense_actions) <= cm.MAX_ACTIONS_PER_DOMAIN

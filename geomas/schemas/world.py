@@ -162,4 +162,5 @@ class WorldState(BaseModel):
     relationship_matrix: Dict[str, Dict[str, str]] = Field(default_factory=dict)
     
     # Global Event Log for the current simulation run
-    global_events: List[str] = Field(default_factory=list)
+    # Format: [{"turn": int, "event_type": str, "actors": List[str], "summary": str}]
+    global_events: List[Dict[str, Any]] = Field(default_factory=list)

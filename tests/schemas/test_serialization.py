@@ -193,7 +193,9 @@ class TestDeserializeWorldSnapshot:
         """Full world serialize/deserialize roundtrip."""
         world = generate_world(seed=42, n_cells=50, n_nations=3)
         world.turn = 5
-        world.global_events = ["Event 1", "Event 2"]
+        event_dict_1 = {"turn": 5, "event_type": "DIPLOMATIC_MESSAGE", "actors": [], "summary": "Event 1"}
+        event_dict_2 = {"turn": 5, "event_type": "DIPLOMATIC_MESSAGE", "actors": [], "summary": "Event 2"}
+        world.global_events = [event_dict_1, event_dict_2]
         
         # Serialize
         snapshot = serialize_world_snapshot(world)
@@ -211,5 +213,5 @@ class TestDeserializeWorldSnapshot:
         assert len(restored.provinces) == len(world.provinces)
         assert len(restored.nations) == len(world.nations)
         assert restored.turn == 5
-        assert restored.global_events == ["Event 1", "Event 2"]
+        assert restored.global_events == [event_dict_1, event_dict_2]
 

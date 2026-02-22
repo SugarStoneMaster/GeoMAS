@@ -99,7 +99,7 @@ class ForeignInputBuilder(BaseInputBuilder):
 
     def _build_call_to_arms_header(self, nation_id: str, cm: 'ContextManager') -> str:
         """Scan for CALL_TO_ARMS targeting this nation and create a loud header."""
-        events = cm.get_events_for(nation_id, max_events=10)
+        events = cm.get_events_for(nation_id, current_turn=self.world.turn, max_events=10)
         cta_events = [e for e in events if "[CALL_TO_ARMS]" in e and nation_id in e]
         
         if not cta_events:

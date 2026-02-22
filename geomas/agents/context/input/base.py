@@ -134,7 +134,7 @@ class BaseInputBuilder:
     def _build_world_events(self, nation_id: str, cm: 'ContextManager') -> str:
         """Standard world events (news) layer."""
         lines = ["## World events"]
-        event_lines = cm.get_events_for(nation_id, max_events=10)
+        event_lines = cm.get_events_for(nation_id, current_turn=self.world.turn, max_events=10)
         if event_lines:
             lines.extend(event_lines)
         else:
@@ -180,7 +180,7 @@ class BaseInputBuilder:
             ]
             title_suffix = "Foreign Events"
             
-        event_lines = cm.get_events_for(nation_id, max_events=8, event_types=event_types)
+        event_lines = cm.get_events_for(nation_id, current_turn=self.world.turn, max_events=8, event_types=event_types)
         
         if action_lines:
             lines.append(f"### Recent {domain or ''} Actions".replace("  ", " "))

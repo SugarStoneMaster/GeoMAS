@@ -30,7 +30,7 @@ def test_genesis_logs_events():
     world = generate_world(seed=42, history_seed=123, n_cells=100, n_nations=5)
     
     assert len(world.global_events) > 0
-    assert "Year 1" in world.global_events[0] or "Year" in world.global_events[0]
+    assert "Year" in world.global_events[0]["summary"] or "Historical" in world.global_events[0]["summary"]
 
 def test_genesis_determinism():
     """Verify that same history_seed produces same Trust Matrix."""

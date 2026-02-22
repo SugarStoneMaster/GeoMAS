@@ -168,7 +168,7 @@ class TestRealisticTokenBudget:
         
         # Get events data from ContextManager
         relationships = context_manager.get_relationships_for(nation_id)
-        events = context_manager.get_events_for(nation_id, max_events=15)
+        events = context_manager.get_events_for(nation_id, current_turn=world.turn, max_events=15)
         
         # Format events sections
         relationships_text = "\n".join(f"- {r}" for r in relationships) if relationships else "No data"

@@ -92,7 +92,24 @@ class GenesisEngine:
         for year in range(1, years + 1):
             self._simulate_year(year)
 
-        self.world.global_events = self.history_log
+        # Map history logs to formal EventType structures on turn 0
+        from geomas.agents.context.events.schemas import EventType
+        
+        for event in self._events:
+            event_type_str = EventType.DIPLOMATIC_MESSAGE.value
+            if event["tag"] == "TRADE":
+               event_type_str = EventType.TRADE_DEAL.value
+               
+            actors = []
+            if event["nation_a"]: actors.append(event["nation_a"])
+            if event["nation_b"]: actors.append(event["nation_b"])
+               
+            self.world.global_events.append({
+                "turn": 0,
+                "event_type": event_type_str,
+                "actors": actors,
+                "summary": event["description"]
+            })
         
         # Persist to DB if path provided
         if self.db_path:
@@ -169,7 +186,7 @@ class GenesisEngine:
                 self._update_trust(n_a, n_b, 20)  # +20 trust
                 self._log_event(
                     year, 
-                    f"🤝 Formal ALLIANCE signed between {self._name(n_a)} and {self._name(n_b)}.", 
+                    f"🤝 Historical diplomatic friendship established between {self._name(n_a)} and {self._name(n_b)}.", 
                     "ALLIANCE",
                     n_a, n_b
                 )
@@ -178,7 +195,7 @@ class GenesisEngine:
             del self.alliances[pair_key]
             self._log_event(
                 year, 
-                f"💔 Alliance BROKEN between {self._name(n_a)} and {self._name(n_b)}.", 
+                f"💔 Historical breakdown of relations between {self._name(n_a)} and {self._name(n_b)}.", 
                 "BETRAYAL",
                 n_a, n_b
             )
@@ -223,7 +240,7 @@ class GenesisEngine:
             self._update_trust(n_a, n_b, -self.config["conflict_penalty"] * 100)  # Scale penalty
             self._log_event(
                 year, 
-                f"⚔️ Border skirmish between {self._name(n_a)} and {self._name(n_b)}.", 
+                f"⚔️ Historical diplomatic tension and border disputes between {self._name(n_a)} and {self._name(n_b)}.", 
                 "CONFLICT",
                 n_a, n_b
             )
@@ -252,7 +269,7 @@ class GenesisEngine:
             if self.rng.rand() < 0.2: 
                 self._log_event(
                     year, 
-                    f"📦 Trade agreement signed between {self._name(n_a)} and {self._name(n_b)}.", 
+                    f"📦 Historical Trade agreement signed between {self._name(n_a)} and {self._name(n_b)}.", 
                     "TRADE",
                     n_a, n_b
                 )
