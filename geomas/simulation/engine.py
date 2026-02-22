@@ -603,7 +603,7 @@ class SimulationEngine:
         
         # 1. & 2. COMBINED SEQUENTIAL PHASE (Decision + Execution per Nation)
         # Shuffle nation IDs to ensure fairness in turn order
-        nation_ids = list(self.agents.keys())
+        nation_ids = [nid for nid in self.agents.keys() if self.world.nations[nid].is_active]
         turn_rng.shuffle(nation_ids)
         
         turn_envelopes: List[CountryEnvelope] = []

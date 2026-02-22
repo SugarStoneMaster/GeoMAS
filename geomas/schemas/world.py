@@ -93,6 +93,7 @@ class NationState(BaseModel):
     cultural_traits: List[str] = Field(default_factory=list)  # Seed-generated traits
     government_type: Optional[str] = None  # GovernmentType: DEMOCRACY, AUTHORITARIAN, THEOCRACY
     civil_unrest_active: bool = False  # True when satisfaction < 10, ends at > 50
+    is_active: bool = True  # True by default, False if all provinces are lost
     
     # --- BUDGET (National Treasury) ---
     # Initialized randomly at genesis, increased only by province taxes

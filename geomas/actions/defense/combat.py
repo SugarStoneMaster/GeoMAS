@@ -429,6 +429,20 @@ def _conquer_province(
     if new_nation:
         new_nation.province_ids.append(province.id)
         
+    # --- CHECK FOR NATION ELIMINATION ---
+    if old_owner_id and old_nation:
+        if not old_nation.province_ids:
+            old_nation.is_active = False
+            fall_msg = f"🚩 [NATION FALLEN] {old_owner_id} has been fully annexed by {new_owner_id}!"
+            
+            # Safely append to global_events if it exists (handles mocks in tests)
+            events = getattr(world, 'global_events', None)
+            if events is not None:
+                events.append(f"T{world.turn}: {fall_msg}")
+            # We don't have direct access to engine.logs here easily without passing engine, 
+            # but _conquer_province is called from handler.py which has engine.
+            # However, global_events is the primary source for agents and UI.
+            
     # --- UPDATE TERRITORIAL WATERS ---
     if province.terrain == TerrainType.COASTAL:
         from geomas.world.territory import update_territorial_waters

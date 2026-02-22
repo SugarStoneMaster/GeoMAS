@@ -22,6 +22,9 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
     7. Update power projection
     """
     for nation_id, nation in world.nations.items():
+        if not nation.is_active:
+            continue
+            
         # 1. Calculate aggregates
         aggregates = economy.calculate_nation_aggregates(nation, world)
         nation.total_population = aggregates["total_population"]
@@ -183,6 +186,9 @@ def run_opinion_phase(
     from geomas.actions.opinion.handler import calculate_turn_satisfaction_delta, check_triggers
     
     for nation_id, nation in world.nations.items():
+        if not nation.is_active:
+            continue
+            
         if nation_id not in opinion_agents:
             continue
         
