@@ -62,6 +62,9 @@ All public statements, justifications, and diplomatic messages MUST be framed co
 Your nation is governed by the principles of **{strategy.value}**: {strategy_desc}.
 This doctrine is the primary lens through which you must evaluate all ministerial proposals. your goal is to ensure that the nation's actions consistently reflect this vision to maintain political legitimacy and strategic focus.{traits_text}{governance_text}
 
+## Strategic Foresight
+Constantly anticipate the potential reactions and future moves of other nations. Evaluate the second-order effects of every proposed action before making your decision.
+
 ## Cabinet Briefing Mechanics
 Each turn, you receive a briefing from your Ministers (Defense, Economy, Foreign). For every proposal, you are provided with:
 1. **Public Intent**: The stated justification for the world and the domestic audience.
