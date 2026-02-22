@@ -403,14 +403,14 @@ class MilitaryTranslator:
         if not nation:
             return ""
 
-        # Energy check — warn if movement is energy-constrained
+        # Energy check — inform if movement is energy-constrained
         energy_per_soldier_move = MOVEMENT_ENERGY_COST[UnitType.SOLDIER]
         energy_warning = ""
         if nation.total_energy < energy_per_soldier_move * 50:
             energy_warning = (
-                f"\n> ⚠️ **LOW ENERGY ({nation.total_energy:.0f}):** "
+                f"\n> **LOW ENERGY ({nation.total_energy:.0f}):** "
                 f"MOVE_TROOPS costs {energy_per_soldier_move}/unit/province. "
-                f"Prioritize CREATE_UNIT or WAIT over expensive movements.\n"
+                f"Current energy covers approximately {int(nation.total_energy / max(energy_per_soldier_move, 0.01))} unit-moves.\n"
             )
 
         # Aggregate options across all provinces with troops
@@ -521,8 +521,8 @@ class MilitaryTranslator:
         # ---- Build the prompt sections ----
         lines = [f"## STRATEGIC OPTIONS{energy_warning}"]
         lines.append(
-            "_Use these options to decide your MOVE_TROOPS actions. "
-            "Only move to provinces listed here — others are unreachable this turn._"
+            "_Listed options reflect reachable provinces based on current troop positions and movement range. "
+            "Province IDs not listed below are not reachable this turn._"
         )
 
         # ⚔️ OFFENSIVE
@@ -533,25 +533,21 @@ class MilitaryTranslator:
                     continue
                 enemy_name = self.world.nations[enemy_id].name
                 rel_str = self.world.relationship_matrix.get(nation_id, {}).get(enemy_id, RelationshipState.PEACE)
-                rel_label = f"**{rel_str.value if hasattr(rel_str, 'value') else rel_str}**"
+                rel_label = rel_str.value if hasattr(rel_str, "value") else str(rel_str)
 
-                lines.append(f"\n**Attack {enemy_name}** (Relation: {rel_label})")
+                lines.append(f"\n**{enemy_name} ({enemy_id})** — Relation: {rel_label}")
 
-                # Sort: uncontested first, then by ratio
                 options.sort(key=lambda o: (not o["uncontested"], -o["ratio"]))
-                for opt in options[:3]:  # Top 3 targets per enemy
+                for opt in options[:3]:
+                    # Bug #4 fix: include available troops in description — neutral factual label
                     if opt["uncontested"]:
-                        tag = "🟢 AUTO-CONQUER (no defenders)"
-                    elif opt["ratio"] >= 2.0:
-                        tag = f"🟡 Strong advantage ({opt['ratio']:.1f}x)"
-                    elif opt["ratio"] >= 1.0:
-                        tag = f"🟠 Marginal ({opt['ratio']:.1f}x)"
+                        tag = f"0 defenders"
                     else:
-                        tag = f"🔴 Risky ({opt['ratio']:.1f}x — consider buildup first)"
+                        tag = f"{opt['defenders']} defenders, force ratio {opt['ratio']:.1f}x"
 
-                    # Bug #4 fix: include available troops in description
                     lines.append(
-                        f"  - Province {opt['target_id']} vs {opt['defenders']} defenders — {tag}\n"
+                        f"  - Province {opt['target_id']}: {tag}"
+                        f" | {opt['available']} troops at source province {opt['from_id']}\n"
                         f"    → MOVE_TROOPS source={opt['from_id']}, target={opt['target_id']}, "
                         f"unit_type=SOLDIER, quantity={opt['available']}"
                     )
@@ -560,7 +556,6 @@ class MilitaryTranslator:
 
         # 🛡️ SUPPORT
         if support:
-            # Deduplicate by target_id, keep best (closest to enemy)
             seen_targets: Set[int] = set()
             lines.append("\n### 🛡️ SUPPORT OPTIONS (Allied Stationing)")
             for opt in support[:4]:
@@ -568,15 +563,15 @@ class MilitaryTranslator:
                     continue
                 seen_targets.add(opt["target_id"])
                 lines.append(
-                    f"  - Station in {opt['ally_name']} province {opt['target_id']} "
-                    f"({opt['local_defenders']} defenders already there)\n"
+                    f"  - Province {opt['target_id']} ({opt['ally_name']}, {opt['ally_id']}): "
+                    f"{opt['local_defenders']} local defenders\n"
                     f"    → MOVE_TROOPS source={opt['from_id']}, target={opt['target_id']}, "
                     f"unit_type=SOLDIER, quantity={min(opt['available'], 100)}"
                 )
 
         # 🏰 REINFORCE
         if reinforce:
-            reinforce.sort(key=lambda r: r["current_defense"])  # Weakest first
+            reinforce.sort(key=lambda r: r["current_defense"])
             lines.append("\n### 🏰 REINFORCE OPTIONS (Own Border)")
             seen_reinforce: Set[int] = set()
             for opt in reinforce[:4]:
@@ -584,21 +579,21 @@ class MilitaryTranslator:
                     continue
                 seen_reinforce.add(opt["target_id"])
                 lines.append(
-                    f"  - Border province {opt['target_id']} has only {opt['current_defense']} troops\n"
+                    f"  - Border province {opt['target_id']}: {opt['current_defense']} troops currently\n"
                     f"    → MOVE_TROOPS source={opt['from_id']}, target={opt['target_id']}, "
                     f"unit_type=SOLDIER, quantity={min(opt['available'], 100)}"
                 )
 
         # 🌍 EXPAND
         if expand:
-            lines.append("\n### 🌍 EXPANSION OPTIONS (Neutral Territory)")
+            lines.append("\n### 🌍 EXPANSION OPTIONS (Unowned Territory)")
             seen_expand: Set[int] = set()
             for opt in expand[:3]:
                 if opt["target_id"] in seen_expand:
                     continue
                 seen_expand.add(opt["target_id"])
                 lines.append(
-                    f"  - Unoccupied province {opt['target_id']} — claim without combat\n"
+                    f"  - Province {opt['target_id']}: unowned, 0 defenders\n"
                     f"    → MOVE_TROOPS source={opt['from_id']}, target={opt['target_id']}, "
                     f"unit_type=SOLDIER, quantity={min(opt['available'], 50)}"
                 )
@@ -616,7 +611,7 @@ class MilitaryTranslator:
                 lines.append(f"  - {opt}")
 
         if not any([offensive, support, reinforce, expand, air_options, navy_options]):
-            lines.append("\n_No military moves available this turn. Consider CREATE_UNIT._")
+            lines.append("\n_No military moves available this turn._")
 
         return "\n".join(lines)
 

@@ -91,11 +91,11 @@ class DefenseInputBuilder(BaseInputBuilder):
         return self._sanitize_prompt("\n\n".join(sections))
 
     def _build_logistics_reminder(self) -> str:
-        """Reinforce movement rules at the end of the prompt."""
-        return """## RULES OF ENGAGEMENT
-1. **VALID MOVES ONLY**: Use the EXACT destinations listed in 'TROOP POSITIONS'. Do not hallucinate paths.
-2. **PRIORITY**: If under threat, prioritze **REINFORCE** moves to borders.
-3. **ATTACK**: Moving to an enemy province initiates combat. Ensure you have force superiority."""
+        """Remind the agent of hard engine constraints on movement."""
+        return """## MOVEMENT CONSTRAINTS
+1. **VALID DESTINATIONS ONLY**: target_province_id must be a province listed in the STRATEGIC OPTIONS section. The engine rejects moves to unreachable provinces.
+2. **QUANTITY CAP**: quantity cannot exceed the number of troops currently stationed in source_province_id.
+3. **ATTACK EFFECT**: Moving to an enemy-owned province initiates combat. Moving to an allied province stations troops there."""
     
     def _build_budget_section(self, nation: NationState) -> str:
         """Build available budget section with real constants and maintenance awareness."""
@@ -201,18 +201,16 @@ class DefenseInputBuilder(BaseInputBuilder):
         return "\n".join(lines)
     
     def _build_morale_warning(self, nation: NationState) -> str:
-        """Build morale warning for low satisfaction."""
+        """Report public satisfaction level."""
         if nation.public_satisfaction < 20:
-            severity = "CRITICAL"
-            advice = "Avoid offensive operations. Focus on defense. A defeat could trigger collapse."
+            context = "Morale is critically low. Military setbacks increase insurrection risk."
         else:
-            severity = "WARNING"
-            advice = "Military setbacks will be poorly tolerated. Consider war costs carefully."
-        
+            context = "Public satisfaction is below average. Military losses may decrease it further."
+
         return f"""## Morale
 **Public Satisfaction: {nation.public_satisfaction:.0f}%**
 
-{advice}"""
+{context}"""
 
     def _build_strategic_assessment(self, nation_id: str) -> str:
         """
