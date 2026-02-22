@@ -195,10 +195,12 @@ def _execute_declare_war(
     
     aggressor.active_wars[target_id] = WarStats(
         start_turn=world.turn,
-        original_provinces=len(aggressor.province_ids)
+        initiator_id=aggressor_id,
+        original_provinces=len(target.province_ids)
     )
     target.active_wars[aggressor_id] = WarStats(
         start_turn=world.turn,
+        initiator_id=aggressor_id,
         original_provinces=len(target.province_ids)
     )
 
@@ -235,6 +237,17 @@ def _generate_call_to_arms(
                 summary = f"🚨 [CALL_TO_ARMS] {ally_id}: Your ally {victim_id} was {attack_type} by {aggressor_id}! You are summoned to honor your MUTUAL_DEFENSE pact."
                 engine.logs.append(summary)
                 world.global_events.append(summary)
+                
+                # DILEMMA PENALTY: 
+                # If the ally (B) is also allied with the aggressor (C), 
+                # B loses trust in C for creating a diplomatic conflict.
+                if world.relationship_matrix.get(ally_id, {}).get(aggressor_id) == RelationshipState.MUTUAL_DEFENSE:
+                    penalty = -15.0
+                    engine.adjust_trust(ally_id, aggressor_id, penalty)
+                    engine.logs.append(
+                        f"📉 [DIPLOMACY] {ally_id} trust in {aggressor_id} decreased by {penalty:+.1f} "
+                        f"(Cross-Alliance Conflict: {aggressor_id} attacked shared ally {victim_id})."
+                    )
 
 
 def _execute_break_treaty(

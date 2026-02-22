@@ -470,6 +470,22 @@ class SimulationEngine:
                     is_helping = any(ally_relationships.get(enemy_id) == RelationshipState.WAR for enemy_id in enemies)
                     
                     if not is_helping:
+                        # CROSS-ALLIANCE PROTECTION: 
+                        # Only penalize if X is being ATTACKED (Victim).
+                        # If X started the war, allies are NOT obliged to help.
+                        mandatory_defence = False
+                        nation_x = self.world.nations.get(nation_id)
+                        if nation_x: # Ensure nation_x exists
+                            for enemy_id in enemies:
+                                war_stats = nation_x.active_wars.get(enemy_id)
+                                if war_stats and war_stats.initiator_id != nation_id:
+                                    # X is NOT the initiator -> X is the Victim. 
+                                    mandatory_defence = True
+                                    break
+                        
+                        if not mandatory_defence:
+                            continue # No penalty for not helping an aggressor
+                            
                         # Ambiguity Detected
                         ally_nation = self.world.nations.get(ally_id)
                         if ally_nation:

@@ -22,6 +22,7 @@ class RelationshipState(str, Enum):
 class WarStats(BaseModel):
     """Statistics for an active war to track progress and losses."""
     start_turn: int
+    initiator_id: str  # The nation that started the war (aggressor)
     original_provinces: int
     lost_provinces: int = 0
     conquered_provinces: int = 0
