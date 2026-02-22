@@ -67,9 +67,14 @@ class DefenseInputBuilder(BaseInputBuilder):
             feedback = self._build_presidential_feedback(nation_id, "Defense", context_manager)
             if feedback:
                 sections.append(feedback)
-            
+
             sections.append(self._build_world_events(nation_id, context_manager))
             sections.append(self._build_self_history(nation_id, context_manager, domain="Defense"))
+
+            # Show exact last-turn moves to prevent oscillation and accumulation.
+            last_turn_section = self._build_last_turn_actions(nation_id, context_manager)
+            if last_turn_section:
+                sections.append(last_turn_section)
         
         # 3. Full Military Report (Deployment, threats)
         military_report = self.military_translator.generate_military_report(nation_id)
@@ -89,6 +94,31 @@ class DefenseInputBuilder(BaseInputBuilder):
         sections.append(self._build_logistics_reminder())
         
         return self._sanitize_prompt("\n\n".join(sections))
+
+    def _build_last_turn_actions(self, nation_id: str, context_manager: 'ContextManager') -> str:
+        """
+        Show exact Defense actions executed last turn.
+
+        Purpose: prevents oscillation (agent reverting its own moves) and repeated
+        unit creation at the same province, by making the prior turn's state explicit.
+        """
+        prev_turn = self.world.turn - 1
+        if prev_turn < 1:
+            return ""
+
+        all_actions = context_manager.nation_actions.get(nation_id, [])
+        # Filter: Defense domain actions from exactly the previous turn
+        last_turn = [a for a in all_actions if a.domain == "Defense" and a.turn == prev_turn]
+
+        if not last_turn:
+            return ""
+
+        lines = [f"## Actions executed last turn (Turn {prev_turn})"]
+        lines.append("_The following defense actions were executed last turn. Avoid directly reversing them unless the tactical situation has changed._")
+        for a in last_turn:
+            outcome_tag = f" [{a.outcome}]" if a.outcome and a.outcome != "SUCCESS" else ""
+            lines.append(f"- {a.action_summary}{outcome_tag}")
+        return "\n".join(lines)
 
     def _build_logistics_reminder(self) -> str:
         """Remind the agent of hard engine constraints on movement."""

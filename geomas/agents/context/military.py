@@ -473,6 +473,7 @@ class MilitaryTranslator:
                         "target_id": target_id,
                         "from_id": p_id,
                         "available": available,
+                        "source_garrison": available, # Note: available is p_prov.soldiers
                         "current_defense": t_prov.soldiers + t_prov.aircraft,
                     })
 
@@ -510,13 +511,20 @@ class MilitaryTranslator:
             reachable = self._get_reachable_destinations(p_id, UnitType.AIRCRAFT, nation_id)
             for target_id, from_id in reachable["ATTACK"][:3]:
                 t_prov = self.world.provinces.get(target_id)
-                if t_prov:
-                    defenders = t_prov.soldiers + t_prov.aircraft
-                    air_options.append(
-                        f"  Province {target_id} ({t_prov.owner_id}, {defenders} defenders)"
-                        f" → MOVE_TROOPS source={p_id}, target={target_id}, "
-                        f"unit_type=AIRCRAFT, quantity={prov.aircraft}"
-                    )
+                if not t_prov:
+                    continue
+                defenders = t_prov.soldiers + t_prov.aircraft
+                # Do not suggest air strikes on provinces with no military presence:
+                # aircraft cannot conquer territory and a strike on 0 defenders has no effect.
+                if defenders == 0:
+                    continue
+                # Cap suggested aircraft at 50% of available to preserve a reserve.
+                suggested_aircraft = max(1, prov.aircraft // 2)
+                air_options.append(
+                    f"  Province {target_id} ({t_prov.owner_id}, {defenders} defenders)"
+                    f" → MOVE_TROOPS source={p_id}, target={target_id}, "
+                    f"unit_type=AIRCRAFT, quantity={suggested_aircraft}"
+                )
 
         # ---- Build the prompt sections ----
         lines = [f"## STRATEGIC OPTIONS{energy_warning}"]
@@ -580,7 +588,7 @@ class MilitaryTranslator:
                 seen_reinforce.add(opt["target_id"])
                 lines.append(
                     f"  - Border province {opt['target_id']}: {opt['current_defense']} troops currently\n"
-                    f"    → MOVE_TROOPS source={opt['from_id']}, target={opt['target_id']}, "
+                    f"    → MOVE_TROOPS source={opt['from_id']} (has {opt['source_garrison']} troops), target={opt['target_id']}, "
                     f"unit_type=SOLDIER, quantity={min(opt['available'], 100)}"
                 )
 
@@ -610,7 +618,25 @@ class MilitaryTranslator:
             for opt in navy_options[:3]:
                 lines.append(f"  - {opt}")
 
-        if not any([offensive, support, reinforce, expand, air_options, navy_options]):
+        # 🛠️ CREATE UNIT SUGGESTIONS (to prevent accumulation in fortified borders)
+        # Find weakest border provinces to suggest for CREATE_UNIT
+        weakest_borders = []
+        border_list = list(self.spatial.get_border_provinces(nation_id))
+        for p_id in border_list:
+            prov = self.world.provinces.get(p_id)
+            if prov:
+                weakest_borders.append((p_id, prov.soldiers + prov.aircraft))
+        
+        weakest_borders.sort(key=lambda x: x[1])
+        if weakest_borders:
+            lines.append("\n### 🛠️ CREATE UNIT OPTIONS (Prioritize Weak Borders)")
+            for p_id, troops in weakest_borders[:3]:
+                lines.append(
+                    f"  - Border province {p_id}: {troops} troops currently\n"
+                    f"    → CREATE_UNIT target_province_id={p_id}, unit_type=SOLDIER"
+                )
+
+        if not any([offensive, support, reinforce, expand, air_options, navy_options, weakest_borders]):
             lines.append("\n_No military moves available this turn._")
 
         return "\n".join(lines)
