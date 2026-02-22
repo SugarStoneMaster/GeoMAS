@@ -48,7 +48,7 @@ class BaseInputBuilder:
         """Build a standardized month/turn header."""
         return f"## Month {turn}"
 
-    def _build_relationships(self, nation_id: str) -> str:
+    def _build_relationships(self, nation_id: str, show_cooldowns: bool = False) -> str:
         """
         Build standard deterministic relationship matrix.
         Shows WAR, ALLIANCE, and NEUTRAL status with Trust levels.
@@ -68,6 +68,14 @@ class BaseInputBuilder:
             trust_tier = self._get_trust_tier(trust)
             
             line = f"- **{other_nation.name}** ({other_id}): {rel}, Trust: {trust_tier}"
+            
+            # Show cooldown if requested (e.g., for Foreign Minister)
+            if show_cooldowns:
+                sender_nation = self.world.nations[nation_id]
+                last_turn = sender_nation.message_cooldown.get(other_id, -99)
+                cooldown_left = 5 - (self.world.turn - last_turn) # 5 = default cooldown
+                if cooldown_left > 0:
+                    line += f" [Message Cooldown: {cooldown_left} turns]"
             
             if rel == RelationshipState.WAR:
                 at_war.append(line)
@@ -242,9 +250,29 @@ class BaseInputBuilder:
             use_salience=True
         )
         
-        if action_lines:
+        # Deduplication Logic: Hide actions that are already covered by detailed successful events
+        filtered_action_lines = []
+        for a_line in action_lines:
+            # Check if this action turn and approximate type is in event_lines
+            # action format: "Turn X [Domain]: Action → SUCCESS"
+            # event format: "Turn X: Summary..."
+            duplicate_found = False
+            for e_line in event_lines:
+                if e_line.startswith(a_line.split("[")[0]): # Match "Turn X: "
+                    # Check if summaries are similar (heuristic)
+                    # Use a simpler check: if it's the same turn and we have an event, 
+                    # it's usually better to show the event.
+                    # We only deduplicate if the action was SUCCESS/ACCEPTED.
+                    if "→ SUCCESS" in a_line or "→ ACCEPTED" in a_line:
+                        duplicate_found = True
+                        break
+            
+            if not duplicate_found:
+                filtered_action_lines.append(a_line)
+
+        if filtered_action_lines:
             lines.append(f"### Recent {domain or ''} Actions".replace("  ", " "))
-            lines.extend([f"- {a}" for a in action_lines])
+            lines.extend([f"- {a}" for a in filtered_action_lines])
             
         if event_lines:
             lines.append(f"### Notable {title_suffix}")

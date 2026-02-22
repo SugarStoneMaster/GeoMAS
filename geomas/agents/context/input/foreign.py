@@ -62,7 +62,7 @@ class ForeignInputBuilder(BaseInputBuilder):
                 sections.append(cta)
         
         # 2. Common Layers
-        sections.append(self._build_relationships(nation_id))
+        sections.append(self._build_relationships(nation_id, show_cooldowns=True))
         sections.append(self._build_other_nations(nation_id))
         
         # 2b. War Status (New)

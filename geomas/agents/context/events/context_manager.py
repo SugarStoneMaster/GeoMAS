@@ -349,6 +349,11 @@ class ContextManager:
             msg_type = getattr(behavior, 'diplomatic_message_type', 'MESSAGE')
             message = getattr(behavior, 'message', None)
             
+            # SPAM PREVENTION: Skip NotableEvent if trust was NOT impacted (cooldown bypassed)
+            outcome = getattr(behavior, "execution_outcome", None)
+            if outcome and outcome.details and not outcome.details.get("trust_impacted", True):
+                return None
+
             summary = f"{nation_name} sent a {msg_type} to {target_name}"
             if message:
                 summary += f" (Message: '{message}')"

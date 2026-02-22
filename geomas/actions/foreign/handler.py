@@ -82,11 +82,15 @@ def execute_foreign(
     
     # Dispatch to appropriate handler
     if payload.action_type == ForeignActionType.SEND_DIPLOMATIC_MESSAGE:
-        success, reason = _execute_send_message(engine, nation_id, target_id, payload.diplomatic_message_type, payload.message)
+        success, reason, trust_impacted = _execute_send_message(engine, nation_id, target_id, payload.diplomatic_message_type, payload.message)
         payload.execution_outcome.status = "SUCCESS" if success else "FAILED"
         payload.execution_outcome.reason = reason
         if success:
-            payload.execution_outcome.details = {"message_type": payload.diplomatic_message_type, "target": target_id}
+            payload.execution_outcome.details = {
+                "message_type": payload.diplomatic_message_type, 
+                "target": target_id,
+                "trust_impacted": trust_impacted
+            }
     
     elif payload.action_type == ForeignActionType.FORMAL_DECLARATION_OF_WAR:
         success, reason = _execute_declare_war(engine, nation_id, target_id, payload.message)
@@ -158,7 +162,7 @@ def _execute_send_message(
     engine.logs.append(
         f"📜 [FOREIGN] {sender_id} sends {msg_type.value} to {target_id}. Trust impact: {trust_delta:+.1f}.{msg_str}"
     )
-    return True, "Message sent"
+    return True, "Message sent", (trust_delta != 0)
 
 
 def _execute_declare_war(
