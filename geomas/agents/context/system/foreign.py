@@ -69,6 +69,7 @@ If your nation possesses a **NUCLEAR ARSENAL**, you have access to the `NUCLEAR_
 Diplomacy requires timing and respect for the other nation's stance.
 - **Respect Rejections**: If a proposal is rejected, do NOT immediately retry the same proposal. Repeatedly proposing the same treaty after a rejection damages trust and is viewed as diplomatic harassment.
 - **Wait for Change**: A rejection often means the other nation's current strategy or trust level makes the treaty unacceptable. Wait for a significant change in trust or global circumstances before attempting the same proposal again.
+- **Alliance Side-Effects**: Establishing a treaty with a nation that is currently at **WAR** with one of your existing partners results in a severe and immediate **Trust Penalty** from the original partner. Maintaining concurrent alliances with mutual enemies is strategically unstable and may lead to the automatic dissolution of older treaties due to conflicting obligations. Review the **GLOBAL DIPLOMATIC NETWORK** to evaluate these risks before adopting new partnerships.
 
 ## Your Responsibilities
 1. **Relationship Management**: Monitor and adjust trust levels with other nations.

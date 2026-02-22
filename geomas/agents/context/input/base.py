@@ -107,10 +107,11 @@ class BaseInputBuilder:
 
     def _build_global_treaty_network(self, nation_id: str) -> str:
         """
-        Build a list of all active treaties between third-party nations.
+        Build a list of all active treaties and wars between third-party nations.
         """
-        lines = ["### GLOBAL TREATY NETWORK (Third-Party Alliances)"]
+        lines = ["### GLOBAL DIPLOMATIC NETWORK (Third-Party Relations)"]
         alliances = []
+        wars = []
         
         # We need a stable order for determinism
         sorted_nation_ids = sorted(self.world.nations.keys())
@@ -126,15 +127,24 @@ class BaseInputBuilder:
                 
                 # Check relationship
                 rel = self.world.relationship_matrix.get(id1, {}).get(id2, RelationshipState.PEACE)
+                name1 = self.world.nations[id1].name
+                name2 = self.world.nations[id2].name
+                
                 if rel in [RelationshipState.NON_AGGRESSION, RelationshipState.MUTUAL_DEFENSE]:
-                    name1 = self.world.nations[id1].name
-                    name2 = self.world.nations[id2].name
                     alliances.append(f"- **{name1}** & **{name2}**: {rel}")
+                elif rel == RelationshipState.WAR:
+                    wars.append(f"- **{name1}** & **{name2}**: {rel} ⚔️")
         
-        if not alliances:
+        if not alliances and not wars:
             return ""
             
-        lines.extend(alliances)
+        if alliances:
+            lines.append("#### Treaties")
+            lines.extend(alliances)
+        if wars:
+            lines.append("#### Conflicts")
+            lines.extend(wars)
+            
         return "\n".join(lines)
 
     def _build_other_nations(self, nation_id: str) -> str:

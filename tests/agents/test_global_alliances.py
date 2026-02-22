@@ -35,8 +35,8 @@ def test_global_alliance_visibility():
     ]
     
     for prompt in prompts:
-        # A. Verify Treaty Network section exists and contains A-B alliance
-        assert "### GLOBAL TREATY NETWORK (Third-Party Alliances)" in prompt
+        # A. Verify Diplomatic Network section exists and contains A-B alliance
+        assert "### GLOBAL DIPLOMATIC NETWORK (Third-Party Relations)" in prompt
         assert name_a in prompt
         assert name_b in prompt
         assert "MUTUAL_DEFENSE" in prompt
@@ -66,7 +66,7 @@ def test_no_self_in_global_network():
     # In global network it would look like: - **NationA** & **NationB**: MUTUAL_DEFENSE
     
     # If there are NO other alliances, the global section should be missing entirely
-    assert "### GLOBAL TREATY NETWORK" not in prompt_a
+    assert "### GLOBAL DIPLOMATIC NETWORK" not in prompt_a
 
 if __name__ == "__main__":
     pytest.main([__file__])

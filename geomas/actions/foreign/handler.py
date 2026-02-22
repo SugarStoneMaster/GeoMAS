@@ -517,6 +517,24 @@ def respond_to_proposal(
 
         engine.adjust_trust(nation_id, proposer_id, 10)  # 0-100 scale
         engine.adjust_trust(proposer_id, nation_id, 10)
+
+        # Conflicting Alliance Penalty (Implicit Veto):
+        # If Nation B allies with C, but B is already allied with A, and A is at war with C:
+        # Nation A loses trust in Nation B.
+        for ally_id, other_rel in world.relationship_matrix.get(nation_id, {}).items():
+            if ally_id == proposer_id:
+                continue
+                
+            # Check if ally_id is an actual ally
+            if other_rel in [RelationshipState.NON_AGGRESSION, RelationshipState.MUTUAL_DEFENSE]:
+                # Check if this ally is at war with the new partner (proposer_id)
+                ally_vs_new = world.relationship_matrix.get(ally_id, {}).get(proposer_id)
+                if ally_vs_new == RelationshipState.WAR:
+                    penalty = -30
+                    engine.adjust_trust(ally_id, nation_id, penalty)
+                    engine.logs.append(
+                        f"🚨 [FOREIGN] {ally_id} is OUTRAGED by {nation_id}'s alliance with its enemy {proposer_id}! Trust penalty: {penalty}"
+                    )
             
         log_msg = f"🤝 [FOREIGN] {tier.value} {event_type} between {nation_id} and {proposer_id}!{msg_str}"
         engine.logs.append(log_msg)
