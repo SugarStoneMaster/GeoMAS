@@ -32,6 +32,7 @@ class TestFeedbackLoop:
         # Update
         world = MagicMock(spec=WorldState)
         world.nations = {"nation_a": MagicMock()}
+        world.global_events = []
         
         cm.update_after_turn(turn=1, envelopes=[envelope], world=world)
         
@@ -91,6 +92,7 @@ class TestFeedbackLoop:
         world.provinces = {}
         world.relationship_matrix = {}
         world.trust_matrix = {}
+        world.global_events = []
         
         # Setup ContextManager with feedback
         cm = ContextManager()
