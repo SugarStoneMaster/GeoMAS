@@ -43,7 +43,6 @@ class MetricsDB:
                 deception_overall DOUBLE,
                 deception_defense DOUBLE,
                 deception_foreign DOUBLE,
-                deception_economy DOUBLE,
                 coherence_score DOUBLE,
                 
                 -- Resource Metrics
@@ -124,11 +123,11 @@ class MetricsDB:
         insert_query = """
             INSERT INTO metrics_nation (
                 simulation_id, turn, nation_id, 
-                deception_overall, deception_defense, deception_foreign, deception_economy, coherence_score,
+                deception_overall, deception_defense, deception_foreign, coherence_score,
                 budget, food, energy, materials, population, workers,
                 public_satisfaction, in_civil_unrest, soldiers, aircraft, navy, power_projection,
                 trade_volume, military_spending
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         
         # Prepare data tuples
@@ -136,7 +135,7 @@ class MetricsDB:
             (
                 m.get('simulation_id'), m.get('turn'), m.get('nation_id'),
                 m.get('deception_overall', 0.0), m.get('deception_defense', 0.0), 
-                m.get('deception_foreign', 0.0), m.get('deception_economy', 0.0), 
+                m.get('deception_foreign', 0.0), 
                 m.get('coherence_score', 1.0),
                 m.get('budget', 0.0), m.get('food', 0.0), m.get('energy', 0.0), 
                 m.get('materials', 0.0), m.get('population', 0.0), m.get('workers', 0.0),

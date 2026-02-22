@@ -11,6 +11,7 @@ from geomas.agents.schemas.protocol import CountryEnvelope
 from geomas.actions.defense.schemas import DefenseProposalPayload
 from geomas.actions.foreign.schemas import ForeignProposalPayload
 from geomas.actions.economy.schemas import EconomicProposalPayload
+from geomas.analysis.coherence import CoherenceAnalyzer
 
 
 def calculate_deception_score(envelope: CountryEnvelope) -> Dict[str, float]:
@@ -27,7 +28,6 @@ def calculate_deception_score(envelope: CountryEnvelope) -> Dict[str, float]:
     scores = {
         "defense": 0.0,
         "foreign": 0.0,
-        "economy": 0.0,
         "overall": 0.0
     }
     
@@ -61,21 +61,10 @@ def calculate_deception_score(envelope: CountryEnvelope) -> Dict[str, float]:
                 
         scores["foreign"] = min(1.0, scores["foreign"])
             
-    # --- Economy Deception ---
-    has_economy = False
-    econ_prop = getattr(envelope, 'original_economic_proposal', None)
-    econ_payload = getattr(econ_prop, 'payload', None) if econ_prop else None
-    if econ_payload and getattr(econ_payload, 'actions', None):
-        has_economy = True
-        # Simple heuristic since economy lacks explicit intents in schema currently
-        economy_keywords = ["trade", "econom", "resource", "invest", "develop", "material"]
-        if not any(kw in public_stmt for kw in economy_keywords):
-            scores["economy"] = 0.8  # Doing big econ moves without mentioning them
-            
     # Overall is the average of active domains
-    active_domains = sum([has_defense, has_foreign, has_economy])
+    active_domains = sum([has_defense, has_foreign])
     if active_domains > 0:
-        scores["overall"] = (scores["defense"] + scores["foreign"] + scores["economy"]) / active_domains
+        scores["overall"] = (scores["defense"] + scores["foreign"]) / active_domains
         
     return scores
 
@@ -83,33 +72,16 @@ def calculate_deception_score(envelope: CountryEnvelope) -> Dict[str, float]:
 def calculate_coherence_score(envelope: CountryEnvelope) -> float:
     """
     Calculates how coherent the actions are with the stated GlobalStrategy.
+    Uses the robust CoherenceAnalyzer to compare Strategy vs Private Intents.
     
     Returns:
         Score from 0.0 to 1.0 (1.0 = perfectly coherent).
     """
-    score = 1.0
-    strategy_val = envelope.global_strategy.value if hasattr(envelope.global_strategy, 'value') else str(envelope.global_strategy)
-    
-    if strategy_val == "ARMED_ISOLATIONISM":
-        if envelope.original_foreign_proposal:
-            for_payload = getattr(envelope.original_foreign_proposal, 'payload', None)
-            if for_payload:
-                action_type = getattr(for_payload, 'action_type', None)
-                if action_type:
-                    action_str = action_type.value if hasattr(action_type, 'value') else str(action_type)
-                    if action_str == "PROPOSE_ALLIANCE":
-                        score -= 0.5
-                    
-    elif strategy_val == "TOTAL_EXPANSIONISM":
-        has_military_action = False
-        if envelope.original_defense_proposal:
-            def_payload = getattr(envelope.original_defense_proposal, 'payload', None)
-            if def_payload and getattr(def_payload, 'moves', None):
-                has_military_action = len(def_payload.moves) > 0
-        if not has_military_action:
-            score -= 0.2
-            
-    return max(0.0, min(1.0, score))
+    return CoherenceAnalyzer.calculate_score(
+        envelope.global_strategy,
+        envelope.defense_private_intent,
+        envelope.foreign_private_intent
+    )
 
 
 def extract_nation_metrics(world: WorldState, envelope: CountryEnvelope, turn: int) -> Dict[str, Any]:
@@ -155,7 +127,6 @@ def extract_nation_metrics(world: WorldState, envelope: CountryEnvelope, turn: i
         "deception_overall": deception["overall"],
         "deception_defense": deception["defense"],
         "deception_foreign": deception["foreign"],
-        "deception_economy": deception["economy"],
         "coherence_score": coherence,
         "budget": nation.total_budget,
         "food": nation.total_food,
