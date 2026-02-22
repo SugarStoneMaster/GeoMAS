@@ -85,7 +85,10 @@ class EconomyInputBuilder(BaseInputBuilder):
         if pending_trades:
             sections.append(self._build_trades_section(pending_trades))
 
-        # 9. Global Market Intelligence
+        # 9. Trade limits (pre-computed per-resource ceiling to prevent clamping)
+        sections.append(self._build_trade_limits_preview(nation))
+
+        # 10. Global Market Intelligence
         sections.append(self._build_global_market(nation_id))
         
         return self._sanitize_prompt("\n\n".join(sections))
@@ -226,6 +229,36 @@ class EconomyInputBuilder(BaseInputBuilder):
         
         return "\n".join(lines)
 
+    def _build_trade_limits_preview(self, nation: NationState) -> str:
+        """
+        Pre-compute the 15% export ceiling for each resource.
+
+        The engine enforces a hard cap: give_amount <= 15% of current stock.
+        Showing the exact ceiling prevents LLM from proposing amounts that
+        will be clamped by 90-95%, distorting trade intent and trust impact.
+        """
+        TRADE_CAP = 0.15
+
+        resources = {
+            "budget": nation.total_budget,
+            "food": nation.total_food,
+            "energy": nation.total_energy,
+            "materials": nation.total_materials,
+        }
+
+        lines = ["## TRADE_PROPOSAL limits (engine-enforced, both sides)"]
+        lines.append(
+            f"give_amount is capped at {TRADE_CAP*100:.0f}% of the sender's current stock "
+            f"and {TRADE_CAP*100:.0f}% of the receiver's current stock of the requested resource."
+        )
+        lines.append("**Your maximum give_amount per resource (your 15% cap):**")
+        for res, stock in resources.items():
+            ceiling = stock * TRADE_CAP
+            lines.append(f"  {res}: max give_amount = {ceiling:,.0f}  (stock: {stock:,.0f})")
+        lines.append("Amounts above these ceilings will be automatically reduced by the engine.")
+
+        return "\n".join(lines)
+
     def _build_global_market(self, nation_id: str) -> str:
         """Build global market intelligence with dynamic thresholds."""
         nations = [n for nid, n in self.world.nations.items() if nid != nation_id]
@@ -243,10 +276,9 @@ class EconomyInputBuilder(BaseInputBuilder):
         avg_materials = total_materials / count if count > 0 else 0
         
         lines = ["## Global market intelligence"]
-        lines.append(f"Global Averages: Food {avg_food:.0f}, Energy {avg_energy:.0f}, Materials {avg_materials:.0f}.")
-        lines.append("- **SURPLUS**: > 120% of Avg. Ask them for this!")
-        lines.append("- **DEFICIT**: < 80% of Avg. Sell this to them!")
-        lines.append("**IMPORTANT**: Trades are CAPPED at 15% of the source nation's current stock. Requests > 15% will be automatically CLAMPED. Ask for CONSERVATIVE amounts (<15% of surplus) to ensure full value.")
+        lines.append(f"Global averages: Food {avg_food:.0f}, Energy {avg_energy:.0f}, Materials {avg_materials:.0f}.")
+        lines.append("- SURPLUS: > 120% of world average")
+        lines.append("- DEFICIT: < 80% of world average")
         
         has_data = False
         
