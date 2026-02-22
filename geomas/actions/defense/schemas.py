@@ -87,9 +87,9 @@ MOVEMENT_ENERGY_COST: dict[UnitType, float] = {
 
 # Movement range (max provinces per turn)
 MOVEMENT_RANGE: dict[UnitType, int] = {
-    UnitType.SOLDIER: 2,      # Infantry moves slowly
-    UnitType.NAVY: 4,         # Ships have good range
-    UnitType.AIRCRAFT: 6,     # Aircraft have best range
+    UnitType.SOLDIER: 6,      # Infantry: can reach most borders in one turn
+    UnitType.NAVY: 10,        # Ships: broad coastal coverage
+    UnitType.AIRCRAFT: 15,    # Aircraft: near-global strike range
 }
 
 
