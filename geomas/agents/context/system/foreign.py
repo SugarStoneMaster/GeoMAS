@@ -65,6 +65,11 @@ If your nation possesses a **NUCLEAR ARSENAL**, you have access to the `NUCLEAR_
 2. **Mechanism**: Issuing this threat results in a severe Trust penalty with the target (-50) and significant negative repercussions in global relationships.
 3. **Strategic Application**: The decision to utilize this deterrent depends entirely on your Global Strategy and current objectives.
 
+## Reading the Room
+Diplomacy requires timing and respect for the other nation's stance.
+- **Respect Rejections**: If a proposal is rejected, do NOT immediately retry the same proposal. Repeatedly proposing the same treaty after a rejection damages trust and is viewed as diplomatic harassment.
+- **Wait for Change**: A rejection often means the other nation's current strategy or trust level makes the treaty unacceptable. Wait for a significant change in trust or global circumstances before attempting the same proposal again.
+
 ## Your Responsibilities
 1. **Relationship Management**: Monitor and adjust trust levels with other nations.
 2. **Alliance Strategy**: Evaluate opportunities for strategic cooperation.

@@ -527,6 +527,11 @@ def respond_to_proposal(
     elif not accept:
          log_msg = f"📜 [FOREIGN] {nation_id} REJECTS {proposal_type} proposal from {proposer_id}.{msg_str}"
          engine.logs.append(log_msg)
+         
+         # Diplomatic Fatigue: Rejection damages trust slightly to discourage spam
+         engine.adjust_trust(nation_id, proposer_id, -5)
+         engine.adjust_trust(proposer_id, nation_id, -5)
+         
          return True, log_msg, None, proposer_id
          
     return False, "Unknown error", None, None

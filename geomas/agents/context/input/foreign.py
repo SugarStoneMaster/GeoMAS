@@ -215,7 +215,12 @@ class ForeignInputBuilder(BaseInputBuilder):
                 # Extract tier value if it's an enum
                 tier_value = tier.value if hasattr(tier, 'value') else tier
                 tier_str = f" ({tier_value})" if tier else ""
-                lines.append(f"- {icon} **{p_type}{tier_str} to {to_name}** (Sent T{turn}, Resolved T{resolved_turn}): **{status}**")
+                
+                note = ""
+                if status == "REJECTED":
+                    note = " (Wait for trust to improve or time to pass before retrying)"
+                
+                lines.append(f"- {icon} **{p_type}{tier_str} to {to_name}** (Sent T{turn}, Resolved T{resolved_turn}): **{status}**{note}")
             
         return "\n".join(lines)
 
@@ -285,6 +290,19 @@ class ForeignInputBuilder(BaseInputBuilder):
             
             # Skip if we already have a pending proposal with them
             if other_id in pending_targets:
+                continue
+            
+            # Diplomatic Fatigue: Skip if recently REJECTED (last 10 turns)
+            recently_rejected = False
+            for p in (nation.sent_proposals or []):
+                if p.get("to") == other_id and p.get("status") == "REJECTED":
+                    # Check age of rejection
+                    resolved_at = p.get("resolved_turn", -1)
+                    if self.world.turn - resolved_at < 10:
+                        recently_rejected = True
+                        break
+            
+            if recently_rejected:
                 continue
                 
             trust = my_trust.get(other_id, 50)
