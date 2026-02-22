@@ -69,6 +69,10 @@ class BaseInputBuilder:
             
             line = f"- **{other_nation.name}** ({other_id}): {rel}, Trust: {trust_tier}"
             
+            # Show if they are a nuclear power (Deterrence)
+            if other_nation.nukes > 0:
+                line += " [NUCLEAR POWER] ☢️"
+            
             # Show cooldown if requested (e.g., for Foreign Minister)
             if show_cooldowns:
                 sender_nation = self.world.nations[nation_id]

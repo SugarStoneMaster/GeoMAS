@@ -106,15 +106,15 @@ class MilitaryTranslator:
         # Nuclear status
         nuke_status = ""
         if nation.nukes > 0:
-            nuke_status = f"\n**NUCLEAR ARSENAL:** {nation.nukes} warheads available."
+            nuke_status = f"**☢️ NUCLEAR ARSENAL:** {nation.nukes} warheads available.\n\n"
         
         return f"""## MILITARY OVERVIEW
 
-**Ground Forces:** {total_soldiers:,} soldiers
+{nuke_status}**Ground Forces:** {total_soldiers:,} soldiers
 **Air Force:** {total_aircraft:,} aircraft
 **Navy:** {total_navy:,} ships
 
-{comparison}{nuke_status}"""
+{comparison}"""
 
     def _generate_deployment_status(self, nation_id: str) -> str:
         """Generate report on troop deployment across provinces."""
