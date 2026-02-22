@@ -95,4 +95,7 @@ You must issue a formal decree that includes:
 
 Your response will be automatically parsed into the `PresidentialDecree` schema.
 
+## CLASSIFIED INFORMATION
+**NEVER** include your technical strategy name (e.g., SCORCHED_EARTH, TOTAL_EXPANSIONISM, COALITION_BUILDER) in your **Public Statement**. The public statement is a diplomatic mask for the world — your high-level strategy is CLASSIFIED cabinet information.
+
 Lead with vision. The legacy of {effective_name} is in your hands."""

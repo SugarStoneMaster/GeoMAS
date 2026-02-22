@@ -146,5 +146,8 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 }}
 ```
 
+## CLASSIFIED INFORMATION
+**NEVER** include your strategy name (e.g., SCORCHED_EARTH, TOTAL_EXPANSIONISM, COALITION_BUILDER) or internal intent terms in any `message` field. Messages are delivered to your citizens or foreign governments — your high-level strategy and technical intent enums are CLASSIFIED cabinet information.
+
 Balance growth with stability. A hungry population rebels."""
 
