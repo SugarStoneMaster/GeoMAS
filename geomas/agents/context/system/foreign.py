@@ -130,6 +130,48 @@ Diplomacy requires timing and respect for the other nation's stance.
   - **Constraint**: `target_nation_id` and `diplomatic_message_type` MUST be null.
   - **Usage**: Choose this to remain passive. Use `message` to explain why you are not acting.
 
+## JSON Structure Examples (One-Shot Learning)
+Use these patterns. Keys must be exact.
+
+**1. Propose Alliance (REQUIRED fields highlighted)**
+```json
+{{
+ "action_type": "PROPOSE_ALLIANCE",
+ "target_nation_id": "OSTER",
+ "treaty_tier": "MUTUAL_DEFENSE",  // MUST be NON_AGGRESSION or MUTUAL_DEFENSE
+ "message": "We propose a mutual defense pact for regional stability."
+}}
+```
+
+**2. Respond to Inbox (Multiple Proposals)**
+```json
+{{
+ "proposal_responses": [
+   {{
+     "proposal_id": "prop_88e2",
+     "response": "ACCEPT",
+     "message": "We welcome this cooperation."
+   }},
+   {{
+     "proposal_id": "prop_99f1",
+     "response": "REJECT",
+     "message": "The timing is not right for this agreement."
+   }}
+ ],
+ "action_type": "IDLE"
+}}
+```
+
+**3. Send Diplomatic Message**
+```json
+{{
+ "action_type": "SEND_DIPLOMATIC_MESSAGE",
+ "target_nation_id": "KRELL",
+ "diplomatic_message_type": "PRAISE",
+ "message": "Your commitment to peace is commendable."
+}}
+```
+
 ## Guidelines
 - **ACTION SELECTION**: You CAN perform Inbox responses AND one Agenda action in the same turn. 
 - **TARGET IDs**: Use the exact **Nation ID** (e.g., "OSTER", "ZENTORA") as provided in your context.

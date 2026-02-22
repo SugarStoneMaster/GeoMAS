@@ -20,7 +20,7 @@ from geomas.agents.schemas import GlobalStrategy
 class TestStressBudget:
     """Stress tests for token budget under extreme simulation conditions."""
     
-    TOTAL_BUDGET = 5000
+    TOTAL_BUDGET = 7000
     
     @pytest.fixture
     def counter(self):
