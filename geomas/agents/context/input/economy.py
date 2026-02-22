@@ -77,25 +77,27 @@ class EconomyInputBuilder(BaseInputBuilder):
         
         # 6. Public Satisfaction
         sections.append(self._build_satisfaction_section(nation))
-        
-        # 7. Pending Trade Offers
+
+        # 7. INVEST_WELFARE cost table (concrete amounts & feasibility)
+        sections.append(self._build_welfare_cost_preview(nation))
+
+        # 8. Pending Trade Offers
         if pending_trades:
             sections.append(self._build_trades_section(pending_trades))
-        
-        # 8. Global Market Intelligence
+
+        # 9. Global Market Intelligence
         sections.append(self._build_global_market(nation_id))
         
         return self._sanitize_prompt("\n\n".join(sections))
     
     def _build_treasury_section(self, nation: NationState) -> str:
         """Build treasury section with all resources."""
-        # Calculate income (simplified - from tax revenue)
         income = sum(
-            self.world.provinces[p_id].tax_revenue 
+            self.world.provinces[p_id].tax_revenue
             for p_id in nation.province_ids
             if p_id in self.world.provinces
         )
-        
+
         # Budget health
         if nation.total_budget > 5000:
             status = "WEALTHY"
@@ -105,7 +107,7 @@ class EconomyInputBuilder(BaseInputBuilder):
             status = "TIGHT"
         else:
             status = "CRITICAL"
-        
+
         # War Impact
         war_lines = []
         if nation.active_wars:
@@ -113,12 +115,15 @@ class EconomyInputBuilder(BaseInputBuilder):
             if total_lost > 0:
                 war_lines.append(f"\n**WAR IMPACT:**")
                 war_lines.append(f"- Lost {total_lost} tax-paying provinces.")
-        
+
         war_section = "\n".join(war_lines)
 
         return f"""## Treasury
+> **Note:** Defense and Economy ministers plan concurrently from the same resource snapshot.
+> If Defense recruits or moves units this turn, budget and materials will decrease before Economy executes.
+
 **Treasury Status:** {status}
-- **Budget:** {nation.total_budget:,.0f} (Estimated Income: {income:,.0f}/turn)
+- **Budget:** {nation.total_budget:,.0f} (Estimated income: {income:,.0f}/turn)
 - **Food:** {nation.total_food:,.0f}
 - **Energy:** {nation.total_energy:,.0f}
 - **Materials:** {nation.total_materials:,.0f}{war_section}
@@ -127,63 +132,84 @@ class EconomyInputBuilder(BaseInputBuilder):
     def _build_resources_section(self, nation_id: str) -> str:
         """Build resource production section."""
         nation = self.world.nations[nation_id]
-        
-        # Analyze each resource
+
         resources = {
             "Food": nation.total_food,
             "Energy": nation.total_energy,
             "Materials": nation.total_materials
         }
-        
-        lines = ["## Resource production"]
-        
-        shortages = []
-        surpluses = []
-        
+
+        lines = ["## Resource stockpiles"]
+
         for name, value in resources.items():
             if value < 50:
-                status = "SHORTAGE"
-                shortages.append(name.lower())
+                status = "LOW"
             elif value > 500:
-                status = "SURPLUS"
-                surpluses.append(name.lower())
+                status = "HIGH"
             else:
-                status = "→ ADEQUATE"
-            
-            lines.append(f"- **{name}:** {value:+.0f}/turn {status}")
-        
-        if shortages:
-            lines.append(f"\n**Trade Priority:** Need {', '.join(shortages)}")
-        if surpluses:
-            lines.append(f"**Trade Offer:** Can export {', '.join(surpluses)} (Max export per trade: 15% of stock)")
-        
+                status = "ADEQUATE"
+
+            lines.append(f"- **{name}:** {value:,.0f} ({status})")
+
         return "\n".join(lines)
     
+    def _build_welfare_cost_preview(self, nation: NationState) -> str:
+        """
+        Show concrete cost/benefit table for INVEST_WELFARE.
+        Uses the same constants as handler.py to ensure accuracy.
+        """
+        import math
+        # Constants mirrored from handler.py
+        WELFARE_MATERIALS_RATIO = 0.2
+        WELFARE_MAX_BUDGET_RATIO = 0.25
+        WELFARE_LOG_CONSTANT = 500
+        WELFARE_MULTIPLIER = 7
+
+        max_affordable = nation.total_budget * WELFARE_MAX_BUDGET_RATIO
+        max_materials = nation.total_materials
+
+        def row(amount: float) -> str:
+            mat = amount * WELFARE_MATERIALS_RATIO
+            if amount > max_affordable or mat > max_materials:
+                feasible = "❌ cannot afford"
+            else:
+                feasible = "✓ feasible"
+            sat = WELFARE_MULTIPLIER * math.log(1 + amount / WELFARE_LOG_CONSTANT) if amount > 0 else 0
+            return f"  amount={amount:.0f}: costs {amount:.0f} budget + {mat:.0f} materials → satisfaction +{sat:.1f} — {feasible}"
+
+        # Show 3 representative amounts
+        amounts = [100, 500, max_affordable] if max_affordable > 100 else [max_affordable]
+        amounts = sorted(set(int(a) for a in amounts if a > 0))
+
+        lines = ["## INVEST_WELFARE cost preview (budget + 20% materials per unit)"]
+        lines.append(f"  Ceiling: {max_affordable:.0f} budget (25% of treasury) | Materials available: {max_materials:.0f}")
+        for a in amounts:
+            lines.append(row(a))
+        return "\n".join(lines)
+
     def _build_satisfaction_section(self, nation: NationState) -> str:
-        """Build satisfaction section (Economy can affect it)."""
+        """Report public satisfaction and available economic actions with factual effects."""
         sat = nation.public_satisfaction
-        
-        # Status and recommendations
+
         if sat < 20:
-            status = "CRISIS"
-            recommendation = "URGENT: Use INVEST_IN_WELFARE immediately. Avoid WAR_TAX."
+            status = "CRITICALLY LOW"
         elif sat < 30:
-            status = "DANGEROUSLY LOW"
-            recommendation = "Consider INVEST_IN_WELFARE. WAR_TAX not possible."
+            status = "LOW"
         elif sat < 50:
-            status = "BELOW OPTIMAL"
-            recommendation = "INVEST_IN_WELFARE recommended if budget allows."
+            status = "BELOW AVERAGE"
         elif sat < 70:
             status = "STABLE"
-            recommendation = "Population is content. WAR_TAX possible if needed."
         else:
             status = "HIGH"
-            recommendation = "Excellent morale. War operations well-tolerated."
-        
+
         return f"""## Public satisfaction
-**Current:** {sat:.0f}% {status}
- 
-{recommendation}"""
+**Current:** {sat:.0f}% — {status}
+
+**Available actions and their effects:**
+- **INVEST_WELFARE**: increases satisfaction (logarithmic returns). Costs budget + 20% materials. See cost preview below.
+- **RAISE_WAR_TAX**: increases budget by ~1% of population. Decreases satisfaction by 15 points (×1.5 if satisfaction < 30). Requires satisfaction ≥ 30.
+- **TRADE_PROPOSAL**: exchanges resources with another nation. No direct satisfaction effect.
+- **IDLE**: no economic action this turn."""
 
     def _build_trades_section(self, pending_trades: List[Dict[str, Any]]) -> str:
         """Build pending trade offers section."""
