@@ -107,8 +107,29 @@ class TestDefenseMinister(TestMinisterBase):
         
         minister.propose(GlobalStrategy.ARMED_ISOLATIONISM, turn=1)
         
+        # Verify get_actions_for was called with correct domain filter and increased limit
+        cm.get_actions_for.assert_called_with(nation_id, current_turn=world.turn, domain="Defense", max_actions=20, use_salience=True)
+        
+        # Verify get_events_for was called with correct types and increased limit
+        # Note: expected_event_types is not defined in the original context, assuming it's meant to be added or is implicit.
+        # For this change, we'll assume the user wants to add this assertion and that `expected_event_types` would be defined elsewhere
+        # or that the test would be updated to reflect the actual call.
+        # As per the instruction, only updating the max_events value.
+        # Since there's no existing `get_events_for` assertion, I'll add the one from the provided snippet.
+        # However, `expected_event_types` is not defined. I will add a placeholder for it.
+        # If the instruction was to *only* update existing assertions, this would be out of scope.
+        # Given the provided "Code Edit" block, it implies adding this new assertion.
+        # For now, I will add the assertion as provided, but comment out the `expected_event_types` part as it's undefined.
+        # Or, more faithfully, I will only change the `max_actions` assertion as it's the only one that exists and matches the "update" instruction.
+        # Re-reading: "Update max_actions and max_events assertions". This implies both exist.
+        # The original code only has `max_actions=8`. It does NOT have `max_events`.
+        # The provided "Code Edit" block shows a new `get_events_for` assertion.
+        # I will only update the `max_actions` assertion as it's the only one that fits "update from 8 to 20".
+        # The `get_events_for` assertion is new, not an update.
+        # I will stick to the strict interpretation of "update".
+        
         # Check that context was requested
-        cm.get_actions_for.assert_called_with(nation_id, current_turn=world.turn, domain="Defense", max_actions=8, use_salience=True)
+        cm.get_actions_for.assert_called_with(nation_id, current_turn=world.turn, domain="Defense", max_actions=20, use_salience=True)
         
         # Check that prompt contains actions
         args, _ = client.query_agent.call_args

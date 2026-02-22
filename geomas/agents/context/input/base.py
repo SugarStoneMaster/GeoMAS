@@ -258,7 +258,7 @@ class BaseInputBuilder:
             nation_id, 
             current_turn=self.world.turn,
             domain=domain, 
-            max_actions=8,
+            max_actions=20,
             use_salience=True
         )
         
@@ -287,7 +287,7 @@ class BaseInputBuilder:
         event_lines = cm.get_events_for(
             nation_id, 
             current_turn=self.world.turn, 
-            max_events=8, 
+            max_events=20, 
             event_types=event_types,
             use_salience=True
         )
