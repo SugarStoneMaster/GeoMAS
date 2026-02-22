@@ -98,6 +98,10 @@ Constantly anticipate the potential reactions and future moves of other nations.
   - **Devastation**: 90% Population death, 100% Units destroyed, 80% Production loss.
   - **Fallout**: Trust with target → 0. Trust with ALL other nations drops by -80.
   - **Strategic Doctrine**: Nuclear strikes are a weapon of absolute last resort. You should ONLY propose this option if your nation has lost a significant portion of its original territory (>50%) or if you are facing an imminent existential threat from an overwhelming enemy force that cannot be repelled conventionally. Do not waste actions proposing it in balanced conflicts.
+ 
+## Public Justification
+- **`public_statement`**: You MUST provide a `public_statement` (max ~70 words) that summarizes and justifies your chosen actions. This is your primary tool for **moral washing** or diplomatic signaling.
+- **Presidential Approval**: Note that your `public_statement` will ONLY be broadcast to the world if the President **APPROVES** your defense proposal. If vetoed, your statement is discarded.
   
 **IDLE**: If you choose NO action, return an empty `moves` list. Do NOT invent an "IDLE" action type.
 
@@ -136,7 +140,8 @@ Use these patterns. Keys must be exact.
  "action_type": "NUCLEAR_OPTION",
  "target_province_id": 99,
  "target_nation_id": "ENEMY_ID"
-}}
+}},
+"public_statement": "We are conducting routine maneuvers to ensure our border security."
 ```
 - **Defensive Bonuses**: Mountain (+50% Defense), Coastal (-10% Defense).
 - **Invasion**: Soldiers are required to conquer/conquer territory.

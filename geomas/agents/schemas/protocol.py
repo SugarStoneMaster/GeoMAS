@@ -166,6 +166,9 @@ class CountryEnvelope(BaseModel):
     defense_private_intent: DefenseIntentType = Field(
         ..., description="Our true military objective (hidden from others)."
     )
+    defense_public_statement: Optional[str] = Field(
+        None, description="Public justification from the Defense Minister (Broadcast if approved)."
+    )
     defense_private_reasoning: str = Field(
         ..., description="Internal reasoning for defense decisions (XAI)."
     )

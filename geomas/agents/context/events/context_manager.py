@@ -236,9 +236,38 @@ class ContextManager:
         world: WorldState
     ) -> None:
         """Extract notable events from turn envelopes."""
+        from geomas.agents.context.events.schemas import NotableEvent, EventType
+
         for envelope in envelopes:
             nation_id = envelope.sender_id
-            
+            nation_name = world.nations[nation_id].name if nation_id in world.nations else nation_id
+
+            # 1. Log President Public Statement
+            if envelope.public_statement and envelope.public_statement != "No action taken.":
+                event = NotableEvent(
+                    turn=turn,
+                    event_type=EventType.PUBLIC_STATEMENT,
+                    actors=[nation_id],
+                    summary=f"📢 [PRESIDENT] {nation_name}: {envelope.public_statement}",
+                    relevance_to=None # Global
+                )
+                self.global_events.append(event)
+                self._add_event_to_relationships(turn, nation_id, event)
+
+            # 2. Log Defense Public Statement (if approved and exists)
+            # Use getattr to avoid issues with older envelopes in tests
+            def_stmt = getattr(envelope, "defense_public_statement", None)
+            if def_stmt:
+                event = NotableEvent(
+                    turn=turn,
+                    event_type=EventType.PUBLIC_STATEMENT,
+                    actors=[nation_id],
+                    summary=f"🛡️ [DEFENSE] {nation_name}: {def_stmt}",
+                    relevance_to=None # Global
+                )
+                self.global_events.append(event)
+                self._add_event_to_relationships(turn, nation_id, event)
+
             # Defense: Multiple moves
             if envelope.defense_payload:
                 for move in envelope.defense_payload.moves:
@@ -263,8 +292,8 @@ class ContextManager:
                         if resp.get("success") and resp.get("event_type"):
                              event = self._response_detail_to_event(turn, nation_id, resp, world)
                              if event:
-                                 self.global_events.append(event)
-                                 self._add_event_to_relationships(turn, nation_id, event)
+                                  self.global_events.append(event)
+                                  self._add_event_to_relationships(turn, nation_id, event)
 
                 # 2. Process main action
                 if envelope.foreign_payload.action_type:
@@ -285,7 +314,6 @@ class ContextManager:
                 if any(e.summary == log for e in self.global_events):
                     continue
                     
-                from geomas.agents.context.events.schemas import NotableEvent, EventType
                 self.global_events.append(NotableEvent(
                     turn=turn,
                     event_type=EventType.DIPLOMATIC_MESSAGE, # Generic trigger

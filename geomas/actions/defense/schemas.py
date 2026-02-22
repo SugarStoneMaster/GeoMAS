@@ -159,6 +159,10 @@ class DefenseProposalPayload(BaseModel):
         max_length=3,
         description="Ordered list of actions (Waterfall Logic). MAXIMUM 3 ACTIONS ALLOWED."
     )
+    public_statement: Optional[str] = Field(
+        None, 
+        description="Public message justifying the military actions (max ~70 words)."
+    )
 
     @field_validator("moves")
     @classmethod

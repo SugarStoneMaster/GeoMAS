@@ -308,11 +308,13 @@ class NationAgent:
             def_pub_intent = briefing.defense.intent.public_intent
             def_priv_intent = briefing.defense.intent.private_intent
             def_reasoning = f"{briefing.defense.intent.reasoning} [President: {decree.defense.reasoning}]"
+            def_pub_statement = briefing.defense.payload.public_statement
         else: # VETO -> IDLE action
             def_payload = DefensePayload(decision=Decision.VETO, moves=[])
             def_pub_intent = DefenseIntentType.IDLE
             def_priv_intent = DefenseIntentType.IDLE
             def_reasoning = f"VETOED: {decree.defense.reasoning}"
+            def_pub_statement = None
 
         # --- ECONOMY ---
         if decree.economy.action == PresidentialDecision.APPROVE:
@@ -365,6 +367,7 @@ class NationAgent:
             defense_payload=def_payload,
             defense_public_intent=def_pub_intent,
             defense_private_intent=def_priv_intent,
+            defense_public_statement=def_pub_statement,
             defense_private_reasoning=def_reasoning,
             
             economic_payload=eco_payload,
@@ -403,7 +406,10 @@ class NationAgent:
         """Format defense proposal for President."""
         intent = proposal.intent
         payload = proposal.payload
-        summary = f"**Public Intent:** {self._get_value(intent.public_intent)}\n**Private Intent:** {self._get_value(intent.private_intent)}\n**Reasoning:** {intent.reasoning}\n**Actions:**"
+        summary = f"**Public Intent:** {self._get_value(intent.public_intent)}\n**Private Intent:** {self._get_value(intent.private_intent)}\n**Reasoning:** {intent.reasoning}"
+        if payload.public_statement:
+            summary += f"\n**Public Statement:** {payload.public_statement}"
+        summary += "\n**Actions:**"
         
         # Count action types from the generic 'moves' list
         move_count = 0
