@@ -295,13 +295,13 @@ class ForeignInputBuilder(BaseInputBuilder):
             
             if rel_val == "PEACE":
                 if trust >= 80:
-                     opportunities.append(f"- **{other_id}** (Trust {trust}): High trust. Viable for **MUTUAL_DEFENSE** or **NON_AGGRESSION**.")
+                     opportunities.append(f"- **{other_id}** (Trust: {self._get_trust_tier(trust)}): Viable for **MUTUAL_DEFENSE** or **NON_AGGRESSION**.")
                 elif trust >= 60:
-                     opportunities.append(f"- **{other_id}** (Trust {trust}): Good trust. Viable for **NON_AGGRESSION** pact.")
+                     opportunities.append(f"- **{other_id}** (Trust: {self._get_trust_tier(trust)}): Viable for **NON_AGGRESSION** pact.")
             
             elif rel_val == "NON_AGGRESSION":
                 if trust >= 75:
-                     opportunities.append(f"- **{other_id}** (Trust {trust}): Very high trust. Consider upgrading to **MUTUAL_DEFENSE**.")
+                     opportunities.append(f"- **{other_id}** (Trust: {self._get_trust_tier(trust)}): Consider upgrading to **MUTUAL_DEFENSE**.")
         
         if not opportunities:
             return ""

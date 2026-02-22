@@ -27,6 +27,23 @@ class BaseInputBuilder:
     def __init__(self, world: WorldState):
         self.world = world
 
+    def _get_trust_tier(self, trust: float) -> str:
+        """Convert a 0-100 trust score into a qualitative bucket (7 tiers)."""
+        if trust < 15:
+            return "Extremely Low"
+        elif trust < 29:
+            return "Low"
+        elif trust < 43:
+            return "Moderately Low"
+        elif trust < 58:
+            return "Neutral"
+        elif trust < 72:
+            return "Moderately High"
+        elif trust < 86:
+            return "High"
+        else:
+            return "Extremely High"
+
     def _build_month_header(self, turn: int) -> str:
         """Build a standardized month/turn header."""
         return f"## Month {turn}"
@@ -48,8 +65,9 @@ class BaseInputBuilder:
                 
             rel = self.world.relationship_matrix.get(nation_id, {}).get(other_id, RelationshipState.PEACE)
             trust = self.world.trust_matrix.get(nation_id, {}).get(other_id, 50.0)
+            trust_tier = self._get_trust_tier(trust)
             
-            line = f"- **{other_nation.name}** ({other_id}): {rel}, Trust {trust:.0f}"
+            line = f"- **{other_nation.name}** ({other_id}): {rel}, Trust: {trust_tier}"
             
             if rel == RelationshipState.WAR:
                 at_war.append(line)
