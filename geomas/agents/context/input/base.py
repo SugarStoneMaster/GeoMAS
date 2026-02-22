@@ -203,19 +203,19 @@ class BaseInputBuilder:
         """Standard world events (news) layer split into recent and historical."""
         lines = ["## World events"]
         
-        # 1. Breaking News (Pure Recency - max 6)
+        # 1. Breaking News (Pure Recency - max 10)
         recent_events = cm.get_events_for(
             nation_id, 
             current_turn=self.world.turn, 
-            max_events=6, 
+            max_events=10, 
             use_salience=False
         )
         
-        # 2. Historical Context (Salience - max 5)
+        # 2. Historical Context (Salience - max 10)
         salient_events = cm.get_events_for(
             nation_id, 
             current_turn=self.world.turn, 
-            max_events=5, 
+            max_events=10, 
             use_salience=True
         )
         
