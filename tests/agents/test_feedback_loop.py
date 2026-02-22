@@ -87,6 +87,7 @@ class TestFeedbackLoop:
         nation.total_soldiers = 100
         nation.total_aircraft = 10
         nation.total_navy = 5
+        nation.civil_unrest_active = False
         # Mock dictionaries for attributes that are accessed as dicts
         world.nations = {"nation_a": nation}
         world.provinces = {}

@@ -55,9 +55,12 @@ class BaseInputBuilder:
 
         alerts = []
         sat = nation.public_satisfaction
+        
+        # Use getattr for robustness against mocks in tests
+        is_unrest = getattr(nation, 'civil_unrest_active', False)
 
         # 1. Civil Unrest (Total Halt)
-        if nation.civil_unrest_active:
+        if is_unrest:
             alerts.append("- **🔥 CRITICAL: CIVIL UNREST ACTIVE!** Total production and recruitment halt. Protests have turned into open rebellion. You must reach **50% satisfaction** to restore order.")
         
         # 2. General Strike (Sat < 20)
