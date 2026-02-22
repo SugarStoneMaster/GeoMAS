@@ -30,7 +30,10 @@ def render_map_page(world: WorldState) -> None:
     with col_stats:
         st.markdown("### 📊 Stats")
         if selected_nation_id:
-            render_nation_stats(world, selected_nation_id)
+            agent = None
+            if "sim" in st.session_state and st.session_state["sim"]:
+                agent = st.session_state["sim"].agents.get(selected_nation_id)
+            render_nation_stats(world, selected_nation_id, agent=agent)
     
     with col_map:
         show_ids = st.checkbox("Show Province IDs", value=False, key="map_show_ids")

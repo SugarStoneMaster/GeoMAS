@@ -4,6 +4,7 @@ Nation Stats Component.
 Displays nation stats in a compact format for the sidebar panel.
 """
 
+from typing import Any
 import streamlit as st
 from geomas.schemas.world import WorldState
 
@@ -17,17 +18,32 @@ def format_number(n: float, decimals: int = 0) -> str:
     return formatted
 
 
-def render_nation_stats(world: WorldState, nation_id: str) -> None:
+def render_nation_stats(world: WorldState, nation_id: str, agent: Any = None) -> None:
     """
     Renders compact nation stats for 3-column layout.
     
     Args:
         world: Current world state
         nation_id: ID of the selected nation
+        agent: Optional agent object to extract strategy
     """
     nation = world.nations[nation_id]
     
-    st.markdown(f"**{nation.name}**")
+    st.markdown(f"### **{nation.name}**")
+    
+    # Strategy and Government Info
+    gov_type = nation.government_type or "UNKNOWN"
+    strategy = agent.strategy.value if agent and hasattr(agent, 'strategy') else "UNKNOWN"
+    
+    col_info1, col_info2 = st.columns(2)
+    with col_info1:
+        st.caption("🏛️ Government")
+        st.markdown(f"**{gov_type}**")
+    with col_info2:
+        st.caption("🎯 Strategy")
+        st.markdown(f"**{strategy}**")
+        
+    st.divider()
     
     # Overview metrics
     st.metric("💰 Budget", format_number(nation.total_budget))
