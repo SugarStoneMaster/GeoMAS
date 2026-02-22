@@ -100,6 +100,10 @@ def test_cta_3_turn_betrayal():
     sim, w = create_cta_scenario()
     
     # Setup immediate war status (simulate attack already happened)
+    from geomas.schemas.world import WarStats
+    w.nations["NAT_B"].active_wars["NAT_A"] = WarStats(start_turn=1, initiator_id="NAT_A", original_provinces=1)
+    w.nations["NAT_A"].active_wars["NAT_B"] = WarStats(start_turn=1, initiator_id="NAT_A", original_provinces=1)
+    
     w.relationship_matrix["NAT_A"]["NAT_B"] = RelationshipState.WAR
     w.relationship_matrix["NAT_B"]["NAT_A"] = RelationshipState.WAR
     
