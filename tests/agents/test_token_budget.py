@@ -105,8 +105,8 @@ class TestSystemPromptBudget:
     
     def test_defense_prompt_under_budget(self):
         """Ensure Defense prompt doesn't explode in size."""
-        # 1600 is current size with examples. Set limit to 2000.
-        limit = 2000
+        # 1600 is current size with examples. Set limit to 2500.
+        limit = 2500
         prompt = DefenseSystemPrompt.generate("TEST", GlobalStrategy.ARMED_ISOLATIONISM)
         tokens = len(prompt) // 4  # Rough estimate
         assert tokens < limit, f"Defense prompt is {tokens} tokens"

@@ -144,9 +144,9 @@ Use these patterns. Keys must be exact.
 - **ACTION LIMIT**: Propose **0 to 3 actions** in `payload.moves`. You are NOT required to use all 3 slots. If no military action is needed, return an empty list.
 - **WATERFALL LOGIC**: Actions are executed in order of priority (1 = highest). If one fails (e.g., budget), the rest are still attempted.
 - **UNIQUE ACTIONS**: Each action in the waterfall should be DISTINCT. Do NOT repeat the exact same action multiple times — if it fails once (e.g., insufficient troops), it will fail again.
-- **STRICT IDs**:
- - **`CREATE_UNIT`**: Target MUST be an ID from **'OWNED PROVINCES'**. You cannot spawn units in foreign lands.
- - **`MOVE_TROOPS`**: Source MUST be an **'OWNED PROVINCE'**. Destination can be Owned, Allied, or **Enemy** (triggers combat). Use IDs from 'THREAT ASSESSMENT' or 'ATTACK OPTIONS'.
+- **STRICT IDs (DO NOT INVENT PROVINCES)**:
+ - **`CREATE_UNIT`**: Target MUST be an ID you currently own. You CANNOT use `CREATE_UNIT` on neutral or enemy lands. If you want to conquer an unowned province, you MUST use `MOVE_TROOPS` into it.
+ - **`MOVE_TROOPS`**: Source MUST be an **'OWNED PROVINCE'**. Destination can be Owned, Allied, or **Enemy**. Use IDs from 'STRATEGIC OPTIONS'. NEVER guess or invent province IDs. NEVER target `VOID` terrain.
 - **Target Nation**: For `CREATE_UNIT`, `target_nation_id` MUST be `"{effective_name}"`. For `MOVE_TROOPS`, it must be the owner of the destination.
 
 Your response will be automatically parsed into the `DefenseProposal` schema.

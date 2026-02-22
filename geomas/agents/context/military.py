@@ -602,7 +602,7 @@ class MilitaryTranslator:
                 seen_expand.add(opt["target_id"])
                 lines.append(
                     f"  - Province {opt['target_id']}: unowned, 0 defenders\n"
-                    f"    → MOVE_TROOPS source={opt['from_id']}, target={opt['target_id']}, "
+                    f"    → (MUST CONQUER WITH MOVE_TROOPS, CANNOT USE CREATE_UNIT) MOVE_TROOPS source={opt['from_id']}, target={opt['target_id']}, "
                     f"unit_type=SOLDIER, quantity={min(opt['available'], 50)}"
                 )
 
@@ -630,6 +630,7 @@ class MilitaryTranslator:
         weakest_borders.sort(key=lambda x: x[1])
         if weakest_borders:
             lines.append("\n### 🛠️ CREATE UNIT OPTIONS (Prioritize Weak Borders)")
+            lines.append("  (WARNING: Only spawn units in THESE provinces. NEVER use CREATE_UNIT on enemy or neutral land)")
             for p_id, troops in weakest_borders[:3]:
                 lines.append(
                     f"  - Border province {p_id}: {troops} troops currently\n"

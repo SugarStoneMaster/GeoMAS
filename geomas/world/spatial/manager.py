@@ -64,11 +64,14 @@ class SpatialManager:
             # Filtering is safer for 'hard' constraints.
             
             def is_permitted(node_id):
-                if node_id == from_id or node_id == to_id:
-                    return True
-                
                 prov = self.world.provinces.get(node_id)
                 if not prov: return False
+                
+                if prov.terrain == TerrainType.VOID:
+                    return False
+                
+                if node_id == from_id or node_id == to_id:
+                    return True
                 
                 # Terrain Check
                 if unit_type == "SOLDIER" and prov.terrain == TerrainType.OCEAN:
