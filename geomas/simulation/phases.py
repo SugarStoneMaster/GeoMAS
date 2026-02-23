@@ -34,7 +34,8 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
         nation.total_navy = aggregates["total_navy"]
         
         # 2. Collect taxes (adds to budget)
-        tax_collected = economy.calculate_tax_collection(nation, world)
+        UPKEEP_BOOST = 2.5
+        tax_collected = economy.calculate_tax_collection(nation, world) * UPKEEP_BOOST
         nation.total_budget += tax_collected
         
         # 3. Calculate unified production multiplier
@@ -52,9 +53,9 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
             )
         
         # 4. Add production to resource stockpiles (Applying the multiplier on-the-fly)
-        nation.total_food += aggregates["total_food_production"] * prod_multiplier
-        nation.total_energy += aggregates["total_energy_production"] * prod_multiplier
-        nation.total_materials += aggregates["total_materials_production"] * prod_multiplier
+        nation.total_food += aggregates["total_food_production"] * prod_multiplier * UPKEEP_BOOST
+        nation.total_energy += aggregates["total_energy_production"] * prod_multiplier * UPKEEP_BOOST
+        nation.total_materials += aggregates["total_materials_production"] * prod_multiplier * UPKEEP_BOOST
         
         # 5. Calculate consumption & Upkeep
         food_consumed = economy.calculate_food_consumption(nation.total_population)
@@ -82,8 +83,9 @@ def run_upkeep_phase(world: WorldState, turn_logs: List[str]):
         
         # --- RESOURCE SPOILAGE (Option E) ---
         # Nations cannot hoard unlimited resources. Capped to N turns of consumption.
-        MAX_STORAGE_TURNS = 4
-        BUDGET_STORAGE_TURNS = 10  # Budget is easier to hoard
+        # Adjusted according to 2.5x production boost (orig: 4 and 10).
+        MAX_STORAGE_TURNS = 10
+        BUDGET_STORAGE_TURNS = 10
         
         max_food = max(100.0, food_consumed * MAX_STORAGE_TURNS)
         max_energy = max(100.0, energy_consumed * MAX_STORAGE_TURNS)
