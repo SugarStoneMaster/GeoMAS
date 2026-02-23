@@ -59,7 +59,7 @@ class LLMClient:
     def __init__(
         self, 
         model_name: str = None,  # Will use wet vars if not provided
-        temperature: float = 0.2,
+        temperature: float = 0.3,
         max_tokens: int = 1000,
         reasoning_effort: str = "minimal",
         top_p: Optional[float] = None
