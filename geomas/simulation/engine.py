@@ -201,7 +201,7 @@ class SimulationEngine:
                 (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
                 (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
                 (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.DEMOCRACY),
-                (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.THEOCRACY),
+                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.THEOCRACY),
                 (GlobalStrategy.SCORCHED_EARTH, GovernmentType.AUTHORITARIAN),
             ]
         }
