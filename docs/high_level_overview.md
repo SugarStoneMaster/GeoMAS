@@ -1,48 +1,57 @@
-# 👑 GeoMAS - High-Level Overview
+# 👑 GeoMAS - Exhaustive High-Level Overview
 
-**GeoMAS (Geopolitical Multi-Agent System)** is a scientific simulation framework designed for researchers to study geopolitical dynamics, strategic decision-making, and explainable AI (XAI) in competitive multi-agent environments. 
-
-The system models a world of competing nations, where each nation is governed by a decentralized "Cabinet" of LLM-powered agents balancing strategic goals, economic constraints, and international relations.
+**GeoMAS (Geopolitical Multi-Agent System)** is a high-fidelity research framework designed to study the intersection of **deterministic game theory** and **LLM-driven cognitive dissonance**. It provides a scientific sandbox where agents govern nations within a world of rigid physical and economic constraints.
 
 ---
 
-## 🎯 Researcher Capabilities
+## 🎯 The Researcher’s Sandbox
 
-### 1. Repeatable Simulation Architecture
-GeoMAS is designed for **scientific analysis**. It utilizes a seed-based architecture to provide a consistent framework for every run.
-- **Structural Determinism**: Map generation, resource placement, and simulation rules (e.g., combat math, economic growth) are fully deterministic based on the provided seeds.
-- **LLM Intent & Variability**: While the simulation framework is deterministic, LLM-powered agents (Cabinet) exhibit natural cognitive variability even at low temperatures. This allows researchers to study how different linguistic reasonings emerge within a fixed structural environment.
+GeoMAS is engineered to move beyond descriptive modeling into **causal and counterfactual analysis**.
 
-### 2. Cognitive Cabinet Dynamics
-Researchers can observe and analyze the decision-making process of a nation's government:
-- **Distributed Intelligence**: A nation's actions are the result of three specialized ministerial proposals (Defense, Economy, Foreign).
-- **Executive Veto**: The **President** agent acts as the final decision-maker, prioritizing or modifying proposals based on the global strategy.
-- **Social Constraints**: A rule-based **Public Satisfaction** system monitors the impact of actions on the citizenry. Low satisfaction triggers discrete events مانند general strikes or civil unrest that physically limit the nation's productivity.
+### 1. Dual-Track Determinism
+Researchers can isolate the variables of conflict by leveraging two distinct layers:
+- **Structural Layer (Pure Math)**: Every physical event, from map generation to resource extraction, is governed by a `history_seed`. If the agents were removed, the world would play out as a perfectly predictable system.
+- **Cognitive Layer (Agent Intent)**: LLM agents populate the system prompts of the national Cabinet. While they operate under low-temperature settings, their "cognitive edge" introduces strategic pivot points that can be traced back to linguistic reasoning.
 
-### 3. Diplomatic & Strategic Analysis
-- **Dynamic Trust Matrix**: Every action (messages, trade, war) modifies a mathematical trust score between nations, visible to the researcher.
-- **Strategic Deception Monitoring**: The system tracks "Private Intent" vs. "Public Action," allowing for the analysis of deception and coherence in MAS.
-- **Automatic Treaty Triggers**: Defense pacts and treaties are encoded as deterministic rules that penalize or force entry into conflicts, modeling "locked-in" diplomatic constraints.
+### 2. The Three Pillars of Production
+National survival in GeoMAS depends on the **Production Multiplier**, a mathematical product of three distinct systemic health indicators:
+$$Multiplier = Workforce \times Satisfaction \times Energy$$
+- **Workforce Factor**: Production scales linearly based on the ratio of workers to population. If military mobilization exceeds **50%**, industrial output decays proportionally to zero.
+- **Satisfaction Elasticity**: A rule-based metric representing social stability. Values below **20%** trigger a "Revolutionary State," collapsing production through general strikes.
+- **Energy Resilience**: Each unit of energy deficit beyond consumption requirements penalizes production by **1%**, with a hard floor at **50%** output (representing total brownout conditions).
 
-### 4. XAI & Counterfactual Research
-GeoMAS is a powerful tool for Explainable AI:
-- **Full Traceability**: Researchers have access to every prompt, raw LLM response, and the internal reasoning that led to a specific action.
-- **State-Based Forking**: You can **load a past simulation state** from the database and diverge from that point. This enables "What-If" analysis (e.g., "What if Nation A accepted the treaty on Turn 10 instead of rejecting it?"), allowing you to compare parallel histories branching from a single event.
+### 3. Hierarchical Cabinet Dynamics
+GeoMAS models the internal friction and cognitive biases of a sovereign state:
+- **The Ministerial Divide**: Three specialists (Defense, Economy, Foreign) generate domain-specific proposals. They operate under **Bounded Rationality**, as the `ContextManager` restricts their visibility to 50 recent events and 10 past actions per domain.
+- **The Presidential Oracle**: The President LLM must reconcile conflicting proposals (e.g., taxing for a war vs. investing in welfare) by aligning them with one of four **Global Strategy Archetypes**:
+    - *Armed Isolationism*: (Deterrence, Self-Sufficiency).
+    - *Coalition Builder*: (Alliances, Trade).
+    - *Total Expansionism*: (Aggressive territorial growth).
+    - *Scorched Earth*: (Unpredictable resource denial).
+- **Public Messaging**: All public statements are filtered through a **Governance Framing** logic. For example, a "Democracy" must justify its actions through *Freedom* and *Rights*, while a "Theocracy" is constrained to *Divine Mandate* and *Faith*.
+
+### 4. Advanced Quantitative Analytics
+Researchers can track the emergence of behavior through specialized indices:
+- **Strategic Deception Score**: A metric (0.0 to 1.0) derived from a **Deception Matrix**. It compares the "Private Intent" shared inside the Cabinet with the "Public Announcement."
+    - *Scenario*: Nation A privately plots *Conquest* but publicly announces *Defense*. Result: Deception score of **0.95**.
+- **Power Projection (Military/Economic Index)**: A weighted aggregate representing a nation's global footprint:
+    - **Nukes**: 50.0 (The ultimate deterrent).
+    - **Aircraft**: 0.5 | **Navy**: 0.3 | **Soldiers**: 0.1.
+    - **Resources**: (Materials 0.03 > Energy 0.02 > Food 0.01).
+- **Consensus Coherence**: Measures how closely a nation's turning actions (intent) match its selected Global Strategy.
+
+### 5. Counterfactual Logic: The State-Load Fork
+The defining capability for scientific study is **Experimental Branching**. Researchers can:
+1. Run a simulation to turn 50.
+2. Identitfy a "Pivot Turn" (e.g., a declaration of war).
+3. **Load the state** of turn 49.
+4. Inject a command (XAI Injection) to force a different decision (e.g., a peace offer).
+5. Observe the divergence in world history between the baseline and the counterfactual run.
 
 ---
 
-## 🏗️ The Pillars of GeoMAS
-
-| Pillar | Research Utility |
-| :--- | :--- |
-| **Simulation Engine** | Orchestrates turn phases, ensuring rules are applied consistently. |
-| **Action Engine** | The "Rules Oracle" that validates agent intent against physical constraints. |
-| **Context Manager** | Filters and manages agent memory, defining what information is "known" at any time. |
-| **DuckDB Telemetry** | High-performance storage of every metric, prompt, and state for post-run analysis. |
-
----
-
-## 🚀 Key Use Cases
-- **Geopolitical Stress-Testing**: Studying how resource scarcity affects the likelihood of conflict.
-- **Deception Analysis**: Measuring the propagation of false signals across an agent network.
-- **Counterfactual History**: Analyzing how single decisions impact long-term global stability.
+## 🚀 Research Paradigms
+- **Conflict Prediction**: Correlating Power Projection imbalances with the probability of war.
+- **Moral Washing Analysis**: Quantifying the use of "Humanitarian Framing" (in Democracies) to mask aggressive territorial expansions.
+- **Trust Decay Kinetics**: Measuring the speed at which a single betrayal propagates through a network of allies.
+- **Resource Stress-Testing**: Simulating food/energy crises to observe the collapse of democratic institutions.
