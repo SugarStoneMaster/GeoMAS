@@ -1,53 +1,48 @@
 # 👑 GeoMAS - High-Level Overview
 
-**GeoMAS (Geopolitical Multi-Agent System)** is a scientific simulation framework designed for the study of geopolitical dynamics, strategic decision-making, and explainable AI (XAI) in multi-agent environments. 
+**GeoMAS (Geopolitical Multi-Agent System)** is a scientific simulation framework designed for researchers to study geopolitical dynamics, strategic decision-making, and explainable AI (XAI) in competitive multi-agent environments. 
 
-The system models a world of competing nations, where each nation is governed by a distributed "Cabinet" of LLM-powered agents that must balance internal politics, economic constraints, and international relations.
+The system models a world of competing nations, where each nation is governed by a decentralized "Cabinet" of LLM-powered agents balancing strategic goals, economic constraints, and international relations.
 
 ---
 
-## 🎯 What GeoMAS Can Do
+## 🎯 Researcher Capabilities
 
-### 1. Deterministic World Simulation
-GeoMAS is NOT a game; it is a **repeatable scientific experiment**. Given the same seed, the simulation will produce identical results across different runs. 
-- **Spatial Topology**: A Voronoi-based world map with realistic terrain and resource distribution.
-- **Resource Management**: Tracking Food, Energy, Materials, and Budget across provinces.
-- **Upkeep & Consumption**: Realistic modeling of population growth, consumption, and economic cycles.
+### 1. Repeatable Simulation Architecture
+GeoMAS is designed for **scientific analysis**. It utilizes a seed-based architecture to provide a consistent framework for every run.
+- **Structural Determinism**: Map generation, resource placement, and simulation rules (e.g., combat math, economic growth) are fully deterministic based on the provided seeds.
+- **LLM Intent & Variability**: While the simulation framework is deterministic, LLM-powered agents (Cabinet) exhibit natural cognitive variability even at low temperatures. This allows researchers to study how different linguistic reasonings emerge within a fixed structural environment.
 
-### 2. Cognitive Agent Cabinet
-Each nation is represented by a set of specialized agents:
-- **Defense Minister**: Focuses on military power projection, territorial defense, and unit production.
-- **Economic Minister**: Manages resource efficiency, welfare investments, and trade.
-- **Foreign Minister**: Handles diplomacy, alliances, messages, and treaties.
-- **Public Opinion**: A reactive module that monitors government actions and influences stability (unrest, strikes).
-- **President**: The final decision-maker who approves, modifies, or vetoes ministerial proposals.
+### 2. Cognitive Cabinet Dynamics
+Researchers can observe and analyze the decision-making process of a nation's government:
+- **Distributed Intelligence**: A nation's actions are the result of three specialized ministerial proposals (Defense, Economy, Foreign).
+- **Executive Veto**: The **President** agent acts as the final decision-maker, prioritizing or modifying proposals based on the global strategy.
+- **Social Constraints**: A rule-based **Public Satisfaction** system monitors the impact of actions on the citizenry. Low satisfaction triggers discrete events مانند general strikes or civil unrest that physically limit the nation's productivity.
 
-### 3. Diplomatic & Strategic Complexity
-- **Trust Matrix**: A dynamic relational system where every nation tracks its trust in every other nation based on interactions.
-- **Strategic Deception**: Agents can lie! A nation might publicly profess peace while privately planning an invasion.
-- **Mutual Defense Pacts**: Automated triggers that penalize or force entry into wars based on established treaties.
+### 3. Diplomatic & Strategic Analysis
+- **Dynamic Trust Matrix**: Every action (messages, trade, war) modifies a mathematical trust score between nations, visible to the researcher.
+- **Strategic Deception Monitoring**: The system tracks "Private Intent" vs. "Public Action," allowing for the analysis of deception and coherence in MAS.
+- **Automatic Treaty Triggers**: Defense pacts and treaties are encoded as deterministic rules that penalize or force entry into conflicts, modeling "locked-in" diplomatic constraints.
 
-### 4. Explainable AI (XAI) & Counterfactuals
-GeoMAS is built to answer "Why?":
-- **Traceability**: Every prompt and decision (Presidential decree, Ministerial proposal) is logged and viewable.
-- **Counterfactual Branching (Forking)**: You can "freeze" the simulation at any turn, modify a parameter (e.g., "What if Nation A rejected this treaty?"), and run a parallel branch of the simulation to see the divergence.
-- **Telemetry Analysis**: Real-time tracking of Global Trust, Total Deception scores, and Economic Coherence.
+### 4. XAI & Counterfactual Research
+GeoMAS is a powerful tool for Explainable AI:
+- **Full Traceability**: Researchers have access to every prompt, raw LLM response, and the internal reasoning that led to a specific action.
+- **State-Based Forking**: You can **load a past simulation state** from the database and diverge from that point. This enables "What-If" analysis (e.g., "What if Nation A accepted the treaty on Turn 10 instead of rejecting it?"), allowing you to compare parallel histories branching from a single event.
 
 ---
 
 ## 🏗️ The Pillars of GeoMAS
 
-| Component | Responsibility |
+| Pillar | Research Utility |
 | :--- | :--- |
-| **Simulation Engine** | The "Time Lord" – orchestrates turns, phases, and persistence. |
-| **Action Engine** | The "Rules Oracle" – validates actions against physical and economic constraints. |
-| **Context Manager** | The "Memory" – keeps track of world events and helps agents remember the past. |
-| **Spatial Manager** | The "Geographer" – manages map topology, distance, and adjacency. |
-| **Telemetry & DB** | The "Historian" – persists every turn into DuckDB for later analysis. |
+| **Simulation Engine** | Orchestrates turn phases, ensuring rules are applied consistently. |
+| **Action Engine** | The "Rules Oracle" that validates agent intent against physical constraints. |
+| **Context Manager** | Filters and manages agent memory, defining what information is "known" at any time. |
+| **DuckDB Telemetry** | High-performance storage of every metric, prompt, and state for post-run analysis. |
 
 ---
 
-## 🚀 Use Cases
-- **Geopolitical Research**: Simulating the effect of scarcity on international conflict.
-- **MAS Benchmarking**: Testing LLM decision-making in high-stakes, competitive environments.
-- **Deception Detection**: Analyzing how "private intent" vs "public action" evolves over time.
+## 🚀 Key Use Cases
+- **Geopolitical Stress-Testing**: Studying how resource scarcity affects the likelihood of conflict.
+- **Deception Analysis**: Measuring the propagation of false signals across an agent network.
+- **Counterfactual History**: Analyzing how single decisions impact long-term global stability.

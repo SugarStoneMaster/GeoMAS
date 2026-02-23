@@ -1,48 +1,35 @@
 # 🏗 GeoMAS Technical Architecture
 
-GeoMAS is structured into four distinct layers to ensure modularity, determinism, and testability.
+GeoMAS is a multi-layered simulation environment built for determinism in mechanics and cognitive depth in agents.
 
-## 1. Orchestration Layer (The Engine)
-The **Orchestration Layer** manages the flow of time and the sequence of events within a simulation.
+## 1. Orchestration Layer (Timing & Synchronization)
+The orchestration layer ensures the simulation survives turn-by-turn with structural consistency.
 
-- **`SimulationEngine`**: The main entry point. It manages the simulation loop, turn progression, and database synchronization.
-- **Turn Phases**:
-    1. **Scenario Phase**: Triggers random or planned global events (e.g., pandemics, rebellions).
-    2. **Upkeep Phase**: Calculates economic aggregates, handles resource consumption, and updates population satisfaction.
-    3. **Diplomacy Phase**: Clears expired treaties and handles automatic relationship decay.
-    4. **Sequential Action Phase**: Each nation acts one by one. Changes made by one nation (e.g., invasion) are immediately visible to the next nation in the same turn.
-    5. **Opinion Phase**: The population reacts to government actions, potentially triggering unrest or strikes.
-    6. **Persistence Phase**: World state snapshots and agent "Envelopes" (decision logs) are saved to DuckDB.
+- **`SimulationEngine`**: The core loop orchestrator. It executes the simulation phases and handles the **deterministic seeding** of all non-LLM components. 
+- **DB-State Synchronization**: The engine manages the persistence of `WorldState` snapshots and `CountryEnvelope` (agent logs) into DuckDB.
+- **State Loading & Forking**: Forking is implemented as a **load-and-diverge** mechanism. The engine can load any turn *T* from a simulation *S1* and initialize a new simulation *S2* from that exact state, enabling controlled experimental branching.
 
-## 2. Cognitive Layer (The Agents)
-The **Cognitive Layer** contains the logic for LLM-powered decision-making.
+## 2. Cognitive Layer (LLM Cabinet)
+The cognitive layer is where strategic reasoning takes place. It is designed to be asynchronous and context-aware.
 
-- **`NationAgent`**: Orchestrates a cabinet of ministers.
-- **Ministers (Defense, Economy, Foreign)**: Specialized agents that generate proposals based on domain-specific prompts and world context.
-- **`President`**: A "manager" LLM that receives ministerial proposals and a "Public Opinion Briefing" to issue a final `PresidentialDecree`.
-- **`OpinionAgent`**: Represents the citizenry. Evaluates government actions and generates a "Satisfaction Delta" that affects economic productivity.
-- **`ContextManager`**: Maintains the "Memory" of the simulation, filtering recent events and history into relevant context for agents.
+- **Agent Hierarchy**: 
+    - **Ministers**: Specialized domain prompts (`Defense`, `Economy`, `Foreign`) that propose actions based on local and global context.
+    - **President**: A higher-order LLM agent that performs synthesis, resolving conflicts between ministerial proposals.
+- **`ContextManager`**: A centralized state-to-prompt bridge. It filters thousands of world events into a relevant, token-efficient memory buffer for each agent.
+- **Non-Deterministic Cognitive Edge**: While the system uses seeds and low temperature, the Cabinet agents are treated as stochastic decision-makers within a deterministic physical world.
 
-## 3. Physical Layer (The World)
-The **Physical Layer** represents the deterministic state of the world.
+## 3. Physical Layer (World Grammar)
+The physical layer represents the rigid, rule-based environment that agents must navigate.
 
-- **`WorldState`**: A Pydantic-based single source of truth containing all provinces, nations, resources, and relationship matrices.
-- **`SpatialManager`**: A utility layer for calculating distances, adjacency (Voronoi), and pathfinding through hostile/neutral territory.
-- **`Calculators`**: Pure Python functions that compute production, consumption, power projection, and economic multipliers without external side effects.
+- **`WorldState`**: A comprehensive Pydantic model representing the exact state of provinces (population, infrastructure, units) and global relations (treaty status, trust values).
+- **Metric Calculators**: Pure Python solvers for production, consumption, and "Satisfaction" logic.
+- **Public Satisfaction Logic**: Unlike the Cabinet, **Public Opinion is currently a rule-based deterministic system**. It calculates a "Satisfaction Delta" based on government actions (taxes, welfare, war) and cultural traits, triggering physical penalties (unrest) without LLM intervention.
 
-## 4. Action Layer (Rules & Execution)
-The **Action Layer** is the "Referee" of the system.
+## 4. Action Layer (The Rules Oracle)
+The action layer acts as the system's "Physics Engine," ensuring that agent intent is constrained by reality.
 
-- **`ActionEngine`**: Validates ministerial proposals against `WorldState` constraints (e.g., "Do you have enough budget for this unit?").
-- **Specialized Handlers**:
-    - **Defense Waterfall**: Executes military moves, creations, and combat resolution.
-    - **Economy Handler**: Manages welfare investments, war taxes, and trade evaluation.
-    - **Foreign Handler**: Manages treaty formation, alliance breaks, and messages.
-- **`DeceptionAnalyzer`**: A post-action calculator that compares a nation's "Private Intent" (inside the Cabinet) with its "Public Statement" to calculate a Deception Score.
-
----
-
-## 💾 Data Strategy
-- **DuckDB**: Used for heavy telemetry and historical analysis.
-- **SQLite/JSON**: Used for quick snapshotting and structured logging.
-- **Single Source of Truth**: Agents NEVER modify the world directly. They propose actions, which are validated and executed by the `ActionEngine`, resulting in a new `WorldState`.
+- **`ActionEngine`**: The central validator. It intercepts agent "Envelopes" and rejects or modifies actions that violate constraints (e.g., negative budget, impossible unit movement).
+- **Execution Handlers**:
+    - **Defense Waterfall**: A sequential resolver for military movements and combat, ensuring zero-sum results in territorial changes.
+    - **Trade & Treaties**: Deterministic evaluators for diplomatic offers based on mathematical trust thresholds and resource scarcity.
+- **Explainability (XAI) Hooks**: The action layer decorates execution with metadata, allowing the `DeceptionAnalyzer` to compare agent internal reasoning with the actual physical outcome for post-run analysis.
