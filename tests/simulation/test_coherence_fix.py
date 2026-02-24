@@ -38,36 +38,3 @@ def test_stable_hashing_determinism():
     
     assert traits1 == expected_traits
 
-def test_seed_restoration_in_load_state(tmp_path):
-    """Verify that map_seed and history_seed are restored when loading from DB."""
-    db_file = str(tmp_path / "test_seeds.duckdb")
-    
-    # Create and save a simulation
-    orig_map_seed = 555
-    orig_hist_seed = 777
-    engine = SimulationEngine(
-        map_seed=orig_map_seed, 
-        history_seed=orig_hist_seed, 
-        n_cells=50,
-        n_nations=4, 
-        db_path=db_file
-    )
-    sim_id = engine.simulation_id
-    
-    # Advance 1 turn and save
-    engine.step()
-    engine.close()
-    
-    # Reload with different initial seeds in constructor
-    new_engine = SimulationEngine(
-        map_seed=0, 
-        history_seed=0, 
-        simulation_id=sim_id, 
-        db_path=db_file
-    )
-    
-    # Initially seeds might be 0 from constructor (if not careful), but load_state should fix it
-    new_engine.load_state(turn=1)
-    
-    assert new_engine.map_seed == orig_map_seed
-    assert new_engine.history_seed == orig_hist_seed

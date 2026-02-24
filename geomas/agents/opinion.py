@@ -111,8 +111,16 @@ class OpinionAgent:
         else:
             opinion_enabled = os.environ.get("PUBLIC_OPINION_ENABLED", "false").lower() == "true"
         
-        if not self.llm_client or not opinion_enabled:
-            # Fallback: deterministic reaction based on traits
+        if not opinion_enabled:
+            return OpinionResponse(
+                multiplier_increase=1.0,
+                multiplier_decrease=1.0,
+                mood="NEUTRAL",
+                reasoning="Opinion disabled. Flat 1.0 multipliers."
+            )
+        
+        if not self.llm_client:
+            # Fallback: deterministic reaction based on traits (ONLY if enabled)
             response = self._deterministic_reaction(
                 events, government_actions, current_satisfaction, at_war
             )
