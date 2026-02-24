@@ -158,93 +158,108 @@ class SimulationEngine:
     def _init_agents(self):
         """Creates a NationAgent for each nation in the world."""
         from geomas.calculators.analytics import calculate_power_projection, calculate_nation_aggregates
-        
-        # 1. Deterministic Ranking by Power Projection
-        # Recalculate to ensure accuracy after genesis
-        for nation in self.world.nations.values():
-            aggr = calculate_nation_aggregates(nation, self.world)
-            nation.total_population = aggr["total_population"]
-            nation.total_soldiers = aggr["total_soldiers"]
-            nation.total_aircraft = aggr["total_aircraft"]
-            nation.total_navy = aggr["total_navy"]
-            nation.power_projection = calculate_power_projection(nation)
+        from geomas.agents.schemas import GlobalStrategy
+        from geomas.agents.schemas.protocol import GovernmentType
 
-        # Sort nations by power (highest power first)
-        # We use nation_id as secondary sort key for absolute determinism
-        ranked_nations = sorted(
-            self.world.nations.keys(),
-            key=lambda nid: (self.world.nations[nid].power_projection, nid),
-            reverse=True
+        # 1. Determine if we need to perform initial assignment (ranking/nukes)
+        # We assign if any nation is missing a valid strategy (Turn 0 or mocked tests)
+        needs_assignment = any(
+            not isinstance(n.global_strategy, (str, GlobalStrategy))
+            for n in self.world.nations.values()
         )
-        n_nations = len(ranked_nations)
         
-        # Determinisitic Setup Profiles mapped to number of nations
-        setup_profiles = {
-            4: [
-                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.AUTHORITARIAN),
-                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
-                (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.THEOCRACY),
-                (GlobalStrategy.SCORCHED_EARTH, GovernmentType.AUTHORITARIAN),
-            ],
-            6: [
-                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.AUTHORITARIAN),
-                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.DEMOCRACY),
-                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
-                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
-                (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.THEOCRACY),
-                (GlobalStrategy.SCORCHED_EARTH, GovernmentType.AUTHORITARIAN),
-            ],
-            8: [
-                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.AUTHORITARIAN),
-                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.DEMOCRACY),
-                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
-                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
-                (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
-                (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.DEMOCRACY),
-                (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.THEOCRACY),
-                (GlobalStrategy.SCORCHED_EARTH, GovernmentType.AUTHORITARIAN),
-            ]
-        }
-        
-        nation_ids = sorted(list(self.world.nations.keys()))
-        n_nations = len(nation_ids)
-        
-        # 2. Determine Profiles to Use (ordered by 'intensity')
-        if n_nations in setup_profiles:
-            combined_profiles = setup_profiles[n_nations] # Use original order (Expansionism first)
-            assigned_strategies = [p[0] for p in combined_profiles]
-            assigned_govs = [p[1] for p in combined_profiles]
+        if needs_assignment:
+            # Deterministic Ranking by Power Projection
+            for nation in self.world.nations.values():
+                aggr = calculate_nation_aggregates(nation, self.world)
+                # Handle potential mock values for aggregates
+                nation.total_population = aggr.get("total_population", 0)
+                nation.total_soldiers = aggr.get("total_soldiers", 0)
+                nation.total_aircraft = aggr.get("total_aircraft", 0)
+                nation.total_navy = aggr.get("total_navy", 0)
+                nation.power_projection = calculate_power_projection(nation)
 
-        else:
-            # --- FALLBACK LOGIC for non-standard n_nations (e.g. 5, 7, 10) ---
-            # Order: High Power Profile -> Low Power Profile
-            base_priority = [
-                GlobalStrategy.TOTAL_EXPANSIONISM,
-                GlobalStrategy.COALITION_BUILDER,
-                GlobalStrategy.ARMED_ISOLATIONISM,
-                GlobalStrategy.SCORCHED_EARTH
-            ]
-            fill_strategies = [GlobalStrategy.TOTAL_EXPANSIONISM, GlobalStrategy.COALITION_BUILDER]
+            # Sort nations by power (highest power first)
+            def get_power(nid):
+                p = getattr(self.world.nations[nid], 'power_projection', 0.0)
+                return p if isinstance(p, (int, float)) else 0.0
+
+            ranked_nations = sorted(
+                self.world.nations.keys(),
+                key=lambda nid: (get_power(nid), nid),
+                reverse=True
+            )
             
-            assigned_strategies = []
-            for i in range(min(n_nations, 4)): 
-                assigned_strategies.append(base_priority[i])
-            for i in range(n_nations - len(assigned_strategies)): 
-                assigned_strategies.append(fill_strategies[i % 2])
+            # Determinisitic Setup Profiles mapped to number of nations
+            setup_profiles = {
+                4: [
+                    (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.AUTHORITARIAN),
+                    (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                    (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.THEOCRACY),
+                    (GlobalStrategy.SCORCHED_EARTH, GovernmentType.AUTHORITARIAN),
+                ],
+                6: [
+                    (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.AUTHORITARIAN),
+                    (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.DEMOCRACY),
+                    (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                    (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                    (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.THEOCRACY),
+                    (GlobalStrategy.SCORCHED_EARTH, GovernmentType.AUTHORITARIAN),
+                ],
+                8: [
+                    (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.AUTHORITARIAN),
+                    (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.DEMOCRACY),
+                    (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                    (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                    (GlobalStrategy.COALITION_BUILDER, GovernmentType.DEMOCRACY),
+                    (GlobalStrategy.ARMED_ISOLATIONISM, GovernmentType.DEMOCRACY),
+                    (GlobalStrategy.TOTAL_EXPANSIONISM, GovernmentType.THEOCRACY),
+                    (GlobalStrategy.SCORCHED_EARTH, GovernmentType.AUTHORITARIAN),
+                ]
+            }
             
-            # Simple government assignment (can be refined but keeps it logic)
-            gov_pool = [GovernmentType.DEMOCRACY, GovernmentType.AUTHORITARIAN, GovernmentType.THEOCRACY]
-            assigned_govs = []
-            for i in range(n_nations):
-                assigned_govs.append(gov_pool[i % 3])
-        
-        # 3. Create Agents for Ranked Nations
-        for i, nation_id in enumerate(ranked_nations):
-            strategy = assigned_strategies[i]
-            gov_type = assigned_govs[i]
+            nation_ids = sorted(list(self.world.nations.keys()))
+            n_nations = len(nation_ids)
             
-            # Store government_type on nation state for reference
-            self.world.nations[nation_id].government_type = gov_type.value
+            if n_nations in setup_profiles:
+                combined_profiles = setup_profiles[n_nations]
+                assigned_strategies = [p[0] for p in combined_profiles]
+                assigned_govs = [p[1] for p in combined_profiles]
+            else:
+                # FALLBACK LOGIC for non-standard n_nations
+                base_priority = [
+                    GlobalStrategy.TOTAL_EXPANSIONISM,
+                    GlobalStrategy.COALITION_BUILDER,
+                    GlobalStrategy.ARMED_ISOLATIONISM,
+                    GlobalStrategy.SCORCHED_EARTH
+                ]
+                fill_strategies = [GlobalStrategy.TOTAL_EXPANSIONISM, GlobalStrategy.COALITION_BUILDER]
+                assigned_strategies = []
+                for i in range(min(n_nations, 4)): 
+                    assigned_strategies.append(base_priority[i])
+                for i in range(n_nations - len(assigned_strategies)): 
+                    assigned_strategies.append(fill_strategies[i % 2])
+                
+                gov_pool = [GovernmentType.DEMOCRACY, GovernmentType.AUTHORITARIAN, GovernmentType.THEOCRACY]
+                assigned_govs = []
+                for i in range(n_nations):
+                    assigned_govs.append(gov_pool[i % 3])
+            
+            # Persist assigned values back to NationState
+            for i, nation_id in enumerate(ranked_nations):
+                self.world.nations[nation_id].global_strategy = assigned_strategies[i].value
+                self.world.nations[nation_id].government_type = assigned_govs[i].value
+
+        # 2. Re-create Agents (Always, for both new and restored sims)
+        for nation_id, nation in self.world.nations.items():
+            # Robust casting for strings/enums/mocks
+            strat_val = nation.global_strategy
+            if hasattr(strat_val, "value"): strat_val = strat_val.value
+            strategy = GlobalStrategy(strat_val)
+            
+            gov_val = nation.government_type
+            if hasattr(gov_val, "value"): gov_val = gov_val.value
+            gov_type = GovernmentType(gov_val)
             
             print(f"[INIT] {nation_id} Strategy: {strategy.value} | Gov: {gov_type.value}")
             
@@ -257,32 +272,38 @@ class SimulationEngine:
                 government_type=gov_type
             )
             
-        # 4. Scenario Calibration: Distribute Nukes
-        # Ensure SCORCHED_EARTH always has nuclear capabilities to enable specific MAS dynamics.
-        # Clear any haphazard genesis nukes first
-        for nation in self.world.nations.values():
-            nation.nukes = 0
-            
-        nuke_recipients = []
-        for nid, agent in self.agents.items():
-            if agent.strategy == GlobalStrategy.SCORCHED_EARTH:
-                nuke_recipients.append(nid)
-                
-        # Fill remaining slots randomly up to standard quota (2-4 nations)
-        target_nuke_nations = max(len(nuke_recipients), min(len(nation_ids), 3))
-        import random
-        # Combine map_seed and history_seed for deterministic distribution
-        nuke_rng = random.Random(self.map_seed + self.history_seed + 999) 
+        # 3. Nuclear Calibration (Only if turn <= 1 and nobody has nukes yet)
+        # Avoids wiping nukes on turn-reload and avoids re-distributing spent nukes
+        # Robust check for mocks
+        def get_nukes(n):
+            val = getattr(n, 'nukes', 0)
+            return val if isinstance(val, int) else 0
+
+        has_nukes = any(get_nukes(n) > 0 for n in self.world.nations.values())
         
-        candidates = [nid for nid in nation_ids if nid not in nuke_recipients]
-        while len(nuke_recipients) < target_nuke_nations and candidates:
-            chosen = nuke_rng.choice(candidates)
-            candidates.remove(chosen)
-            nuke_recipients.append(chosen)
+        # turn check also needs to be robust for mocks
+        world_turn = getattr(self.world, 'turn', 0)
+        if not isinstance(world_turn, int): world_turn = 0
+
+        if not has_nukes and world_turn <= 1:
+            nuke_recipients = []
+            for nid, agent in self.agents.items():
+                if agent.strategy == GlobalStrategy.SCORCHED_EARTH:
+                    nuke_recipients.append(nid)
+                    
+            target_nuke_nations = max(len(nuke_recipients), min(len(self.world.nations), 3))
+            import random
+            nuke_rng = random.Random(self.map_seed + self.history_seed + 999) 
             
-        for nid in nuke_recipients:
-            self.world.nations[nid].nukes = nuke_rng.randint(1, 5)
-            print(f"[INIT] {nid} assigned {self.world.nations[nid].nukes} Nuclear Weapons.")
+            non_recipients = [nid for nid in self.world.nations.keys() if nid not in nuke_recipients]
+            while len(nuke_recipients) < target_nuke_nations and non_recipients:
+                chosen = nuke_rng.choice(non_recipients)
+                non_recipients.remove(chosen)
+                nuke_recipients.append(chosen)
+                
+            for nid in nuke_recipients:
+                self.world.nations[nid].nukes = nuke_rng.randint(1, 5)
+                print(f"[INIT] {nid} assigned {self.world.nations[nid].nukes} Nuclear Weapons.")
     
     def _init_opinion_agents(self):
         """Creates an OpinionAgent for each nation."""

@@ -38,9 +38,9 @@ class TestStrategyDistribution:
         assert len(profiles) == 8
         assert profiles.count((GlobalStrategy.TOTAL_EXPANSIONISM, "AUTHORITARIAN")) == 1
         assert profiles.count((GlobalStrategy.TOTAL_EXPANSIONISM, "DEMOCRACY")) == 1
+        assert profiles.count((GlobalStrategy.TOTAL_EXPANSIONISM, "THEOCRACY")) == 1
         assert profiles.count((GlobalStrategy.COALITION_BUILDER, "DEMOCRACY")) == 3
         assert profiles.count((GlobalStrategy.ARMED_ISOLATIONISM, "DEMOCRACY")) == 1
-        assert profiles.count((GlobalStrategy.ARMED_ISOLATIONISM, "THEOCRACY")) == 1
         assert profiles.count((GlobalStrategy.SCORCHED_EARTH, "AUTHORITARIAN")) == 1
 
     def test_distribution_fallback(self):

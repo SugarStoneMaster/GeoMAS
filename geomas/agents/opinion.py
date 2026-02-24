@@ -63,7 +63,8 @@ class OpinionAgent:
         cultural_traits: List[str],
         llm_client: Optional['LLMClient'] = None,
         world: Optional['WorldState'] = None,
-        government_type = None
+        government_type = None,
+        enabled: Optional[bool] = None
     ):
         self.nation_id = nation_id
         self.nation_name = nation_name
@@ -71,6 +72,7 @@ class OpinionAgent:
         self.llm_client = llm_client
         self.world = world
         self.government_type = government_type
+        self.enabled = enabled
         
         # Traces for analysis
         self.last_system_prompt: Optional[str] = None
@@ -103,8 +105,11 @@ class OpinionAgent:
         Returns:
             OpinionResponse with multipliers
         """
-        # Check Environment Variable
-        opinion_enabled = os.environ.get("PUBLIC_OPINION_ENABLED", "true").lower() == "true"
+        # Check Status
+        if self.enabled is not None:
+            opinion_enabled = self.enabled
+        else:
+            opinion_enabled = os.environ.get("PUBLIC_OPINION_ENABLED", "false").lower() == "true"
         
         if not self.llm_client or not opinion_enabled:
             # Fallback: deterministic reaction based on traits
@@ -252,8 +257,12 @@ Based on cultural traits and events, how does the population react?"""
         elif current_satisfaction >= 70:
             mood = "CONTENT"
             
-        # Check Environment Variable
-        opinion_enabled = os.environ.get("PUBLIC_OPINION_ENABLED", "true").lower() == "true"
+        # Check Status
+        if self.enabled is not None:
+            opinion_enabled = self.enabled
+        else:
+            opinion_enabled = os.environ.get("PUBLIC_OPINION_ENABLED", "false").lower() == "true"
+        
         if not opinion_enabled:
             # Fully disabled: return flat multipliers, ignore traits
             return OpinionResponse(

@@ -25,7 +25,8 @@ class TestOpinionAgent:
             nation_id="test_nation",
             nation_name="Test Republic",
             cultural_traits=["Nationalist", "Resilient"],
-            llm_client=None  # No LLM
+            llm_client=None,  # No LLM
+            enabled=True
         )
         
         response = agent.react(
@@ -45,14 +46,16 @@ class TestOpinionAgent:
             nation_id="neutral",
             nation_name="Neutral Land",
             cultural_traits=[],
-            llm_client=None
+            llm_client=None,
+            enabled=True
         )
         
         agent_nationalist = OpinionAgent(
             nation_id="nationalist",
             nation_name="Proud Nation",
             cultural_traits=["Nationalist"],
-            llm_client=None
+            llm_client=None,
+            enabled=True
         )
         
         response_neutral = agent_neutral._deterministic_reaction(
@@ -72,14 +75,16 @@ class TestOpinionAgent:
             nation_id="normal",
             nation_name="Normal Land",
             cultural_traits=[],
-            llm_client=None
+            llm_client=None,
+            enabled=True
         )
         
         agent_resilient = OpinionAgent(
             nation_id="resilient",
             nation_name="Strong Nation",
             cultural_traits=["Resilient"],
-            llm_client=None
+            llm_client=None,
+            enabled=True
         )
         
         response_normal = agent_normal._deterministic_reaction(
@@ -98,7 +103,8 @@ class TestOpinionAgent:
             nation_id="weary",
             nation_name="War-Weary Nation",
             cultural_traits=[],
-            llm_client=None
+            llm_client=None,
+            enabled=True
         )
         
         # Not at war, good satisfaction

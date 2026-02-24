@@ -94,6 +94,7 @@ class NationState(BaseModel):
     government_type: Optional[str] = None  # GovernmentType: DEMOCRACY, AUTHORITARIAN, THEOCRACY
     civil_unrest_active: bool = False  # True when satisfaction < 10, ends at > 50
     is_active: bool = True  # True by default, False if all provinces are lost
+    global_strategy: Optional[str] = None  # Persistent GlobalStrategy value
     
     # --- BUDGET (National Treasury) ---
     # Initialized randomly at genesis, increased only by province taxes

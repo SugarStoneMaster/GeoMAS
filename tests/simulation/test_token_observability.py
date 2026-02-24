@@ -107,8 +107,17 @@ class TestTokenObservability(unittest.TestCase):
         # Initialize engine
         sim = SimulationEngine(llm_client=client, n_cells=100)
         
-        # Run 1 turn
-        sim.step()
+        # Run 1 turn with Public Opinion enabled for logging verification
+        import os
+        old_val = os.environ.get("PUBLIC_OPINION_ENABLED")
+        os.environ["PUBLIC_OPINION_ENABLED"] = "true"
+        try:
+            sim.step()
+        finally:
+            if old_val is not None:
+                os.environ["PUBLIC_OPINION_ENABLED"] = old_val
+            else:
+                del os.environ["PUBLIC_OPINION_ENABLED"]
         
         # Close engine to flush logs
         sim.close()
