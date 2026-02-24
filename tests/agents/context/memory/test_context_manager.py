@@ -192,7 +192,7 @@ class TestContextManager:
         
         manager._prune_if_needed()
         
-        assert len(manager.global_events) == 168 # No pruning for global events anymore (100 new + 68 genesis)
+        assert len(manager.global_events) == 169 # No pruning for global events anymore (100 new + 69 genesis)
     
     def test_critical_events_preserved(self, manager):
         """Critical events are preserved during pruning."""

@@ -412,7 +412,8 @@ def _execute_move_troops(
             _conquer_province,
         )
         import random
-        rng = random.Random(engine.world.turn + hash(nation_id))
+        import zlib
+        rng = random.Random(engine.world.turn + zlib.adler32(nation_id.encode()))
         
         # Suicide check (Warning but no abort)
         from geomas.actions.defense.combat import get_total_defenders, get_terrain_defense_bonus

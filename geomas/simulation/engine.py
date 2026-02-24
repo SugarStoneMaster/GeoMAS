@@ -682,7 +682,8 @@ class SimulationEngine:
             self.turn_logs,
             self.opinion_agents,
             turn_envelopes,
-            turn=current_turn
+            turn=current_turn,
+            seed=self.map_seed
         )
         
         # Inject Opinion prompts into envelopes before persistence
@@ -746,7 +747,13 @@ class SimulationEngine:
         
         sim_id_to_load = from_simulation_id if from_simulation_id is not None else self.simulation_id
             
-        # 1. Load Snapshot
+        # 1. Load Simulation Metadata and Snapshot
+        info = self.db.get_simulation_info(sim_id_to_load)
+        if info:
+            self.map_seed = info.get("genesis_seed", self.map_seed)
+            self.history_seed = info.get("simulation_seed", self.history_seed)
+            print(f"[LOAD] Restored Seeds -> Map: {self.map_seed}, History: {self.history_seed}")
+
         data = self.db.load_snapshot(sim_id_to_load, turn)
         if not data:
             raise ValueError(f"Snapshot for turn {turn} not found in DB")

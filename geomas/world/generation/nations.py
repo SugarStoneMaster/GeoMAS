@@ -51,12 +51,17 @@ def assign_nations(
         nation_id = preset["id"]
         initial_budget = rng.uniform(BUDGET_MIN, BUDGET_MAX)
         
+        # Generate cultural traits based on seed
+        from geomas.actions.opinion.traits import generate_cultural_traits
+        traits = generate_cultural_traits(nation_id, rng.randint(0, 1000000))
+        
         nations_dict[nation_id] = NationState(
             id=nation_id,
             name=preset["name"],
             color=preset["color"],
             province_ids=[],
-            total_budget=initial_budget
+            total_budget=initial_budget,
+            cultural_traits=traits
         )
     
     return nations_dict, seed_provinces

@@ -158,7 +158,10 @@ def check_triggers(engine: 'ActionEngine', nation_id: str, rng: random.Random = 
         return []
     
     if rng is None:
-        rng = random.Random()
+        # Fallback to a stable seed if no RNG provided (not ideal, but better than non-deterministic)
+        import zlib
+        seed = world.turn + zlib.adler32(nation_id.encode())
+        rng = random.Random(seed)
     
     triggered = []
     sat = nation.public_satisfaction

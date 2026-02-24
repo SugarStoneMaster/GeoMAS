@@ -61,8 +61,9 @@ def generate_cultural_traits(nation_id: str, seed: int) -> List[str]:
     Returns 4-6 traits that define population character.
     Deterministic: same seed + nation_id = same traits.
     """
-    # Create nation-specific RNG
-    nation_seed = hash((seed, nation_id)) & 0xFFFFFFFF
+    # Create nation-specific RNG using a stable hash
+    import zlib
+    nation_seed = (seed + zlib.adler32(nation_id.encode())) & 0xFFFFFFFF
     rng = random.Random(nation_seed)
     
     traits = []

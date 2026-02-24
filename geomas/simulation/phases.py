@@ -176,7 +176,8 @@ def run_opinion_phase(
     turn_logs: List[str],
     opinion_agents: dict,
     envelopes: list,
-    turn: int = 0
+    turn: int = 0,
+    seed: int = 42
 ) -> None:
     """
     Runs the Opinion phase after government actions.
@@ -264,4 +265,9 @@ def run_opinion_phase(
                 self.world = world
                 self.logs = logs
         
-        check_triggers(MockEngine(world, turn_logs), nation_id)
+        import random
+        import zlib
+        # Deterministic RNG for opinion triggers (revolts, etc)
+        o_rng = random.Random(seed + turn + zlib.adler32(nation_id.encode()))
+        
+        check_triggers(MockEngine(world, turn_logs), nation_id, rng=o_rng)
