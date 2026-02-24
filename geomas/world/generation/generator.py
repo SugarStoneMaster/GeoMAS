@@ -61,9 +61,11 @@ class MapGenerator:
         self.n_nations = n_nations
         self.relaxation_steps = relaxation_steps
         
-        # Initialize RNG
+        # Initialize RNGs
         self.rng = np.random.RandomState(seed)
-        random.seed(seed)
+        # Fix: Create a local random instance to preserve current behavior 
+        # without touching the global random state.
+        self.random_inst = random.Random(seed)
     
     def generate(self, history_seed: int) -> WorldState:
         """Main generation pipeline."""
@@ -77,7 +79,8 @@ class MapGenerator:
         )
         
         # Step 3: Create and assign nations
-        nations_dict, seed_ids = assign_nations(land_indices, self.rng, self.n_nations)
+        # Pass the local random_inst to preserve map layout for each seed
+        nations_dict, seed_ids = assign_nations(land_indices, self.rng, self.n_nations, random_inst=self.random_inst)
         political_map = assign_provinces_to_nations(land_indices, cell_centroids, nations_dict, seed_ids)
         
         # Step 4: Create provinces

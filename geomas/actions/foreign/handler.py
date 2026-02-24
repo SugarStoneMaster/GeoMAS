@@ -5,7 +5,7 @@ Executes diplomatic actions (one action per turn).
 """
 
 from typing import TYPE_CHECKING, Optional
-import uuid
+import zlib
 from geomas.actions.foreign.schemas import (
     ForeignActionType,
     ForeignPayload,
@@ -300,7 +300,8 @@ def _execute_request_peace(
     
     # Add pending proposal to target nation
     target_nation = world.nations[target_id]
-    proposal_id = str(uuid.uuid4())[:8]
+    # FIX: Deterministic proposal ID instead of uuid4
+    proposal_id = hex(zlib.adler32(f"{world.turn}{requester_id}{target_id}PEACE".encode()))[2:]
     target_nation.pending_proposals.append({
         "id": proposal_id,
         "type": "PEACE",
@@ -411,7 +412,8 @@ def _execute_propose_alliance(
             engine.logs.append(f"🤝 [FOREIGN] Alliance proposal to {target_id} already pending")
             return False, "Proposal already pending"
 
-    proposal_id = str(uuid.uuid4())[:8]
+    # FIX: Deterministic proposal ID instead of uuid4
+    proposal_id = hex(zlib.adler32(f"{world.turn}{proposer_id}{target_id}ALLIANCE".encode()))[2:]
     target_nation.pending_proposals.append({
         "id": proposal_id,
         "type": "ALLIANCE",

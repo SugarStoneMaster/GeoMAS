@@ -6,7 +6,7 @@ territorial waters, and nuclear distribution.
 """
 
 import numpy as np
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional, Any
 from shapely.geometry import Polygon as ShapelyPolygon
 
 from geomas.schemas.world import NationState, ProvinceState, TerrainType
@@ -25,7 +25,8 @@ NUKES_PER_NATION_MAX = 5
 def assign_nations(
     land_indices: List[int],
     rng: np.random.RandomState,
-    n_nations: int
+    n_nations: int,
+    random_inst: Optional[Any] = None
 ) -> Tuple[Dict[str, NationState], List[int]]:
     """
     Creates nations and picks initial seed provinces for territory expansion.
@@ -34,15 +35,17 @@ def assign_nations(
         land_indices: List of land cell indices
         rng: Random state for determinism
         n_nations: Number of nations to create
+        random_inst: Optional local random instance
         
     Returns:
         tuple (nations_dict, seed_province_ids)
     """
     import random
+    local_random = random_inst or random
     
     n_nations = min(n_nations, len(PRESET_NATIONS), len(land_indices))
     sorted_land = sorted(land_indices)
-    seed_provinces = random.sample(sorted_land, n_nations)
+    seed_provinces = local_random.sample(sorted_land, n_nations)
     
     nations_dict = {}
     

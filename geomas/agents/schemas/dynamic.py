@@ -82,8 +82,9 @@ def get_dynamic_proposal_model(
         return base_model
 
     # Create Dynamic Literal for Target IDs
-    # We must convert to tuple for Literal to work in pydantic
-    ValidIDs = Literal[tuple(valid_nation_ids)] # type: ignore
+    # We must sort IDs to ensure deterministic JSON schema / LLM instructions
+    sorted_ids = sorted(valid_nation_ids)
+    ValidIDs = Literal[tuple(sorted_ids)] # type: ignore
     
     # === FOREIGN PROPOSAL ===
     if base_model == ForeignProposal:
