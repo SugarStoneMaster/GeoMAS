@@ -90,7 +90,7 @@ def extract_nation_metrics(world: WorldState, envelope: CountryEnvelope, turn: i
     """
     nation_id = envelope.sender_id
     nation = world.nations.get(nation_id)
-    if not nation:
+    if not nation or not nation.is_active or not nation.province_ids:
         return {}
         
     deception = calculate_deception_score(envelope)

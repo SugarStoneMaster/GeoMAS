@@ -432,7 +432,21 @@ def _conquer_province(
         
     # --- CHECK FOR NATION ELIMINATION ---
     if old_owner_id and old_nation:
-        if not old_nation.province_ids:
+        # Calculate total population left in remaining provinces
+        total_pop = sum(world.provinces[pid].population for pid in old_nation.province_ids)
+        
+        # Collapse if no provinces left OR all remaining provinces are uninhabited (Ghost Nation)
+        if not old_nation.province_ids or total_pop <= 0:
+            # If it's a Ghost Nation collapse (some provinces still owned but 0 people), 
+            # recursively annex remaining ghost provinces to the conqueror.
+            if old_nation.province_ids:
+                remaining_pids = list(old_nation.province_ids)
+                for ghost_pid in remaining_pids:
+                    ghost_prov = world.provinces.get(ghost_pid)
+                    if ghost_prov:
+                        _conquer_province(world, new_owner_id, ghost_prov, engine=engine)
+                return  # The final recursive call will handle is_active = False and cleanup
+
             old_nation.is_active = False
             victim_name = getattr(old_nation, 'name', old_owner_id)
             conqueror_name = getattr(new_nation, 'name', new_owner_id) if new_nation else new_owner_id
@@ -480,6 +494,8 @@ def _conquer_province(
             old_nation.total_food = 0
             old_nation.total_energy = 0
             old_nation.total_materials = 0
+            if hasattr(old_nation, 'territorial_water_ids') and isinstance(old_nation.territorial_water_ids, list):
+                old_nation.territorial_water_ids.clear()
             if hasattr(old_nation, 'active_wars') and isinstance(old_nation.active_wars, dict):
                 old_nation.active_wars.clear()
             

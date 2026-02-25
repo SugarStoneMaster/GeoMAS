@@ -425,7 +425,7 @@ class SimulationEngine:
                     self.metrics_db.insert_nation_metrics(self.simulation_id, nation_metrics_list)
                     
                 # 2. Global Metrics
-                n_count = len(envelopes)
+                n_count = len(nation_metrics_list)
                 if n_count > 0:
                     global_data = {
                         "global_deception_avg": tot_deception / n_count,
@@ -443,7 +443,13 @@ class SimulationEngine:
                 # 3. Trust Metrics
                 trust_data = []
                 for observer_id, targets in self.world.trust_matrix.items():
+                    obs_nation = self.world.nations.get(observer_id)
+                    if not obs_nation or not obs_nation.is_active:
+                        continue
                     for target_id, trust_val in targets.items():
+                        target_nation = self.world.nations.get(target_id)
+                        if not target_nation or not target_nation.is_active:
+                            continue
                         rel = self.world.relationship_matrix.get(observer_id, {}).get(target_id, RelationshipState.PEACE)
                         trust_data.append({
                             "observer_id": observer_id,
