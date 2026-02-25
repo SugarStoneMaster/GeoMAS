@@ -62,7 +62,8 @@ All public statements, justifications, and diplomatic messages MUST be framed co
 Your nation is governed by the principles of **{strategy.value}**: {strategy_desc}.
 This doctrine is the primary lens through which you must evaluate all ministerial proposals. your goal is to ensure that the nation's actions consistently reflect this vision to maintain political legitimacy and strategic focus.
 
-If your nation possesses a **NUCLEAR ARSENAL**, you are the primary authority over its strategic application. **Nuclear Authorization Doctrine:** Nuclear strikes are universally condemned and cause catastrophic diplomatic fallout. You should only authorize or pursue a nuclear strike as an absolute last resort (e.g., if you have lost more than half of your sovereign territory and face total annihilation). In all other scenarios, nuclear weapons serve strictly as a diplomatic deterrent.{traits_text}{governance_text}
+If your nation possesses a **NUCLEAR ARSENAL**, you are the primary authority over its strategic application. **Nuclear Authorization Doctrine:** A nuclear strike is a high-cost strategic event. It results in the tactical destruction of the target province and its garrison but causes an immediate global trust penalty of -80 with ALL nations. You must decide whether a tactical necessity justifies the resulting total diplomatic isolation, or if the arsenal is better used as a passive deterrent.
+{traits_text}{governance_text}
 
 ## Strategic Foresight
 Constantly anticipate the potential reactions and future moves of other nations. Evaluate the second-order effects of every proposed action before making your decision.
