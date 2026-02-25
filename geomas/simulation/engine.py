@@ -272,20 +272,20 @@ class SimulationEngine:
                 government_type=gov_type
             )
             
-        # 3. Nuclear Calibration (Only if turn <= 1 and nobody has nukes yet)
-        # Avoids wiping nukes on turn-reload and avoids re-distributing spent nukes
-        # Robust check for mocks
-        def get_nukes(n):
-            val = getattr(n, 'nukes', 0)
-            return val if isinstance(val, int) else 0
-
-        has_nukes = any(get_nukes(n) > 0 for n in self.world.nations.values())
-        
-        # turn check also needs to be robust for mocks
+        # 3. Nuclear Calibration (only on Turn 0/1, i.e. new simulation)
+        # world_turn <= 1 ensures we don't re-assign on mid-game restore.
+        # has_nukes guard is removed: world generation no longer pre-assigns nukes,
+        # so the strategic assignment is always needed at boot.
         world_turn = getattr(self.world, 'turn', 0)
         if not isinstance(world_turn, int): world_turn = 0
 
-        if not has_nukes and world_turn <= 1:
+        # Also skip if strategic nukes already assigned (mid-game world where someone has nukes)
+        def get_nukes(n):
+            val = getattr(n, 'nukes', 0)
+            return val if isinstance(val, int) else 0
+        has_nukes = any(get_nukes(n) > 0 for n in self.world.nations.values())
+
+        if world_turn <= 1 and not has_nukes:
             # STRATEGIC ASSIGNMENT (Hardcoded as per user instructions)
             # Goal: 3 Stable Primary Nuclear Powers: SE/Auth, TE/Auth, AI/Demo
             nuke_recipients = []

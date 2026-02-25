@@ -19,7 +19,6 @@ from geomas.world.generation.nations import (
     assign_nations,
     assign_provinces_to_nations,
     assign_territorial_waters,
-    distribute_nukes
 )
 from geomas.world.generation.provinces import create_provinces
 
@@ -91,7 +90,8 @@ class MapGenerator:
         
         # Step 5: Finalize
         assign_territorial_waters(ocean_indices, provinces_dict, nations_dict)
-        distribute_nukes(nations_dict, self.rng)
+        # NOTE: Nuke distribution is handled by SimulationEngine._init_agents
+        # based on strategic profiles, NOT here during world generation.
         
         # Step 6: Calculate aggregates
         self._calculate_nation_aggregates(nations_dict, provinces_dict)
