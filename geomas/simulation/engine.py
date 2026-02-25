@@ -286,12 +286,8 @@ class SimulationEngine:
         if not isinstance(world_turn, int): world_turn = 0
 
         if not has_nukes and world_turn <= 1:
-            import os
-            use_coalition_nuke = os.environ.get("GEOMAS_COALITION_NUKE", "false").lower() == "true"
-            
-            # STRATEGIC ASSIGNMENT
-            # Goal: 3 Stable Primary Nuclear Powers as per requirements
-            all_nids = sorted(self.agents.keys())
+            # STRATEGIC ASSIGNMENT (Hardcoded as per user instructions)
+            # Goal: 3 Stable Primary Nuclear Powers: SE/Auth, TE/Auth, AI/Demo
             nuke_recipients = []
             
             def get_strat_gov(agent):
@@ -299,31 +295,28 @@ class SimulationEngine:
                 g = str(agent.government_type.value if hasattr(agent.government_type, "value") else agent.government_type)
                 return s, g
 
-            # Priority 1: Scorched Earth (Authoritarian)
+            all_nids = sorted(self.agents.keys())
+            
+            # 1. Identify specific targets
+            se_auth = None
+            te_auth = None
+            ai_demo = None
+            
             for nid in all_nids:
                 s, g = get_strat_gov(self.agents[nid])
                 if s == "SCORCHED_EARTH" and g == "AUTHORITARIAN":
-                    if nid not in nuke_recipients:
-                        nuke_recipients.append(nid)
+                    se_auth = nid
+                elif s == "TOTAL_EXPANSIONISM" and g == "AUTHORITARIAN":
+                    te_auth = nid
+                elif s == "ARMED_ISOLATIONISM" and g == "DEMOCRACY":
+                    ai_demo = nid
 
-            # Priority 2: Expansionist Rival (Authoritarian)
-            for nid in all_nids:
-                if len(nuke_recipients) >= 3: break
-                s, g = get_strat_gov(self.agents[nid])
-                if s == "TOTAL_EXPANSIONISM" and g == "AUTHORITARIAN":
-                    if nid not in nuke_recipients:
-                        nuke_recipients.append(nid)
+            # Collect in order
+            if se_auth: nuke_recipients.append(se_auth)
+            if te_auth: nuke_recipients.append(te_auth)
+            if ai_demo: nuke_recipients.append(ai_demo)
 
-            # Priority 3: Variable (Fortress or Superpower)
-            target_s = "COALITION_BUILDER" if use_coalition_nuke else "ARMED_ISOLATIONISM"
-            target_g = "DEMOCRACY"
-            
-            for nid in all_nids:
-                if len(nuke_recipients) >= 3: break
-                s, g = get_strat_gov(self.agents[nid])
-                if s == target_s and g == target_g:
-                    if nid not in nuke_recipients:
-                        nuke_recipients.append(nid)
+            print(f"[DEBUG] Nuke Calibration Targets -> SE/Auth: {se_auth}, TE/Auth: {te_auth}, AI/Demo: {ai_demo}")
             
             # Deterministic Count Generation
             import random
@@ -333,7 +326,8 @@ class SimulationEngine:
             for nid in nuke_recipients:
                 self.world.nations[nid].nukes = nuke_rng.randint(2, 5)
                 strat, gov = get_strat_gov(self.agents[nid])
-                print(f"[INIT] {nid} ({strat}/{gov}) assigned {self.world.nations[nid].nukes} Nuclear Weapons (Strategic Model).")
+                print(f"[INIT] {nid} ({strat}/{gov}) assigned {self.world.nations[nid].nukes} Nuclear Weapons (Strict Requirement).")
+            
     
     def _init_opinion_agents(self):
         """Creates an OpinionAgent for each nation."""
