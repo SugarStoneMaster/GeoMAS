@@ -1,16 +1,36 @@
 """
-XAI (Explainability) Package.
+XAI (Explainability) Package — Counterfactual Analysis Toolkit.
 
-Tools for explaining and visualizing agent decision-making.
+Provides tools for understanding and explaining agent behavior through
+post-hoc analysis and counterfactual experimentation.
 
-This package provides utilities to make the AI agents' reasoning
-transparent and interpretable for research purposes.
+Current Capabilities (embedded across other packages):
+    1. Prompt Traces: Every CountryEnvelope stores full system_prompt,
+       input_prompt, and raw_json for all 5 agent types (President,
+       DefenseMinister, EconomicMinister, ForeignMinister, OpinionAgent).
+       Enables prompt-level review of any decision at any turn.
 
-Modules:
-    - (future) decision_trees: Visualize decision paths
-    - (future) intent_analysis: Track intent evolution over time
+    2. XAI Injections: SimulationEngine.fork() creates a parallel timeline.
+       Injections are natural language instructions appended to agent prompts
+       (e.g., "You MUST declare war on Ferecia"). Can target individual
+       ministers or the president. Fork diverges from base timeline,
+       enabling counterfactual analysis via DeltaAnalyzer.
+
+    3. Deception Analysis: DeceptionAnalyzer compares public vs private
+       intents using hand-crafted matrices, providing per-turn deception
+       scores and identifying moral washing patterns.
+
+    4. Divergence Scoring: DeltaAnalyzer.calculate_divergence_score()
+       with weighted metrics. LLM-powered causal explanation via
+       explain_divergence().
+
+Implementation locations:
+    - geomas.agents.schemas.protocol (CountryEnvelope trace fields)
+    - geomas.analysis.comparison (DeltaAnalyzer)
+    - geomas.analysis.deception (DeceptionAnalyzer)
+    - geomas.simulation.engine (forking mechanism)
 
 Note:
-    This package is under development. Current explainability features
-    are embedded in the CountryEnvelope (intent.reasoning fields).
+    This package is a placeholder for future dedicated XAI tools.
+    Current explainability features are distributed across the codebase.
 """

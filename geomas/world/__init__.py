@@ -1,23 +1,46 @@
 """
-World Package.
+World Package — Procedural Generation and Spatial Intelligence.
 
-Handles all aspects of the simulated world map:
+Map generation pipeline, spatial analysis tools, and historical simulation.
+Produces a fully initialized WorldState from a pair of seeds (map + history).
+
+Architecture:
+    The world generation pipeline runs in 8 sequential stages:
+    1. Voronoi Tessellation: N cells (default 1500) with Lloyd's relaxation
+       (default 3 iterations) for uniform distribution.
+    2. Geography: Land/ocean classification using distance-from-center.
+       Terrain: PLAINS, MOUNTAIN, DESERT, FOREST, COASTAL, OCEAN, VOID.
+    3. Nation Seeding: Place N capitals on land cells (maximin distance).
+    4. Organic Territory Growth: BFS expansion from capitals.
+    5. Province Initialization: Population, resources, military by terrain.
+    6. Territorial Waters: Ocean provinces adjacent to nation's coastline.
+    7. Nation Aggregates: Stockpiles = 5 turns consumption × prosperity (0.7-1.3).
+    8. Genesis: 50-year deterministic history populating trust matrix with
+       asymmetric relationships via border friction, trade, diplomatic shifts.
 
 Subpackages:
-    - generation/: Procedural world creation (Voronoi, geography, nations)
-    - spatial/: Spatial analysis (graph operations, pathfinding)
+    - generation/: Procedural creation pipeline
+        voronoi.py: Scipy Voronoi + Lloyd's relaxation + adjacency graph
+        geography.py: Land/ocean classification, terrain assignment
+        nations.py: Capital placement, BFS territory growth, territorial waters
+        provinces.py: create_provinces() with terrain-dependent initialization
+        generator.py: MapGenerator orchestrating all 8 stages
 
-Main Functions:
-    - generate_world(seed, history_seed, n_cells, n_nations): Creates a complete
-      WorldState with nations, provinces, and historical relationships.
+    - spatial/: Graph-based spatial operations
+        manager.py (SpatialManager, 176 lines): NetworkX graph wrapper.
+          Key methods: get_permitted_path() — relationship-aware pathfinding
+          through owned/allied territory with terrain constraints;
+          get_border_provinces(), get_neighboring_nations(),
+          get_coastal_provinces(), is_contiguous().
 
-The world generation pipeline:
-    1. Voronoi mesh creation (cells become provinces)
-    2. Geography assignment (land, ocean, coastal, mountains)
-    3. Nation placement and territory growth
-    4. Province initialization (population, resources, military)
-    5. Territorial waters calculation
-    6. Genesis historical simulation
+Modules:
+    - genesis.py (GenesisEngine, 311 lines): Ancient history simulator.
+      Per-year: trust decay, border dynamics (friction → trust decrease),
+      trade dynamics (complementary resources → trust increase),
+      diplomatic shifts (trust thresholds → rivalry/alliance events).
+      Config: BORDER_FRICTION=0.3, TRADE_BONUS=0.2, TRUST_DECAY=0.02.
+    - territory.py: Territory transfer utilities.
+    - presets.py: Preset world configurations.
 
 Note: SpatialTranslator has been moved to geomas.agents.context
 """

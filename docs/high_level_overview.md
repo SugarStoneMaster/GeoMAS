@@ -1,57 +1,185 @@
-# 👑 GeoMAS - Exhaustive High-Level Overview
+# 👑 GeoMAS — Exhaustive High-Level Overview
 
-**GeoMAS (Geopolitical Multi-Agent System)** is a high-fidelity research framework designed to study the intersection of **deterministic game theory** and **LLM-driven cognitive dissonance**. It provides a scientific sandbox where agents govern nations within a world of rigid physical and economic constraints.
+**GeoMAS (Geopolitical Multi-Agent System)** is a high-fidelity research framework designed to study the intersection of **deterministic game theory** and **LLM-driven cognitive dissonance**. It provides a scientific sandbox where AI agents govern nations within a world of rigid physical and economic constraints, enabling quantitative analysis of deception, moral washing, alliance dynamics, and strategic decision-making.
 
 ---
 
-## 🎯 The Researcher’s Sandbox
+## 🎯 The Researcher's Sandbox
 
-GeoMAS is engineered to move beyond descriptive modeling into **causal and counterfactual analysis**.
+GeoMAS is engineered for **causal and counterfactual analysis** — not descriptive modeling.
 
 ### 1. Dual-Track Determinism
-Researchers can isolate the variables of conflict by leveraging two distinct layers:
-- **Structural Layer (Pure Math)**: Every physical event, from map generation to resource extraction, is governed by a `history_seed`. If the agents were removed, the world would play out as a perfectly predictable system.
-- **Cognitive Layer (Agent Intent)**: LLM agents populate the system prompts of the national Cabinet. While they operate under low-temperature settings, their "cognitive edge" introduces strategic pivot points that can be traced back to linguistic reasoning.
+- **Structural Determinism**: Given identical seeds (`map_seed` + `history_seed`), the physical world (Voronoi map, terrain, resources, genesis history) is **bitwise reproducible**. All RNG is local (`np.random.RandomState`, `random.Random(seed)`), never global.
+- **Cognitive Variability**: LLM agents introduce controlled non-determinism. The same prompt may produce different decisions across runs, enabling statistical analysis of emergent behavior versus structural constraints.
 
-### 2. The Three Pillars of Production
-National survival in GeoMAS depends on the **Production Multiplier**, a mathematical product of three distinct systemic health indicators:
-$$Multiplier = Workforce \times Satisfaction \times Energy$$
-- **Workforce Factor**: Production scales linearly based on the ratio of workers to population. If military mobilization exceeds **50%**, industrial output decays proportionally to zero.
-- **Satisfaction Elasticity**: A rule-based metric representing social stability. Values below **20%** trigger a "Revolutionary State," collapsing production through general strikes.
-- **Energy Resilience**: Each unit of energy deficit beyond consumption requirements penalizes production by **1%**, with a hard floor at **50%** output (representing total brownout conditions).
+### 2. Three Research Axes
+| Axis | Metric | Source Module |
+|------|--------|---------------|
+| **Deception** | Public vs. Private intent divergence (0.0–1.0) | `analysis.deception` |
+| **Coherence** | Strategy-intent alignment (0.0–1.0) | `analysis.coherence` |
+| **Moral Washing** | Governance-framed deception (EXPORT_DEMOCRACY, HOLY_WAR) | `analysis.deception` matrices |
 
-### 3. Hierarchical Cabinet Dynamics
-GeoMAS models the internal friction and cognitive biases of a sovereign state:
-- **The Ministerial Divide**: Three specialists (Defense, Economy, Foreign) generate domain-specific proposals. They operate under **Bounded Rationality**, as the `ContextManager` restricts their visibility to 50 recent events and 10 past actions per domain.
-- **The Presidential Oracle**: The President LLM must reconcile conflicting proposals (e.g., taxing for a war vs. investing in welfare) by aligning them with one of four **Global Strategy Archetypes**:
-    - *Armed Isolationism*: (Deterrence, Self-Sufficiency).
-    - *Coalition Builder*: (Alliances, Trade).
-    - *Total Expansionism*: (Aggressive territorial growth).
-    - *Scorched Earth*: (Unpredictable resource denial).
-- **Public Messaging**: All public statements are filtered through a **Governance Framing** logic. For example, a "Democracy" must justify its actions through *Freedom* and *Rights*, while a "Theocracy" is constrained to *Divine Mandate* and *Faith*.
-
-### 4. Advanced Quantitative Analytics
-Researchers can track the emergence of behavior through specialized indices:
-- **Strategic Deception Score**: A metric (0.0 to 1.0) derived from a **Deception Matrix**. It compares the "Private Intent" shared inside the Cabinet with the "Public Announcement."
-    - *Scenario*: Nation A privately plots *Conquest* but publicly announces *Defense*. Result: Deception score of **0.95**.
-- **Power Projection (Military/Economic Index)**: A weighted aggregate representing a nation's global footprint:
-    - **Nukes**: 50.0 (The ultimate deterrent).
-    - **Aircraft**: 0.5 | **Navy**: 0.3 | **Soldiers**: 0.1.
-    - **Resources**: (Materials 0.03 > Energy 0.02 > Food 0.01).
-- **Consensus Coherence**: Measures how closely a nation's turning actions (intent) match its selected Global Strategy.
-
-### 5. Counterfactual Logic: The State-Load Fork
-The defining capability for scientific study is **Experimental Branching**. Researchers can:
-1. Run a simulation to turn 50.
-2. Identitfy a "Pivot Turn" (e.g., a declaration of war).
-3. **Load the state** of turn 49.
-4. Inject a command (XAI Injection) to force a different decision (e.g., a peace offer).
-5. Observe the divergence in world history between the baseline and the counterfactual run.
+### 3. Counterfactual Analysis (XAI)
+The simulation supports **fork-and-compare** experiments:
+1. Run a **base timeline** for N turns.
+2. **Fork** at turn T with an **XAI injection** (e.g., "You MUST declare war on Ferecia").
+3. The forked timeline diverges from the base.
+4. **DeltaAnalyzer** computes divergence scores and LLM-powered causal explanations.
 
 ---
 
-## 🚀 Research Paradigms
-- **Conflict Prediction**: Correlating Power Projection imbalances with the probability of war.
-- **Moral Washing Analysis**: Quantifying the use of "Humanitarian Framing" (in Democracies) to mask aggressive territorial expansions.
-- **Trust Decay Kinetics**: Measuring the speed at which a single betrayal propagates through a network of allies.
-- **Resource Stress-Testing**: Simulating food/energy crises to observe the collapse of democratic institutions.
+## 🏛 Agent Architecture — The Cabinet Model
+
+Each nation is governed by a hierarchical cognitive structure mirroring real political systems:
+
+```
+┌────────────────────────────────────────────────────────┐
+│                    NationAgent                          │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │              President (LLM)                     │  │
+│  │  Receives CabinetBriefing → Issues Decree       │  │
+│  │  APPROVE or VETO each domain                    │  │
+│  └──────────────────────────────────────────────────┘  │
+│         ▲              ▲              ▲                 │
+│  ┌──────┴──────┐ ┌─────┴─────┐ ┌─────┴──────┐         │
+│  │   Defense   │ │  Economy  │ │  Foreign   │         │
+│  │  Minister   │ │  Minister │ │  Minister  │         │
+│  │  (LLM)     │ │  (LLM)   │ │  (LLM)    │         │
+│  └─────────────┘ └───────────┘ └────────────┘         │
+│                                                         │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │          OpinionAgent (LLM, post-execution)      │  │
+│  │  "Voice of the People" — satisfaction multipliers │  │
+│  └──────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────┘
+```
+
+**Flow per turn:**
+1. Three Ministers propose actions **concurrently** (async LLM calls).
+2. The President reviews all three proposals and issues APPROVE/VETO decisions.
+3. Approved actions are executed by the ActionEngine against the WorldState.
+4. The OpinionAgent reacts to outcomes, modulating satisfaction changes.
+
+### LLM Integration
+- **Provider-agnostic**: Azure OpenAI, Anthropic Claude (with prompt caching), Grok-4, DeepSeek-V3 via LiteLLM.
+- **Structured output**: Instructor library enforces Pydantic schema validation on LLM responses.
+- **Bounded rationality**: ContextManager (1058 lines) enforces token budgets (default 4200), pruning old events and actions to simulate information decay.
+
+---
+
+## 🌍 World Model
+
+### Procedural Generation Pipeline (8 Stages)
+| Stage | Module | Output |
+|-------|--------|--------|
+| 1. Voronoi | `world.generation.voronoi` | 1500 cells with Lloyd's relaxation |
+| 2. Geography | `world.generation.geography` | Land/Ocean/Terrain classification |
+| 3. Nation Seeding | `world.generation.nations` | N capitals (maximin distance) |
+| 4. Territory Growth | `world.generation.nations` | BFS expansion to fill landmass |
+| 5. Province Init | `world.generation.provinces` | Population, resources, military |
+| 6. Waters | `world.generation.nations` | Territorial waters for naval ops |
+| 7. Aggregates | `world.generation.generator` | Stockpiles = 5T × prosperity (0.7–1.3) |
+| 8. Genesis | `world.genesis` | 50-year history → trust matrix |
+
+### TerrainType System
+| Terrain | Food | Energy | Materials | Defense | Special |
+|---------|------|--------|-----------|---------|---------|
+| PLAINS | High | Medium | Low | 1.0x | Standard |
+| MOUNTAIN | Low | Low | High | **1.5x** | No aircraft landing |
+| DESERT | Low | High | Medium | 1.0x | — |
+| FOREST | Medium | Low | Medium | 1.2x | — |
+| COASTAL | Medium | Medium | Low | 1.0x | Navy access |
+| OCEAN | — | — | — | — | Navy-only movement |
+
+### Data Model (Pydantic-First)
+- **WorldState**: The immutable Single Source of Truth. Contains `provinces: Dict[int, ProvinceState]`, `nations: Dict[str, NationState]`, `trust_matrix`, `relationship_matrix`, `war_stats`, `pending_proposals`, `fallen_nations`.
+- **NationState**: Identity (name, government_type, cultural_traits), territory (province_ids, territorial_water_ids), resources (budget, food, energy, materials), military (soldiers, aircraft, navy, nukes), demographics (population, workers), stability (satisfaction 0-100, civil_unrest), analytics (power_projection).
+- **ProvinceState**: Voronoi cell with owner, population, workers, military (including guest_troops from allies), production rates, terrain, and adjacency list.
+
+---
+
+## ⚔️ Action System — The Rules Oracle
+
+The **ActionEngine** validates and executes agent intent deterministically. No agent can bypass rules.
+
+### Defense Domain (Waterfall Priority)
+Actions execute in **priority order** (lower number = first):
+1. **NUCLEAR_OPTION**: 90% population kill, 80% production destroyed, trust with victim → 0, trust with ALL others −80.
+2. **MOVE_TROOPS (Attack)**: Binary combat resolution. Force = Σ(units × strength × terrain_modifier). Attacker wins → conquers province; loses → all units destroyed.
+3. **MOVE_TROOPS (Redeployment)**: Through contiguous friendly/allied territory only.
+4. **CREATE_UNIT**: SOLDIER (budget=5, materials=3), AIRCRAFT (budget=50, materials=20, energy=10), NAVY (budget=40, materials=15, energy=8). Bureaucracy multiplier: +10% cost per province beyond 5.
+
+### Economy Domain
+| Action | Effect | Constraints |
+|--------|--------|-------------|
+| INVEST_WELFARE | Gain = 7 × log(1 + Amount/500) satisfaction | Max 25% of budget, 20% materials cost |
+| RAISE_WAR_TAX | +1% population as budget, −15 satisfaction | Satisfaction ≥ 20 |
+| TRADE_PROPOSAL | Oracle: Score = (E_val × M_scarcity) − (R_risk × P_projection) | Max 15% of stock per resource |
+
+### Foreign Domain (One action per turn)
+| Action | Trust Impact | Requirements |
+|--------|-------------|-------------|
+| DECLARE_WAR | −100, triggers Call to Arms | Not self-targeting |
+| PROPOSE_ALLIANCE | Creates pending proposal | Trust ≥ 40 |
+| RESPOND_TO_PROPOSAL | Accept/Reject | Pending proposal exists |
+| REQUEST_PEACE | Creates pending proposal | Currently at WAR |
+| SEND_MESSAGE | +3 to −5 by type | 5-turn cooldown per pair |
+| BREAK_TREATY | −30 trust | Active alliance exists |
+
+### Public Opinion Mechanics
+Satisfaction (0–100) drives a **death spiral** feedback loop:
+- **≥ 60**: Full production (1.0x multiplier).
+- **20–60**: Linear decay to MIN_PRODUCTION.
+- **< 20**: **General Strike** (−30% production).
+- **< 10**: **Civil Unrest** (production halted, provinces revolt).
+- **> 50**: Recovery clears unrest flags.
+
+Cultural traits (Nationalist, Pacifist, etc.) modulate LLM-generated multipliers (0.1–2.0x) on satisfaction changes.
+
+---
+
+## 📊 Analysis & Observability
+
+### Deception Matrices
+Two hand-crafted matrices (30+ entries each) map `(private_intent, public_intent)` pairs to deception scores:
+- **Defense Matrix**: (CONQUEST, DEFENSE) = 0.9, (CONQUEST, IDLE) = 0.95 (sneak attack).
+- **Foreign Matrix**: (COERCION, COOPERATION) = 0.85 (backstabbing).
+- **Moral Washing**: Governance-specific intents score 0.95 when paired with CONQUEST:
+  - Democracy → EXPORT_DEMOCRACY ("liberation" framing)
+  - Theocracy → HOLY_WAR / DIVINE_MANDATE ("sacred duty" framing)
+
+### Power Projection Formula
+```
+Score = Budget × 0.001 + Food × 0.01 + Energy × 0.02 + Materials × 0.03
+      + Soldiers × 0.1 + Aircraft × 0.5 + Navy × 0.3 + Nukes × 50.0
+```
+Nukes dominate by design (deterrence thesis).
+
+### Divergence Score
+```
+D = Σ|ΔSatisfaction| × 1.0 + Σ|ΔPower| × 0.1 + ΔTrust × 0.5 + #RelChanges × 50.0
+```
+
+---
+
+## 💾 Persistence Strategy
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **SimulationDB** | DuckDB | Full state snapshots, envelopes, behaviors, token usage |
+| **MetricsDB** | DuckDB | Numerical time-series for Jupyter analysis |
+| **TurnCache** | In-memory dict | Accelerated UI browsing |
+| **Genesis DB** | DuckDB | Reusable ancient history per seed |
+| **Token CSV** | CSV file | LLM cost observability |
+
+Multi-simulation support with progressive `simulation_id`. Fork-and-compare copies full history to new simulation entry.
+
+---
+
+## 🔬 Design Principles
+
+1. **Determinism First**: All RNG is local (`rng` argument). Never `random.random()` or `np.random.rand()`.
+2. **Pydantic Everywhere**: No raw dicts cross package boundaries. All inter-component data uses validated models.
+3. **Calculators ≠ Executors**: Pure functions compute values; ActionEngine applies mutations.
+4. **Bounded Rationality**: Agents see limited windows of history (events, actions, relationships) within a token budget. Information decays through ContextManager pruning.
+5. **Separation of Intent and Execution**: Agents produce CountryEnvelopes (intent); the ActionEngine decides physical outcomes.
