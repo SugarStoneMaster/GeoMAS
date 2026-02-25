@@ -480,7 +480,12 @@ def _conquer_province(
             old_nation.total_food = 0
             old_nation.total_energy = 0
             old_nation.total_materials = 0
-            # NOTE: active_wars are preserved as historical record for analytics
+            if hasattr(old_nation, 'active_wars') and isinstance(old_nation.active_wars, dict):
+                old_nation.active_wars.clear()
+            
+            # Remove this war from the conqueror's active list
+            if new_nation and hasattr(new_nation, 'active_wars') and isinstance(new_nation.active_wars, dict):
+                new_nation.active_wars.pop(old_owner_id, None)
             
             # C. Clean up pending/sent proposals across the world involving this nation
             if hasattr(old_nation, 'pending_proposals') and isinstance(old_nation.pending_proposals, list):

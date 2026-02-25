@@ -67,9 +67,9 @@ def test_war_stats_update_on_conquest():
     
     target = MagicMock(spec=NationState)
     target.id = "VULCANIA"
-    target.province_ids = [10]
+    target.province_ids = [10, 11] # Two provinces so it stays active
     target.active_wars = {
-        "AGRIA": WarStats(start_turn=5, initiator_id="AGRIA", original_provinces=1)
+        "AGRIA": WarStats(start_turn=5, initiator_id="AGRIA", original_provinces=2)
     }
     target.total_soldiers = 50
     target.total_aircraft = 0
