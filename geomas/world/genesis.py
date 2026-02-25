@@ -96,19 +96,30 @@ class GenesisEngine:
         from geomas.agents.context.events.schemas import EventType
         
         for event in self._events:
+            # Enhanced Mapping for Salience Precision
+            tag = event["tag"]
             event_type_str = EventType.DIPLOMATIC_MESSAGE.value
-            if event["tag"] == "TRADE":
+            if tag == "TRADE":
                event_type_str = EventType.TRADE_DEAL.value
+            elif tag == "ALLIANCE":
+                event_type_str = EventType.ALLIANCE_FORMED.value
+            elif tag == "BETRAYAL":
+                event_type_str = EventType.ALLIANCE_BROKEN.value
+            elif tag == "CONFLICT":
+                event_type_str = EventType.TROOPS_MOBILIZED.value
                
             actors = []
             if event["nation_a"]: actors.append(event["nation_a"])
             if event["nation_b"]: actors.append(event["nation_b"])
                
+            # Include Historical Year in summary for agent context
+            summary = f"[History Year {event['year']}] {event['description']}"
+               
             self.world.global_events.append({
                 "turn": 0,
                 "event_type": event_type_str,
                 "actors": actors,
-                "summary": event["description"]
+                "summary": summary
             })
         
         # Persist to DB if path provided

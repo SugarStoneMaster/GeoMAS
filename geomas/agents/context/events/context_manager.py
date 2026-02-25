@@ -1002,14 +1002,28 @@ class ContextManager:
         # Sort and trim
         if use_salience:
             # Sort by salience descending
-            relevant = sorted(relevant, key=lambda e: e.calculate_salience(current_turn, evaluate_for_nation_id=nation_id), reverse=True)[:max_events]
+            # Use original index as tie-breaker for same-salience events (like Genesis turn 0)
+            # to prioritize later years (higher index)
+            relevant_indexed = sorted(
+                enumerate(relevant), 
+                key=lambda x: (x[1].calculate_salience(current_turn, evaluate_for_nation_id=nation_id), x[0]), 
+                reverse=True
+            )
+            top_n = relevant_indexed[:max_events]
+            # Re-sort chronologically ascending for the prompt
+            relevant = [x[1] for x in sorted(top_n, key=lambda x: (x[1].turn, x[0]))]
         else:
             # Sort by turn descending, take most recent
-            relevant = sorted(relevant, key=lambda e: e.turn, reverse=True)[:max_events]
-            
-        # Finally, always re-sort chronologically ascending for the prompt
-        relevant = sorted(relevant, key=lambda e: e.turn)
-
+            # Use original index as tie-breaker for same-turn events (like Genesis turn 0)
+            # to prioritize later years (higher index)
+            relevant_indexed = sorted(
+                enumerate(relevant), 
+                key=lambda x: (x[1].turn, x[0]), 
+                reverse=True
+            )
+            top_n = relevant_indexed[:max_events]
+            # Re-sort chronologically ascending for the prompt
+            relevant = [x[1] for x in sorted(top_n, key=lambda x: (x[1].turn, x[0]))]
         
         return [e.to_prompt_line() for e in relevant]
     
