@@ -1,0 +1,273 @@
+\chapter{Methodology: The GeoMAS Framework}
+\label{chap:methodology}
+
+This chapter outlines the design and architectural principles of \textbf{GeoMAS} (Geopolitical Multi-Agent Simulation), the experimental framework developed to address the limitations identified in the State of the Art. 
+
+\section{Methodological Approach: Design Science Research}
+\label{sec:design_science}
+This thesis adopts the \textit{Design Science Research} (DSR) paradigm. Unlike traditional sciences that observe existing phenomena, DSR creates innovative \textbf{artifacts} to solve identified problems and extend human capabilities \cite{hevner2004design}. 
+
+Developing the \textbf{GeoMAS} framework is fundamentally a "building to learn" process \cite{simon2019sciences}. The framework acts as a neuro-symbolic artifact designed to overcome the limitations of standard Large Language Models (LLMs), such as logical inconsistency, concessionary bias, and historical data leakage, when applied to complex geopolitical simulations.
+
+\subsection{The DSR Process Model}
+To ensure scientific rigor, this study applies the six-stage DSR process model proposed by Peffers et al.\cite{peffers2007design} The mapping of the GeoMAS development cycle onto this process is structured as follows:
+\begin{enumerate}
+    \item \textbf{Problem Identification:} The design process initiates directly from the four structural gaps identified in the State of the Art. Specifically, existing MAS lack verifiable causal reasoning (Gap 1), suffer from topological memorization (Gap 2), and fail to enforce strict physical and social constraints (Gaps 3 and 4).
+    \item \textbf{Definition of Objectives:} The primary objective is to design a neuro-symbolic artifact that resolves these limitations. This translates into specific design requirements: creating a state-loading mechanism for counterfactuals (addressing Gap 1), utilizing procedural maps (addressing Gap 2), and building a hybrid architecture where a deterministic \textit{Rules Oracle} governs physical/social laws (addressing Gaps 3 and 4).
+    \item \textbf{Design and Development:} Implementing the GeoMAS architecture to fulfill the defined objectives. This includes hierarchical agent protocols, the \textit{ContextManager} for bounded rationality, and procedural environment generation via Voronoi tessellation to ensure geographic neutrality.
+    \item \textbf{Demonstration:} Executing controlled simulation runs (e.g., 50-turn scenarios) where agents face exogenous stressors (e.g., global pandemics) to observe emergent adaptive behaviors.
+    \item \textbf{Evaluation:} A dual-track assessment: quantitative analysis via the \textit{Deception Score} and \textit{Coherence Score}, and qualitative validation through \textit{Explainable AI} (XAI) using state-load forking for counterfactuals.
+    \item \textbf{Communication:} Synthesizing findings within this thesis to present the neuro-symbolic architecture as a superior paradigm for studying emergent feedback loops.
+\end{enumerate}
+
+\subsection{Classification of GeoMAS Artifacts}
+Following the foundational DSR framework by March et al \cite{march1995design}, the research contributions are categorized into four artifact types:
+\begin{itemize}
+    \item \textbf{Constructs:} These form the specialized vocabulary developed to describe the problem domain. The \textit{Duality of Determinism} is established as a foundational construct to define the coexistence of rigid physical laws and stochastic cognitive agency. Further, the conceptual symmetry between \textit{Private Intent} (the latent strategic reasoning captured in agent traces) and \textit{Public Intent} (the manifest diplomatic statement) serves as a core linguistic tool for quantifying and analyzing strategic deception.
+    
+    \item \textbf{Models:} These are abstractions representing the relationships between constructs. The \textit{Deception Model} formalizes the divergence between internal reasoning and external signaling through a weighted adjacency matrix mapping Private vs. Public Intents. Additionally, the \textit{Geopolitical Strategy Archetypes} (e.g., Coalition Builder, Total Expansionism) serve as high-level ideological filters that steer the agent's decision-making process toward long-term consistency. Finally, the \textit{Hierarchical Governance Model} represents the interaction between specialist ministers and a central executive, abstracting the friction and synthesis inherent in sovereign decision-making.
+
+    
+    \item \textbf{Methods:} These represent the sets of steps (algorithms or protocols) used to perform tasks. The \textit{Rules Oracle} serves as a deterministic validation protocol that filters LLM-generated intents against world-state constraints. The \textit{Counterfactual Engine} provides a structured methodology for experimental branching, enabling the rigorous comparison of divergent world histories through turn-based state-loading.
+    
+    \item \textbf{Instantiations:} These demonstrate the feasibility of the higher-level artifacts in a working system. The \textit{GeoMAS Core} is a robust Python-based implementation using Pydantic for data integrity. A high-performance \textbf{DuckDB} integration is utilized for both atomic simulation persistence (state snapshots) and high-fidelity telemetry. The system is finally completed by a Streamlit-driven monitoring dashboard.
+\end{itemize}
+
+
+\subsection{Iterative Design and Scientific Rigor}
+DSR relies inherently on iterative design and evaluation \cite{hevner2004design}. GeoMAS was refined through successive testing cycles. By utilizing synthetic geography and procedural generation, the research isolates the agents' intrinsic reasoning from their pre-training data, effectively mitigating historical leakage. This ensures that observed behaviors stem from the artifact's design and the agents' cognitive logic, rather than mere retrieval of encyclopedic knowledge.
+
+
+\section{High-Level Architecture Overview}
+\label{sec:architecture_overview}
+GeoMAS is organized into a layered architecture where data flows downward and each layer has strict responsibilities. The framework comprises five distinct layers:
+
+\begin{enumerate}
+    \item \textbf{Orchestration Layer:} The \textit{SimulationEngine} acts as the central coordinator, executing a seven-phase turn loop that governs the entire simulation lifecycle. It manages world initialization, agent creation, turn execution, state persistence, and supports simulation forking for counterfactual experiments.
+    \item \textbf{Cognitive Layer (The ``Brain''):} A neuro-symbolic layer where nations are modeled as hierarchical cabinets. Three specialist Ministers propose actions concurrently via LLM calls; the President LLM synthesizes proposals through approval or veto. A separate Public Opinion agent reacts post-execution, modulating satisfaction dynamics.
+    \item \textbf{Simulation Physics Layer (The ``Body''):} A deterministic layer comprising the \textit{Action System} and the \textit{World Generation} pipeline. The Action System validates and executes agent intent against immutable physical rules. The World Generation pipeline produces the synthetic environment through Voronoi tessellation and a historical simulation engine.
+    \item \textbf{Observability Layer (The ``Observer''):} An analytical meta-layer responsible for both \textit{Persistence} (state snapshots, agent traces, token usage via DuckDB) and \textit{Behavioral Intelligence} (deception scoring, coherence analysis, counterfactual divergence measurement).
+    \item \textbf{Presentation Layer:} A Streamlit-based monitoring dashboard for real-time simulation inspection and a Jupyter notebook environment for post-simulation quantitative analysis.
+\end{enumerate}
+
+The interaction follows a strictly cyclic \textit{Sense-Think-Act-Observe} loop: the Orchestration layer drives each turn, the Cognitive layer generates intent, the Physics layer executes it deterministically, and the Observability layer captures the outcome for analysis.
+
+\section{The Simulation Physics Layer}
+\label{sec:simulation_physics}
+The Simulation Physics layer encompasses both the procedural world generation pipeline and the deterministic action execution system. Together, they define the immutable ``natural laws'' of the GeoMAS universe.
+
+\subsection{Procedural Voronoi Geography}
+To prevent Large Language Models from relying on pre-trained historical biases (e.g., ``re-enacting WWI''), the simulation operates in a synthetic, procedurally generated environment. The environment is modeled not as an abstract graph, but as a continuous 2D spatial domain. We employ \textbf{Voronoi Tessellation} combined with Lloyd's Relaxation (3 iterations by default) to generate irregular, naturalistic provinces from 1500 seed cells.
+
+Mathematically, the map acts as a dual graph where nodes represent provinces (containing resources and population) and edges represent adjacency, determining movement costs and military feasibility. The map generation pipeline executes eight sequential stages:
+
+\begin{enumerate}
+    \item Voronoi tessellation with Lloyd's relaxation for uniform cell distribution.
+    \item Geography classification: land/ocean determination, terrain assignment (Plains, Mountain, Desert, Forest, Coastal).
+    \item Nation seeding: capital placement using maximin distance selection.
+    \item Organic territory growth: BFS expansion from capitals until all land cells are assigned.
+    \item Province initialization: terrain-dependent population, resource production, and tax revenue.
+    \item Territorial waters: ocean provinces adjacent to a nation's coastline are assigned for naval operations.
+    \item National aggregates: initial stockpiles computed as five turns of consumption multiplied by a prosperity factor (0.7--1.3), introducing variance between nations.
+    \item Genesis historical simulation (detailed in Section~\ref{sec:genesis}).
+\end{enumerate}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=1\linewidth]{figure/voronoiexample.png}
+    \caption{Example of a generated map with 15 countries}
+    \label{fig:voronoi}
+\end{figure}
+
+From a structural perspective, the atomic unit is the \textbf{Province} (a single Voronoi cell with intrinsic attributes like terrain, population, and resource production), while a \textbf{Nation} is defined as a logical collection of owned provinces. Borders are dynamic aggregations of the external edges of these owned cells, allowing for organic territorial changes (e.g., annexation of a single province) without requiring complex re-meshing of the geometry.
+
+To bridge the gap between this spatial topology and the textual nature of LLMs, the framework incorporates a \textbf{Spatial Abstraction Layer}. A dedicated \textit{SpatialTranslator} converts raw graph data into semantic strategic summaries, while a \textit{MilitaryTranslator} generates detailed deployment context including border threats, frontline analysis, and naval positions. This ensures agents perceive the world through high-level geopolitical concepts rather than low-level geometric data.
+
+\subsubsection{Design Rationale} The choice of Voronoi Tessellation over \textit{Raster Grids} or \textit{Static Graph Topologies} is driven by geopolitical modeling requirements. Raster grids impose artificial uniformity and distort distance metrics, while static graphs lack spatial nuance. Voronoi diagrams naturally generate irregular interfaces where shared border lengths vary significantly, creating emergent strategic vulnerabilities (e.g., difficult-to-defend salients) that drive agent reasoning.
+
+\subsection{The Deterministic Rules Oracle}
+\label{sec:rules_oracle}
+To ensure the simulation remains grounded in consistent reality, a rigid, non-AI \textit{ActionEngine} acts as the immutable ``physics'' of the environment. Unlike the probabilistic nature of the agents, this module is composed of deterministic algorithms that validate every proposed action before execution.
+
+The rules are implemented as explicit logical predicates $f(State, Action) \rightarrow \{Valid, Error\}$, categorized into three constraint types:
+\begin{itemize}
+    \item \textbf{Topological Constraints:} These rules enforce spatial logic derived from the Voronoi dual graph. Troop movement uses a \textit{relationship-aware pathfinding} algorithm that computes valid paths through owned and allied territory only, respecting terrain constraints (e.g., soldiers cannot cross ocean; navy cannot traverse land). The spatial graph is managed by a \textit{SpatialManager} wrapping the NetworkX library.
+    \item \textbf{Resource Constraints:} These enforce economic scarcity. Every action has a pre-calculated cost. The engine performs atomic checks ($AvailableRes - Cost \geq 0$) to prevent agents from spending non-existent resources. A bureaucracy multiplier increases unit creation costs by 10\% per province beyond five, penalizing empire overstretch.
+    \item \textbf{Diplomatic Constraints:} These enforce logical dependencies based on the current diplomatic state. Alliance proposals require a minimum bilateral trust level. Military movement through allied territory requires an active alliance. War declaration generates a formal \textit{Call to Arms} notification to the victim's mutual defense allies.
+\end{itemize}
+
+This Oracle serves as the \textbf{Ground Truth}: if an agent attempts an invalid action, the engine rejects it deterministically, providing a causal error trace. Actions within the defense domain are processed via a \textit{waterfall priority resolver}, where actions are sorted by priority number and executed sequentially --- nuclear strikes first, then attacks, then movements, then unit creation.
+
+\subsubsection{Design Rationale} We explicitly rejected the ``LLM-as-a-Judge'' approach, where a separate language model adjudicates action outcomes. While flexible, LLM judges introduce stochasticity and potential hallucinations into the physics of the world, undermining reproducibility. By implementing physics via deterministic algorithms, we ensure that any failure is causally traceable to agent error or resource constraints, rather than an adjudication artifact. This strict separation between the \textit{Stochastic Agent} and the \textit{Deterministic World} is a prerequisite for verifiable counterfactual analysis.
+
+\subsection{The Genesis Phase: Initialization Through Algorithmic History}
+\label{sec:genesis}
+To mitigate the ``Cold Start'' problem typical of multi-agent simulations, GeoMAS implements a \textbf{GenesisEngine} that simulates 50 years of pre-simulation history using simplified deterministic rules without invoking the LLMs.
+
+For each simulated year, the engine processes every nation pair through four dynamics:
+\begin{itemize}
+    \item \textbf{Trust Decay:} A small annual decay ($-0.02$) ensures relationships do not stagnate.
+    \item \textbf{Border Friction:} Neighboring nations sharing borders experience trust decreases ($-5$ to $-15$), simulating the natural friction of proximity.
+    \item \textbf{Trade Dynamics:} Nations with complementary resource profiles experience trust increases ($+3$ to $+8$), modeling economic interdependence.
+    \item \textbf{Diplomatic Shifts:} Trust thresholds trigger structural events: trust below 30 generates rivalry events, trust above 70 generates alliance events.
+\end{itemize}
+
+This results in a mathematically distributed, asymmetric \textit{Trust Matrix} at Turn~0, ensuring that the simulation starts with a realistic network of alliances and rivalries grounded in the synthetic geography rather than pre-trained biases.
+
+
+\section{Cognitive Agent Architecture: The Hierarchical Cabinet}
+\label{sec:cognitive_architecture}
+Each nation is not modeled as a monolithic entity, but as a \textbf{Hierarchical Multi-Agent System} representing a political cabinet. This structure is designed to simulate internal friction, conflicting objectives, and the ``Welfare vs. Warfare'' dilemma.
+
+\subsection{The Cabinet Structure}
+The architecture consists of one central decision-maker and four specialized sub-agents:
+\begin{itemize}
+    \item \textbf{The President (The Ruler):} The central node. It does not generate actions autonomously but acts as the \textit{Aggregator}. It receives a \textit{CabinetBriefing} containing proposals from the three Ministers, resolves conflicts, and issues a \textit{PresidentialDecree} with an explicit \textsc{Approve} or \textsc{Veto} decision for each domain. A veto results in an idle action for that domain, preventing resource expenditure.
+    \item \textbf{Minister of Defense:} An LLM agent focused on territorial security and power projection. Its input prompt includes the current military deployment map, border threats, war status, frontline analysis, and past defense actions. It proposes up to three prioritized military actions per turn.
+    \item \textbf{Minister of Economy:} An LLM agent focused on resource optimization and stability. Its input prompt includes resource balances, consumption rates, trade opportunities, and past economic actions. It proposes a single economic action (welfare investment, war tax, or trade proposal).
+    \item \textbf{Minister of Foreign Affairs:} An LLM agent focused on diplomatic strategy. Its input prompt includes the trust matrix, relationship states, pending proposals, diplomatic history, and alliance opportunities. It proposes a single diplomatic action.
+    \item \textbf{The Public Opinion (The Internal Adversary):} Unlike the Ministers, this agent operates \textit{post-execution}. Its prompt is injected with cultural trait data (e.g., ``Nationalist, 1.3x military sensitivity''), and it returns multipliers (0.1--2.0) that modulate how satisfaction changes are applied. A deterministic fallback activates when the LLM is unavailable.
+\end{itemize}
+
+Each nation is also assigned a \textbf{GlobalStrategy} (Total Expansionism, Armed Isolationism, Coalition Builder, or Scorched Earth) and a \textbf{GovernmentType} (Democracy, Authoritarian, or Theocracy). The strategy is injected into all minister prompts to steer long-term behavior, while the government type affects the narrative framing available to the agent --- critically enabling the ``moral washing'' phenomenon studied in the analysis.
+
+\subsection{The Turn Workflow}
+The decision loop for a single turn operates in four phases:
+\begin{enumerate}
+    \item \textbf{Proposal Phase:} The three Ministers analyze the world state and \textit{concurrently} submit structured proposals (Intent + Action Payload) to the President via async LLM calls.
+    \item \textbf{Executive Phase:} The President LLM receives the \textit{CabinetBriefing} and issues a \textit{PresidentialDecree}: Approve or Veto for each ministerial domain. Approved payloads are assembled into the final \textit{CountryEnvelope}.
+    \item \textbf{Execution Phase:} The ActionEngine validates and executes the envelope against the WorldState. Defense actions use a waterfall priority resolver; economic and foreign actions are single-shot.
+    \item \textbf{Reaction Phase:} The Public Opinion agent evaluates the resulting state changes. Satisfaction deltas are calculated from events, government actions, and current state, modulated by the LLM's cultural multipliers. If satisfaction drops below critical thresholds, automatic triggers fire (General Strike, Civil Unrest).
+\end{enumerate}
+
+\subsubsection{Design Rationale}
+Traditionally, strategic multi-agent environments are solved using Multi-Agent Reinforcement Learning (MARL). While MARL excels at optimal policy discovery, it produces opaque ``Black Box'' policies lacking interpretability.
+We selected a hierarchical LLM-based architecture because the primary objective of GeoMAS is not winning the simulation, but generating verifiable explanatory traces. The cabinet structure explicitly models the trade-offs (e.g., ``I sacrificed welfare for defense'') that are implicit in RL value functions, making them accessible for the Explainability Layer.
+
+\subsection{Memory and Context Management}
+\label{sec:memory}
+Given the context window limitations of Large Language Models, feeding the entire simulation history to an agent is computationally infeasible. GeoMAS addresses this through a \textbf{ContextManager} implementing bounded rationality --- a configurable token budget (default 4200 tokens for the user prompt section) that governs how much historical context each agent receives.
+
+The memory architecture is organized into four components:
+\begin{itemize}
+    \item \textbf{Working State (Current Turn):} The immediate world state: resource balances, military deployment, diplomatic relationships, and active treaties. Rebuilt each turn from the \textit{WorldState}.
+    \item \textbf{Relationship Memory:} Bilateral relationship summaries for each nation pair, tracking: diplomatic status (Peace, War, Non-Aggression, Mutual Defense), current trust level, trust trend ($\uparrow$/$\downarrow$/$\rightarrow$), and recent bilateral events.
+    \item \textbf{Event Memory:} A chronological log of ``newsworthy'' events extracted from executed envelopes. Only externally observable outcomes generate events (internal proposals do not). Events are pruned oldest-first when the token budget is exceeded, simulating natural information decay.
+    \item \textbf{Presidential Feedback:} A record of past Approve/Veto decisions per ministerial domain. This enables Ministers to adapt their proposals based on presidential preferences, creating an emergent learning-like dynamic without fine-tuning.
+\end{itemize}
+
+\subsubsection{Design Rationale} While Vector Retrieval Augmented Generation (RAG) is the industry standard for semantic search, it was deemed unsuitable for the rigid consistency required by GeoMAS. Vector search is inherently probabilistic; a ``near-miss'' in cosine similarity could cause an agent to ``forget'' a critical treaty violation.
+GeoMAS instead employs deterministic structured retrieval: events are stored with explicit metadata (turn, type, participants) and retrieved via exact filters. Combined with the token-budget pruning mechanism, this provides 100\% recall within the observation window while naturally imposing bounded rationality --- older events fade, exactly as they would for a human decision-maker operating under information overload.
+
+\section{Strategic Action Space}
+\label{sec:action_space}
+GeoMAS defines a strict set of executable actions categorized by ministerial domain. Each action carries typed parameters validated by the ActionEngine before execution.
+
+\subsection{Defense Actions (Military Projection)}
+The Defense Minister may propose up to three prioritized actions per turn, executed via a waterfall resolver. Military capability is a composite profile of three unit types (Soldiers, Navy, Aircraft), each with distinct terrain constraints and combat strengths.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{0.22\linewidth}|p{0.38\linewidth}|p{0.3\linewidth}|}
+\hline
+\textbf{Action} & \textbf{Description} & \textbf{Trade-offs} \\ \hline
+\texttt{Create\_Unit} & Creates military units (Soldier, Navy, or Aircraft) in a owned province. & Budget and materials cost. Bureaucracy multiplier increases cost for large empires. \\ \hline
+\texttt{Move\_Troops} & Moves units from source to target. If target is enemy territory, triggers combat. & Requires contiguous friendly path. Entering enemy territory initiates binary combat resolution. \\ \hline
+\texttt{Nuclear\_Option} & Strikes a target province. 90\% population killed, 80\% production destroyed. & Trust with victim set to 0. Trust with \textit{all} other nations reduced by 80 points. \\ \hline
+\end{tabular}
+\caption{Defense Ministry Action Space}
+\label{tab:defense_actions}
+\end{table}
+
+Combat resolution uses binary outcomes modulated by terrain: the defender receives a terrain bonus (e.g., Mountain provinces grant a 1.5$\times$ defensive multiplier). Naval landings follow a multi-stage flow: naval combat, coastal landing, and crew conversion (10 soldiers per ship). Air strikes can destroy defenders but cannot conquer territory.
+
+\subsection{Economic Actions (Resource Management)}
+The Economy Minister proposes a single action per turn.
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{0.22\linewidth}|p{0.38\linewidth}|p{0.3\linewidth}|}
+\hline
+\textbf{Action} & \textbf{Description} & \textbf{Trade-offs} \\ \hline
+\texttt{Invest\_Welfare} & Converts budget into satisfaction via logarithmic formula: $\Delta S = 7 \times \ln(1 + A/500)$. & Capped at 25\% of current budget. Requires 20\% materials cost. \\ \hline
+\texttt{Trade\_Proposal} & Proposes resource exchange evaluated by a deterministic oracle formula. & Maximum 15\% of stock per resource type. \\ \hline
+\texttt{Raise\_War\_Tax} & Emergency budget: +1\% of population as budget. & $-15$ satisfaction penalty (scaled to $-22$ if satisfaction is below 30). Requires satisfaction $\geq$ 20. \\ \hline
+\end{tabular}
+\caption{Economy Ministry Action Space}
+\label{tab:economy_actions}
+\end{table}
+
+\subsection{Diplomatic Actions (Relationship Management)}
+The Foreign Minister proposes a single action per turn. These modify the \textit{Trust Matrix} and the \textit{Relationship Matrix}, enabling or disabling inter-nation interactions.
+\begin{itemize}
+    \item \textbf{Declare\_War:} Sets relationship to War, generates formal war statistics, and triggers a \textit{Call to Arms} notification to the victim's mutual defense allies.
+    \item \textbf{Propose\_Alliance:} Creates a pending proposal with a specified tier (Non-Aggression Pact or Mutual Defense). Requires bilateral trust $\geq$ 40 on a 0--100 scale.
+    \item \textbf{Respond\_To\_Proposal:} Accepts or rejects a pending alliance or peace proposal.
+    \item \textbf{Request\_Peace:} Creates a pending peace proposal for nations currently at war.
+    \item \textbf{Send\_Diplomatic\_Message:} Typed messages (Trade Interest, Threat, Praise, Warning, etc.) with predefined trust impacts ($+3$ to $-5$). A five-turn cooldown per pair prevents message spamming.
+    \item \textbf{Break\_Treaty:} Unilaterally ends an alliance, incurring a $-30$ trust penalty.
+\end{itemize}
+
+\subsection{Public Satisfaction Dynamics}
+\label{sec:satisfaction}
+Public satisfaction operates on a 0--100 scale and drives a feedback loop with production:
+\begin{itemize}
+    \item \textbf{Full Production ($\geq$ 60):} Production multiplier at 1.0$\times$ (no penalty).
+    \item \textbf{Linear Decay (20--60):} Production multiplier decays linearly from 1.0 toward a minimum threshold.
+    \item \textbf{General Strike ($<$ 20):} Production reduced by an additional 30\%, strike flag activated.
+    \item \textbf{Civil Unrest ($<$ 10):} Production halted entirely. Random provinces enter revolt.
+    \item \textbf{Recovery ($>$ 50):} Strike and unrest flags are cleared.
+\end{itemize}
+
+Cultural traits generated during world creation (e.g., Nationalist, Pacifist, Isolationist) modulate the LLM-generated multipliers (0.1--2.0$\times$) applied to satisfaction changes, allowing each nation's population to react differently to identical stimuli.
+
+\section{The Country Envelope Protocol}
+\label{sec:envelope}
+A critical challenge in geopolitical simulation is balancing the ambiguity of natural language diplomacy with the need for precise, executable actions. GeoMAS addresses this through the \textbf{CountryEnvelope}, a structured data model containing multiple distinct layers:
+
+\begin{enumerate}
+    \item \textbf{Strategic Layer:} The nation's declared \textit{GlobalStrategy} (Total Expansionism, Armed Isolationism, Coalition Builder, or Scorched Earth) --- the long-term orientation that steers ministerial proposals.
+    \item \textbf{Public Layer:} The President's public statement and declared public intents for defense and foreign domains. This layer is visible to all other nations and may be deceptive.
+    \item \textbf{Private Layer:} The true private intents and internal reasoning for each domain. This layer is \textit{hidden} from other agents and accessible only for post-hoc XAI analysis.
+    \item \textbf{Action Layer:} The typed, validated payloads for each domain (defense, economy, foreign). The ActionEngine executes this layer, ignoring the public statement.
+    \item \textbf{Trace Layer:} The complete system prompt, input prompt, and raw LLM JSON response for all five agent types (President, three Ministers, Opinion). This provides full prompt-level reproducibility for any decision at any turn.
+\end{enumerate}
+
+The separation between the Public and Private layers is the foundation of the \textit{Deception Score} metric. By comparing the declared public intent (e.g., ``Deterrence'') against the hidden private intent (e.g., ``Conquest''), the system can quantitatively measure strategic deception without relying on subjective assessments.
+
+\subsection{Design Rationale} The CountryEnvelope decouples the \textit{performative} aspect of diplomacy (persuasion, deceit, narrative framing) from the \textit{operative} aspect (validated action execution). This prevents ``intent-execution mismatch,'' where an agent intends one action but the system executes another, ensuring that state transitions are always valid regardless of the rhetorical complexity. The five-layer structure additionally provides complete prompt traces for post-hoc explainability, enabling researchers to inspect the exact inputs and outputs of every LLM call.
+
+\section{Observability and Explainability}
+\label{sec:observability}
+A primary contribution of this thesis is the transition from descriptive simulation logs to quantitative, verifiable behavioral analysis.
+
+\subsection{Deception and Coherence Scoring}
+Agent behavior is quantified through two complementary metrics:
+
+\begin{itemize}
+    \item \textbf{Deception Score (0.0--1.0):} Computed by comparing each agent's \textit{public intent} against its \textit{private intent} using hand-crafted adjacency matrices. Two separate matrices are maintained --- one for defense intents (30+ entries) and one for foreign intents --- capturing domain-specific deception patterns. The economic domain is excluded because economic actions are directly observable and lack the narrative framing needed for deception measurement. The total score is the average of the two domain scores.
+    \item \textbf{Coherence Score (0.0--1.0):} Measures how well an agent's private intents align with its declared \textit{GlobalStrategy}. Each strategy defines a set of ``expected'' private intents (e.g., Total Expansionism expects Conquest or Deterrence in defense, Coercion in foreign affairs). The score represents the fraction of private intents that match these expectations.
+\end{itemize}
+
+\subsubsection{Moral Washing}
+The deception matrices include governance-specific intent types that enable the measurement of a phenomenon termed \textit{moral washing}: the framing of aggressive actions in ideologically acceptable language. Specifically:
+\begin{itemize}
+    \item Democracies may declare \textsc{Export\_Democracy} as their public intent while privately pursuing \textsc{Conquest} --- framing territorial expansion as ``liberation.''
+    \item Theocracies may declare \textsc{Holy\_War} or \textsc{Divine\_Mandate} while pursuing identical conquest objectives --- framing aggression as ``sacred duty.''
+\end{itemize}
+Both patterns receive the highest deception scores (0.95), enabling quantitative comparison of how different governance types employ distinct rhetorical strategies to mask identical underlying objectives.
+
+\subsection{Counterfactual Analysis via State Forking}
+To answer causal questions such as ``What would have happened if Nation~A had not declared war?'', GeoMAS implements a \textbf{fork-and-compare} mechanism:
+\begin{enumerate}
+    \item The simulation is run normally for $N$ turns (the \textit{base timeline}).
+    \item At turn $T$, the system creates a \textit{fork}: a complete copy of the simulation state, including full history.
+    \item An \textbf{XAI injection} --- a natural language instruction (e.g., ``You MUST declare war on Ferecia'') --- is appended to the relevant agent's prompt in the forked timeline.
+    \item The forked simulation diverges from the base timeline as the injected instruction alters agent behavior.
+    \item A \textit{DeltaAnalyzer} computes per-nation divergence (satisfaction, power, resources, military) and global divergence (trust shifts, relationship changes) between the two timelines, producing a weighted divergence score.
+    \item An LLM-powered explanation generates a causal narrative linking the injection to the observed deltas.
+\end{enumerate}
+
+This method provides verifiable counterfactual explanations: the divergence is grounded in the deterministic simulation physics, not in post-hoc rationalization by the LLM.
+
+\subsection{Prompt Trace Persistence}
+Every CountryEnvelope persists the complete system prompt, input prompt, and raw JSON response for all five agent types per nation per turn. This provides full transparency: any decision at any turn can be inspected at the prompt level, enabling reviewers to verify whether agent behavior stems from the prompt design, the world state, or the LLM's reasoning.
