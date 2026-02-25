@@ -57,6 +57,8 @@ The interaction follows a strictly cyclic \textit{Sense-Think-Act-Observe} loop:
 The Simulation Physics layer encompasses both the procedural world generation pipeline and the deterministic action execution system. Together, they define the immutable ``natural laws'' of the GeoMAS universe.
 
 \subsection{Procedural Voronoi Geography}
+This component directly addresses \textbf{Gap~2} (Strategic Memorization and Topological Bias, Section~\ref{sec:soa_limitations}): by generating a fully synthetic geography, GeoMAS eliminates the risk that agents recognize Earth's topology and default to pre-trained historical patterns rather than autonomous reasoning.
+
 To prevent Large Language Models from relying on pre-trained historical biases (e.g., ``re-enacting WWI''), the simulation operates in a synthetic, procedurally generated environment. The environment is modeled not as an abstract graph, but as a continuous 2D spatial domain. We employ \textbf{Voronoi Tessellation} combined with Lloyd's Relaxation (3 iterations by default) to generate irregular, naturalistic provinces from 1500 seed cells.
 
 Mathematically, the map acts as a dual graph where nodes represent provinces (containing resources and population) and edges represent adjacency, determining movement costs and military feasibility. The map generation pipeline executes eight sequential stages:
@@ -87,6 +89,8 @@ To bridge the gap between this spatial topology and the textual nature of LLMs, 
 
 \subsection{The Deterministic Rules Oracle}
 \label{sec:rules_oracle}
+This component directly addresses \textbf{Gap~3} (Fragmentation of Action and Validation Spaces, Section~\ref{sec:soa_limitations}): rather than allowing agents to hallucinate actions that violate physical or economic constraints, GeoMAS interposes a deterministic validation layer between agent intent and world-state mutation.
+
 To ensure the simulation remains grounded in consistent reality, a rigid, non-AI \textit{ActionEngine} acts as the immutable ``physics'' of the environment. Unlike the probabilistic nature of the agents, this module is composed of deterministic algorithms that validate every proposed action before execution.
 
 The rules are implemented as explicit logical predicates $f(State, Action) \rightarrow \{Valid, Error\}$, categorized into three constraint types:
@@ -209,6 +213,8 @@ The Foreign Minister proposes a single action per turn. These modify the \textit
 
 \subsection{Public Satisfaction Dynamics}
 \label{sec:satisfaction}
+This component directly addresses \textbf{Gap~4} (The Decoupling of Social Dynamics and Production Physics, Section~\ref{sec:soa_limitations}): in GeoMAS, public satisfaction is not a decorative metric but a deterministic constraint that directly governs the nation's industrial output, closing the feedback loop between top-down governmental decisions and bottom-up physical capability.
+
 Public satisfaction operates on a 0--100 scale and drives a feedback loop with production:
 \begin{itemize}
     \item \textbf{Full Production ($\geq$ 60):} Production multiplier at 1.0$\times$ (no penalty).
@@ -218,10 +224,10 @@ Public satisfaction operates on a 0--100 scale and drives a feedback loop with p
     \item \textbf{Recovery ($>$ 50):} Strike and unrest flags are cleared.
 \end{itemize}
 
-Cultural traits generated during world creation (e.g., Nationalist, Pacifist, Isolationist) modulate the LLM-generated multipliers (0.1--2.0$\times$) applied to satisfaction changes, allowing each nation's population to react differently to identical stimuli.
-
 \section{The Country Envelope Protocol}
 \label{sec:envelope}
+This section, together with the following Section~\ref{sec:observability}, directly addresses \textbf{Gap~1} (The Explainability and Verifiability Gap, Section~\ref{sec:soa_limitations}): GeoMAS records atomic, JSON-structured intents at every turn and provides a state-loading mechanism for counterfactual ``What-If'' verification.
+
 A critical challenge in geopolitical simulation is balancing the ambiguity of natural language diplomacy with the need for precise, executable actions. GeoMAS addresses this through the \textbf{CountryEnvelope}, a structured data model containing multiple distinct layers:
 
 \begin{enumerate}
