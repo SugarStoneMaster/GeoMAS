@@ -153,7 +153,8 @@ class ContextManager:
             event_type=EventType.NATION_FALLEN,
             actors=[victim_id, conqueror_id],
             summary=summary,
-            relevance_to=None  # Global
+            relevance_to=None,  # Global
+            is_pinned=True
         )
         
         # Add to global events
@@ -990,8 +991,9 @@ class ContextManager:
             if event_types and event.event_type not in event_types:
                 continue
                 
-            # Relevance filter: Include if: global, or involves this nation, or relevant to this nation
-            if (event.relevance_to is None or 
+            # Relevance filter: Include if: pinned, global, or involves this nation, or relevant to this nation
+            if (event.is_pinned or
+                event.relevance_to is None or 
                 (isinstance(event.relevance_to, list) and nation_id in event.relevance_to) or
                 (isinstance(event.relevance_to, str) and event.relevance_to == nation_id) or
                 nation_id in event.actors):

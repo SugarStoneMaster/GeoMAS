@@ -145,6 +145,7 @@ class NotableEvent(BaseModel):
     actors: List[str] = Field(default_factory=list)  # Nation IDs involved
     summary: str  # "Valdoria attacked Aquilonia's northern border"
     relevance_to: Optional[List[str]] = None  # None = global, else specific nations
+    is_pinned: bool = False  # If True, salience is maximized (never pruned from context)
     
     def to_prompt_line(self) -> str:
         """
@@ -174,6 +175,10 @@ class NotableEvent(BaseModel):
         Calculate the salience score of this event.
         Salience = Base Importance * (0.90 ^ Age) * Relevance Multiplier
         """
+        # 0. Pinned Events have maximum salience
+        if self.is_pinned:
+            return 99999.0
+
         # 1. Base Importance
         base_score = EVENT_IMPORTANCE.get(self.event_type, 10.0) # Default to 10 if missing
         

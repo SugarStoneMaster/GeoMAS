@@ -505,6 +505,11 @@ class SimulationEngine:
         from geomas.schemas.world import RelationshipState
         
         for nation_id, relationships in self.world.relationship_matrix.items():
+            # Skip inactive nations
+            nation_x = self.world.nations.get(nation_id)
+            if not nation_x or not nation_x.is_active:
+                continue
+
             # X is at war with someone (Z)
             enemies = [target_id for target_id, rel in relationships.items() if rel == RelationshipState.WAR]
             if not enemies:

@@ -115,6 +115,10 @@ class BaseInputBuilder:
         for other_id, other_nation in self.world.nations.items():
             if other_id == nation_id:
                 continue
+            
+            # Skip inactive (fallen) nations in the relationship matrix
+            if not other_nation.is_active:
+                continue
                 
             rel = self.world.relationship_matrix.get(nation_id, {}).get(other_id, RelationshipState.PEACE)
             trust = self.world.trust_matrix.get(nation_id, {}).get(other_id, 50.0)

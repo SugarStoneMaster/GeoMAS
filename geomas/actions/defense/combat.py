@@ -463,6 +463,46 @@ def _conquer_province(
                 if not already_logged:
                     events.append(f"T{world.turn}: {fall_msg}")
             
+            # 3. Cleanup simulation artifacts for the fallen nation
+            # A. Clean up guest troops nationwide
+            provinces_dict = getattr(world, 'provinces', None)
+            if provinces_dict and isinstance(provinces_dict, dict):
+                for p in provinces_dict.values():
+                    gt = getattr(p, 'guest_troops', None)
+                    if gt and isinstance(gt, dict) and old_owner_id in gt:
+                        del gt[old_owner_id]
+            
+            # B. Zero out resources and military to prevent "ghost" power in stats
+            old_nation.total_soldiers = 0
+            old_nation.total_navy = 0
+            old_nation.total_aircraft = 0
+            old_nation.total_budget = 0
+            old_nation.total_food = 0
+            old_nation.total_energy = 0
+            old_nation.total_materials = 0
+            # NOTE: active_wars are preserved as historical record for analytics
+            
+            # C. Clean up pending/sent proposals across the world involving this nation
+            if hasattr(old_nation, 'pending_proposals') and isinstance(old_nation.pending_proposals, list):
+                old_nation.pending_proposals.clear()
+            if hasattr(old_nation, 'sent_proposals') and isinstance(old_nation.sent_proposals, list):
+                old_nation.sent_proposals.clear()
+            
+            # Wipe proposals involving victim from other nations' inboxes
+            for other_n in world.nations.values():
+                pp = getattr(other_n, 'pending_proposals', None)
+                if pp and isinstance(pp, list):
+                    other_n.pending_proposals = [p for p in pp if p.get("from") != old_owner_id]
+                sp = getattr(other_n, 'sent_proposals', None)
+                if sp and isinstance(sp, list):
+                    other_n.sent_proposals = [p for p in sp if p.get("to") != old_owner_id]
+            
+            # D. Message cooldowns
+            if hasattr(old_nation, 'message_cooldown') and isinstance(old_nation.message_cooldown, dict):
+                old_nation.message_cooldown.clear()
+            if hasattr(old_nation, 'betrayal_tracker') and isinstance(old_nation.betrayal_tracker, dict):
+                old_nation.betrayal_tracker.clear()
+            
     # --- UPDATE TERRITORIAL WATERS ---
     if province.terrain == TerrainType.COASTAL:
         from geomas.world.territory import update_territorial_waters
