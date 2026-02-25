@@ -28,14 +28,14 @@ def mock_world():
     # P1 = Costal (Owned by N1)
     p1 = ProvinceState(
         id=1, owner_id="N1", terrain=TerrainType.COASTAL, 
-        coordinates=(1,0), neighbors=[0]
+        coordinates=(1,0), neighbors=[0], population=1000
     )
     world.nations["N1"].province_ids.append(1)
     
     # P2 = Coastal (Owned by N2)
     p2 = ProvinceState(
         id=2, owner_id="N2", terrain=TerrainType.COASTAL, 
-        coordinates=(-1,0), neighbors=[0]
+        coordinates=(-1,0), neighbors=[0], population=1000
     )
     world.nations["N2"].province_ids.append(2)
     

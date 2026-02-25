@@ -433,7 +433,12 @@ def _conquer_province(
     # --- CHECK FOR NATION ELIMINATION ---
     if old_owner_id and old_nation:
         # Calculate total population left in remaining provinces
-        total_pop = sum(world.provinces[pid].population for pid in old_nation.province_ids)
+        # Use getattr for robustness against mock world objects in tests
+        provinces_dict = getattr(world, 'provinces', {})
+        total_pop = sum(
+            getattr(provinces_dict.get(pid), 'population', 0) 
+            for pid in old_nation.province_ids
+        )
         
         # Collapse if no provinces left OR all remaining provinces are uninhabited (Ghost Nation)
         if not old_nation.province_ids or total_pop <= 0:
@@ -442,7 +447,7 @@ def _conquer_province(
             if old_nation.province_ids:
                 remaining_pids = list(old_nation.province_ids)
                 for ghost_pid in remaining_pids:
-                    ghost_prov = world.provinces.get(ghost_pid)
+                    ghost_prov = provinces_dict.get(ghost_pid)
                     if ghost_prov:
                         _conquer_province(world, new_owner_id, ghost_prov, engine=engine)
                 return  # The final recursive call will handle is_active = False and cleanup
