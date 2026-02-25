@@ -8,40 +8,39 @@ GeoMAS is a multi-layered simulation environment built for structural determinis
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                    PRESENTATION LAYER                         │
+│                   1. PRESENTATION LAYER                       │
 │  Streamlit UI (web/)  │  Jupyter Notebooks (data/)           │
 ├──────────────────────────────────────────────────────────────┤
-│                    ORCHESTRATION LAYER                        │
+│                   2. ORCHESTRATION LAYER                      │
 │  SimulationEngine (simulation/engine.py, 979 lines)          │
 │  7-Phase Turn Loop  │  State Forking  │  Persistence         │
 ├──────────────────────────────────────────────────────────────┤
-│                    COGNITIVE LAYER                            │
+│                   3. COGNITIVE LAYER                          │
 │  NationAgent → 3 Ministers + President (agents/)              │
 │  OpinionAgent (population reaction)                          │
 │  ContextManager (bounded rationality, 1058 lines)            │
 │  LLMClient (multi-provider, 578 lines)                       │
 ├──────────────────────────────────────────────────────────────┤
-│                    PHYSICAL LAYER                             │
-│  ActionEngine (actions/engine.py) — validates & executes     │
-│  Defense Handler (985 lines, waterfall)                       │
-│  Economy Handler (295 lines) │ Foreign Handler (619 lines)   │
-│  Opinion Handler (273 lines) │ Validators (120 lines)        │
-│  Calculators Package (pure, stateless, 450 lines total)      │
-├──────────────────────────────────────────────────────────────┤
-│                    WORLD LAYER                                │
+│              4. SIMULATION PHYSICS LAYER                      │
+│  ── Action System ──────────────────────────────────────     │
+│  ActionEngine │ Defense (waterfall, 985 lines)               │
+│  Economy Handler (295) │ Foreign Handler (619)               │
+│  Opinion Handler (273) │ Validators (120)                    │
+│  Calculators (pure, stateless, 450 lines total)              │
+│  ── World Generation & Spatial ────────────────────────      │
 │  MapGenerator (8-stage Voronoi pipeline)                     │
 │  GenesisEngine (50-year history, 311 lines)                  │
 │  SpatialManager (NetworkX graph, 176 lines)                  │
 ├──────────────────────────────────────────────────────────────┤
-│                    DATA LAYER                                 │
+│              5. OBSERVABILITY LAYER                           │
+│  ── Persistence ───────────────────────────────────────      │
 │  WorldState/NationState/ProvinceState (Pydantic schemas)     │
 │  SimulationDB (DuckDB, 430 lines)  │  MetricsDB (7.8KB)     │
 │  TurnCache (in-memory) │ Serialization (8.9KB)               │
-├──────────────────────────────────────────────────────────────┤
-│                    ANALYSIS LAYER                             │
-│  DeceptionAnalyzer (197 lines) │ CoherenceAnalyzer (75 lines)│
-│  DeltaAnalyzer (185 lines) │ BehaviorTracker (134 lines)     │
-│  SimulationHealthAnalyzer (98 lines) │ TokenLogger (87 lines)│
+│  ── Behavioral Intelligence ───────────────────────────      │
+│  DeceptionAnalyzer (197) │ CoherenceAnalyzer (75)           │
+│  DeltaAnalyzer (185) │ BehaviorTracker (134)                │
+│  SimulationHealthAnalyzer (98) │ TokenLogger (87)            │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -264,7 +263,7 @@ ContextManager:
 
 ---
 
-## 4. Physical Layer — Action Execution
+## 4. Simulation Physics Layer — Action Execution
 
 ### 4.1 Defense Waterfall (`actions/defense/handler.py`, 985 lines)
 
@@ -366,9 +365,7 @@ else:
 
 ---
 
-## 5. World Layer — Procedural Generation
-
-### 5.1 Voronoi Pipeline
+### 4.6 World Generation — Voronoi Pipeline
 
 ```python
 class MapGenerator:
@@ -402,7 +399,7 @@ class MapGenerator:
         genesis.initialize_history(years=50)
 ```
 
-### 5.2 GenesisEngine (`world/genesis.py`, 311 lines)
+### 4.7 GenesisEngine (`world/genesis.py`, 311 lines)
 
 Per-year simulation for each nation pair:
 ```
@@ -415,7 +412,7 @@ Per-year simulation for each nation pair:
    - trust > 80 → border dispute resolution
 ```
 
-### 5.3 SpatialManager (`world/spatial/manager.py`, 176 lines)
+### 4.8 SpatialManager (`world/spatial/manager.py`, 176 lines)
 
 Wraps \`NetworkX.Graph\` built from province adjacency:
 
@@ -433,9 +430,9 @@ class SpatialManager:
 
 ---
 
-## 6. Data Layer — Persistence Architecture
+## 5. Observability Layer — Persistence
 
-### 6.1 SimulationDB Schema (`db/connection.py`, 430 lines)
+### 5.1 SimulationDB Schema (`db/connection.py`, 430 lines)
 
 ```sql
 CREATE TABLE simulations (
@@ -472,7 +469,7 @@ CREATE TABLE token_usage (
 );
 ```
 
-### 6.2 MetricsDB Schema (`db/metrics_db.py`)
+### 5.2 MetricsDB Schema (`db/metrics_db.py`)
 
 ```sql
 CREATE TABLE nation_metrics (
@@ -487,7 +484,7 @@ CREATE TABLE nation_metrics (
 );
 ```
 
-### 6.3 Serialization (`db/serialization.py`, 8.9KB)
+### 5.3 Serialization (`db/serialization.py`, 8.9KB)
 
 Handles complex type conversion:
 - Pydantic models → JSON via `.model_dump()`
@@ -498,9 +495,7 @@ Handles complex type conversion:
 
 ---
 
-## 7. Analysis Layer — Behavioral Intelligence
-
-### 7.1 Deception Matrices
+### 5.4 Deception Matrices
 
 **Defense Matrix** (30+ entries):
 ```
@@ -515,7 +510,7 @@ Handles complex type conversion:
 **Aggregation**: `total = (defense_score + foreign_score) / 2.0`
 Economic domain excluded — actions are directly observable.
 
-### 7.2 Coherence Scoring
+### 5.5 Coherence Scoring
 
 ```python
 EXPECTED_INTENTS = {
@@ -530,7 +525,7 @@ EXPECTED_INTENTS = {
 # Score = matches / 2.0 (defense + foreign domains)
 ```
 
-### 7.3 Divergence Analysis
+### 5.6 Divergence Analysis
 
 ```python
 class DeltaAnalyzer:
@@ -547,9 +542,9 @@ class DeltaAnalyzer:
 
 ---
 
-## 8. Cross-Cutting Concerns
+## 6. Cross-Cutting Concerns
 
-### 8.1 Prompt Architecture
+### 6.1 Prompt Architecture
 
 ```
 agents/context/
@@ -571,7 +566,7 @@ agents/context/
 └── tokens.py        # Token counting and budget validation
 ```
 
-### 8.2 LLM Client (`agents/llm_client.py`, 578 lines)
+### 6.2 LLM Client (`agents/llm_client.py`, 578 lines)
 
 ```python
 class LLMClient:
@@ -589,7 +584,7 @@ class LLMClient:
         # Logs token usage via token_logger singleton
 ```
 
-### 8.3 Token Observability
+### 6.3 Token Observability
 
 Every LLM call logs:
 ```
@@ -602,7 +597,7 @@ Also persisted per-call in SimulationDB.token_usage table.
 
 ---
 
-## 9. Package Dependency Graph
+## 7. Package Dependency Graph
 
 ```
 simulation/
