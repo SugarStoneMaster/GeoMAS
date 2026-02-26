@@ -104,7 +104,7 @@ The architecture consists of one central decision-maker and four specialized sub
     \item \textbf{Public Opinion (The Internal Constraint):} Unlike the Ministers, this is not an LLM agent but a \textit{deterministic satisfaction engine} that operates post-execution. It computes satisfaction deltas from a rule-based formula applied to the turn's events and government actions (e.g., wars started, welfare invested, taxes raised). Fixed threshold triggers fire automatically when satisfaction crosses critical levels (General Strike, Civil Unrest, Recovery).
 \end{itemize}
 
-Each nation is also assigned a \textbf{GlobalStrategy} (Total Expansionism, Armed Isolationism, Coalition Builder, or Scorched Earth) and a \textbf{GovernmentType} (Democracy, Authoritarian, or Theocracy). The strategy is injected into all minister prompts to steer long-term behavior, while the government type affects the narrative framing available to the agent --- critically enabling the ``moral washing'' phenomenon studied in the analysis.
+Each nation is also assigned a \textbf{GlobalStrategy} (Total Expansionism, Armed Isolationism, Coalition Builder, or Scorched Earth) and a \textbf{GovernmentType} (Democracy, Authoritarian, or Theocracy). The strategy is injected into all minister prompts to steer long-term behavior, while the government type affects the narrative framing available to the agent --- critically enabling the ``moral washing'' phenomenon.
 
 \subsection{Cabinet Decision Workflow}
 The decision loop for a single nation within the Decision and Execution Phase (Section~\ref{sec:orchestration}) operates in four steps:
@@ -178,7 +178,7 @@ The Foreign Minister proposes a single action per turn. These modify the \textit
     \item \textbf{Propose\_Alliance:} Creates a pending proposal with a specified tier (Non-Aggression Pact or Mutual Defense). Requires bilateral trust $\geq$ 40 on a 0--100 scale.
     \item \textbf{Respond\_To\_Proposal:} Accepts or rejects a pending alliance or peace proposal.
     \item \textbf{Request\_Peace:} Creates a pending peace proposal for nations currently at war.
-    \item \textbf{Send\_Diplomatic\_Message:} Typed messages (Trade Interest, Threat, Praise, Warning, etc.) with predefined trust impacts ($+3$ to $-5$). A five-turn cooldown per pair prevents message spamming.
+    \item \textbf{Send\_Diplomatic\_Message:} Typed messages (Praise, Insult, Threat, Nuclear Threat) with predefined trust impacts ($+3$ to $-5$). A five-turn cooldown per pair prevents message spamming.
     \item \textbf{Break\_Treaty:} Unilaterally ends an alliance, incurring a $-30$ trust penalty.
 \end{itemize}
 
@@ -204,7 +204,7 @@ A critical challenge in geopolitical simulation is balancing the ambiguity of na
     \item \textbf{Public Layer:} The President's public statement and declared public intents for defense and foreign domains. This layer is visible to all other nations and may be deceptive.
     \item \textbf{Private Layer:} The true private intents and internal reasoning for each domain. This layer is \textit{hidden} from other agents and accessible only for post-hoc XAI analysis.
     \item \textbf{Action Layer:} The typed, validated payloads for each domain (defense, economy, foreign). The ActionEngine executes this layer, ignoring the public statement.
-    \item \textbf{Trace Layer:} The complete system prompt, input prompt, and raw LLM JSON response for all five agent types (President, three Ministers, Opinion). This provides full prompt-level reproducibility for any decision at any turn.
+    \item \textbf{Trace Layer:} The complete system prompt, input prompt, and raw LLM JSON response for all four agent types (President, three Ministers). This provides full prompt-level reproducibility for any decision at any turn.
 \end{enumerate}
 
 The separation between the Public and Private layers is the foundation of the \textit{Deception Score} metric. By comparing the declared public intent (e.g., ``Deterrence'') against the hidden private intent (e.g., ``Conquest''), the system can quantitatively measure strategic deception without relying on subjective assessments.
@@ -276,7 +276,7 @@ For each simulated year, the engine processes every nation pair through four dyn
     \item \textbf{Diplomatic Shifts:} Trust thresholds trigger structural events: trust below 30 generates rivalry events, trust above 70 generates alliance events.
 \end{itemize}
 
-This results in a mathematically distributed, asymmetric \textit{Trust Matrix} at Turn~0, ensuring that the simulation starts with a realistic network of alliances and rivalries grounded in the synthetic geography rather than pre-trained biases.
+This results in a mathematically distributed, asymmetric \textit{Trust Matrix} at Turn~0, ensuring that the simulation starts with a realistic trust matrix derived from the synthetic geography rather than pre-trained biases.
 
 
 
@@ -290,7 +290,7 @@ A primary contribution of this thesis is the transition from descriptive simulat
 Agent behavior is quantified through two complementary metrics:
 
 \begin{itemize}
-    \item \textbf{Deception Score (0.0--1.0):} Computed by comparing each agent's \textit{public intent} against its \textit{private intent} using hand-crafted adjacency matrices. Two separate matrices are maintained --- one for defense intents (30+ entries) and one for foreign intents --- capturing domain-specific deception patterns. The economic domain is excluded because economic actions are directly observable and lack the narrative framing needed for deception measurement. The total score is the average of the two domain scores.
+    \item \textbf{Deception Score (0.0--1.0):} Computed by comparing each agent's \textit{public intent} against its \textit{private intent} using hand-crafted adjacency matrices. Two separate matrices are maintained --- one for defense intents and one for foreign intents --- capturing domain-specific deception patterns. The economic domain is excluded because economic actions are directly observable and lack the narrative framing needed for deception measurement. The total score is the average of the two domain scores.
     \item \textbf{Coherence Score (0.0--1.0):} Measures how well an agent's private intents align with its declared \textit{GlobalStrategy}. Each strategy defines a set of ``expected'' private intents (e.g., Total Expansionism expects Conquest or Deterrence in defense, Coercion in foreign affairs). The score represents the fraction of private intents that match these expectations.
 \end{itemize}
 
@@ -324,7 +324,7 @@ Every CountryEnvelope persists the complete system prompt, input prompt, and raw
 The Presentation Layer exposes the simulation's internal state to human researchers through two complementary interfaces, enabling both real-time monitoring during execution and rigorous post-hoc quantitative analysis.
 
 \subsection{Real-Time Monitoring Dashboard}
-A \textbf{Streamlit}-based web dashboard provides live visibility into the simulation while it runs. The dashboard is organized into dedicated views covering the geopolitical map (province ownership, military deployments, trust network), the cabinet's internal reasoning (system prompts, ministerial proposals, presidential decrees, and satisfaction events for each nation and turn), and a structured event log of significant outcomes. The dashboard enables the researcher to inspect the exact inputs and outputs of any LLM call without interrupting the simulation, with turn-by-turn navigation of persisted envelopes.
+A \textbf{Streamlit}-based web dashboard provides live visibility into the simulation while it runs. The dashboard is organized into dedicated views covering the geopolitical map (province ownership, military deployments, trust network), the cabinet's internal reasoning (system prompts, ministerial proposals, presidential decrees, and satisfaction events for each nation and turn), and a structured event log of significant outcomes. The dashboard enables the researcher to inspect the exact inputs and outputs of any LLM call, with turn-by-turn navigation of persisted envelopes.
 
 \subsection{Post-Simulation Analysis Notebook}
 A \textbf{Jupyter} notebook environment provides the primary quantitative analysis interface for research. The notebook queries the MetricsDB directly and includes dedicated chapters for each of the study's Research Questions:
