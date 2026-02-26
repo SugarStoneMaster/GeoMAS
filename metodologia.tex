@@ -182,15 +182,15 @@ The Foreign Minister proposes exactly one primary diplomatic action per turn, ch
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|p{0.25\linewidth}|p{0.65\linewidth}|}
+\begin{tabular}{|p{0.22\linewidth}|p{0.38\linewidth}|p{0.3\linewidth}|}
 \hline
-\textbf{Action} & \textbf{Description} \\ \hline
-\texttt{Declare\_War} & Sets the bilateral relationship to War and triggers a \textit{Call to Arms} notification to the victim's Mutual Defense allies. \\ \hline
-\texttt{Propose\_Alliance} & Creates a pending proposal at a specified tier: Non-Aggression Pact or Mutual Defense. Requires that the proposer's trust towards the target is $\geq$ 40/100. \\ \hline
-\texttt{Request\_Peace} & Creates a pending peace proposal for nations currently at war. \\ \hline
-\texttt{Send\_Diplomatic\_Message} & Sends a typed message (Praise, Threat, Nuclear Threat, or Warning) with predefined trust impacts ($+3$ to $-10$). A five-turn cooldown per pair prevents spamming. \\ \hline
-\texttt{Break\_Treaty} & Unilaterally dissolves an alliance, triggering a $-30$ trust penalty. \\ \hline
-\texttt{Idle} & No diplomatic initiative this turn. \\ \hline
+\textbf{Action} & \textbf{Description} & \textbf{Trade-offs} \\ \hline
+\texttt{Declare\_War} & Sets the bilateral relationship to War and triggers a \textit{Call to Arms} to the victim's Mutual Defense allies. & Immediate trust drop with all nations observing the aggression. \\ \hline
+\texttt{Propose\_Alliance} & Sends a pending treaty proposal (Non-Aggression Pact or Mutual Defense) to a target nation. & Requires proposer's trust towards target $\geq$ 40/100. Counterparty may accept or refuse. \\ \hline
+\texttt{Request\_Peace} & Initiates a pending peace proposal for nations currently at war. & Counterparty may refuse; war continues until accepted. \\ \hline
+\texttt{Send\_Diplomatic\_Message} & Sends a typed message (Praise, Threat, Nuclear Threat, Warning) with predefined trust impacts ($+3$ to $-10$). & Five-turn cooldown per pair prevents spamming. \\ \hline
+\texttt{Break\_Treaty} & Unilaterally dissolves an active alliance. & $-30$ trust penalty with the formerly allied nation. \\ \hline
+\texttt{Idle} & No diplomatic initiative this turn. & No resource cost; missed opportunities. \\ \hline
 \end{tabular}
 \caption{Foreign Ministry Action Space}
 \label{tab:foreign_actions}
