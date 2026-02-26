@@ -111,7 +111,7 @@ The decision loop for a single nation within the Decision and Execution Phase (S
 \begin{enumerate}
     \item \textbf{Proposal Step:} The three Ministers analyze the world state and \textit{concurrently} submit structured proposals (Intent + Action Payload) to the President via async LLM calls.
     \item \textbf{Executive Step:} The President LLM receives the \textit{CabinetBriefing} and issues a \textit{PresidentialDecree}: Approve or Veto for each ministerial domain. Approved payloads are assembled into the final \textit{CountryEnvelope}.
-    \item \textbf{Validation and Execution Step:} The ActionEngine validates and executes the envelope against the WorldState. Defense actions are processed via a \textit{waterfall priority resolver}: the three proposed military actions are sorted by a fixed priority order (nuclear strikes first, then attacks, then troop movements, then unit creation) and executed sequentially, so that a veto or resource failure on a high-priority action does not block lower-priority ones. Economic and foreign actions are single-shot.
+    \item \textbf{Validation and Execution Step:} The ActionEngine validates and executes the envelope against the WorldState. Defense actions are processed via a \textit{waterfall priority resolver}: the Defense Minister assigns a numeric priority to each of its proposed actions, and the engine executes them in that order, so that a validation failure on a higher-priority action does not block lower-priority ones. Economic and foreign actions are single-shot.
     \item \textbf{Reaction Step:} The deterministic satisfaction engine evaluates the resulting state changes. Satisfaction deltas are calculated from a rule-based formula applied to events and government actions. If satisfaction crosses critical thresholds, automatic triggers fire (General Strike, Civil Unrest).
 \end{enumerate}
 
@@ -131,8 +131,7 @@ The memory architecture is organized into four components:
     \item \textbf{Presidential Feedback:} A record of past Approve/Veto decisions per ministerial domain. This enables Ministers to adapt their proposals based on presidential preferences, creating an emergent learning-like dynamic without fine-tuning.
 \end{itemize}
 
-\subsubsection{Design Rationale} While Vector Retrieval Augmented Generation (RAG) is the industry standard for semantic search, it was deemed unsuitable for the rigid consistency required by GeoMAS. Vector search is inherently probabilistic; a ``near-miss'' in cosine similarity could cause an agent to ``forget'' a critical treaty violation.
-GeoMAS instead employs deterministic structured retrieval: events are stored with explicit metadata (turn, type, participants) and retrieved via exact filters. The salience-based selection further ensures that the assembled context prioritizes events that are both recent and strategically important, naturally imposing bounded rationality --- low-salience events fade from context, exactly as they would for a human decision-maker operating under information overload.
+\subsubsection{Design Rationale} While Vector Retrieval Augmented Generation (RAG) is the industry standard for semantic search, it was deemed unsuitable for the rigid consistency required by GeoMAS. Vector search is inherently probabilistic; a ``near-miss'' in cosine similarity could cause an agent to ``forget'' a critical treaty violation. GeoMAS instead employs deterministic structured retrieval: events are stored with explicit metadata (turn, type, participants) and retrieved via exact filters, guaranteeing that high-salience events are never silently dropped.
 
 \subsection{Strategic Action Space}
 \label{sec:action_space}
