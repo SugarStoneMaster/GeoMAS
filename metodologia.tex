@@ -219,7 +219,7 @@ The Simulation Physics layer encompasses both the procedural world generation pi
 \subsection{Procedural Voronoi Geography}
 This component directly addresses \textbf{Gap~2} (Strategic Memorization and Topological Bias, Section~\ref{sec:soa_limitations}): by generating a fully synthetic geography, GeoMAS eliminates the risk that agents recognize Earth's topology and default to pre-trained historical patterns rather than autonomous reasoning.
 
-To prevent Large Language Models from relying on pre-trained historical biases (e.g., ``re-enacting WWI''), the simulation operates in a synthetic, procedurally generated environment. The environment is modeled not as an abstract graph, but as a continuous 2D spatial domain. We employ \textbf{Voronoi Tessellation} combined with Lloyd's Relaxation (3 iterations by default) to generate irregular, naturalistic provinces from 1500 seed cells.
+To prevent Large Language Models from relying on pre-trained historical biases (e.g., ``re-enacting WWI''), the simulation operates in a synthetic, procedurally generated environment. The environment is modeled not as an abstract graph, but as a continuous 2D spatial domain. We employ \textbf{Voronoi Tessellation} combined with Lloyd's Relaxation (3 iterations by default) to generate irregular, naturalistic provinces.
 
 Mathematically, the map acts as a dual graph where nodes represent provinces (containing resources and population) and edges represent adjacency, determining movement costs and military feasibility. The map generation pipeline executes eight sequential stages:
 
