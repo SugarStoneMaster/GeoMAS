@@ -102,7 +102,16 @@ The architecture consists of one central decision-maker and four specialized sub
     \item \textbf{Public Opinion (The Internal Constraint):} Unlike the Ministers, this is not an LLM agent but a \textit{deterministic satisfaction engine} that operates post-execution. It computes satisfaction deltas from a rule-based formula applied to the turn's events and government actions (e.g., wars started, welfare invested, taxes raised). Fixed threshold triggers fire automatically when satisfaction crosses critical levels (General Strike, Civil Unrest, Recovery).
 \end{itemize}
 
-Each nation is also assigned a \textbf{GlobalStrategy} (Total Expansionism, Armed Isolationism, Coalition Builder, or Scorched Earth) and a \textbf{GovernmentType} (Democracy, Authoritarian, or Theocracy). The strategy is injected into all minister prompts to steer long-term behavior, while the government type affects the narrative framing available to the agent, critically enabling the ``moral washing'' phenomenon.
+Each nation is also assigned a \textbf{GlobalStrategy} and a \textbf{GovernmentType}, both fixed for the duration of the simulation:
+
+\begin{itemize}
+    \item \textbf{Total Expansionism:} aggressive territorial growth through military dominance.
+    \item \textbf{Armed Isolationism:} self-sufficiency, military deterrence, and avoiding foreign entanglements.
+    \item \textbf{Coalition Builder:} building alliances, investing in relationships, and seeking collective security.
+    \item \textbf{Scorched Earth:} deterrence through unpredictability and willingness to deny resources to enemies.
+\end{itemize}
+
+The strategy is injected into all minister system prompts to steer long-term reasoning. The GovernmentType (Democracy, Authoritarian, or Theocracy) is orthogonal to strategy: it affects only the narrative framing of public statements, not the action space. A Democracy must frame aggression as \textit{liberation}, an Authoritarian state as \textit{national greatness}, a Theocracy as \textit{sacred duty}. This asymmetry between public framing and private intent is precisely what the Deception Score captures.
 
 \subsection{Cabinet Decision Workflow}
 The decision loop for a single nation within the Decision and Execution Phase (Section~\ref{sec:orchestration}) operates in four steps:
@@ -124,7 +133,7 @@ GeoMAS addresses this through a \textbf{ContextManager} that implements a form o
 The memory architecture is organized into four components:
 \begin{itemize}
     \item \textbf{Working State (Current Turn):} The immediate world state: resource balances, military deployment, diplomatic relationships, and active treaties. Rebuilt each turn from the \textit{WorldState}.
-    \item \textbf{Relationship Memory:} Bilateral relationship summaries for each nation pair, tracking: diplomatic status (Peace, War, Non-Aggression, Mutual Defense), current trust level, trust trend ($\uparrow$/$\downarrow$/$\rightarrow$), and recent bilateral events.
+    \item \textbf{Relationship Memory:} Bilateral relationship summaries for each nation pair. The Trust Matrix is \textit{asymmetric}: trust values are stored independently for each ordered pair $(A \to B)$ and $(B \to A)$ on a 0--100 scale (default 50), reflecting that two nations may hold divergent levels of confidence in each other. Summaries track diplomatic status (Peace, War, Non-Aggression, Mutual Defense), the current trust level, its trend ($\uparrow$/$\downarrow$/$\rightarrow$), and recent bilateral events.
     \item \textbf{Event Memory:} A log of ``newsworthy'' events extracted from executed envelopes. Only externally observable outcomes generate events (internal proposals do not). Events are selected by a \textit{salience score} that combines recency (more recent events score higher) with event-type importance (e.g., war declarations and nuclear strikes are considered high-salience regardless of age, while minor diplomatic messages decay quickly). This ensures that strategically significant events remain in context longer than routine ones, mirroring how human decision-makers weight the significance of geopolitical signals.
     \item \textbf{Presidential Feedback:} A record of past Approve/Veto decisions per ministerial domain. This enables Ministers to adapt their proposals based on presidential preferences, creating an emergent learning-like dynamic without fine-tuning.
 \end{itemize}
@@ -144,7 +153,7 @@ The Defense Minister may propose up to three prioritized actions per turn, execu
 \hline
 \textbf{Action} & \textbf{Description} & \textbf{Trade-offs} \\ \hline
 \texttt{Create\_Unit} & Creates military units (Soldier, Navy, or Aircraft) in a owned province. & Budget and materials cost. Bureaucracy multiplier increases cost for large empires. \\ \hline
-\texttt{Move\_Troops} & Moves units from source to target. If target is enemy territory, triggers combat. & Requires contiguous friendly path. Entering enemy territory initiates binary combat resolution. \\ \hline
+\texttt{Move\_Troops} & Moves units from source to target via a pathfinding-valid route. If target is allied territory, units are stationed as \textit{guest troops}, they defend alongside the host if attacked, automatically triggering co-belligerence. If target is enemy territory, triggers combat. & Requires a contiguous path through owned or allied provinces. Guest troops in a province are included in the province's total defending force. \\ \hline
 \texttt{Nuclear\_Option} & Strikes a target province. 90\% population killed, 80\% production destroyed. & Trust with victim set to 0. Trust with \textit{all} other nations reduced by 80 points. \\ \hline
 \end{tabular}
 \caption{Defense Ministry Action Space}
@@ -161,7 +170,7 @@ The Economy Minister proposes a single action per turn.
 \hline
 \textbf{Action} & \textbf{Description} & \textbf{Trade-offs} \\ \hline
 \texttt{Invest\_Welfare} & Converts budget into satisfaction via logarithmic formula: $\Delta S = 7 \times \ln(1 + A/500)$. & Capped at 25\% of current budget. Requires 20\% materials cost. \\ \hline
-\texttt{Trade\_Proposal} & Proposes resource exchange evaluated by a deterministic oracle formula. & Maximum 15\% of stock per resource type. \\ \hline
+\texttt{Trade\_Proposal} & Proposes a resource exchange (specifying what to give and what to receive). The trade oracle evaluates the proposal automatically: it checks that the receiver's trust towards the sender is $\geq$ 40/100, and that both parties have sufficient stock. If accepted, the exchange is executed immediately. Prices are fixed by a predefined market schedule (food: 1.0, energy: 2.0, materials: 3.0, budget: 1.0), which the agents can observe when composing offers. & No negotiation round; the oracle accepts or rejects deterministically. Maximum 15\% of stock per resource type. \\ \hline
 \texttt{Raise\_War\_Tax} & Emergency budget: +1\% of population as budget. & $-15$ satisfaction penalty. Requires satisfaction $\geq$ 20. \\ \hline
 \end{tabular}
 \caption{Economy Ministry Action Space}
@@ -169,28 +178,44 @@ The Economy Minister proposes a single action per turn.
 \end{table}
 
 \subsubsection{Diplomatic Actions (Relationship Management)}
-The Foreign Minister proposes a single action per turn. These modify the \textit{Trust Matrix} and the \textit{Relationship Matrix}, enabling or disabling inter-nation interactions.
-\begin{itemize}
-    \item \textbf{Declare\_War:} Sets relationship to War and triggers a \textit{Call to Arms} notification to the victim's mutual defense allies.
-    \item \textbf{Propose\_Alliance:} Creates a pending proposal with a specified tier (Non-Aggression Pact or Mutual Defense). Requires bilateral trust $\geq$ 40 on a 0--100 scale.
-    \item \textbf{Respond\_To\_Proposal:} Accepts or rejects a pending alliance or peace proposal.
-    \item \textbf{Request\_Peace:} Creates a pending peace proposal for nations currently at war.
-    \item \textbf{Send\_Diplomatic\_Message:} Typed messages (Praise, Insult, Threat, Nuclear Threat) with predefined trust impacts.
-    \item \textbf{Break\_Treaty:} Unilaterally ends an alliance, incurring in a trust penalty.
-\end{itemize}
+The Foreign Minister proposes exactly one primary diplomatic action per turn, chosen from the table below. In addition, and independently of the primary action, the Minister may simultaneously accept or reject any number of pending alliance or peace proposals received in prior turns.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{0.25\linewidth}|p{0.65\linewidth}|}
+\hline
+\textbf{Action} & \textbf{Description} \\ \hline
+\texttt{Declare\_War} & Sets the bilateral relationship to War and triggers a \textit{Call to Arms} notification to the victim's Mutual Defense allies. \\ \hline
+\texttt{Propose\_Alliance} & Creates a pending proposal at a specified tier: Non-Aggression Pact or Mutual Defense. Requires that the proposer's trust towards the target is $\geq$ 40/100. \\ \hline
+\texttt{Request\_Peace} & Creates a pending peace proposal for nations currently at war. \\ \hline
+\texttt{Send\_Diplomatic\_Message} & Sends a typed message (Praise, Threat, Nuclear Threat, or Warning) with predefined trust impacts ($+3$ to $-10$). A five-turn cooldown per pair prevents spamming. \\ \hline
+\texttt{Break\_Treaty} & Unilaterally dissolves an alliance, triggering a $-30$ trust penalty. \\ \hline
+\texttt{Idle} & No diplomatic initiative this turn. \\ \hline
+\end{tabular}
+\caption{Foreign Ministry Action Space}
+\label{tab:foreign_actions}
+\end{table}
 
 \subsubsection{Public Satisfaction Dynamics}
 \label{sec:satisfaction}
 This component directly addresses \textbf{Gap~4} (The Decoupling of Social Dynamics and Production Physics, Section~\ref{sec:soa_limitations}): in GeoMAS, public satisfaction is not a decorative metric but a deterministic constraint that directly governs the nation's industrial output, closing the feedback loop between top-down governmental decisions and bottom-up physical capability.
 
-Public satisfaction operates on a 0--100 scale and drives a feedback loop with production:
-\begin{itemize}
-    \item \textbf{Full Production ($\geq$ 60):} Production multiplier at 1.0$\times$ (no penalty).
-    \item \textbf{Linear Decay (20--60):} Production multiplier decays linearly from 1.0 toward a minimum threshold.
-    \item \textbf{General Strike ($<$ 20):} Production reduced by an additional 30\%, strike flag activated.
-    \item \textbf{Civil Unrest ($<$ 10):} Production halted entirely. Random provinces enter revolt.
-    \item \textbf{Recovery ($>$ 50):} Strike and unrest flags are cleared.
-\end{itemize}
+Public satisfaction operates on a 0--100 scale and drives a feedback loop with production through four threshold-based regimes:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{0.32\linewidth}|p{0.15\linewidth}|p{0.43\linewidth}|}
+\hline
+\textbf{Regime} & \textbf{Threshold} & \textbf{Effect} \\ \hline
+Full Production & $\geq 60$ & Production multiplier: $1.0\times$ (no penalty). \\ \hline
+Linear Decay & $20$--$60$ & Multiplier decays linearly from $1.0$ down to $0.5\times$ as satisfaction approaches 20. \\ \hline
+General Strike & $< 20$ & Additional $-30\%$ on top of linear decay; strike flag activated. \\ \hline
+Civil Unrest & $< 10$ & Production halted entirely ($0.0\times$); random provinces enter revolt and may secede. \\ \hline
+Recovery & $> 50$ & Strike and unrest flags cleared; production resumes normal scaling. \\ \hline
+\end{tabular}
+\caption{Satisfaction thresholds and production effects}
+\label{tab:satisfaction}
+\end{table}
 
 \subsection{The Country Envelope Protocol}
 \label{sec:envelope}
