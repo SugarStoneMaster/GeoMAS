@@ -61,7 +61,7 @@ The following sections detail each layer in order, from the top-level orchestrat
 The Orchestration Layer is the entry point of the simulation. A single \texttt{SimulationEngine} instance manages the complete lifecycle: world generation, agent instantiation, turn execution, state persistence, and simulation forking for counterfactual experiments.
 
 \subsection{Initialization}
-The engine is configured with two deterministic seeds --- one for map generation and one for historical events --- ensuring that any simulation can be reproduced exactly. Upon construction, the engine:
+The engine is configured with two deterministic seeds, one for map generation and one for historical events, ensuring that any simulation can be reproduced exactly. Upon construction, the engine:
 \begin{enumerate}
     \item Generates the world via the procedural pipeline (Section~\ref{sec:simulation_physics}), producing the map, nations, provinces, and initial resource stockpiles.
     \item Instantiates a \textit{NationAgent} (the hierarchical cabinet, Section~\ref{sec:cognitive_architecture}) and an \textit{OpinionAgent} (the deterministic satisfaction engine) for each nation.
@@ -69,15 +69,13 @@ The engine is configured with two deterministic seeds --- one for map generation
 \end{enumerate}
 
 \subsection{The Turn Loop}
-Each turn is executed by the \texttt{step()} method and proceeds through seven sequential phases:
+Each turn is executed by the \texttt{step()} method and proceeds through several sequential phases:
 
 \begin{enumerate}
     \item \textbf{Scenario Phase:} Checks for exogenous event triggers (e.g., a global pandemic or an insurrection). Scenarios are defined as structured configurations that modify the world state and inject contextual events into agent prompts, enabling controlled experimental perturbation.
     \item \textbf{Upkeep Phase:} Deterministic resource accounting: production, consumption, population growth, and tax collection are computed for every nation. Satisfaction-driven production penalties (Section~\ref{sec:satisfaction}) are applied here.
-    \item \textbf{Diplomacy Cleanup:} Expired diplomatic proposals (older than two turns) are cleared, preventing stale offers from accumulating.
     \item \textbf{Decision and Execution Phase:} The core of the simulation. Nation IDs are shuffled using the turn's local RNG for fairness. For each nation, the agent perceives the \textit{current} world state, generates a \textit{CountryEnvelope} (Section~\ref{sec:envelope}), and the \textit{ActionEngine} (Section~\ref{sec:rules_oracle}) executes it \textit{immediately}. This means that subsequent agents in the same turn observe the effects of prior actions, creating an inherently sequential and temporally consistent execution model.
-    \item \textbf{Ambiguity Penalty:} A trust penalty is applied to nations that hold a Mutual Defense pact but remain idle while their ally is at war, enforcing the cost of diplomatic passivity.
-    \item \textbf{Context Update:} The \textit{ContextManager} (Section~\ref{sec:memory}) extracts ``newsworthy'' events from the turn's executed envelopes and appends state-based events (General Strikes, Civil Unrest) to the global event log.
+    \item \textbf{Context Update:} The \textit{ContextManager} (Section~\ref{sec:memory}) extracts ``newsworthy'' events from the turn's executed envelopes and appends state-based events to the global event log.
     \item \textbf{Opinion and Persistence Phase:} The deterministic satisfaction engine updates each nation's satisfaction based on the turn's events. Finally, the complete world snapshot, all envelopes, behavior metrics, and token usage records are persisted to the database.
 \end{enumerate}
 
@@ -85,7 +83,7 @@ Each turn is executed by the \texttt{step()} method and proceeds through seven s
 The engine supports creating a \textit{fork} at any turn. Forking creates a new simulation entry in the database and copies the entire history (snapshots + envelopes) up to the current turn. From that point, the forked simulation evolves independently. Combined with XAI injections (natural language instructions appended to agent prompts), this mechanism enables controlled counterfactual experiments: ``What would have changed if Nation~A had been forced to declare war at Turn~5?'' The divergence between timelines is then analyzed through telemetry comparison in the analysis notebook (Section~\ref{sec:observability}).
 
 \subsubsection{Design Rationale}
-The decision to execute agent actions \textit{sequentially within a turn} (rather than simultaneously) is deliberate. In real geopolitics, information asymmetry and timing are strategic variables: a nation that acts after its rival has already moved may exploit the resulting vulnerability. The shuffled execution order, seeded by the turn's deterministic RNG, preserves fairness while modeling this temporal asymmetry. The forking mechanism, by contrast, deliberately does \textit{not} alter the simulation's physics --- it simply copies state --- ensuring that counterfactual divergence is attributable solely to the injected behavioral change.
+The decision to execute agent actions \textit{sequentially within a turn} (rather than simultaneously) is deliberate. In real geopolitics, information asymmetry and timing are strategic variables: a nation that acts after its rival has already moved may exploit the resulting vulnerability. The shuffled execution order, seeded by the turn's deterministic RNG, preserves fairness while modeling this temporal asymmetry. The forking mechanism, by contrast, deliberately does \textit{not} alter the simulation's physics. It simply copies state, ensuring that counterfactual divergence is attributable solely to the injected behavioral change.
 
 
 \section{The Cognitive Layer: The Hierarchical Cabinet}
@@ -104,7 +102,7 @@ The architecture consists of one central decision-maker and four specialized sub
     \item \textbf{Public Opinion (The Internal Constraint):} Unlike the Ministers, this is not an LLM agent but a \textit{deterministic satisfaction engine} that operates post-execution. It computes satisfaction deltas from a rule-based formula applied to the turn's events and government actions (e.g., wars started, welfare invested, taxes raised). Fixed threshold triggers fire automatically when satisfaction crosses critical levels (General Strike, Civil Unrest, Recovery).
 \end{itemize}
 
-Each nation is also assigned a \textbf{GlobalStrategy} (Total Expansionism, Armed Isolationism, Coalition Builder, or Scorched Earth) and a \textbf{GovernmentType} (Democracy, Authoritarian, or Theocracy). The strategy is injected into all minister prompts to steer long-term behavior, while the government type affects the narrative framing available to the agent --- critically enabling the ``moral washing'' phenomenon.
+Each nation is also assigned a \textbf{GlobalStrategy} (Total Expansionism, Armed Isolationism, Coalition Builder, or Scorched Earth) and a \textbf{GovernmentType} (Democracy, Authoritarian, or Theocracy). The strategy is injected into all minister prompts to steer long-term behavior, while the government type affects the narrative framing available to the agent, critically enabling the ``moral washing'' phenomenon.
 
 \subsection{Cabinet Decision Workflow}
 The decision loop for a single nation within the Decision and Execution Phase (Section~\ref{sec:orchestration}) operates in four steps:
@@ -164,7 +162,7 @@ The Economy Minister proposes a single action per turn.
 \textbf{Action} & \textbf{Description} & \textbf{Trade-offs} \\ \hline
 \texttt{Invest\_Welfare} & Converts budget into satisfaction via logarithmic formula: $\Delta S = 7 \times \ln(1 + A/500)$. & Capped at 25\% of current budget. Requires 20\% materials cost. \\ \hline
 \texttt{Trade\_Proposal} & Proposes resource exchange evaluated by a deterministic oracle formula. & Maximum 15\% of stock per resource type. \\ \hline
-\texttt{Raise\_War\_Tax} & Emergency budget: +1\% of population as budget. & $-15$ satisfaction penalty (scaled to $-22$ if satisfaction is below 30). Requires satisfaction $\geq$ 20. \\ \hline
+\texttt{Raise\_War\_Tax} & Emergency budget: +1\% of population as budget. & $-15$ satisfaction penalty. Requires satisfaction $\geq$ 20. \\ \hline
 \end{tabular}
 \caption{Economy Ministry Action Space}
 \label{tab:economy_actions}
@@ -173,12 +171,12 @@ The Economy Minister proposes a single action per turn.
 \subsubsection{Diplomatic Actions (Relationship Management)}
 The Foreign Minister proposes a single action per turn. These modify the \textit{Trust Matrix} and the \textit{Relationship Matrix}, enabling or disabling inter-nation interactions.
 \begin{itemize}
-    \item \textbf{Declare\_War:} Sets relationship to War, generates formal war statistics, and triggers a \textit{Call to Arms} notification to the victim's mutual defense allies.
+    \item \textbf{Declare\_War:} Sets relationship to War and triggers a \textit{Call to Arms} notification to the victim's mutual defense allies.
     \item \textbf{Propose\_Alliance:} Creates a pending proposal with a specified tier (Non-Aggression Pact or Mutual Defense). Requires bilateral trust $\geq$ 40 on a 0--100 scale.
     \item \textbf{Respond\_To\_Proposal:} Accepts or rejects a pending alliance or peace proposal.
     \item \textbf{Request\_Peace:} Creates a pending peace proposal for nations currently at war.
-    \item \textbf{Send\_Diplomatic\_Message:} Typed messages (Praise, Insult, Threat, Nuclear Threat) with predefined trust impacts ($+3$ to $-5$). A five-turn cooldown per pair prevents message spamming.
-    \item \textbf{Break\_Treaty:} Unilaterally ends an alliance, incurring a $-30$ trust penalty.
+    \item \textbf{Send\_Diplomatic\_Message:} Typed messages (Praise, Insult, Threat, Nuclear Threat) with predefined trust impacts.
+    \item \textbf{Break\_Treaty:} Unilaterally ends an alliance, incurring in a trust penalty.
 \end{itemize}
 
 \subsubsection{Public Satisfaction Dynamics}
@@ -199,8 +197,8 @@ Public satisfaction operates on a 0--100 scale and drives a feedback loop with p
 A critical challenge in geopolitical simulation is balancing the ambiguity of natural language diplomacy with the need for precise, executable actions. GeoMAS addresses this through the \textbf{CountryEnvelope}, a structured Pydantic data model that encapsulates the complete output of a cabinet's deliberation into multiple distinct layers:
 
 \begin{enumerate}
-    \item \textbf{Strategic Layer:} The nation's declared \textit{GlobalStrategy} (Total Expansionism, Armed Isolationism, Coalition Builder, or Scorched Earth) --- the long-term orientation that steers ministerial proposals.
-    \item \textbf{Public Layer:} The President's public statement and declared public intents for defense and foreign domains. This layer is visible to all other nations and may be deceptive.
+    \item \textbf{Strategic Layer:} The nation's declared \textit{GlobalStrategy} (Total Expansionism, Armed Isolationism, Coalition Builder, or Scorched Earth) the long-term orientation that steers ministerial proposals.
+    \item \textbf{Public Layer:} The President's public statement and declared public intents for economic, defense and foreign domains. This layer is visible to all other nations and may be deceptive.
     \item \textbf{Private Layer:} The true private intents and internal reasoning for each domain. This layer is \textit{hidden} from other agents and accessible only for post-hoc XAI analysis.
     \item \textbf{Action Layer:} The typed, validated payloads for each domain (defense, economy, foreign). The ActionEngine executes this layer, ignoring the public statement.
     \item \textbf{Trace Layer:} The complete system prompt, input prompt, and raw LLM JSON response for all four agent types (President, three Ministers). This provides full prompt-level reproducibility for any decision at any turn.
@@ -235,8 +233,8 @@ Mathematically, the map acts as a dual graph where nodes represent provinces (co
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=1\linewidth]{figure/voronoiexample.png}
-    \caption{Example of a generated map with 15 countries}
+    \includegraphics[width=1\linewidth]{figure/example_image_geomas.png}
+    \caption{Example of a generated map with 8 nations}
     \label{fig:voronoi}
 \end{figure}
 
@@ -283,30 +281,30 @@ This results in a mathematically distributed, asymmetric \textit{Trust Matrix} a
 
 \section{The Observability Layer}
 \label{sec:observability}
-A primary contribution of this thesis is the transition from descriptive simulation logs to quantitative, verifiable behavioral analysis. The Observability Layer is responsible for both persistence and behavioral intelligence: every turn, it archives the complete world state, all agent traces, and token usage metrics; it then applies analytical algorithms to extract behavioral scores and support counterfactual research.
+A primary contribution of this thesis is the transition from descriptive simulation logs to quantitative, verifiable behavioral analysis. The Observability Layer is responsible for both persistence and behavioral intelligence: every turn, it archives the complete world state and all agent traces; it then applies analytical algorithms to extract behavioral scores and support counterfactual research.
 
 \subsection{Deception and Coherence Scoring}
 Agent behavior is quantified through two complementary metrics:
 
 \begin{itemize}
-    \item \textbf{Deception Score (0.0--1.0):} Computed by comparing each agent's \textit{public intent} against its \textit{private intent} using hand-crafted adjacency matrices. Two separate matrices are maintained --- one for defense intents and one for foreign intents --- capturing domain-specific deception patterns. The economic domain is excluded because economic actions are directly observable and lack the narrative framing needed for deception measurement. The total score is the average of the two domain scores.
+    \item \textbf{Deception Score (0.0--1.0):} Computed by comparing each agent's \textit{public intent} against its \textit{private intent} using hand-crafted adjacency matrices. Two separate matrices are maintained, one for defense intents and one for foreign intents, capturing domain-specific deception patterns. The economic domain is excluded because economic actions are directly observable and lack the narrative framing needed for deception measurement. The total score is the average of the two domain scores.
     \item \textbf{Coherence Score (0.0--1.0):} Measures how well an agent's private intents align with its declared \textit{GlobalStrategy}. Each strategy defines a set of ``expected'' private intents (e.g., Total Expansionism expects Conquest or Deterrence in defense, Coercion in foreign affairs). The score represents the fraction of private intents that match these expectations.
 \end{itemize}
 
 \subsubsection{Moral Washing}
 The deception matrices include governance-specific intent types that enable the measurement of a phenomenon termed \textit{moral washing}: the framing of aggressive actions in ideologically acceptable language. Specifically:
 \begin{itemize}
-    \item Democracies may declare \textsc{Export\_Democracy} as their public intent while privately pursuing \textsc{Conquest} --- framing territorial expansion as ``liberation.''
-    \item Theocracies may declare \textsc{Holy\_War} or \textsc{Divine\_Mandate} while pursuing identical conquest objectives --- framing aggression as ``sacred duty.''
+    \item Democracies may declare \textsc{Export\_Democracy} as their public intent while privately pursuing \textsc{Conquest}, framing territorial expansion as ``liberation.''
+    \item Theocracies may declare \textsc{Holy\_War} or \textsc{Divine\_Mandate} while pursuing identical conquest objectives, framing aggression as ``sacred duty.''
 \end{itemize}
-Both patterns receive the highest deception scores (0.95), enabling quantitative comparison of how different governance types employ distinct rhetorical strategies to mask identical underlying objectives.
+Both patterns receive the highest deception scores, enabling quantitative comparison of how different governance types employ distinct rhetorical strategies to mask identical underlying objectives.
 
 \subsection{Counterfactual Analysis via State Forking}
 To answer causal questions such as ``What would have happened if Nation~A had not declared war?'', GeoMAS implements a \textbf{state forking} mechanism:
 \begin{enumerate}
     \item The simulation is run normally for $N$ turns (the \textit{base timeline}).
     \item At turn $T$, the system creates a \textit{fork}: a complete copy of the simulation state, including full history.
-    \item An \textbf{XAI injection} --- a natural language instruction (e.g., ``You MUST declare war on Ferecia'') --- is appended to the relevant agent's prompt in the forked timeline.
+    \item An \textbf{XAI injection}, a natural language instruction (e.g., ``You MUST declare war on Agria'') is appended to the relevant agent's prompt in the forked timeline.
     \item The forked simulation continues independently, diverging from the base timeline as the injected instruction alters agent behavior.
     \item Both timelines persist their telemetry (satisfaction, power indices, resource levels, trust matrices) to the MetricsDB.
     \item The researcher compares the two timelines side-by-side using the analysis notebook, overlaying time-series charts for each observable metric to identify where and how the injection caused divergence.
@@ -326,10 +324,10 @@ The Presentation Layer exposes the simulation's internal state to human research
 A \textbf{Streamlit}-based web dashboard provides live visibility into the simulation while it runs. The dashboard is organized into dedicated views covering the geopolitical map (province ownership, military deployments, trust network), the cabinet's internal reasoning (system prompts, ministerial proposals, presidential decrees, and satisfaction events for each nation and turn), and a structured event log of significant outcomes. The dashboard enables the researcher to inspect the exact inputs and outputs of any LLM call, with turn-by-turn navigation of persisted envelopes.
 
 \subsection{Post-Simulation Analysis Notebook}
-A \textbf{Jupyter} notebook environment provides the primary quantitative analysis interface for research. The notebook queries the MetricsDB directly and includes dedicated chapters for each of the study's Research Questions:
+A \textbf{Jupyter} notebook environment provides the primary quantitative analysis interface for research. The notebook queries the MetricsDB directly and includes:
 \begin{itemize}
     \item \textbf{Telemetry Overview:} Time-series visualizations of satisfaction, power index, resource balances, and token usage per nation.
-    \item \textbf{Behavioral Analysis (RQ3):} Deception Score and Coherence Score trajectories, comparative breakdown by governance type, and visualization of the moral washing phenomenon.
-    \item \textbf{Network Dynamics (RQ4):} Trust network evolution, alliance formation and rupture events, and diplomatic centrality metrics.
-    \item \textbf{Counterfactual Comparison (RQ1/RQ2):} Side-by-side overlay of base and forked timelines for any observable metric, enabling visual identification of causal divergence from XAI injections.
+    \item \textbf{Behavioral Analysis:} Deception Score and Coherence Score trajectories, comparative breakdown by governance type, and visualization of the moral washing phenomenon.
+    \item \textbf{Network Dynamics:} Trust network evolution, alliance formation and rupture events, and diplomatic centrality metrics.
+    \item \textbf{Counterfactual Comparison:} Side-by-side overlay of base and forked timelines for any observable metric, enabling visual identification of causal divergence from XAI injections.
 \end{itemize}
