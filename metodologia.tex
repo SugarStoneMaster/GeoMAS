@@ -46,7 +46,7 @@ GeoMAS is organized into a layered architecture where data flows downward and ea
     \item \textbf{Orchestration Layer:} The \textit{SimulationEngine} acts as the central coordinator, executing a seven-phase turn loop that governs the entire simulation lifecycle. It manages world initialization, agent creation, turn execution, state persistence, and supports simulation forking for counterfactual experiments.
     \item \textbf{Cognitive Layer (The ``Brain''):} A neuro-symbolic layer where nations are modeled as hierarchical cabinets. Three specialist Ministers propose actions concurrently via LLM calls; the President LLM synthesizes proposals through approval or veto. A deterministic Public Opinion engine then updates satisfaction based on outcomes.
     \item \textbf{Simulation Physics Layer (The ``Body''):} A deterministic layer comprising the \textit{Action System} and the \textit{World Generation} pipeline. The Action System validates and executes agent intent against immutable physical rules. The World Generation pipeline produces the synthetic environment through Voronoi tessellation and a historical simulation engine.
-    \item \textbf{Observability Layer (The ``Observer''):} An analytical meta-layer responsible for both \textit{Persistence} (state snapshots, agent traces, token usage via DuckDB) and \textit{Behavioral Intelligence} (deception scoring, coherence analysis, counterfactual divergence measurement).
+    \item \textbf{Observability Layer (The ``Observer''):} An analytical meta-layer responsible for both \textit{Persistence} (state snapshots, agent traces, token usage via DuckDB) and \textit{Behavioral Intelligence} (deception scoring, coherence analysis, telemetry comparison across simulation runs).
     \item \textbf{Presentation Layer:} A Streamlit-based monitoring dashboard for real-time simulation inspection and a Jupyter notebook environment for post-simulation quantitative analysis.
 \end{enumerate}
 
@@ -263,17 +263,17 @@ The deception matrices include governance-specific intent types that enable the 
 Both patterns receive the highest deception scores (0.95), enabling quantitative comparison of how different governance types employ distinct rhetorical strategies to mask identical underlying objectives.
 
 \subsection{Counterfactual Analysis via State Forking}
-To answer causal questions such as ``What would have happened if Nation~A had not declared war?'', GeoMAS implements a \textbf{fork-and-compare} mechanism:
+To answer causal questions such as ``What would have happened if Nation~A had not declared war?'', GeoMAS implements a \textbf{state forking} mechanism:
 \begin{enumerate}
     \item The simulation is run normally for $N$ turns (the \textit{base timeline}).
     \item At turn $T$, the system creates a \textit{fork}: a complete copy of the simulation state, including full history.
     \item An \textbf{XAI injection} --- a natural language instruction (e.g., ``You MUST declare war on Ferecia'') --- is appended to the relevant agent's prompt in the forked timeline.
-    \item The forked simulation diverges from the base timeline as the injected instruction alters agent behavior.
-    \item A \textit{DeltaAnalyzer} computes per-nation divergence (satisfaction, power, resources, military) and global divergence (trust shifts, relationship changes) between the two timelines, producing a weighted divergence score.
-    \item An LLM-powered explanation generates a causal narrative linking the injection to the observed deltas.
+    \item The forked simulation continues independently, diverging from the base timeline as the injected instruction alters agent behavior.
+    \item Both timelines persist their telemetry (satisfaction, power indices, resource levels, trust matrices) to the MetricsDB.
+    \item The researcher compares the two timelines side-by-side using the analysis notebook, overlaying time-series charts for each observable metric to identify where and how the injection caused divergence.
 \end{enumerate}
 
-This method provides verifiable counterfactual explanations: the divergence is grounded in the deterministic simulation physics, not in post-hoc rationalization by the LLM.
+This method provides verifiable counterfactual explanations: because both timelines share identical world physics and initial conditions, any observed divergence is causally attributable to the injected instruction rather than to environmental noise.
 
 \subsection{Prompt Trace Persistence}
 Every CountryEnvelope persists the complete system prompt, input prompt, and raw JSON response for all five agent types per nation per turn. This provides full transparency: any decision at any turn can be inspected at the prompt level, enabling reviewers to verify whether agent behavior stems from the prompt design, the world state, or the LLM's reasoning.
