@@ -111,7 +111,7 @@ The decision loop for a single nation within the Decision and Execution Phase (S
 \begin{enumerate}
     \item \textbf{Proposal Step:} The three Ministers analyze the world state and \textit{concurrently} submit structured proposals (Intent + Action Payload) to the President via async LLM calls.
     \item \textbf{Executive Step:} The President LLM receives the \textit{CabinetBriefing} and issues a \textit{PresidentialDecree}: Approve or Veto for each ministerial domain. Approved payloads are assembled into the final \textit{CountryEnvelope}.
-    \item \textbf{Validation and Execution Step:} The ActionEngine validates and executes the envelope against the WorldState. Defense actions use a waterfall priority resolver; economic and foreign actions are single-shot.
+    \item \textbf{Validation and Execution Step:} The ActionEngine validates and executes the envelope against the WorldState. Defense actions are processed via a \textit{waterfall priority resolver}: the three proposed military actions are sorted by a fixed priority order (nuclear strikes first, then attacks, then troop movements, then unit creation) and executed sequentially, so that a veto or resource failure on a high-priority action does not block lower-priority ones. Economic and foreign actions are single-shot.
     \item \textbf{Reaction Step:} The deterministic satisfaction engine evaluates the resulting state changes. Satisfaction deltas are calculated from a rule-based formula applied to events and government actions. If satisfaction crosses critical thresholds, automatic triggers fire (General Strike, Civil Unrest).
 \end{enumerate}
 
@@ -121,18 +121,18 @@ We selected a hierarchical LLM-based architecture because the primary objective 
 
 \subsection{Memory and Context Management}
 \label{sec:memory}
-Given the context window limitations of Large Language Models, feeding the entire simulation history to an agent is computationally infeasible. GeoMAS addresses this through a \textbf{ContextManager} implementing bounded rationality --- a configurable token budget (default 4200 tokens for the user prompt section) that governs how much historical context each agent receives.
+GeoMAS addresses this through a \textbf{ContextManager} that implements a form of \textit{salience-based context engineering}: rather than feeding the entire simulation history to an agent, the ContextManager selects and assembles a curated subset of information that is both recent and strategically relevant, implementing a computationally tractable form of bounded rationality.
 
 The memory architecture is organized into four components:
 \begin{itemize}
     \item \textbf{Working State (Current Turn):} The immediate world state: resource balances, military deployment, diplomatic relationships, and active treaties. Rebuilt each turn from the \textit{WorldState}.
     \item \textbf{Relationship Memory:} Bilateral relationship summaries for each nation pair, tracking: diplomatic status (Peace, War, Non-Aggression, Mutual Defense), current trust level, trust trend ($\uparrow$/$\downarrow$/$\rightarrow$), and recent bilateral events.
-    \item \textbf{Event Memory:} A chronological log of ``newsworthy'' events extracted from executed envelopes. Only externally observable outcomes generate events (internal proposals do not). Events are pruned oldest-first when the token budget is exceeded, simulating natural information decay.
+    \item \textbf{Event Memory:} A log of ``newsworthy'' events extracted from executed envelopes. Only externally observable outcomes generate events (internal proposals do not). Events are selected by a \textit{salience score} that combines recency (more recent events score higher) with event-type importance (e.g., war declarations and nuclear strikes are considered high-salience regardless of age, while minor diplomatic messages decay quickly). This ensures that strategically significant events remain in context longer than routine ones, mirroring how human decision-makers weight the significance of geopolitical signals.
     \item \textbf{Presidential Feedback:} A record of past Approve/Veto decisions per ministerial domain. This enables Ministers to adapt their proposals based on presidential preferences, creating an emergent learning-like dynamic without fine-tuning.
 \end{itemize}
 
 \subsubsection{Design Rationale} While Vector Retrieval Augmented Generation (RAG) is the industry standard for semantic search, it was deemed unsuitable for the rigid consistency required by GeoMAS. Vector search is inherently probabilistic; a ``near-miss'' in cosine similarity could cause an agent to ``forget'' a critical treaty violation.
-GeoMAS instead employs deterministic structured retrieval: events are stored with explicit metadata (turn, type, participants) and retrieved via exact filters. Combined with the token-budget pruning mechanism, this provides 100\% recall within the observation window while naturally imposing bounded rationality --- older events fade, exactly as they would for a human decision-maker operating under information overload.
+GeoMAS instead employs deterministic structured retrieval: events are stored with explicit metadata (turn, type, participants) and retrieved via exact filters. The salience-based selection further ensures that the assembled context prioritizes events that are both recent and strategically important, naturally imposing bounded rationality --- low-salience events fade from context, exactly as they would for a human decision-maker operating under information overload.
 
 \subsection{Strategic Action Space}
 \label{sec:action_space}
@@ -260,7 +260,7 @@ The rules are implemented as explicit logical predicates $f(State, Action) \righ
     \item \textbf{Diplomatic Constraints:} These enforce logical dependencies based on the current diplomatic state. Alliance proposals require a minimum bilateral trust level. Military movement through allied territory requires an active alliance. War declaration generates a formal \textit{Call to Arms} notification to the victim's mutual defense allies.
 \end{itemize}
 
-This Oracle serves as the \textbf{Ground Truth}: if an agent attempts an invalid action, the engine rejects it deterministically, providing a causal error trace. Actions within the defense domain are processed via a \textit{waterfall priority resolver}, where actions are sorted by priority number and executed sequentially --- nuclear strikes first, then attacks, then movements, then unit creation.
+This Oracle serves as the \textbf{Ground Truth}: if an agent attempts an invalid action, the engine rejects it deterministically, providing a causal error trace. Defense actions are executed via the waterfall priority resolver described in Section~\ref{sec:cognitive_architecture}.
 
 \subsubsection{Design Rationale} We explicitly rejected the ``LLM-as-a-Judge'' approach, where a separate language model adjudicates action outcomes. While flexible, LLM judges introduce stochasticity and potential hallucinations into the physics of the world, undermining reproducibility. By implementing physics via deterministic algorithms, we ensure that any failure is causally traceable to agent error or resource constraints, rather than an adjudication artifact. This strict separation between the \textit{Stochastic Agent} and the \textit{Deterministic World} is a prerequisite for verifiable counterfactual analysis.
 
