@@ -149,7 +149,7 @@ The Defense Minister may propose up to three prioritized actions per turn, execu
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|p{0.22\linewidth}|p{0.38\linewidth}|p{0.3\linewidth}|}
+\begin{tabular}{|p{0.27\linewidth}|p{0.36\linewidth}|p{0.27\linewidth}|}
 \hline
 \textbf{Action} & \textbf{Description} & \textbf{Trade-offs} \\ \hline
 \texttt{Create\_Unit} & Creates military units (Soldier, Navy, or Aircraft) in a owned province. & Budget and materials cost. Bureaucracy multiplier increases cost for large empires. \\ \hline
@@ -166,7 +166,7 @@ Combat resolution uses binary outcomes modulated by terrain: the defender receiv
 The Economy Minister proposes a single action per turn.
 \begin{table}[H]
 \centering
-\begin{tabular}{|p{0.22\linewidth}|p{0.38\linewidth}|p{0.3\linewidth}|}
+\begin{tabular}{|p{0.27\linewidth}|p{0.36\linewidth}|p{0.27\linewidth}|}
 \hline
 \textbf{Action} & \textbf{Description} & \textbf{Trade-offs} \\ \hline
 \texttt{Invest\_Welfare} & Converts budget into satisfaction via logarithmic formula: $\Delta S = 7 \times \ln(1 + A/500)$. & Capped at 25\% of current budget. Requires 20\% materials cost. \\ \hline
@@ -182,13 +182,13 @@ The Foreign Minister proposes exactly one primary diplomatic action per turn, ch
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|p{0.22\linewidth}|p{0.38\linewidth}|p{0.3\linewidth}|}
+\begin{tabular}{|p{0.27\linewidth}|p{0.36\linewidth}|p{0.27\linewidth}|}
 \hline
 \textbf{Action} & \textbf{Description} & \textbf{Trade-offs} \\ \hline
 \texttt{Declare\_War} & Sets the bilateral relationship to War and triggers a \textit{Call to Arms} to the victim's Mutual Defense allies. & Immediate trust drop with all nations observing the aggression. \\ \hline
 \texttt{Propose\_Alliance} & Sends a pending treaty proposal (Non-Aggression Pact or Mutual Defense) to a target nation. & Requires proposer's trust towards target $\geq$ 40/100. Counterparty may accept or refuse. \\ \hline
 \texttt{Request\_Peace} & Initiates a pending peace proposal for nations currently at war. & Counterparty may refuse; war continues until accepted. \\ \hline
-\texttt{Send\_Diplomatic\_Message} & Sends a typed message (Praise, Threat, Nuclear Threat, Warning) with predefined trust impacts ($+3$ to $-10$). & Five-turn cooldown per pair prevents spamming. \\ \hline
+\texttt{Send\_Message} & Sends a typed message (Praise, Threat, Nuclear Threat, Warning) with predefined trust impacts ($+3$ to $-10$). & Five-turn cooldown per pair prevents spamming. \\ \hline
 \texttt{Break\_Treaty} & Unilaterally dissolves an active alliance. & $-30$ trust penalty with the formerly allied nation. \\ \hline
 \texttt{Idle} & No diplomatic initiative this turn. & No resource cost; missed opportunities. \\ \hline
 \end{tabular}
