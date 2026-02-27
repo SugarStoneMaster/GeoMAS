@@ -141,12 +141,25 @@ def trigger_separatist_insurrection(world: WorldState, context_manager: ContextM
     
     rng = random.Random(turn + 142)
     
-    # 1. Find Motherland (lowest satisfaction)
+    # 1. Find Motherland using a composite score:
+    # A candidate must be both large (many provinces) and unstable (low satisfaction).
+    # Scoring formula: S = (1 - norm_satisfaction) * 0.5 + norm_province_count * 0.5
+    # This prevents targeting small, moribund nations that generate no interesting dynamics.
     nations_with_provinces = [n for n in world.nations.values() if len(n.province_ids) > 1]
     if not nations_with_provinces:
         return {"logs": ["⚠️ [SCENARIO FAILED] No nation found with enough provinces to rebel."]}
-        
-    motherland = min(nations_with_provinces, key=lambda n: n.public_satisfaction)
+
+    max_sat = max(n.public_satisfaction for n in nations_with_provinces) or 1.0
+    max_provs = max(len(n.province_ids) for n in nations_with_provinces) or 1
+
+    def insurrection_score(n):
+        # Normalize each metric to [0, 1] and combine with equal weights
+        norm_instability = (max_sat - n.public_satisfaction) / max_sat
+        norm_size = len(n.province_ids) / max_provs
+        return 0.5 * norm_instability + 0.5 * norm_size
+
+    motherland = max(nations_with_provinces, key=insurrection_score)
+
     
     # 2. Pick target provinces using BFS for adjacency
     all_mother_provinces = set(motherland.province_ids)
