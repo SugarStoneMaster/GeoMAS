@@ -75,33 +75,66 @@ def trigger_resource_discovery(world: WorldState, context_manager: ContextManage
     # Deterministic selection based on turn
     rng = random.Random(turn + 42)
     
-    # 1. Identify all border provinces
-    border_provinces = []
+    # Compute world averages first — used both for candidate filtering and final target value.
+    land_provinces = [p for p in world.provinces.values() if p.owner_id is not None]
+    if land_provinces:
+        avg_energy = sum(p.energy_production for p in land_provinces) / len(land_provinces)
+        avg_materials = sum(p.materials_production for p in land_provinces) / len(land_provinces)
+    else:
+        avg_energy, avg_materials = 10.0, 10.0
+
+    # 1. Identify border provinces in three tiers (progressively relaxed filters).
+    # Tier 1 (ideal): border between peaceful nations, below-average production.
+    #   → Creates a new geopolitical tension rather than adding to an existing one.
+    # Tier 2: any border province with below-average production.
+    # Tier 3: any border province (last resort — guarantees the scenario can always fire).
+    tier1, tier2, tier3 = [], [], []
+
     for p_id, province in world.provinces.items():
         if province.owner_id is None:
             continue
-            
-        is_border = False
+
+        border_neighbor_ids = []
         for neighbor_id in province.neighbors:
             neighbor = world.provinces.get(neighbor_id)
             if neighbor and neighbor.owner_id and neighbor.owner_id != province.owner_id:
-                is_border = True
-                break
-        
-        if is_border:
-            border_provinces.append(province)
-            
-    if not border_provinces:
+                border_neighbor_ids.append(neighbor.owner_id)
+
+        if not border_neighbor_ids:
+            continue  # Not a border province at all
+
+        is_underexploited = (
+            province.energy_production < avg_energy
+            and province.materials_production < avg_materials
+        )
+
+        # Check if any bordering nation is at peace with the province owner
+        has_peaceful_border = any(
+            world.relationship_matrix.get(province.owner_id, {}).get(n_id, "PEACE") != "WAR"
+            for n_id in border_neighbor_ids
+        )
+
+        tier3.append(province)
+
+        if is_underexploited:
+            tier2.append(province)
+            if has_peaceful_border:
+                tier1.append(province)
+
+    # Pick from the best available tier
+    candidates = tier1 or tier2 or tier3
+
+    if not candidates:
         return ["⚠️ [SCENARIO FAILED] No border provinces found to trigger discovery."]
-        
-    # 2. Pick one
-    target = rng.choice(border_provinces)
+
+    # 2. Pick one deterministically
+    target = rng.choice(candidates)
     owner = world.nations.get(target.owner_id)
     owner_name = owner.name if owner else "Unknown"
-    
-    # 3. Apply Multipliers
-    target.energy_production = target.energy_production * 10.0
-    target.materials_production = target.materials_production * 5.0
+
+    # 3. Set production to 10x the world average — a truly significant economic event.
+    target.energy_production = avg_energy * 10.0
+    target.materials_production = avg_materials * 10.0
     
     # 4. Global Notification
     event_msg = (
