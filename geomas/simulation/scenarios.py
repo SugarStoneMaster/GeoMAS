@@ -13,46 +13,93 @@ from geomas.agents.context.events.schemas import NotableEvent, EventType
 def trigger_pandemic(world: WorldState, context_manager: ContextManager, turn: int):
     """
     Executes the Pandemic Scenario.
-    - Halves production yields across all provinces.
-    - Kills 10% of the population and workforce.
-    - Increases public unrest sensitivity to negative events.
-    - Triggers a global critical alert.
+
+    Improvements over flat-rate version:
+    - Mortality scales with province population density (dense areas hit harder).
+    - Military units suffer attrition (soldiers get sick too).
+    - Satisfaction penalty scales inversely with food stockpiles (rich nations absorb shock better).
+    - Global trust drops slightly (border closures and resource competition).
     """
     affected_provinces = 0
     total_deaths = 0
 
-    # 1. Structural Damage to Provinces
+    # Pre-compute average population density for density-scaling mortality
+    inhabited = [p for p in world.provinces.values() if p.population > 0]
+    avg_population = (sum(p.population for p in inhabited) / len(inhabited)) if inhabited else 1.0
+
+    # 1. Province-level structural damage
     for province_id, province in world.provinces.items():
-        if province.population > 0:
-            # Halve production capacity
-            province.food_production = province.food_production * 0.5
-            province.energy_production = province.energy_production * 0.5
-            province.materials_production = province.materials_production * 0.5
-            
-            # Immediate mortality rate
-            deaths = int(province.population * 0.10)
-            worker_deaths = int(province.workers * 0.10)
-            
-            province.population = max(0, province.population - deaths)
-            province.workers = max(0, province.workers - worker_deaths)
-            province.tax_revenue = province.population * 1.0
-            
-            affected_provinces += 1
-            total_deaths += deaths
+        if province.population <= 0:
+            continue
 
-    # 2. Nation-level Impacts (Unrest & Panic)
+        # Density ratio: provinces denser than average suffer more deaths (max 25%, min 5%)
+        density_ratio = province.population / avg_population
+        death_rate = min(0.25, max(0.05, 0.10 * density_ratio))
+
+        deaths = int(province.population * death_rate)
+        worker_deaths = int(province.workers * death_rate)
+
+        province.population = max(0, province.population - deaths)
+        province.workers = max(0, province.workers - worker_deaths)
+        province.tax_revenue = province.population * 1.0
+
+        # Production halved (disease disrupts supply chains and workforce)
+        province.food_production *= 0.5
+        province.energy_production *= 0.5
+        province.materials_production *= 0.5
+
+        # Military attrition: soldiers and aircraft crews fall ill (5% losses)
+        soldier_losses = int(province.soldiers * 0.05)
+        aircraft_losses = int(province.aircraft * 0.05)
+        province.soldiers = max(0, province.soldiers - soldier_losses)
+        province.aircraft = max(0, province.aircraft - aircraft_losses)
+
+        affected_provinces += 1
+        total_deaths += deaths
+
+    # 2. Nation-level impacts — satisfaction scales with food buffer
+    avg_food = (
+        sum(n.total_food for n in world.nations.values()) / len(world.nations)
+        if world.nations else 1.0
+    )
+
     for nation_id, nation in world.nations.items():
-        # Immediate panic drop in public satisfaction
-        nation.public_satisfaction = max(0.0, nation.public_satisfaction - 20.0)
+        # Recalibrate total soldiers/aircraft to match province losses
+        from geomas.calculators.analytics import calculate_nation_aggregates
+        aggr = calculate_nation_aggregates(nation, world)
+        nation.total_soldiers = aggr["total_soldiers"]
+        nation.total_aircraft = aggr["total_aircraft"]
 
-    # 3. Global Notification
+        # Satisfaction penalty: food-rich nations weather the crisis better
+        food_ratio = nation.total_food / avg_food if avg_food > 0 else 1.0
+        # Penalty: -30 for food-poor (<0.5x avg), -15 for food-rich (>1.5x avg), -20 baseline
+        if food_ratio < 0.5:
+            sat_penalty = 30.0
+        elif food_ratio > 1.5:
+            sat_penalty = 15.0
+        else:
+            sat_penalty = 20.0
+
+        nation.public_satisfaction = max(0.0, nation.public_satisfaction - sat_penalty)
+
+    # 3. Global trust penalty (border closures, resource competition, blame)
+    for nation_id in world.nations:
+        for other_id in world.nations:
+            if nation_id == other_id:
+                continue
+            current = world.trust_matrix.get(nation_id, {}).get(other_id, 50.0)
+            world.trust_matrix.setdefault(nation_id, {})[other_id] = max(0.0, current - 10.0)
+
+    # 4. Global notification
     if affected_provinces > 0:
-        event_msg = f"🌍 [GLOBAL CRISIS] A deadly Pandemic has swept the globe! Production is halved and millions have died ({total_deaths:,})."
-        
-        # Add to raw world events
+        event_msg = (
+            f"🌍 [GLOBAL CRISIS] A deadly Pandemic has swept the globe! "
+            f"Production is halved, {total_deaths:,} have died, armies are depleted, "
+            f"and international trust has collapsed."
+        )
+
         world.global_events.append(f"T{turn}: {event_msg}")
-        
-        # Add to ContextManager structured events
+
         event = NotableEvent(
             turn=turn,
             event_type=EventType.GLOBAL_SCENARIO,
@@ -61,9 +108,10 @@ def trigger_pandemic(world: WorldState, context_manager: ContextManager, turn: i
             relevance_to=None  # Global
         )
         context_manager.global_events.append(event)
-        
-        return [f"🦠 [SCENARIO DETECTED] Pandemic Triggered! {total_deaths:,} dead. Global yields have been permanently halved."]
+
+        return [f"🦠 [SCENARIO DETECTED] Pandemic Triggered! {total_deaths:,} dead. Global yields halved, trust dropped, armies weakened."]
     return []
+
 
 def trigger_resource_discovery(world: WorldState, context_manager: ContextManager, turn: int):
     """
