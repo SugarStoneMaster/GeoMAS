@@ -131,12 +131,16 @@ def trigger_resource_discovery(world: WorldState, context_manager: ContextManage
     else:
         avg_energy, avg_materials = 10.0, 10.0
 
-    # 1. Identify border provinces in three tiers (progressively relaxed filters).
-    # Tier 1 (ideal): border between peaceful nations, below-average production.
-    #   → Creates a new geopolitical tension rather than adding to an existing one.
-    # Tier 2: any border province with below-average production.
-    # Tier 3: any border province (last resort — guarantees the scenario can always fire).
-    tier1, tier2, tier3 = [], [], []
+    # 1. Identify border provinces in four tiers (progressively relaxed filters).
+    # Tier 1 (ideal): border between peaceful nations + below-avg production + NOT top power nation.
+    # Tier 2: any border province + below-avg production + NOT top power nation.
+    # Tier 3: any border province + NOT top power nation.
+    # Tier 4: any border province (last resort — guarantees the scenario can always fire).
+    tier1, tier2, tier3, tier4 = [], [], [], []
+
+    # Identify the strongest nation to avoid giving them even more resources
+    active_nations = [n for n in world.nations.values() if n.is_active]
+    top_power_id = max(active_nations, key=lambda n: n.power_projection).id if active_nations else None
 
     for p_id, province in world.provinces.items():
         if province.owner_id is None:
@@ -162,15 +166,17 @@ def trigger_resource_discovery(world: WorldState, context_manager: ContextManage
             for n_id in border_neighbor_ids
         )
 
-        tier3.append(province)
+        tier4.append(province)
 
-        if is_underexploited:
-            tier2.append(province)
-            if has_peaceful_border:
-                tier1.append(province)
+        if province.owner_id != top_power_id:
+            tier3.append(province)
+            if is_underexploited:
+                tier2.append(province)
+                if has_peaceful_border:
+                    tier1.append(province)
 
     # Pick from the best available tier
-    candidates = tier1 or tier2 or tier3
+    candidates = tier1 or tier2 or tier3 or tier4
 
     if not candidates:
         return ["⚠️ [SCENARIO FAILED] No border provinces found to trigger discovery."]
