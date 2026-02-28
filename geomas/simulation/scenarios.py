@@ -187,8 +187,8 @@ def trigger_resource_discovery(world: WorldState, context_manager: ContextManage
     owner_name = owner.name if owner else "Unknown"
 
     # 3. Set production to 10x the world average — a truly significant economic event.
-    target.energy_production = avg_energy * 10.0
-    target.materials_production = avg_materials * 10.0
+    target.energy_production = avg_energy * 50.0
+    target.materials_production = avg_materials * 50.0
     
     # 4. Global Notification
     event_msg = (
