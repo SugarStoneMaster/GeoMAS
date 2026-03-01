@@ -39,12 +39,8 @@ def render_map_page(world: WorldState) -> None:
     with col_map:
         show_ids = st.checkbox("Show Province IDs", value=False, key="map_show_ids")
         render_map(world, selected_nation_id, show_province_ids=show_ids)
-        # Trust matrix and alliances side by side below the map
-        trust_col, alliance_col = st.columns([1, 1])
-        with trust_col:
-            render_trust_matrix(world)
-        with alliance_col:
-            render_alliances_panel(world)
+        # Trust matrix at full width below the map
+        render_trust_matrix(world)
     
     with col_intel:
         st.markdown("### 🕵️ Intel")
@@ -62,6 +58,11 @@ def render_map_page(world: WorldState) -> None:
                     agent = sim.agents[selected_nation_id]
                     opinion_agent = sim.opinion_agents.get(selected_nation_id)
                     render_inspector(selected_nation_id, agent, opinion_agent=opinion_agent)
+            
+            st.divider()
+            
+            # DIPLOMATIC STATUS (alliances, wars, NAPs)
+            render_alliances_panel(world)
 
 
 def render_nation_selector(world: WorldState) -> str:
