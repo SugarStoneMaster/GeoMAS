@@ -179,7 +179,10 @@ with st.sidebar:
             st.markdown("### 🌍 Scenario Events")
             scenario_opts = ["Non-scenario", "PANDEMIA"]
             selected_scenario = st.selectbox("Trigger Scenario", scenario_opts, index=0)
-            target_scenario_turn = st.slider("Trigger Turn", current_turn, max_turn + 50, current_turn + 1)
+            
+            # Constrain trigger strictly within the remaining turns of the loaded simulation
+            slider_max = max(current_turn, max_turn)
+            target_scenario_turn = st.slider("Trigger Turn", current_turn, slider_max, min(current_turn + 1, slider_max))
             
             if selected_scenario != "Non-scenario":
                 st.session_state["enable_scenarios"] = True
