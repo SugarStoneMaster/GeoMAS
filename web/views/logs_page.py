@@ -22,13 +22,15 @@ def render_logs_page(world: WorldState, history: List[List[CountryEnvelope]], gl
         history: List of turn envelopes from simulation
         global_events: List of notable events from ContextManager
     """
-    # Genesis events
-    st.subheader("📜 Genesis History (Ancient)")
-    with st.expander("View Genesis Events", expanded=False):
-        for event in world.global_events:
-            st.text(event)
-    
-    st.divider()
+    # Genesis events (only shown when GENESIS_ENABLED=true)
+    import os
+    if os.environ.get("GENESIS_ENABLED", "false").lower() == "true":
+        st.subheader("📜 Genesis History (Ancient)")
+        with st.expander("View Genesis Events", expanded=False):
+            for event in world.global_events:
+                st.text(event)
+        st.divider()
+
     
     # Simulation turn history
     st.subheader("🔄 Simulation Turn History")

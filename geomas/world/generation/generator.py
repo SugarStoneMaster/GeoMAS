@@ -104,9 +104,26 @@ class MapGenerator:
             trust_matrix={}
         )
         
-        # Step 7: Run Genesis (historical simulation)
-        genesis = GenesisEngine(world, seed=history_seed)
-        genesis.initialize_history(years=50)
+        # Step 7: Optionally run Genesis (controlled by GENESIS_ENABLED env var)
+        # When disabled (default), trust matrix is initialized to a neutral 50 flat prior.
+        # This ensures no pre-simulation bias toward conflict or cooperation.
+        import os
+        genesis_enabled = os.environ.get("GENESIS_ENABLED", "false").lower() == "true"
+        if genesis_enabled:
+            genesis = GenesisEngine(world, seed=history_seed)
+            genesis.initialize_history(years=50)
+        else:
+            # Flat neutral prior: every nation starts with 50 trust toward every other nation
+            nation_ids = list(nations_dict.keys())
+            for n_a in nation_ids:
+                world.trust_matrix[n_a] = {}
+                world.relationship_matrix[n_a] = {}
+                for n_b in nation_ids:
+                    if n_a == n_b:
+                        world.trust_matrix[n_a][n_b] = 100  # Self-trust
+                    else:
+                        world.trust_matrix[n_a][n_b] = 50   # Neutral prior
+                        world.relationship_matrix[n_a][n_b] = "PEACE"
         
         # Step 8: Recalculate aggregates after history to ensure accurate power projection
         self._calculate_nation_aggregates(nations_dict, provinces_dict)

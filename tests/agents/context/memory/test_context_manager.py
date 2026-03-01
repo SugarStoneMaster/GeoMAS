@@ -181,6 +181,8 @@ class TestContextManager:
     
     def test_pruning_events(self, manager):
         """Events are pruned when exceeding limit."""
+        # FIX: The number of genesis events varies by seed, so we dynamically calculate initial_count instead of hardcoding 169
+        initial_count = len(manager.global_events)
         # Add many events
         for i in range(100):
             manager.global_events.append(NotableEvent(
@@ -192,7 +194,7 @@ class TestContextManager:
         
         manager._prune_if_needed()
         
-        assert len(manager.global_events) == 169 # No pruning for global events anymore (100 new + 69 genesis)
+        assert len(manager.global_events) == initial_count + 100 # No pruning for global events anymore
     
     def test_critical_events_preserved(self, manager):
         """Critical events are preserved during pruning."""

@@ -31,6 +31,10 @@ from web.components.event_log import render_event_log
 st.set_page_config(page_title="GeoMAS Dashboard", layout="wide")
 st.title("👑 GeoMAS: Simulation Dashboard")
 
+# Check GENESIS_ENABLED env flag once at load time
+import os as _os
+GENESIS_ENABLED = _os.environ.get("GENESIS_ENABLED", "false").lower() == "true"
+
 # --- DIALOGS ---
 @st.dialog("Seleziona Scenario")
 def scenario_selection_dialog(num_turns: int):
@@ -239,7 +243,11 @@ if not st.session_state["sim"] or mode == "Live Simulation":
         map_seed = st.number_input("Map Seed", value=42, step=1, key="map_seed")
 
     with ctrl_cols[1]:
-        history_seed = st.number_input("History Seed", value=99, step=1, key="history_seed")
+        if GENESIS_ENABLED:
+            history_seed = st.number_input("History Seed", value=99, step=1, key="history_seed")
+        else:
+            history_seed = 99  # Fixed default when genesis is disabled
+            st.caption("History Seed: N/A (Genesis disabled)")
 
     with ctrl_cols[2]:
         n_cells = st.number_input("Cells", value=300, min_value=50, max_value=3000, step=50, key="n_cells")

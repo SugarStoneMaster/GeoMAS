@@ -9,8 +9,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"
 from geomas.world import generate_world
 from geomas.world.genesis import GenesisEngine
 
-def test_genesis_populates_trust():
+def test_genesis_populates_trust(monkeypatch):
     """Verify that Genesis modifies the Trust Matrix."""
+    monkeypatch.setenv("GENESIS_ENABLED", "true")
     world = generate_world(seed=42, history_seed=123, n_cells=100, n_nations=10)
     
     trust_values = []
@@ -25,15 +26,17 @@ def test_genesis_populates_trust():
     assert any(v > 0.8 for v in trust_values), "No alliances formed"
     assert any(v < 0.4 for v in trust_values), "No rivalries formed"
 
-def test_genesis_logs_events():
+def test_genesis_logs_events(monkeypatch):
     """Verify that history log is populated."""
+    monkeypatch.setenv("GENESIS_ENABLED", "true")
     world = generate_world(seed=42, history_seed=123, n_cells=100, n_nations=5)
     
     assert len(world.global_events) > 0
     assert "Year" in world.global_events[0]["summary"] or "Historical" in world.global_events[0]["summary"]
 
-def test_genesis_determinism():
+def test_genesis_determinism(monkeypatch):
     """Verify that same history_seed produces same Trust Matrix."""
+    monkeypatch.setenv("GENESIS_ENABLED", "true")
     w1 = generate_world(seed=42, history_seed=99, n_cells=100, n_nations=5)
     w2 = generate_world(seed=42, history_seed=99, n_cells=100, n_nations=5)
     

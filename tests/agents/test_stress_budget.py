@@ -140,6 +140,9 @@ class TestStressBudget:
         cm.initialize_from_world(world)
         nation_id = list(world.nations.keys())[0]
         
+        # FIX: The number of genesis events varies by seed, so we calculate initial_events instead of assuming an exact number
+        initial_events = len(cm.global_events)
+        
         # Add way more than max
         for i in range(100):
             cm.global_events.append(NotableEvent(
@@ -157,7 +160,7 @@ class TestStressBudget:
         cm._prune_if_needed()
         
         # 100 manual + initial genesis events depending on seed/nations (~55 for 6 nations)
-        assert len(cm.global_events) > 100 
+        assert len(cm.global_events) == initial_events + 100
         # Actions pruned per domain (10 per domain)
         defense_actions = [a for a in cm.nation_actions[nation_id] if a.domain == "Defense"]
         assert len(defense_actions) <= cm.MAX_ACTIONS_PER_DOMAIN
