@@ -108,6 +108,40 @@ class MetricsDB:
             CREATE INDEX IF NOT EXISTS idx_trust_sim_turn ON metrics_trust(simulation_id, turn);
         """)
 
+        # 4. Action Outcomes (engine-level accept/reject per individual action)
+        self.conn.execute("""
+            CREATE SEQUENCE IF NOT EXISTS seq_metrics_action_outcomes_id;
+            CREATE TABLE IF NOT EXISTS metrics_action_outcomes (
+                id          INTEGER DEFAULT nextval('seq_metrics_action_outcomes_id') PRIMARY KEY,
+                simulation_id VARCHAR NOT NULL,
+                turn          INTEGER NOT NULL,
+                nation_id     VARCHAR NOT NULL,
+                domain        VARCHAR NOT NULL,
+                action_type   VARCHAR NOT NULL,
+                status        VARCHAR NOT NULL,
+                reason        VARCHAR
+            );
+            CREATE INDEX IF NOT EXISTS idx_action_outcomes_sim_turn
+                ON metrics_action_outcomes(simulation_id, turn);
+        """)
+
+        # 5. Presidential Decisions (president APPROVE/VETO per domain per turn)
+        self.conn.execute("""
+            CREATE SEQUENCE IF NOT EXISTS seq_metrics_pres_decisions_id;
+            CREATE TABLE IF NOT EXISTS metrics_presidential_decisions (
+                id          INTEGER DEFAULT nextval('seq_metrics_pres_decisions_id') PRIMARY KEY,
+                simulation_id VARCHAR NOT NULL,
+                turn          INTEGER NOT NULL,
+                nation_id     VARCHAR NOT NULL,
+                domain        VARCHAR NOT NULL,
+                decision      VARCHAR NOT NULL,
+                action_type   VARCHAR,
+                reasoning     VARCHAR
+            );
+            CREATE INDEX IF NOT EXISTS idx_pres_decisions_sim_turn
+                ON metrics_presidential_decisions(simulation_id, turn);
+        """)
+
     def insert_nation_metrics(self, simulation_id: str, metrics_list: List[Dict[str, Any]]):
         """Batch inserts nation-level metrics."""
         if not metrics_list:
@@ -195,6 +229,56 @@ class MetricsDB:
         ]
         
         self.conn.executemany(insert_query, data)
+
+    def insert_action_outcomes(self, simulation_id: str, rows: List[Dict[str, Any]]):
+        """Batch-inserts engine-level action outcomes for a turn."""
+        if not rows:
+            return
+
+        query = """
+            INSERT INTO metrics_action_outcomes
+                (simulation_id, turn, nation_id, domain, action_type, status, reason)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """
+        data = [
+            (
+                simulation_id,
+                r["turn"],
+                r["nation_id"],
+                r["domain"],
+                r["action_type"],
+                r["status"],
+                r.get("reason"),
+            )
+            for r in rows
+        ]
+        self.conn.executemany(query, data)
+
+    def insert_presidential_decisions(
+        self, simulation_id: str, rows: List[Dict[str, Any]]
+    ):
+        """Batch-inserts presidential APPROVE/VETO decisions for a turn."""
+        if not rows:
+            return
+
+        query = """
+            INSERT INTO metrics_presidential_decisions
+                (simulation_id, turn, nation_id, domain, decision, action_type, reasoning)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """
+        data = [
+            (
+                simulation_id,
+                r["turn"],
+                r["nation_id"],
+                r["domain"],
+                r["decision"],
+                r.get("action_type"),
+                r.get("reasoning"),
+            )
+            for r in rows
+        ]
+        self.conn.executemany(query, data)
 
     def close(self):
         """Closes the connection to DuckDB."""

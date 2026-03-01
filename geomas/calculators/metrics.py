@@ -143,3 +143,142 @@ def extract_nation_metrics(world: WorldState, envelope: CountryEnvelope, turn: i
         "trade_volume": trade_volume,
         "military_spending": military_spending
     }
+
+
+def extract_action_outcomes(
+    envelope: CountryEnvelope, turn: int
+) -> List[Dict[str, Any]]:
+    """
+    Extracts per-action engine-level outcomes from a single envelope.
+
+    Iterates every individual action across all three domains and records
+    whether the simulation engine accepted or rejected it, along with the
+    reason (e.g. "Insufficient budget", "No path found").
+
+    Returns:
+        List of dicts ready for MetricsDB.insert_action_outcomes().
+    """
+    nation_id = envelope.sender_id
+    rows: List[Dict[str, Any]] = []
+
+    def _to_str(v) -> str:
+        """Convert an enum value or plain string to a plain string."""
+        return v.value if hasattr(v, "value") else str(v)
+
+    # --- Defense (waterfall: multiple moves) ---
+    if envelope.defense_payload and envelope.defense_payload.moves:
+        for move in envelope.defense_payload.moves:
+            outcome = getattr(move, "execution_outcome", None)
+            status = _to_str(outcome.status) if outcome else "PENDING"
+            reason = outcome.reason if outcome else None
+            rows.append({
+                "turn":        turn,
+                "nation_id":   nation_id,
+                "domain":      "Defense",
+                "action_type": _to_str(move.action_type),
+                "status":      status,
+                "reason":      reason,
+            })
+
+    # --- Economy (single action) ---
+    if envelope.economic_payload and envelope.economic_payload.action_type:
+        outcome = getattr(envelope.economic_payload, "execution_outcome", None)
+        status = _to_str(outcome.status) if outcome else "PENDING"
+        reason = outcome.reason if outcome else None
+        rows.append({
+            "turn":        turn,
+            "nation_id":   nation_id,
+            "domain":      "Economy",
+            "action_type": _to_str(envelope.economic_payload.action_type),
+            "status":      status,
+            "reason":      reason,
+        })
+
+    # --- Foreign (single action; responses are not tracked here as they
+    #     are proposal-based and always succeed if the proposal existed) ---
+    if envelope.foreign_payload and envelope.foreign_payload.action_type:
+        outcome = getattr(envelope.foreign_payload, "execution_outcome", None)
+        status = _to_str(outcome.status) if outcome else "PENDING"
+        reason = outcome.reason if outcome else None
+        rows.append({
+            "turn":        turn,
+            "nation_id":   nation_id,
+            "domain":      "Foreign",
+            "action_type": _to_str(envelope.foreign_payload.action_type),
+            "status":      status,
+            "reason":      reason,
+        })
+
+    return rows
+
+
+def extract_presidential_decisions(
+    envelope: CountryEnvelope, turn: int
+) -> List[Dict[str, Any]]:
+    """
+    Extracts the President's APPROVE/VETO decisions from a single envelope.
+
+    One row per domain, capturing:
+    - domain: 'Defense', 'Economy', 'Foreign'
+    - decision: 'APPROVE' or 'VETO'
+    - action_type: the concrete action that the minister proposed
+    - reasoning: the president's private reasoning (if available)
+
+    Returns:
+        List of dicts ready for MetricsDB.insert_presidential_decisions().
+    """
+    nation_id = envelope.sender_id
+    rows: List[Dict[str, Any]] = []
+
+    def _to_str(v) -> str:
+        return v.value if hasattr(v, "value") else str(v) if v is not None else None
+
+    # --- Defense ---
+    if envelope.defense_payload:
+        # For the defense waterfall the "proposed action" is summarised as a
+        # comma-separated list of the action types proposed by the minister.
+        def_actions = None
+        if envelope.original_defense_proposal:
+            proposal_payload = getattr(
+                envelope.original_defense_proposal, "payload", None
+            )
+            if proposal_payload and getattr(proposal_payload, "moves", None):
+                def_actions = ",".join(
+                    _to_str(m.action_type) for m in proposal_payload.moves
+                )
+
+        rows.append({
+            "turn":        turn,
+            "nation_id":   nation_id,
+            "domain":      "Defense",
+            "decision":    _to_str(envelope.defense_payload.decision),
+            "action_type": def_actions,
+            "reasoning":   getattr(envelope, "defense_private_reasoning", None),
+        })
+
+    # --- Economy ---
+    if envelope.economic_payload:
+        eco_action = _to_str(envelope.economic_payload.action_type)
+        rows.append({
+            "turn":        turn,
+            "nation_id":   nation_id,
+            "domain":      "Economy",
+            "decision":    _to_str(envelope.economic_payload.decision),
+            "action_type": eco_action,
+            "reasoning":   None,  # No private reasoning for economy
+        })
+
+    # --- Foreign ---
+    if envelope.foreign_payload:
+        for_action = _to_str(envelope.foreign_payload.action_type)
+        rows.append({
+            "turn":        turn,
+            "nation_id":   nation_id,
+            "domain":      "Foreign",
+            "decision":    _to_str(envelope.foreign_payload.decision),
+            "action_type": for_action,
+            "reasoning":   getattr(envelope, "foreign_private_reasoning", None),
+        })
+
+    return rows
+

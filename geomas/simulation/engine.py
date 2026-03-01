@@ -458,6 +458,27 @@ class SimulationEngine:
                             "relationship_state": rel.value if hasattr(rel, 'value') else str(rel)
                         })
                 self.metrics_db.insert_trust_metrics(self.simulation_id, turn, trust_data)
+
+                # 4. Action Outcomes (engine-level accept/reject per individual action)
+                from geomas.calculators.metrics import (
+                    extract_action_outcomes,
+                    extract_presidential_decisions,
+                )
+                action_outcome_rows = []
+                presidential_decision_rows = []
+                for envelope in envelopes:
+                    action_outcome_rows.extend(extract_action_outcomes(envelope, turn))
+                    presidential_decision_rows.extend(
+                        extract_presidential_decisions(envelope, turn)
+                    )
+                self.metrics_db.insert_action_outcomes(
+                    self.simulation_id, action_outcome_rows
+                )
+
+                # 5. Presidential Decisions (APPROVE/VETO per domain)
+                self.metrics_db.insert_presidential_decisions(
+                    self.simulation_id, presidential_decision_rows
+                )
                 
             except Exception as e:
                 print(f"[METRICS ERROR] Failed to insert telemetry for turn {turn}: {e}")
