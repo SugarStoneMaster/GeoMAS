@@ -44,21 +44,29 @@ def scenario_selection_dialog(num_turns: int):
         return
 
     st.markdown(f"Scegli se attivare uno scenario durante questa run di **{num_turns} turni**.")
-    
-    # Calculate midpoint trigger
+
+    # Allow user to pick the trigger turn (default: midpoint)
     midpoint = num_turns // 2
-    trigger_turn = sim.world.turn + midpoint
-    
-    st.info(f"Lo scenario verrà innescato al turno **{trigger_turn}** (tra {midpoint} turni).")
-    
+    default_trigger = sim.world.turn + midpoint
+    max_trigger = sim.world.turn + num_turns
+
+    trigger_turn = st.slider(
+        "Trigger scenario at turn",
+        min_value=sim.world.turn + 1,
+        max_value=max_trigger,
+        value=default_trigger,
+        help="Choose at which turn the scenario fires. Default is the midpoint of the run."
+    )
+    st.caption(f"Scenario fires in **{trigger_turn - sim.world.turn}** turns (turn **{trigger_turn}**).")
+
     choice = st.selectbox("Scenario Type", ["Nessuno", "PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE"], index=0)
-    
+
     if st.button("🚀 Conferma e Avvia", type="primary", use_container_width=True):
         import json
         st.session_state["remaining_turns"] = num_turns
         st.session_state["total_run_turns"] = num_turns
         st.session_state["scenario_trigger_turn"] = trigger_turn
-        
+
         if choice in ["PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE"]:
             scenario_data = {"type": choice, "turn": trigger_turn}
             sim.planned_scenario = scenario_data
@@ -71,7 +79,7 @@ def scenario_selection_dialog(num_turns: int):
             if sim.db:
                 sim.db.update_simulation_scenario(sim.simulation_id, None)
             st.session_state["enable_scenarios"] = False
-            
+
         st.rerun()
 
 
@@ -220,12 +228,28 @@ with st.sidebar:
                     st.rerun()
             
             st.divider()
-            
-            if st.button("🍴 Run Fork (5 Turns)", type="primary", use_container_width=True):
-                 st.session_state["remaining_turns"] = 5
-                 # Set a flag to indicate we are running a fork with injections
-                 st.session_state["fork_active"] = True
-                 st.rerun()
+
+            # Compute remaining turns = max_turn(source) - current_turn
+            source_max_turn = sim.db.get_max_turn(sim.simulation_id)
+            fork_remaining = max(1, source_max_turn - sim.world.turn)
+
+            fork_btn_label = f"🍴 Run Fork ({fork_remaining} turns remaining)"
+            fork_n_turns = st.number_input(
+                "Override turns (0 = auto)",
+                min_value=0,
+                value=0,
+                step=1,
+                help=(
+                    f"Auto: runs {fork_remaining} turns (from current snapshot T{sim.world.turn} "
+                    f"to source max T{source_max_turn}). Set > 0 to override."
+                )
+            )
+            effective_turns = int(fork_n_turns) if fork_n_turns > 0 else fork_remaining
+
+            if st.button(fork_btn_label, type="primary", use_container_width=True):
+                st.session_state["remaining_turns"] = effective_turns
+                st.session_state["fork_active"] = True
+                st.rerun()
         else:
             st.warning("Initialize Simulation first.")
     

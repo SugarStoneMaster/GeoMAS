@@ -905,10 +905,10 @@ class SimulationEngine:
         print(f"🔄 [SYSTEM] Simulation state restored to turn {turn}")
         
 
-    def run(self, steps: int = 1, injections: Optional[List[dict]] = None):
-        """Runs the simulation for N steps."""
+    def run(self, steps: int = 1, injections: Optional[List[dict]] = None, scenario_trigger: Optional[dict] = None):
+        """Runs the simulation for N steps, forwarding optional injections and scenario trigger to each step."""
         for _ in range(steps):
-            self.step(injections)
+            self.step(injections=injections, scenario_trigger=scenario_trigger)
     
     # --- CACHE ACCESS METHODS ---
     
@@ -981,6 +981,74 @@ class SimulationEngine:
         # Clear engine-level logs to avoid mixing histories in memory
         self.turn_logs = [f"--- FORKED FROM SIM {source_id} AT TURN {current_turn} ---"]
         
+        return new_id
+
+    def fork_and_continue(
+        self,
+        source_simulation_id: int,
+        fork_at_turn: int,
+        n_turns: Optional[int] = None,
+        injections: Optional[List[dict]] = None,
+        scenario_trigger: Optional[dict] = None,
+        new_name: Optional[str] = None,
+    ) -> int:
+        """
+        High-level fork-and-continue workflow.
+
+        Semantics:
+          fork_at_turn=T means: load the world snapshot saved AT turn T.
+          Since snapshot(T) represents the state AFTER agents acted on turn T-1,
+          the next turn to execute will be T (the fork continues from turn T).
+
+        Steps:
+          1. Load world state from source_simulation_id at fork_at_turn.
+          2. Fork into a new simulation entry in the DB.
+          3. Compute remaining turns as max_turn(source) - fork_at_turn (unless n_turns is explicit).
+          4. Run the simulation for the computed number of steps.
+
+        Args:
+            source_simulation_id: ID of the simulation to fork from.
+            fork_at_turn: Snapshot turn to load (agents have acted through turn fork_at_turn - 1).
+            n_turns: Steps to run after the fork. If None, runs until source's original max turn.
+            injections: Optional XAI constraint injections forwarded to every step.
+            scenario_trigger: Optional scenario dict forwarded to every step (checked inside step()).
+            new_name: Optional friendly name for the forked simulation.
+
+        Returns:
+            The new simulation_id of the forked run.
+        """
+        if not self.db:
+            raise ValueError("Cannot fork_and_continue without a database connection.")
+
+        # Step 1 — Load state from the source simulation
+        self.load_state(fork_at_turn, from_simulation_id=source_simulation_id)
+
+        # Step 2 — Fork into a new simulation entry
+        auto_name = new_name or f"Fork of Sim {source_simulation_id} @T{fork_at_turn}"
+        new_id = self.fork(new_name=auto_name)
+
+        # Step 3 — Determine how many turns to run
+        if n_turns is None:
+            source_max_turn = self.db.get_max_turn(source_simulation_id)
+            n_turns = max(0, source_max_turn - fork_at_turn)
+
+        print(
+            f"[ENGINE] fork_and_continue: Sim {source_simulation_id} → #{new_id}"
+            f" | Fork snapshot: T{fork_at_turn} | Next turn to execute: T{self.world.turn}"
+            f" | Steps to run: {n_turns}"
+        )
+
+        if n_turns == 0:
+            print("[ENGINE] fork_and_continue: n_turns=0, no steps will be executed.")
+            return new_id
+
+        # Step 4 — Run
+        self.run(
+            steps=n_turns,
+            injections=injections,
+            scenario_trigger=scenario_trigger,
+        )
+
         return new_id
 
     def close(self) -> None:
