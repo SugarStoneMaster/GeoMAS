@@ -48,7 +48,7 @@ GeoMAS is a multi-layered simulation environment built for structural determinis
 
 ## 2. Orchestration Layer — SimulationEngine
 
-**File**: `geomas/simulation/engine.py` (979 lines)
+**File**: `geomas/simulation/engine.py` (1006+ lines)
 
 ### 2.1 Initialization Sequence
 ```python
@@ -71,9 +71,16 @@ Each turn executes these phases in **strict sequential order**:
 
 #### Phase 1: Scenario Injection
 ```python
-if turn in scenario_config.triggers:
-    apply_scenario(world, scenario)  # PANDEMIC, RESOURCE_DISCOVERY, SEPARATIST_INSURRECTION
+# scenario_trigger = {"type": "PANDEMIA" | "SCOPERTA RISORSE" | "INSURREZIONE", "turn": T}
+# Trigger turn is now fully configurable (UI slider or fork_and_continue argument).
+# check_and_trigger_scenario() fires only when current_turn == trigger["turn"].
+if trigger is not None:
+    check_and_trigger_scenario(world, context_manager, current_turn, trigger)
 ```
+Scenario effects:
+- **PANDEMIA**: density-scaled mortality, military attrition, satisfaction penalty (food-weighted), global trust −10
+- **SCOPERTA RISORSE**: selects a border province (4-tier priority), sets energy/materials to 50× world average
+- **INSURREZIONE**: steals 25% of provinces from the least-stable nation, creates a rebel NationAgent with opposed government type
 
 #### Phase 2: Upkeep (`phases.upkeep_phase`)
 ```python
@@ -143,15 +150,60 @@ for each active nation:
     check_triggers(nation)  # STRIKE, CIVIL_UNREST, RECOVERY
 ```
 
-### 2.3 State Forking
+### 2.3 State Forking — Unified Fork & Continue
 
-```python
-sim.fork(from_turn=5, injections={"nation_1": ["Block all military actions"]})
-# 1. Creates new simulation entry in DB
-# 2. Copies full history (snapshots, envelopes, behaviors) up to from_turn
-# 3. Loads WorldState from from_turn
-# 4. Continues simulation with injections applied to agent prompts
+All forking flows (XAI injection and scenario) share the same engine primitives.
+
+#### Snapshot Turn Semantics (critical for correct fork offset)
 ```
+snapshot(T)  = world state AFTER turn T-1 has fully executed
+             = world state AT THE START of turn T (before any agent acts on T)
+
+load_state(T) → world.turn == T  (T is the NEXT turn to execute)
+```
+
+**Example**: Fork at snapshot T=10 → agents have acted through turn 9 → next execution is turn 10.
+
+#### Primitive: `fork()`
+```python
+sim.fork(new_name=None)  # → new_simulation_id
+# 1. Creates new simulation entry in DB
+# 2. Copies full history (snapshots, envelopes, behaviors, token_usage) up to current_turn
+# 3. Switches engine to new_simulation_id — subsequent steps persist to the fork
+```
+
+#### Primitive: `load_state(turn, from_simulation_id=None)`
+```python
+sim.load_state(T, from_simulation_id=source_id)
+# 1. Loads WorldState from snapshot(T)
+# 2. Reconstructs ContextManager memory
+# 3. Re-initializes ActionEngine and Agents from restored WorldState
+# 4. Reconstructs envelope trace_history for XAI dashboard
+# Result: world.turn == T → NEXT turn to execute is T
+```
+
+#### High-Level: `fork_and_continue()` (unified XAI + Scenario)
+```python
+new_id = sim.fork_and_continue(
+    source_simulation_id = source_id,
+    fork_at_turn         = T,           # Load snapshot(T) → next exec. is T
+    n_turns              = None,        # Auto: max_turn(source) - T; or explicit override
+    injections           = [...],       # XAI: constraint list forwarded to every step()
+    scenario_trigger     = {"type": "PANDEMIA", "turn": T+k},  # Scenario: fires at exact turn
+    new_name             = "Fork @T10" # Optional friendly name
+)
+```
+
+| Parameter | XAI path | Scenario path |
+|-----------|----------|---------------|
+| `injections` | Agent prompt constraints forced each turn | `[]` / `None` |
+| `scenario_trigger` | `None` | `{"type": ..., "turn": T+k}` |
+| `n_turns` | Auto: `max_turn(source) - fork_at_turn` | Same (or explicit cap) |
+
+UI (Analysis mode sidebar) calls this via the session-state flow:
+1. User time-travels to turn T (`load_state(T)`)
+2. User configures injections and/or scenario trigger and trigger turn
+3. Button computes `fork_remaining = max_turn(source) - world.turn` and calls `fork_and_continue()`
 
 ---
 
@@ -482,7 +534,43 @@ CREATE TABLE nation_metrics (
     soldiers INTEGER, aircraft INTEGER, navy INTEGER,
     power_projection FLOAT, trade_volume FLOAT, military_spending FLOAT
 );
+
+-- Global per-turn aggregates
+CREATE TABLE global_metrics (
+    simulation_id INTEGER, turn INTEGER,
+    global_deception_avg FLOAT, global_coherence_avg FLOAT,
+    global_satisfaction_avg FLOAT,
+    territories_changed_hands INTEGER, units_created INTEGER,
+    units_destroyed INTEGER, global_trade_volume FLOAT
+);
+
+-- Bilateral trust between all active nation pairs
+CREATE TABLE trust_metrics (
+    simulation_id INTEGER, turn INTEGER,
+    observer_id VARCHAR, target_id VARCHAR,
+    trust_value FLOAT, relationship_state VARCHAR
+);
+
+-- Engine-level acceptance/rejection per individual action (new)
+CREATE TABLE metrics_action_outcomes (
+    simulation_id INTEGER, turn INTEGER, nation_id VARCHAR,
+    domain VARCHAR,       -- "Defense" | "Economy" | "Foreign"
+    action_type VARCHAR,  -- specific action name
+    status VARCHAR,       -- "SUCCESS" | "FAILED" | "PARTIAL" | "PENDING"
+    reason VARCHAR        -- engine-provided rejection reason (if FAILED)
+);
+
+-- Presidential APPROVE/VETO decisions per domain (new)
+CREATE TABLE metrics_presidential_decisions (
+    simulation_id INTEGER, turn INTEGER, nation_id VARCHAR,
+    domain VARCHAR,           -- "Defense" | "Economy" | "Foreign"
+    decision VARCHAR,         -- "APPROVE" | "VETO"
+    action_type VARCHAR,      -- proposed action type
+    private_reasoning VARCHAR -- president's internal rationale
+);
 ```
+
+Populated per turn via `metrics.py` extractors called inside `_persist_envelopes()`.
 
 ### 5.3 Serialization (`db/serialization.py`, 8.9KB)
 

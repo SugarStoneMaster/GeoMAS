@@ -19,12 +19,45 @@ GeoMAS is engineered for **causal and counterfactual analysis** — not descript
 | **Coherence** | Strategy-intent alignment (0.0–1.0) | `analysis.coherence` |
 | **Moral Washing** | Governance-framed deception (EXPORT_DEMOCRACY, HOLY_WAR) | `analysis.deception` matrices |
 
-### 3. Counterfactual Analysis (XAI)
-The simulation supports **fork-and-compare** experiments:
-1. Run a **base timeline** for N turns.
-2. **Fork** at turn T with an **XAI injection** (e.g., "You MUST declare war on Ferecia").
-3. The forked timeline diverges from the base.
-4. **DeltaAnalyzer** computes divergence scores and LLM-powered causal explanations.
+### 3. Fork & Continue — Unified Counterfactual Framework
+
+Both **XAI injection** (forced agent decisions) and **scenario injection** (exogenous shocks) share the same underlying `fork_and_continue()` workflow:
+
+#### Snapshot Turn Semantics
+```
+snapshot(T)  →  world state AFTER turn T-1 has executed
+load_state(T)  →  world.turn = T  (T is the NEXT turn to run)
+```
+Example: fork at snapshot T=10 means agents acted through turn 9; the fork continues from turn 10.
+
+#### Two flavours, one method
+| Mode | What you configure | What gets forwarded to each step |
+|------|-------------------|-----------------------------------|
+| **XAI Injection** | `injections` = constraint list (e.g. "MUST declare war on X") | injections → agent prompts every turn |
+| **Scenario Injection** | `scenario_trigger = {"type": "PANDEMIA", "turn": T+k}` | scenario dict checked every turn; fires only at turn T+k |
+
+```python
+# XAI path
+new_id = sim.fork_and_continue(
+    source_simulation_id=base_sim_id,
+    fork_at_turn=T,
+    injections=[{"nation_id": "AGRIA", "role": "Defense", "action": "MOVE_TROOPS", "type": "FORCE"}]
+    # n_turns auto = max_turn(source) - T
+)
+
+# Scenario path (same method)
+new_id = sim.fork_and_continue(
+    source_simulation_id=base_sim_id,
+    fork_at_turn=T,
+    scenario_trigger={"type": "INSURREZIONE", "turn": T + 3}
+)
+```
+
+The UI (Analysis-mode sidebar) exposes:
+- **Time Travel slider** → sets `fork_at_turn`
+- **Scenario trigger turn slider** → configurable (was hardcoded to midpoint)
+- **"Run Fork (N turns remaining)" button** → auto-computes `n_turns = max_turn(source) - current_turn`; manual override available
+- **DeltaAnalyzer** computes divergence vs. base: `D = Σ|ΔSatisfaction| + Σ|ΔPower|×0.1 + ΔTrust×0.5 + #RelChanges×50`
 
 ---
 
@@ -167,12 +200,14 @@ D = Σ|ΔSatisfaction| × 1.0 + Σ|ΔPower| × 0.1 + ΔTrust × 0.5 + #RelChange
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
 | **SimulationDB** | DuckDB | Full state snapshots, envelopes, behaviors, token usage |
-| **MetricsDB** | DuckDB | Numerical time-series for Jupyter analysis |
+| **MetricsDB — nation/global/trust** | DuckDB | Numerical time-series for Jupyter analysis |
+| **MetricsDB — action outcomes** | DuckDB | Engine accept/reject per action type, per domain, per nation |
+| **MetricsDB — presidential decisions** | DuckDB | APPROVE/VETO decisions per domain, per nation, with reasoning |
 | **TurnCache** | In-memory dict | Accelerated UI browsing |
 | **Genesis DB** | DuckDB | Reusable ancient history per seed |
 | **Token CSV** | CSV file | LLM cost observability |
 
-Multi-simulation support with progressive `simulation_id`. Fork-and-compare copies full history to new simulation entry.
+Multi-simulation support with progressive `simulation_id`. `fork_and_continue()` copies full history up to `fork_at_turn` into the new simulation entry, then continues execution.
 
 ---
 
