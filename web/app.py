@@ -176,6 +176,19 @@ with st.sidebar:
                     st.success(f"Loaded Turn {target_turn}")
                     st.rerun()
             
+            st.markdown("### 🌍 Scenario Events")
+            scenario_opts = ["Non-scenario", "PANDEMIA"]
+            selected_scenario = st.selectbox("Trigger Scenario", scenario_opts, index=0)
+            target_scenario_turn = st.slider("Trigger Turn", current_turn, max_turn + 50, current_turn + 1)
+            
+            if selected_scenario != "Non-scenario":
+                st.session_state["enable_scenarios"] = True
+                st.session_state["scenario_type"] = selected_scenario
+                st.session_state["scenario_trigger_turn"] = target_scenario_turn
+            else:
+                st.session_state["enable_scenarios"] = False
+                st.session_state["scenario_trigger_turn"] = -1
+            
             st.markdown("### 🧪 Counterfactual Injection")
             
             # Injection State
@@ -391,17 +404,15 @@ if st.session_state["remaining_turns"] != 0 and sim:
     if "manual_scenario_trigger" in st.session_state:
         scenario_trigger = st.session_state.pop("manual_scenario_trigger")
         st.toast(f"🚨 Executing Manual Scenario: {scenario_trigger['type']}!", icon="🔥")
-    # Otherwise check for midpoint trigger
+    # Otherwise check for midpoint trigger or explicit fork trigger
     elif st.session_state.get("enable_scenarios", False) and st.session_state["remaining_turns"] > 0:
-        # If we know exactly how many turns total we're running
-        if "total_run_turns" in st.session_state:
-            target_turn = st.session_state.get("scenario_trigger_turn", -1)
-            if target_turn == sim.world.turn:
-                scenario_trigger = {
-                    "type": st.session_state.get("scenario_type", "PANDEMIA"),
-                    "turn": target_turn
-                }
-                st.toast(f"🚨 Executing Scenario: {scenario_trigger['type']}!", icon="🔥")
+        target_turn = st.session_state.get("scenario_trigger_turn", -1)
+        if target_turn == sim.world.turn:
+            scenario_trigger = {
+                "type": st.session_state.get("scenario_type", "PANDEMIA"),
+                "turn": target_turn
+            }
+            st.toast(f"🚨 Executing Scenario: {scenario_trigger['type']}!", icon="🔥")
 
     
     # Perform one step
