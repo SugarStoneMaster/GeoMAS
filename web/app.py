@@ -187,7 +187,7 @@ with st.sidebar:
                 st.info(f"Simulation is at maximum turn ({max_turn}). No future turns available for scenario injection.")
             else:
                 slider_max = max(current_turn + 1, max_turn)
-                target_scenario_turn = st.slider("Trigger Turn", current_turn, slider_max, min(current_turn + 1, slider_max))
+                target_scenario_turn = st.slider("Trigger Turn", current_turn, slider_max, current_turn)
             
             if selected_scenario != "Non-scenario":
                 st.session_state["enable_scenarios"] = True
