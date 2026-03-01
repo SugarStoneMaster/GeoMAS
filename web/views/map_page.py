@@ -13,6 +13,7 @@ from web.components.map_renderer import render_map
 from web.components.nation_panel import render_nation_stats
 from web.components.trust_matrix import render_trust_matrix
 from web.components.inspector import render_inspector
+from web.components.alliances_panel import render_alliances_panel
 import streamlit as st
 
 
@@ -38,8 +39,12 @@ def render_map_page(world: WorldState) -> None:
     with col_map:
         show_ids = st.checkbox("Show Province IDs", value=False, key="map_show_ids")
         render_map(world, selected_nation_id, show_province_ids=show_ids)
-        # Trust matrix directly under the map
-        render_trust_matrix(world)
+        # Trust matrix and alliances side by side below the map
+        trust_col, alliance_col = st.columns([1, 1])
+        with trust_col:
+            render_trust_matrix(world)
+        with alliance_col:
+            render_alliances_panel(world)
     
     with col_intel:
         st.markdown("### 🕵️ Intel")

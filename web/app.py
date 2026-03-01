@@ -24,7 +24,6 @@ from geomas.db import SimulationDB
 from geomas.agents.llm_client import LLMClient
 from web.views.map_page import render_map_page
 from web.views.logs_page import render_logs_page
-from web.views.deception_page import render_deception_page
 from web.components.event_log import render_event_log
 
 
@@ -405,8 +404,8 @@ if c1.button("🗺️ Map & Intel", use_container_width=True):
 if c2.button("📜 History & Logs", use_container_width=True):
     st.session_state["active_tab"] = "LOGS"
     st.rerun()
-if c3.button("🕵️ Deception Analysis", use_container_width=True):
-    st.session_state["active_tab"] = "DECEPTION"
+if c3.button("🌐 Global Events", use_container_width=True):
+    st.session_state["active_tab"] = "EVENTS"
     st.rerun()
 
 st.divider()
@@ -426,11 +425,7 @@ active_tab = st.session_state["active_tab"]
 if active_tab == "MAP":
     render_map_page(world)
 elif active_tab == "LOGS":
-    # 2-column layout for logs: History | Events
-    tab_hist, tab_events = st.tabs(["Turn History", "Global Events"])
-    with tab_hist:
-        render_logs_page(world, sim.history, sim.context_manager.global_events)
-    with tab_events:
-        render_event_log(sim.context_manager.global_events)
-elif active_tab == "DECEPTION":
-    render_deception_page(world, sim.history)
+    render_logs_page(world, sim.history, sim.context_manager.global_events)
+elif active_tab == "EVENTS":
+    st.subheader("🌐 Global Events")
+    render_event_log(sim.context_manager.global_events)

@@ -34,8 +34,8 @@ def render_inspector(nation_id: str, agent: NationAgent, opinion_agent=None):
     
     agent_trace = history[selected_turn]
     
-    # Tabs for each agent role
-    tabs = st.tabs(["President", "Defense", "Economy", "Foreign", "Public Opinion"])
+    # Tabs for each agent role (Public Opinion is now deterministic, no longer inspectable as LLM agent)
+    tabs = st.tabs(["President", "Defense", "Economy", "Foreign"])
     
     # Helper for modal
     @st.dialog("Prompt Viewer", width="large")
@@ -64,12 +64,20 @@ def render_inspector(nation_id: str, agent: NationAgent, opinion_agent=None):
             if st.button("📤 Output (JSON)", key=f"out_{title}_{selected_turn}"):
                 output = trace_data.get("proposal") or trace_data.get("decree")
                 try:
-                    # Try to use model_dump_json if it's a Pydantic model
                     if hasattr(output, 'model_dump_json'):
+                        # Pydantic model: serialize with indentation
                         json_str = output.model_dump_json(indent=2)
+                    elif isinstance(output, (dict, list)):
+                        json_str = json.dumps(output, indent=2, default=str)
+                    elif isinstance(output, str):
+                        # Raw string from LLM: attempt to parse as JSON and re-pretty-print
+                        try:
+                            parsed = json.loads(output)
+                            json_str = json.dumps(parsed, indent=2, ensure_ascii=False)
+                        except json.JSONDecodeError:
+                            json_str = output
                     else:
-                        # Fallback to string or dict dump
-                        json_str = json.dumps(output, indent=2, default=str) if isinstance(output, (dict, list)) else str(output)
+                        json_str = str(output)
                     
                     show_prompt_modal(f"{title} - Output", json_str)
                 except Exception as e:
@@ -94,12 +102,3 @@ def render_inspector(nation_id: str, agent: NationAgent, opinion_agent=None):
     with tabs[3]:
         st.markdown("### 🤝 Foreign Minister")
         _render_trace(agent_trace.get("foreign"), "Foreign Minister")
-
-    # 5. PUBLIC OPINION TAB
-    with tabs[4]:
-        st.markdown("### 👥 Public Opinion")
-        if opinion_agent:
-            opinion_history = getattr(opinion_agent, 'trace_history', {})
-            _render_trace(opinion_history.get(selected_turn), "Public Opinion")
-        else:
-            st.info("Opinion agent details not available in this context.")
