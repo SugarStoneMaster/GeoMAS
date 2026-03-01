@@ -168,13 +168,13 @@ def calculate_production(
     # Tight margin yields: 105% of consumption
     if terrain == TerrainType.COASTAL:
         # Coastal: Great fishing (food), good energy (ports), poor materials
-        food_yield, energy_yield, materials_yield = 1.2, 0.55, 0.15
+        food_yield, energy_yield, materials_yield = 1.2, 0.55, 0.25
     elif terrain == TerrainType.MOUNTAIN:
         # Mountain: DEFICIT in food, low energy, excellent materials (mining)
         food_yield, energy_yield, materials_yield = 0.3, 0.25, 1.0
     else:  # LAND
         # Balanced: slight surplus in all categories
-        food_yield, energy_yield, materials_yield = 1.05, 0.55, 0.35
+        food_yield, energy_yield, materials_yield = 1.05, 0.55, 0.50
     
     # Add random variation (+/-5%)
     food_prod = workers * food_yield * rng.uniform(0.95, 1.05)

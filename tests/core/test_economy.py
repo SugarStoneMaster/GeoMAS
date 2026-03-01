@@ -84,13 +84,13 @@ class TestConsumption:
     
     def test_materials_consumption(self):
         """Military maintenance costs."""
-        # soldiers=0.1, aircraft=2.0, navy=1.5 per unit
+        # soldiers=0.05, aircraft=1.0, navy=0.75 per unit
         consumption = economy.calculate_materials_consumption(
             total_soldiers=100,
             total_aircraft=10,
             total_navy=20
         )
-        expected = 100 * 0.1 + 10 * 2.0 + 20 * 1.5  # 10 + 20 + 30 = 60
+        expected = 100 * 0.05 + 10 * 1.0 + 20 * 0.75  # 5 + 10 + 15 = 30.0
         assert consumption == expected
 
 

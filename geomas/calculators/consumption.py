@@ -13,17 +13,17 @@ ENERGY_PER_PERSON = 0.5
 MAINTENANCE_DATA = {
     "SOLDIER": {
         "budget": 0.2,
-        "materials": 0.1,
+        "materials": 0.05,
         "energy": 0.0,
     },
     "AIRCRAFT": {
         "budget": 5.0,
-        "materials": 2.0,
+        "materials": 1.0,
         "energy": 5.0,
     },
     "NAVY": {
         "budget": 4.0,
-        "materials": 1.5,
+        "materials": 0.75,
         "energy": 3.0,
     }
 }
