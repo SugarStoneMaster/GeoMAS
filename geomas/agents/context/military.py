@@ -150,7 +150,6 @@ class MilitaryTranslator:
         if undefended:
             ud_str = ", ".join(str(p_id) for p_id in undefended[:10])
             lines.append(f"**UNDEFENDED BORDERS ({len(undefended)}):** {ud_str}")
-            lines.append("  → Consider CREATE_UNIT or MOVE_TROOPS to fill these gaps!")
 
         if interior_units > 0:
             lines.append(f"**Reserves (Interior):** {interior_units:,} units in {interior_count} provinces")
@@ -716,52 +715,10 @@ class MilitaryTranslator:
         return "\n".join(lines)
 
     def _generate_recruitment_advice(self, nation_id: str, nation) -> str:
-        """Suggest unit recruitment when army is weak or lacking specific unit types."""
-        lines = []
-
-        total_enemy_force = 0
-        neighbors = self.spatial.get_neighboring_nations(nation_id)
-        for neighbor_id in neighbors:
-            if neighbor_id not in self.world.nations:
-                continue
-            n = self.world.nations[neighbor_id]
-            total_enemy_force += n.total_soldiers + n.total_aircraft + n.total_navy
-
-        my_total = nation.total_soldiers + nation.total_aircraft + nation.total_navy
-        needs_troops = my_total < total_enemy_force * 0.8 if total_enemy_force > 0 else my_total < 50
-        has_ocean = len(nation.territorial_water_ids) > 0
-        needs_navy = has_ocean and nation.total_navy == 0
-        needs_aircraft = nation.total_aircraft == 0 and nation.total_budget >= 80
-
-        land_provinces = [
-            p_id for p_id in nation.province_ids
-            if p_id in self.world.provinces and
-            self.world.provinces[p_id].terrain.value != "ocean"
-        ]
-
-        if needs_troops or needs_navy or needs_aircraft:
-            lines.append("\n## RECRUITMENT ADVICE")
-            lines.append("Use **CREATE_UNIT** to build more military strength:")
-
-            if needs_troops:
-                spawn_at = land_provinces[0] if land_provinces else "?"
-                lines.append(
-                    f"- **SOLDIER**: Your army ({my_total:,}) is weak vs. neighbors ({total_enemy_force:,}). "
-                    f"Recruit at province {spawn_at}."
-                )
-
-            if needs_navy:
-                water_ids = list(nation.territorial_water_ids)[:3]
-                lines.append(
-                    f"- **NAVY**: You have ocean access but 0 ships! "
-                    f"Create NAVY at territorial waters: {', '.join(str(w) for w in water_ids)}."
-                )
-
-            if needs_aircraft:
-                spawn_at = land_provinces[0] if land_provinces else "?"
-                lines.append(
-                    f"- **AIRCRAFT**: No air force. Aircraft can strike ANY province. "
-                    f"Create at province {spawn_at}."
-                )
-
-        return "\n".join(lines)
+        """
+        Recruitment advice intentionally left empty.
+        The agent can infer recruitment needs from the FORCE OVERVIEW and BUDGET sections.
+        Prescriptive recruitment suggestions based on neighbor comparisons were removed
+        to avoid introducing war-nudging bias into the simulation.
+        """
+        return ""
