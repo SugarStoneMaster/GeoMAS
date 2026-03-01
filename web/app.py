@@ -181,8 +181,13 @@ with st.sidebar:
             selected_scenario = st.selectbox("Trigger Scenario", scenario_opts, index=0)
             
             # Constrain trigger strictly within the remaining turns of the loaded simulation
-            slider_max = max(current_turn, max_turn)
-            target_scenario_turn = st.slider("Trigger Turn", current_turn, slider_max, min(current_turn + 1, slider_max))
+            if current_turn >= max_turn:
+                # Simulation is completely finished, cannot trigger scenarios in the past/present
+                target_scenario_turn = current_turn
+                st.info(f"Simulation is at maximum turn ({max_turn}). No future turns available for scenario injection.")
+            else:
+                slider_max = max(current_turn + 1, max_turn)
+                target_scenario_turn = st.slider("Trigger Turn", current_turn, slider_max, min(current_turn + 1, slider_max))
             
             if selected_scenario != "Non-scenario":
                 st.session_state["enable_scenarios"] = True
