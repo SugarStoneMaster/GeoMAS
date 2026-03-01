@@ -55,6 +55,7 @@ The interaction follows a strictly cyclic \textit{Sense-Think-Act-Observe} loop:
 
 The following sections detail each layer in order, from the top-level orchestrator down to the analysis framework.
 
+\input{figures/diagram_architecture}
 
 \section{The Orchestration Layer}
 \label{sec:orchestration}
@@ -121,6 +122,8 @@ The decision loop for a single nation within the Decision and Execution Phase (S
     \item \textbf{Validation and Execution Step:} The ActionEngine validates and executes the envelope against the WorldState. Defense actions are processed via a \textit{waterfall priority resolver}: the Defense Minister assigns a numeric priority to each of its proposed actions, and the engine executes them in that order, so that a validation failure on a higher-priority action does not block lower-priority ones. Economic and foreign actions are single-shot.
     \item \textbf{Reaction Step:} The deterministic satisfaction engine evaluates the resulting state changes. Satisfaction deltas are calculated from a rule-based formula applied to events and government actions. If satisfaction crosses critical thresholds, automatic triggers fire (General Strike, Civil Unrest).
 \end{enumerate}
+
+\input{figures/diagram_cabinet}
 
 \subsubsection{Design Rationale}
 Traditionally, strategic multi-agent environments are solved using Multi-Agent Reinforcement Learning (MARL). While MARL excels at optimal policy discovery, it produces opaque ``Black Box'' policies lacking interpretability.
@@ -337,6 +340,8 @@ To answer causal questions such as ``What would have happened if Nation~A had no
 
 This method provides verifiable counterfactual explanations: because both timelines share identical world physics and initial conditions, any observed divergence is causally attributable to the injected instruction rather than to environmental noise.
 
+\input{figures/diagram_counterfactual}
+
 \subsection{Prompt Trace Persistence}
 Every CountryEnvelope persists the complete system prompt, input prompt, and raw JSON response for all five agent types per nation per turn. This provides full transparency: any decision at any turn can be inspected at the prompt level, enabling reviewers to verify whether agent behavior stems from the prompt design, the world state, or the LLM's reasoning.
 
@@ -361,6 +366,8 @@ A \textbf{Jupyter} notebook environment provides the primary quantitative analys
 \section{Experimental Design and Validation}
 \label{sec:experimental_design}
 A core obligation of Design Science Research is to demonstrate that the constructed artifact achieves its intended goals under realistic conditions. For GeoMAS, this obligation is discharged at two levels.
+
+\input{figures/diagram_researcher_workflow}
 
 The first level is \textbf{technical validation}, which verifies that the framework's deterministic invariants hold: identical seeds produce identical outcomes, all action constraints are correctly enforced, and the persistence and forking mechanisms preserve state integrity. This layer is addressed by an automated test suite (pytest, 100\% passing) covering unit tests for individual calculators and validators, integration tests for the six ministerial proposal pipelines, and end-to-end tests for the forking mechanism and database persistence.
 
