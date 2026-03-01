@@ -97,6 +97,7 @@ def test_action_injection_parsing():
     world = MagicMock(spec=WorldState)
     nation = MagicMock(spec=NationState)
     nation.name = "Testland"
+    nation.nukes = 0
     world.nations = {"TEST": nation}
     
     client = MagicMock(spec=LLMClient)

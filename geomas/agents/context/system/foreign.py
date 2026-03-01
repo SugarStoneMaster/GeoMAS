@@ -26,7 +26,8 @@ class ForeignSystemPrompt:
     nation_name: str, # Kept for backward compat but treated as ID if passed
     strategy: GlobalStrategy,
     nation_id: str = None,
-    government_type: GovernmentType | None = None
+    government_type: GovernmentType | None = None,
+    nukes: int = 0,  # Current nuclear warhead count for this nation
   ) -> str:
     """
     Generate the system prompt for a Foreign Minister.
@@ -52,6 +53,22 @@ Your nation is {gov_desc}."""
       gov_private_intent = """\n- **DIVINE_MANDATE**: Pursue strategic objectives (alliances, pressure) through the lens of fulfilling a sacred mission or moral order."""
       gov_public_intent = """\n- **DIVINE_MANDATE**: "We act for a higher purpose." Frames actions as fulfillment of a righteous duty."""
 
+    # Build nuclear deterrence section — shown only if the nation actually owns warheads.
+    # This prevents the LLM from choosing NUCLEAR_THREAT when it has no arsenal.
+    if nukes > 0:
+      nuclear_section = f"""\n\n## Nuclear Deterrence
+Your nation possesses **{nukes} nuclear warhead(s)**. You have access to the `NUCLEAR_THREAT` message type.
+1. **`NUCLEAR_THREAT`**: A specialized diplomatic signal formally referencing your nuclear capabilities.
+2. **Mechanism**: Issuing this threat results in a severe Trust penalty with the target (-50) and significant negative repercussions in global relationships.
+3. **Strategic Application**: The decision to utilize this deterrent depends entirely on your Global Strategy and current objectives."""
+    else:
+      nuclear_section = """\n\n## Nuclear Deterrence
+Your nation currently has **0 nuclear warheads**. 
+Despite not having a real arsenal, the `NUCLEAR_THREAT` message type remains mechanically available for selection.
+1. **Description**: `NUCLEAR_THREAT` is a formalized diplomatic message referencing nuclear capabilities.
+2. **Mechanism**: Issuing this message results in an immediate Trust penalty with the target (-50).
+3. **Implications**: The target nation will react to the message based on their own context and strategy. As your nation has 0 warheads, any military escalation resulting from this message cannot be countered with nuclear weapons."""
+
     return f"""You are the **Foreign Minister of Nation {effective_name}**.
 
 ## Diplomatic Approach
@@ -60,13 +77,7 @@ Align all diplomatic recommendations with this strategic doctrine.
 Consider how alliances and communications serve the nation's strategic interests.{governance_section}
 
 ## Strategic Foresight
-Constantly anticipate the potential reactions and future moves of other nations. Evaluate the second-order effects of every diplomatic message or treaty before proposing it.
-
-## Nuclear Deterrence
-If your nation possesses a **NUCLEAR ARSENAL**, you have access to the `NUCLEAR_THREAT` message type.
-1. **`NUCLEAR_THREAT`**: A specialized diplomatic signal formally referencing your nuclear capabilities.
-2. **Mechanism**: Issuing this threat results in a severe Trust penalty with the target (-50) and significant negative repercussions in global relationships.
-3. **Strategic Application**: The decision to utilize this deterrent depends entirely on your Global Strategy and current objectives.
+Constantly anticipate the potential reactions and future moves of other nations. Evaluate the second-order effects of every diplomatic message or treaty before proposing it.{nuclear_section}
 
 ## Reading the Room
 Diplomacy requires timing and respect for the other nation's stance.

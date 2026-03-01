@@ -50,12 +50,18 @@ class BaseMinister:
             return
             
         nation = self.world.nations[self.nation_id]
-        self.system_prompt = self.prompt_class.generate(
-            nation_name=nation.name,
-            strategy=strategy,
-            nation_id=self.nation_id,
-            government_type=self.government_type
-        )
+        kwargs = {
+            "nation_name": nation.name,
+            "strategy": strategy,
+            "nation_id": self.nation_id,
+            "government_type": self.government_type
+        }
+        
+        # Only ForeignSystemPrompt accepts nukes parameter dynamically
+        if self.prompt_class == ForeignSystemPrompt:
+            kwargs["nukes"] = nation.nukes
+
+        self.system_prompt = self.prompt_class.generate(**kwargs)
         self.last_strategy = strategy
 
     def _add_memory_context(self, base_prompt: str, domain: str) -> str:
