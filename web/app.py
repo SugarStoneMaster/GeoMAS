@@ -177,7 +177,7 @@ with st.sidebar:
                     st.rerun()
             
             st.markdown("### 🌍 Scenario Events")
-            scenario_opts = ["Non-scenario", "PANDEMIA"]
+            scenario_opts = ["Non-scenario", "PANDEMIA", "RESOURCE_DISCOVERY", "INSURRECTION"]
             selected_scenario = st.selectbox("Trigger Scenario", scenario_opts, index=0)
             
             # Constrain trigger strictly within the remaining turns of the loaded simulation
