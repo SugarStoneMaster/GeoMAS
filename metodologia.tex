@@ -79,15 +79,24 @@ The engine is configured with two deterministic seeds, one for map generation an
 Each turn is executed by the \texttt{step()} method and proceeds through several sequential phases:
 
 \begin{enumerate}
-    \item \textbf{Scenario Phase:} Checks for exogenous event triggers (e.g., a global pandemic or an insurrection). Scenarios are defined as structured configurations that modify the world state and inject contextual events into agent prompts, enabling controlled experimental perturbation.
+    \item \textbf{Scenario Phase:} Checks for exogenous event triggers (e.g., a global pandemic or an insurrection). Scenarios are defined as structured configurations that modify the world state and inject contextual events into agent prompts, enabling controlled experimental perturbation. Scenarios can be configured to trigger at a specific turn during the primary simulation run or injected interactively via the state forking mechanism (Section~\ref{sec:forking}).
     \item \textbf{Upkeep Phase:} Deterministic resource accounting: production, consumption, population growth, and tax collection are computed for every nation. Satisfaction-driven production penalties (Section~\ref{sec:satisfaction}) are applied here.
     \item \textbf{Decision and Execution Phase:} The core of the simulation. Nation IDs are shuffled using the turn's local RNG for fairness. For each nation, the agent perceives the \textit{current} world state, generates a \textit{CountryEnvelope} (Section~\ref{sec:envelope}), and the \textit{ActionEngine} (Section~\ref{sec:rules_oracle}) executes it \textit{immediately}. This means that subsequent agents in the same turn observe the effects of prior actions, creating an inherently sequential and temporally consistent execution model.
     \item \textbf{Context Update:} The \textit{ContextManager} (Section~\ref{sec:memory}) extracts ``newsworthy'' events from the turn's executed envelopes and appends state-based events to the global event log.
     \item \textbf{Opinion and Persistence Phase:} The deterministic satisfaction engine updates each nation's satisfaction based on the turn's events. Finally, the complete world snapshot, all envelopes, behavior metrics, and token usage records are persisted to the database.
 \end{enumerate}
 
-\subsection{Simulation Forking for Counterfactual Experiments}
-The engine supports creating a \textit{fork} at any turn. Forking creates a new simulation entry in the database and copies the entire history (snapshots + envelopes) up to the current turn. From that point, the forked simulation evolves independently. Combined with XAI injections (natural language instructions appended to agent prompts), this mechanism enables controlled counterfactual experiments: ``What would have changed if Nation~A had been forced to declare war at Turn~5?'' The divergence between timelines is then analyzed through telemetry comparison in the analysis notebook (Section~\ref{sec:observability}).
+\subsection{Unified Counterfactuals and Scenarios via State Forking}
+\label{sec:forking}
+The engine supports creating a \textit{fork} at any turn via the \texttt{fork\_and\_continue} primitive. Forking creates a new simulation entry in the database and copies the entire history (snapshots, envelopes, and behaviors) up to the target turn. From that point, the forked simulation evolves independently.
+
+This unified mechanism supports two distinct types of experimental injection:
+\begin{enumerate}
+    \item \textbf{XAI Injection:} Natural language constraints (e.g., ``You MUST declare war on Agria'') are appended programmatically to specific agent prompts every subsequent turn.
+    \item \textbf{Scenario Injection:} An exogenous shock (e.g., an insurrection or resource discovery) is scheduled to fire at a specific future turn in the forked timeline.
+\end{enumerate}
+
+By combining forking with these injections, the framework enables controlled causal experiments: ``What would have changed if a pandemic had struck at Turn~15, or if Nation~A had been forced into an alliance?'' The divergence between the base and forked timelines is visualized and analyzed through telemetry comparisons (Section~\ref{sec:observability}).
 
 \subsubsection{Design Rationale}
 The decision to execute agent actions \textit{sequentially within a turn} (rather than simultaneously) is deliberate. In real geopolitics, information asymmetry and timing are strategic variables: a nation that acts after its rival has already moved may exploit the resulting vulnerability. The shuffled execution order, seeded by the turn's deterministic RNG, preserves fairness while modeling this temporal asymmetry. The forking mechanism, by contrast, deliberately does \textit{not} alter the simulation's physics. It simply copies state, ensuring that counterfactual divergence is attributable solely to the injected behavioral change.
@@ -300,19 +309,17 @@ This Oracle serves as the \textbf{Ground Truth}: if an agent attempts an invalid
 
 \subsubsection{Design Rationale} We explicitly rejected the ``LLM-as-a-Judge'' approach, where a separate language model adjudicates action outcomes. While flexible, LLM judges introduce stochasticity and potential hallucinations into the physics of the world, undermining reproducibility. By implementing physics via deterministic algorithms, we ensure that any failure is causally traceable to agent error or resource constraints, rather than an adjudication artifact. This strict separation between the \textit{Stochastic Agent} and the \textit{Deterministic World} is a prerequisite for verifiable counterfactual analysis.
 
-\subsection{The Genesis Phase: Initialization Through Algorithmic History}
+\subsection{The Genesis Phase: Algorithmic Initialization}
 \label{sec:genesis}
-To mitigate the ``Cold Start'' problem typical of multi-agent simulations, GeoMAS implements a \textbf{GenesisEngine} that simulates 50 years of pre-simulation history using simplified deterministic rules without invoking the LLMs.
+To mitigate the ``Cold Start'' problem typical of multi-agent simulations, GeoMAS implements a deterministic \textbf{GenesisEngine} that builds the initial WorldState before Turn~1 begins.
 
-For each simulated year, the engine processes every nation pair through four dynamics:
+The initialization phase establishes two critical baselines without invoking LLMs:
 \begin{itemize}
-    \item \textbf{Trust Decay:} A small annual decay ($-0.02$) ensures relationships do not stagnate.
-    \item \textbf{Border Friction:} Neighboring nations sharing borders experience trust decreases ($-5$ to $-15$), simulating the natural friction of proximity.
-    \item \textbf{Trade Dynamics:} Nations with complementary resource profiles experience trust increases ($+3$ to $+8$), modeling economic interdependence.
-    \item \textbf{Diplomatic Shifts:} Trust thresholds trigger structural events: trust below 30 generates rivalry events, trust above 70 generates alliance events.
+    \item \textbf{Neutral Diplomatic Baseline:} Rather than generating an arbitrary pre-simulation history, all bilateral relationships are initialized with a neutral Trust score of 50. This \textit{tabula rasa} approach ensures that emergent alliances or rivalries observed during the simulation stem entirely from the agents' cognitive reasoning and the constraints of the synthetic geography, rather than historical bias.
+    \item \textbf{Algorithmic Stockpiles:} Resource stockpiles (budget, food, energy, materials) are calculated algorithmically based on the Voronoi terrain distribution within each nation's borders. The engine computes a prosperity factor ($0.7$ to $1.3$) ensuring that geographically favored nations start with robust reserves (e.g., $5\times$ base consumption), while resource-poor nations immediately face scarcity constraints.
 \end{itemize}
 
-This results in a mathematically distributed, asymmetric \textit{Trust Matrix} at Turn~0, ensuring that the simulation starts with a realistic trust matrix derived from the synthetic geography rather than pre-trained biases.
+This establishes a mathematically sound, reproducible WorldState at Turn~0, ensuring the simulation begins in a coherent mechanical equilibrium.
 
 
 
@@ -339,17 +346,17 @@ The deception matrices include governance-specific intent types that enable the 
 Both patterns receive the highest deception scores, enabling quantitative comparison of how different governance types employ distinct rhetorical strategies to mask identical underlying objectives.
 
 \subsection{Counterfactual Analysis via State Forking}
-To answer causal questions such as ``What would have happened if Nation~A had not declared war?'', GeoMAS implements a \textbf{state forking} mechanism:
+To answer causal questions such as ``What would have happened if Nation~A had not declared war?'', GeoMAS relies on the \texttt{fork\_and\_continue} mechanism defined in Section~\ref{sec:forking}. The analytical workflow proceeds as follows:
 \begin{enumerate}
     \item The simulation is run normally for $N$ turns (the \textit{base timeline}).
     \item At turn $T$, the system creates a \textit{fork}: a complete copy of the simulation state, including full history.
-    \item An \textbf{XAI injection}, a natural language instruction (e.g., ``You MUST declare war on Agria'') is appended to the relevant agent's prompt in the forked timeline.
-    \item The forked simulation continues independently, diverging from the base timeline as the injected instruction alters agent behavior.
+    \item An experimental parameter—either an \textbf{XAI injection} or a \textbf{Scenario trigger}—is configured for the new branch.
+    \item The forked simulation continues independently, diverging from the base timeline as the injected condition alters the physical constraints or agent behaviors.
     \item Both timelines persist their telemetry (satisfaction, power indices, resource levels, trust matrices) to the MetricsDB.
-    \item The researcher compares the two timelines side-by-side using the analysis notebook, overlaying time-series charts for each observable metric to identify where and how the injection caused divergence.
+    \item The researcher compares the two timelines side-by-side using the analysis notebook, overlaying time-series charts for each observable metric to identify precisely where and how the injection caused divergence.
 \end{enumerate}
 
-This method provides verifiable counterfactual explanations: because both timelines share identical world physics and initial conditions, any observed divergence is causally attributable to the injected instruction rather than to environmental noise.
+This method provides verifiable counterfactual explanations.
 
 \begin{figure}[!htb]
     \centering
