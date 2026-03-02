@@ -29,4 +29,9 @@ External validity refers to the extent to which the simulation's findings can be
 
 GeoMAS does not claim to produce predictive digital twins of real-world historical states. The framework is an abstract, stylized representation of geopolitics defined by simplified territorial and resource mechanics. Therefore, the emergent behaviors observed—such as deterrence failures or the formation of bipolar blocs—generalize only to the \textit{theoretical dynamics of rational state actors under scarcity and imperfect information}, rather than predicting specific real-world international relations.
 
-To maximize this theoretical generalizability, the framework utilizes procedural map generation. By running the identical baseline configuration across different \texttt{map\_seeds}, the framework confirms that emergent socio-political phenomena are robust against environmental variations and are not merely artifacts of a single map's geography.
+However, the current experimental design presents two significant threats to external validity that limit the broad generalizability of its findings:
+
+\begin{itemize}
+    \item \textbf{Single LLM Architecture:} All experiments and simulations were conducted exclusively utilizing the \textbf{DeepSeek V3.2} model. No other Large Language Models (e.g., GPT-5.2, Claude 4.6) were tested. Consequently, it is unknown whether the observed emergent behaviors are universal properties of LLM-based multi-agent systems or merely artifacts of DeepSeek V3.2's specific alignment, training data, and latent cognitive biases.
+    \item \textbf{Single Map Seed Topology:} The baseline simulation was executed and forked entirely on a \textbf{single, specific} \texttt{map\_seed}. While the procedural generation engine theoretically allows for infinite geographic variations, limiting the study to one map topology means that the observed socio-political equilibria might be overly fitted to that specific distribution of resources, chokepoints, and starting borders. Replicating the baseline across multiple seeds would be required to prove true geographic generalizability.
+\end{itemize}
