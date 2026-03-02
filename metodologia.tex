@@ -404,7 +404,15 @@ The empirical foundation of the behavioral validation relies on establishing a s
 The primary baseline simulation is configured with a standardized set of parameters to ensure sufficient geopolitical complexity within a computationally tractable horizon:
 \begin{itemize}
     \item \textbf{Geography:} A fixed procedural map (controlled via a specific \texttt{map\_seed}), ensuring that resource distribution and territorial choke-points remain constant across all derivative runs.
-    \item \textbf{Population:} $8$ autonomous NationAgents, ensuring a crowded diplomatic landscape conducive to multipolar dynamics.
+    \item \textbf{Population:} $8$ autonomous NationAgents, ensuring a crowded diplomatic landscape conducive to multipolar dynamics. To guarantee behavioral diversity and test ideological friction, the baseline population is initialized with a specific distribution of governance and strategic profiles:
+    \begin{itemize}
+        \item 1x Authoritarian / Total Expansionism
+        \item 1x Authoritarian / Scorched Earth
+        \item 1x Democracy / Total Expansionism
+        \item 3x Democracy / Coalition Builder
+        \item 1x Democracy / Armed Isolationism
+        \item 1x Theocracy / Total Expansionism
+    \end{itemize}
     \item \textbf{Duration:} $50$ distinct turns, providing enough time for alliances to form, economies to mature, and conflicts to emerge and resolve.
 \end{itemize}
 
