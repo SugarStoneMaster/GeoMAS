@@ -1,0 +1,35 @@
+\chapter{Threats to Validity}
+\label{ch:threats_validity}
+
+In design science and experimental software engineering, ensuring the validity of the empirical results is paramount. Based on the theoretical framework for validity in applied social research, the traditional threats must be adapted to the context of computational multi-agent simulations involving Large Language Models (LLMs) within a synthetic environment. This chapter structuralizes the evaluation of these threats into four dimensions: Conclusion, Internal, Construct, and External validity.
+
+\section{Conclusion Validity}
+Conclusion validity concerns the degree to which conclusions reached about relationships in the data are reasonable, distinguishing the true signal from environmental noise. In traditional research, problems arise from "missing the needle in the haystack" (Type II errors driven by low reliability of measures or random heterogeneities in the setting) or "seeing things that aren't there" (Type I errors associated with "fishing" for results without adjusting error rates).
+
+GeoMAS systematically mitigates these noise factors through its \textbf{strictly deterministic orchestration layer}. By using fixed random seeds for map generation and turn execution, and by implementing physical rules through algorithmic calculators rather than relying on "LLM-as-a-judge" mechanisms, the framework guarantees 100\% reproducibility of the environment. The only source of outcome variance is the stochastic nature of the LLM responses. 
+
+To prevent "fishing" and error rate inflation, the analytical methodology is standardized via a Jupyter Analysis Notebook that computes predefined metrics (e.g., Deception Score, Coherence Score, Trust Matrix) uniformly across all simulation runs. This ensures that the detection of macro-level equilibria or behavioral divergences is derived from a robust, pre-declared signal-to-noise ratio rather than arbitrary, post-hoc data mining.
+
+\section{Internal Validity}
+Internal validity addresses the rigor with which alternative causal explanations can be ruled out when observing an effect. In multiple-group experimental designs, internal validity is heavily threatened by selection-history, selection-maturation, and selection-mortality effects, meaning the observed outcome might not be caused by the treatment but by pre-existing differences or diverging lifepaths between the groups.
+
+GeoMAS approaches near-perfect internal validity through its \textbf{state forking mechanism}. When answering causal questions related to exogenous scenarios or XAI injections (e.g., "What if Nation A was forced to attack?"), the system forks the simulation state exactly at a target turn $T$. 
+Because both the baseline and the forked simulation share identical initial conditions, identical pre-treatment history up to $T$, and identical deterministic physical laws, traditional threats such as \textit{Selection-History} or \textit{Selection-Maturation} are mathematically eliminated. Any divergence in the socio-political equilibrium in the forked timeline is exclusively and causally attributable to the injected condition. Furthermore, the simulation suffers exactly zero \textit{mortality} bias, as the agent population remains fixed and cannot independently "drop out" of the study.
+
+\section{Construct Validity}
+Construct validity examines whether the operationalizations in the framework (the metrics and treatments) accurately reflect the theoretical constructs they intend to measure. 
+
+\begin{itemize}
+    \item \textbf{Mono-Operation and Mono-Method Bias:} To avoid drawing sweeping conclusions from a single narrow instance, GeoMAS initializes populations with diverse, explicitly defined Government Types and Global Strategies. On the measurement side, behavioral alignment is not evaluated via a single metric; it uses a dual-analytical approach combining \textit{quantitative measurements} (Deception and Coherence scores, quantifying private cognitive intents against public rhetoric) and \textit{qualitative answer audits} (side-by-side prompt inspections).
+    \item \textbf{Experimenter Expectancies (Prompt Bias):} In applied human research, researchers can consciously or unconsciously bias subjects to "look good." In LLM simulations, this translates to \textit{prompt tuning bias}, where the phrasing of the system prompt could artificially steer the agents toward desired behaviors (e.g., inducing moral washing explicitly). To mitigate this, the multi-agent architecture uses highly structured, neutral prompts across all nations, differentiating them only through explicit systemic parameters (Government Type, Strategy, and perceived WorldState) rather than hardcoded behavioral nudges.
+    \item \textbf{Restricted Generalizability Across Constructs (Unintended Consequences):} The comprehensive telemetry tracking ensures that if an intervention resolves one issue but catastrophically tanks global food production or provokes civil unrest, the entire spectrum of consequences is captured and interpreted, preventing a narrow "success" label from masking broader systemic failures.
+\end{itemize}
+
+\section{External Validity}
+External validity refers to the extent to which the results of the research can be generalized beyond the specific setting of the study (e.g., to other times, places, or populations). 
+
+Evaluating external validity in a fully synthetic geopolitical simulation requires the application of the \textbf{Proximal Similarity Model}. GeoMAS does not claim to produce predictive digital twins of real-world historical states (e.g., predicting the outcome of an ongoing real-world conflict); therefore, directly generalizing its results to physical reality must be done cautiously. 
+
+The framework defines an abstract, stylized representation of geopolitics dictated by Voronoi-based territorial mechanics, simplified resource flows, and discrete diplomatic states. Consequently, the emergent behaviors observed in the experiments (such as moral washing, deterrence failures, or bipolar equilibrium formations) generalize strongly to the \textit{theoretical dynamics of rational state actors under scarcity and imperfect information}, rather than to specific real-world international relations. 
+
+The external validity of these theoretical insights is strengthened by the procedural nature of the map generation. By running the identical baseline configuration across different \texttt{map\_seeds}, the framework can test identical cognitive profiles across vastly different cartographic and demographic distributions, demonstrating that the emergent socio-political phenomena are robust against environmental variations and are not merely artifacts of a single map layout.
