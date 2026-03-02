@@ -427,15 +427,33 @@ class SimulationEngine:
                 # 2. Global Metrics
                 n_count = len(nation_metrics_list)
                 if n_count > 0:
+                    # Parse current turn events for global KPIs
+                    territories_changed = 0
+                    units_destroyed = 0
+                    
+                    for ev in self.world.global_events:
+                        # Events can be dicts or strings (though Engine usually pushes dicts here)
+                        if isinstance(ev, dict) and ev.get("turn") == turn:
+                            ev_type = ev.get("event_type")
+                            if ev_type == "TERRITORY_LOST":
+                                territories_changed += 1
+                            elif ev_type == "COMBAT_RESULT":
+                                # Try to extract destroyed units from summary (e.g., "Attacker lost X units, Defender lost Y units")
+                                # Simplified: we look for numbers in the summary associated with "lost"
+                                summary = ev.get("summary", "")
+                                import re
+                                # Matches patterns like "lost 500 soldiers" or "lost 20 units"
+                                losses = re.findall(r'lost\s+(\d+)', summary.lower())
+                                for loss in losses:
+                                    units_destroyed += int(loss)
+
                     global_data = {
                         "global_deception_avg": tot_deception / n_count,
                         "global_coherence_avg": tot_coherence / n_count,
                         "global_satisfaction_avg": tot_satisfaction / n_count,
-                        # Detailed events like territories changed would require comparing T and T-1 WorldStates,
-                        # skipping for now to prioritize Agent Metrics, or could be extracted from EventLogs.
-                        "territories_changed_hands": 0, 
+                        "territories_changed_hands": territories_changed, 
                         "units_created": sum(m["military_spending"] for m in nation_metrics_list), # Rough proxy
-                        "units_destroyed": 0,
+                        "units_destroyed": units_destroyed,
                         "global_trade_volume": sum(m["trade_volume"] for m in nation_metrics_list)
                     }
                     self.metrics_db.insert_global_metrics(self.simulation_id, turn, global_data)
