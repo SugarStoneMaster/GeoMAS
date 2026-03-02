@@ -56,7 +56,12 @@ The interaction follows a strictly cyclic \textit{Sense-Think-Act-Observe} loop:
 The following sections detail each layer in order, from the top-level orchestrator down to the analysis framework.
 
 
-
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=1\linewidth]{figure/architecturesmall.png}
+    \caption{GeoMAS architecture}
+    \label{fig:voronoi}
+\end{figure}
 
 \section{The Orchestration Layer}
 \label{sec:orchestration}
@@ -345,7 +350,7 @@ To answer causal questions such as ``What would have happened if Nation~A had no
 \begin{enumerate}
     \item The simulation is run normally for $N$ turns (the \textit{base timeline}).
     \item At turn $T$, the system creates a \textit{fork}: a complete copy of the simulation state, including full history.
-    \item An experimental parameter—either an \textbf{XAI injection} or a \textbf{Scenario trigger}—is configured for the new branch.
+    \item An experimental parameter, either an \textbf{XAI injection} or a \textbf{Scenario trigger}, is configured for the new branch.
     \item The forked simulation continues independently, diverging from the base timeline as the injected condition alters the physical constraints or agent behaviors.
     \item Both timelines persist their telemetry (satisfaction, power indices, resource levels, trust matrices) to the MetricsDB.
     \item The researcher compares the two timelines side-by-side using the analysis notebook, overlaying time-series charts for each observable metric to identify precisely where and how the injection caused divergence.
@@ -394,11 +399,11 @@ A core obligation of Design Science Research is to demonstrate that the construc
 
 The first level is \textbf{technical validation}, which verifies that the framework's deterministic invariants hold: identical seeds produce identical outcomes, all action constraints are correctly enforced, and the persistence and forking mechanisms preserve state integrity. This layer is addressed by an automated test suite (pytest, 100\% passing) covering unit tests for individual calculators and validators, integration tests for the six ministerial proposal pipelines, and end-to-end tests for the forking mechanism and database persistence.
 
-The second level is \textbf{behavioral validation}, which assesses whether the emergent dynamics produced by the framework are scientifically meaningful --- that is, whether the agents exhibit strategic reasoning, social complexity, and sensitivity to perturbations in ways that align with theoretical expectations from the geopolitical simulation literature. This second layer is operationalized through a set of experiments guided by four Research Questions. Each RQ targets a distinct behavioral dimension of the framework; the experimental results collectively constitute the empirical evidence that the framework is capable of modeling the phenomena it claims to address.
+The second level is \textbf{behavioral validation}, which assesses whether the emergent dynamics produced by the framework are scientifically meaningful, that is, whether the agents exhibit strategic reasoning, social complexity, and sensitivity to perturbations in ways that align with theoretical expectations from the geopolitical simulation literature. This second layer is operationalized through a set of experiments guided by four Research Questions. Each RQ targets a distinct behavioral dimension of the framework; the experimental results collectively constitute the empirical evidence that the framework is capable of modeling the phenomena it claims to address.
 
 \subsection{Experimental Sandbox and Baseline Definition}
 \label{sec:baseline_definition}
-The empirical foundation of the behavioral validation relies on establishing a stable, reproducible \textbf{baseline simulation}. This baseline acts as the control environment against which all scenario perturbations and counterfactual injections are measured. 
+The empirical foundation of the behavioral validation relies on establishing a stable, reproducible \textbf{baseline simulation}. This baseline acts as the control environment against which all scenario perturbations and counterfactual injections are measured.
 
 \subsubsection*{Baseline Configuration}
 The primary baseline simulation is configured with a standardized set of parameters to ensure sufficient geopolitical complexity within a computationally tractable horizon:
@@ -437,16 +442,19 @@ Building upon the established baseline world state, the experimental design proc
 
 \rqbox{1}{What is the impact of exogenous scenario perturbations on the behavioral and economic trajectory of the simulation?}
 
-For each experimental scenario (e.g., a global pandemic, a regional insurrection, a resource shock), the resulting simulation run is compared against the unperturbed baseline using a dual analytical approach. The evaluation tracks the quantitative divergence of core telemetry metrics—such as Deception Score, Coherence Score, per-nation resource trajectories, Power Projection, and Trust Matrix evolution—alongside qualitative prompt audits to understand how government agents rationalize the crisis. The goal is to verify that the GeoMAS macro-system absorbs and responds to structural shocks in a calibrated and interpretable way, rather than producing chaotic, undifferentiated noise.
+For each experimental scenario (e.g., a global pandemic, a regional insurrection, a resource shock), the resulting simulation run is compared against the unperturbed baseline using a dual analytical approach. The evaluation tracks the quantitative divergence of core telemetry metrics, such as Deception Score, Coherence Score, per-nation resource trajectories, Power Projection, and Trust Matrix evolution, alongside qualitative prompt audits to understand how government agents rationalize the crisis. The goal is to verify that the GeoMAS macro-system absorbs and responds to structural shocks in a calibrated and interpretable way, rather than producing chaotic, undifferentiated noise.
+\\
 
 \rqbox{2}{What is the causal impact of a forced strategic decision on the geopolitical trajectory of the simulation?}
 
 Using the state-forking mechanism, the baseline simulation is paused at a critical target turn $T$. A localized cognitive injection (XAI constraint) forces a specific behavioral deviation in a single agent (e.g., compelling a peaceful nation to declare an unprovoked war). The two timelines then evolve independently from $T$, and their outcomes are compared via both quantitative telemetry and qualitative prompt audits. Because both timelines share an identical history and physical determinism up to $T$, any observed paradigm shift is causally and exclusively attributable to the injected decision, enabling rigorous "what-if" counterfactual analysis.
+\\
 
 \rqbox{3}{Do LLM agents align their declared diplomatic intent with their executed actions, or do they employ strategic deception and moral washing to justify predatory behavior?}
 
 This question investigates whether DeepSeek V3.2 agents spontaneously decouple public rhetoric from private strategic intent when advantageous. For example, if an Authoritarian agent invades a neighbor to seize resources, does it honestly declare its intent as military conquest, or does it frame the action as a "Liberation of the oppressed" (moral washing)? By continuously tracking the Deception and Coherence scores across the 50-turn baseline, and breaking them down by Government Type and Global Strategy assortments, this research quantifies the innate propensity of the LLM to weaponize diplomatic narratives.
+\\
 
 \rqbox{4}{What distinct socio-political equilibria emerge from the autonomous interaction of agents, and does the system converge toward stable cooperation or escalate toward chaotic conflict?}
 
-This question examines whether the baseline simulation, running exclusively on a specific procedural map seed without external perturbations, self-organizes into interpretable macro-structures. The hypothesis is that, driven by resource scarcity and ideological friction, the 8-nation system will converge toward recognizable equilibria—such as stable bi-polar alliance blocs, unipolar hegemony, or an "all-against-all" war of attrition. By analyzing the structural topology of the Trust Matrix (clustering coefficients, alliance networks) and the global violence rate over 50 turns, the research characterizes the default societal attractors of the LLM-driven multi-agent environment.
+This question examines whether the baseline simulation, running exclusively on a specific procedural map seed without external perturbations, self-organizes into interpretable macro-structures. The hypothesis is that, driven by resource scarcity and ideological friction, the 8-nation system will converge toward recognizable equilibria, such as stable bi-polar alliance blocs, unipolar hegemony, or an "all-against-all" war of attrition. By analyzing the structural topology of the Trust Matrix (clustering coefficients, alliance networks) and the global violence rate over 50 turns, the research characterizes the default societal attractors of the LLM-driven multi-agent environment.
