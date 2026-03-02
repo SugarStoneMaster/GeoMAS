@@ -403,22 +403,18 @@ The second level is \textbf{behavioral validation}, which assesses whether the e
 
 \subsection{Research Questions}
 
-\subsubsection*{RQ1 --- Impact of Scenarios on Simulation Dynamics}
-\textit{What is the impact of exogenous scenario perturbations on the behavioral and economic trajectory of the simulation?}
+\rqbox{1}{What is the impact of exogenous scenario perturbations on the behavioral and economic trajectory of the simulation?}
 
 For each experimental scenario (e.g., a global pandemic, a regional insurrection, a resource shock), the resulting simulation run is compared against a neutral baseline across a set of quantitative indicators: Deception Score, Coherence Score, per-nation resource trajectories, trust matrix evolution, and power index dynamics. The goal is to verify that the framework responds to structured perturbations in a calibrated and interpretable way, rather than producing undifferentiated noise.
 
-\subsubsection*{RQ2 --- Causal Attribution via Counterfactual Analysis}
-\textit{What is the causal impact of a forced strategic decision on the geopolitical trajectory of the simulation?}
+\rqbox{2}{What is the causal impact of a forced strategic decision on the geopolitical trajectory of the simulation?}
 
 Using the state forking mechanism (Section~\ref{sec:observability}), a simulation is run to a target turn $T$ and then forked. An XAI injection forces a specific behavioral change in the forked timeline (e.g., compelling a nation to declare war, to accept a treaty, or to adopt a different strategy). The two timelines then evolve independently from $T$, and their telemetry is compared across all available metrics. Because both timelines share identical initial conditions and world physics up to $T$, any observed divergence is causally attributable to the injected decision alone. This methodology enables researchers to answer ``what-if'' questions with a level of causal rigor that is not achievable in traditional single-run simulations.
 
-\subsubsection*{RQ3 --- Strategic Deception and Moral Washing}
-\textit{Do LLM agents align their declared diplomatic intent with their executed actions, or do they employ strategic deception and moral washing to justify predatory behavior?}
+\rqbox{3}{Do LLM agents align their declared diplomatic intent with their executed actions, or do they employ strategic deception and moral washing to justify predatory behavior?}
 
 This question investigates one of the central hypotheses of the thesis: that LLM-based agents, like their human counterparts, may systematically decouple public rhetoric from private intent when it is strategically advantageous to do so. A concrete example: an agent attacks a resource-rich nation. An honest agent declares ``Resource Acquisition'' as its public intent; a deceptive agent frames the same action as ``Liberating the people from tyranny'' (Democracy) or ``Fulfilling a sacred mandate'' (Theocracy). The Deception Score and Coherence Score (Section~\ref{sec:observability}), computed across multiple runs and broken down by GovernmentType and GlobalStrategy, provide a quantitative answer to whether this phenomenon emerges spontaneously from the agents' LLM reasoning.
 
-\subsubsection*{RQ4 --- Emergent Socio-Political Equilibria}
-\textit{What distinct socio-political equilibria emerge from the autonomous interaction of agents, and does the system converge toward stable cooperation or escalate toward chaotic conflict?}
+\rqbox{4}{What distinct socio-political equilibria emerge from the autonomous interaction of agents, and does the system converge toward stable cooperation or escalate toward chaotic conflict?}
 
 This question examines whether the simulation, left to run without external perturbations, self-organizes into interpretable macro-level structures. The hypothesis is that, under sufficiently rich interaction dynamics, the system may converge to recognizable equilibrium patterns --- for example, stable bi-polar alliance blocs analogous to historical precedents (NATO vs.\ Warsaw Pact), a hegemonic unipolar order, or a fragmented multipolar configuration of shifting coalitions. Alternatively, the system may fail to stabilize and descend into an ``all-against-all'' war of attrition. Trust network topology metrics (clustering coefficient, centrality, component structure), alliance formation and rupture rates, and satisfaction stability indices across multiple independent runs provide the empirical basis for characterizing the resulting equilibrium regimes.
