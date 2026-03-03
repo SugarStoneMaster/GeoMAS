@@ -290,5 +290,7 @@ def execute_economic(
 
     # --- IDLE ---
     elif payload.action_type == EconomicActionType.IDLE:
+        payload.execution_outcome.status = "SUCCESS"
+        payload.execution_outcome.reason = "Minister is idle."
         if payload.message:
             engine.logs.append(f"💰 [ECONOMY] IDLE: {payload.message}")

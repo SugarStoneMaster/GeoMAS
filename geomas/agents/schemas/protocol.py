@@ -92,9 +92,10 @@ class CabinetBriefing(BaseModel):
 
 
 class PresidentialDecision(str, Enum):
-    """Restricted decision set for President (cannot be PENDING)."""
+    """Restricted decision set for President."""
     APPROVE = "APPROVE"
     VETO = "VETO"
+    ACKNOWLEDGE = "ACKNOWLEDGE"
 
 
 class DefenseDecree(BaseModel):

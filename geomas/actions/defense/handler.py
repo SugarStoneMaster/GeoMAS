@@ -56,6 +56,10 @@ def execute_defense_waterfall(
             
         elif move.action_type == DefenseActionType.NUCLEAR_OPTION:
             _execute_nuclear_option(engine, nation_id, move)
+            
+        elif move.action_type == DefenseActionType.IDLE:
+            move.execution_outcome.status = "SUCCESS"
+            move.execution_outcome.reason = "Minister is idle."
 
 
 def _execute_create_unit(

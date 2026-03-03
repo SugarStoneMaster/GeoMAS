@@ -65,6 +65,11 @@ def execute_foreign(
 
     # 2. PROCESS ACTIVE MEASURE (Agenda)
     if not payload.action_type or payload.action_type == ForeignActionType.IDLE:
+        if payload.action_type == ForeignActionType.IDLE:
+            payload.execution_outcome.status = "SUCCESS"
+            payload.execution_outcome.reason = "Minister is idle."
+            if payload.message:
+                engine.logs.append(f"📜 [FOREIGN] IDLE: {payload.message}")
         return
 
     # Validate active target exists (if required by action)

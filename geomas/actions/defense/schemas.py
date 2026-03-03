@@ -12,9 +12,10 @@ from geomas.actions.common import Decision, ExecutionOutcome
 
 
 class DefenseActionType(str, Enum):
-    """Defense-related action types handled by the Defense Minister."""
+    """The type of operational defense action to execute."""
     CREATE_UNIT = "CREATE_UNIT"
     MOVE_TROOPS = "MOVE_TROOPS"
+    IDLE = "IDLE"
     NUCLEAR_OPTION = "NUCLEAR_OPTION"
 
 

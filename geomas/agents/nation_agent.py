@@ -309,11 +309,12 @@ class NationAgent:
             def_priv_intent = briefing.defense.intent.private_intent
             def_reasoning = f"{briefing.defense.intent.reasoning} [President: {decree.defense.reasoning}]"
             def_pub_statement = briefing.defense.payload.public_statement
-        else: # VETO -> IDLE action
-            def_payload = DefensePayload(decision=Decision.VETO, moves=[])
+        else: # VETO or ACKNOWLEDGE -> IDLE action
+            def_payload = DefensePayload(decision=Decision.VETO if decree.defense.action == PresidentialDecision.VETO else Decision.APPROVE, moves=[])
             def_pub_intent = DefenseIntentType.IDLE
             def_priv_intent = DefenseIntentType.IDLE
-            def_reasoning = f"VETOED: {decree.defense.reasoning}"
+            action_desc = "VETOED" if decree.defense.action == PresidentialDecision.VETO else "ACKNOWLEDGED IDLE"
+            def_reasoning = f"{action_desc}: {decree.defense.reasoning}"
             def_pub_statement = None
 
         # --- ECONOMY ---
@@ -331,8 +332,9 @@ class NationAgent:
                 give_amount=prop_payload.give_amount,
                 want_type=prop_payload.want_type
             )
-        else: # VETO -> No action
-            eco_payload = EconomicPayload(decision=Decision.VETO, action_type=None)
+        else: # VETO or ACKNOWLEDGE -> No action
+            eco_decision = Decision.VETO if decree.economy.action == PresidentialDecision.VETO else Decision.APPROVE
+            eco_payload = EconomicPayload(decision=eco_decision, action_type=EconomicActionType.IDLE)
 
         # --- FOREIGN ---
         if decree.foreign.action == PresidentialDecision.APPROVE:
@@ -351,11 +353,13 @@ class NationAgent:
             for_pub_intent = briefing.foreign.intent.public_intent
             for_priv_intent = briefing.foreign.intent.private_intent
             for_reasoning = f"{briefing.foreign.intent.reasoning} [President: {decree.foreign.reasoning}]"
-        else: # VETO -> No action (clears responses too!)
-            for_payload = ForeignPayload(decision=Decision.VETO, action_type=None, proposal_responses=[])
+        else: # VETO or ACKNOWLEDGE -> No action (clears responses too!)
+            for_decision = Decision.VETO if decree.foreign.action == PresidentialDecision.VETO else Decision.APPROVE
+            for_payload = ForeignPayload(decision=for_decision, action_type=ForeignActionType.IDLE, proposal_responses=[])
             for_pub_intent = ForeignIntentType.IDLE
             for_priv_intent = ForeignIntentType.IDLE
-            for_reasoning = f"VETOED: {decree.foreign.reasoning}"
+            action_desc = "VETOED" if decree.foreign.action == PresidentialDecision.VETO else "ACKNOWLEDGED IDLE"
+            for_reasoning = f"{action_desc}: {decree.foreign.reasoning}"
 
         envelope = CountryEnvelope(
             turn=turn,
