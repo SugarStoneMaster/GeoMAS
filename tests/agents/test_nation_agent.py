@@ -22,6 +22,8 @@ from geomas.agents.llm_client import LLMClient
 
 
 from geomas.actions.defense.schemas import DefenseActionType, DefenseActionItem
+from geomas.actions.economy.schemas import EconomicActionType
+from geomas.actions.foreign.schemas import ForeignActionType
 
 class TestNationAgent:
     
@@ -175,3 +177,67 @@ class TestNationAgent:
         
         # Economy/Foreign should be APPROVED -> APPROVE
         assert envelope.economic_payload.decision == Decision.APPROVE
+
+    def test_act_acknowledge_flow(self, setup):
+        """Test flow where President correctly acknowledges IDLE ministers."""
+        agent, client = setup
+        
+        # 1. Setup Minister Proposals (All IDLE)
+        def_prop = DefenseProposal(
+            intent=DefenseIntent(
+                public_intent=DefenseIntentType.IDLE,
+                private_intent=DefenseIntentType.IDLE,
+                reasoning="Nothing to do."
+            ),
+            payload=DefensePayload(decision=Decision.APPROVE, moves=[])
+        )
+        eco_prop = EconomicProposal(
+            payload=EconomicPayload(decision=Decision.APPROVE, action_type=EconomicActionType.IDLE)
+        )
+        for_prop = ForeignProposal(
+            intent=ForeignIntent(
+                public_intent=ForeignIntentType.IDLE,
+                private_intent=ForeignIntentType.IDLE,
+                reasoning="Nothing to do."
+            ),
+            payload=ForeignPayload(decision=Decision.APPROVE, action_type=ForeignActionType.IDLE)
+        )
+        
+        # 2. Setup President Decree (ACKNOWLEDGE ALL)
+        from geomas.agents.schemas.protocol import PresidentialDecision
+        decree = PresidentialDecree(
+            defense=DefenseDecree(action=PresidentialDecision.ACKNOWLEDGE, reasoning="Acknowledged defense inactivity"),
+            economy=EconomicDecree(action=PresidentialDecision.ACKNOWLEDGE, reasoning="Acknowledged economic inactivity"),
+            foreign=ForeignDecree(action=PresidentialDecision.ACKNOWLEDGE, reasoning="Acknowledged diplomatic inactivity"),
+            
+            public_statement="We are observing a period of stability.",
+            
+            defense_public_intent=DefenseIntentType.IDLE,
+            defense_private_intent=DefenseIntentType.IDLE,
+            foreign_public_intent=ForeignIntentType.IDLE,
+            foreign_private_intent=ForeignIntentType.IDLE,
+            
+            defense_private_reasoning="Monitoring borders.",
+            foreign_private_reasoning="Monitoring relations."
+        )
+        
+        client.aquery_agent.side_effect = [def_prop, eco_prop, for_prop]
+        client.query_agent.return_value = decree
+        
+        # ACT
+        envelope = agent.act(turn=1)
+        
+        # ASSERT
+        # ACKNOWLEDGE should safely parse into non-VETO SUCCESS IDLE states (effectively APPROVE locally, mapped as IDLE)
+        assert envelope.defense_payload.decision == Decision.APPROVE
+        assert envelope.defense_payload.moves == []
+        
+        assert envelope.economic_payload.decision == Decision.APPROVE
+        assert envelope.economic_payload.action_type == EconomicActionType.IDLE
+        
+        assert envelope.foreign_payload.decision == Decision.APPROVE
+        assert envelope.foreign_payload.action_type == ForeignActionType.IDLE
+        
+        # Ensure reasoning captures the acknowledgement
+        assert "ACKNOWLEDGED IDLE" in envelope.defense_private_reasoning
+        assert "ACKNOWLEDGED IDLE" in envelope.foreign_private_reasoning

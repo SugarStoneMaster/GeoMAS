@@ -92,7 +92,7 @@ For each proposal, you must issue one of three decisions:
 
 ## Presidential Decree
 You must issue a formal decree that includes:
-- **Decisions**: `APPROVE` or `VETO` for each department. (NEVER `PENDING`).
+- **Decisions**: `APPROVE`, `VETO`, or `ACKNOWLEDGE` for each department (NEVER `PENDING`). You MUST use `ACKNOWLEDGE` if and only if the minister proposes `IDLE` (or empty moves for Defense). Do not use `ACKNOWLEDGE` for any active action.
 - **Internal Reasoning**: Your private justification for these choices.
 - **Public Statement**: A coherent narrative for the world that addresses the state of your nation and justifies your current course of action.
 

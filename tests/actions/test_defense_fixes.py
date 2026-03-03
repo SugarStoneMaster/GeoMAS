@@ -138,3 +138,29 @@ class TestDefenseLogicFixes:
         valid, msg = ActionValidators.validate_target_is_not_self("A", "A", "ATTACK")
         assert valid is False
         assert "cannot target self" in msg
+
+    def test_idle_returns_success(self):
+        """Test that IDLE defense action correctly returns a SUCCESS execution outcome."""
+        world = generate_world(seed=42, n_cells=20, n_nations=1)
+        engine = ActionEngine(world)
+        nation_id = list(world.nations.keys())[0]
+        
+        # Action: IDLE
+        payload = DefensePayload(
+            decision=Decision.APPROVE,
+            moves=[DefenseActionItem(
+                priority=1,
+                action_type=DefenseActionType.IDLE
+            )]
+        )
+        
+        envelope = create_test_envelope(nation_id, defense_payload=payload)
+        
+        # Execute
+        engine.execute_envelope(envelope)
+        
+        # Verify
+        assert len(payload.moves) == 1
+        move = payload.moves[0]
+        assert move.execution_outcome.status == "SUCCESS"
+        assert move.execution_outcome.reason == "Minister is idle."
