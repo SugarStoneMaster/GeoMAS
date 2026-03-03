@@ -36,6 +36,28 @@ class TestBaseInputBuilder:
         assert "✅" not in clean
         assert clean == "Hello World! Danger Too much space. Logistics Approved"
 
+    def test_build_other_nations_includes_government_type(self, world):
+        """Verifies that the GovernmentType of other nations is included in the context."""
+        from geomas.agents.context.input.base import BaseInputBuilder
+        from geomas.schemas.world import NationState
+        
+        # Set a specific government type for one of the nations
+        nation_id = list(world.nations.keys())[0]
+        other_nation_id = list(world.nations.keys())[1]
+        
+        world.nations[other_nation_id].government_type = "DEMOCRACY"
+        
+        builder = BaseInputBuilder(world)
+        output = builder._build_other_nations(nation_id)
+        
+        assert "Gov: DEMOCRACY" in output
+        
+        # Add a fall back just in case
+        world.nations[other_nation_id].government_type = None
+        output = builder._build_other_nations(nation_id)
+        assert "Gov: Unknown" in output
+
+
 
 class TestPresidentInputBuilder:
     """Tests for President input builder."""

@@ -250,9 +250,11 @@ class BaseInputBuilder:
             if other.total_materials > avg_materials * 1.5: res_tags.append("Abundant Materials")
             elif other.total_materials < avg_materials * 0.5: res_tags.append("Materials Shortage")
             
+            # 4. Government Type
             res_desc = ", ".join(res_tags) if res_tags else "Balanced"
+            gov_str = getattr(other.government_type, 'value', other.government_type) if other.government_type else "Unknown"
             
-            lines.append(f"- **{other.name}** ({other_id}): Power: {power_desc} | Neighbor: {is_neighbor} | Resources: {res_desc}")
+            lines.append(f"- **{other.name}** ({other_id}): Gov: {gov_str} | Power: {power_desc} | Neighbor: {is_neighbor} | Resources: {res_desc}")
             
         return "\n".join(lines)
 
