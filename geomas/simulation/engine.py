@@ -431,21 +431,27 @@ class SimulationEngine:
                     territories_changed = 0
                     units_destroyed = 0
                     
-                    for ev in self.world.global_events:
-                        # Events can be dicts or strings (though Engine usually pushes dicts here)
-                        if isinstance(ev, dict) and ev.get("turn") == turn:
-                            ev_type = ev.get("event_type")
-                            if ev_type == "TERRITORY_LOST":
-                                territories_changed += 1
-                            elif ev_type == "COMBAT_RESULT":
-                                # Try to extract destroyed units from summary (e.g., "Attacker lost X units, Defender lost Y units")
-                                # Simplified: we look for numbers in the summary associated with "lost"
-                                summary = ev.get("summary", "")
-                                import re
-                                # Matches patterns like "lost 500 soldiers" or "lost 20 units"
-                                losses = re.findall(r'lost\s+(\d+)', summary.lower())
-                                for loss in losses:
-                                    units_destroyed += int(loss)
+                    for envelope in envelopes:
+                        # Extract units destroyed and territory changes directly from deterministic execution outcomes
+                        if getattr(envelope, "defense_payload", None) and getattr(envelope.defense_payload, "moves", None):
+                            for move in envelope.defense_payload.moves:
+                                outcome = getattr(move, "execution_outcome", None)
+                                if outcome and outcome.status == "SUCCESS" and outcome.details:
+                                    # Increment killed units (from all branches: land, sea, air)
+                                    units_destroyed += outcome.details.get("attacker_losses", 0)
+                                    units_destroyed += outcome.details.get("defender_losses", 0)
+                                    units_destroyed += outcome.details.get("attacker_losses_navy", 0)
+                                    
+                                    # Increment territory changes if conquest occurred
+                                    if outcome.details.get("attacker_wins") is True:
+                                        action_type = getattr(move, "action_type", None)
+                                        action_str = action_type.value if hasattr(action_type, "value") else str(action_type)
+                                        unit_type = getattr(move, "unit_type", None)
+                                        unit_str = unit_type.value if hasattr(unit_type, "value") else str(unit_type)
+                                        
+                                        # Air strikes don't conquer land, only soldiers and naval landings do
+                                        if action_str == "MOVE_TROOPS" and unit_str != "AIRCRAFT":
+                                            territories_changed += 1
 
                     global_data = {
                         "global_deception_avg": tot_deception / n_count,

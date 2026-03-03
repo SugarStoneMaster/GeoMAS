@@ -42,19 +42,6 @@ def test_engine_telemetry_extraction(mock_sim_engine, monkeypatch):
     """
     engine = mock_sim_engine
     
-    # Inject specific events into the world
-    engine.world.global_events = [
-        # Match turn and type
-        {"turn": 5, "event_type": "TERRITORY_LOST", "summary": "Province 1 lost."},
-        {"turn": 5, "event_type": "TERRITORY_LOST", "summary": "Province 2 lost."},
-        # Match turn and type for combat
-        {"turn": 5, "event_type": "COMBAT_RESULT", "summary": "Attacker lost 200 soldiers, Defender lost 350 soldiers in battle."},
-        # Ignore wrong turn
-        {"turn": 4, "event_type": "TERRITORY_LOST", "summary": "Old news"},
-        # Ignore irrelevant types
-        {"turn": 5, "event_type": "TRADE_DEAL", "summary": "N1 traded with N2 and lost 0 sleep"}
-    ]
-    
     # Create a dummy envelope using MagicMock
     dummy_env = MagicMock()
     dummy_env.sender_id = "N1"
@@ -64,6 +51,39 @@ def test_engine_telemetry_extraction(mock_sim_engine, monkeypatch):
     dummy_env.foreign_private_intent = "COOPERATION"
     dummy_env.global_strategy = MagicMock(value="COALITION_BUILDER")
     dummy_env.government_type = "DEMOCRACY"
+    
+    # Mock defense payload with moves simulating combat outcomes
+    move1 = MagicMock()
+    move1.action_type.value = "MOVE_TROOPS"
+    move1.unit_type.value = "SOLDIER"
+    move1.execution_outcome.status = "SUCCESS"
+    move1.execution_outcome.details = {
+        "attacker_wins": True,
+        "attacker_losses": 100,
+        "defender_losses": 200
+    }
+    
+    move2 = MagicMock()
+    move2.action_type.value = "MOVE_TROOPS"
+    move2.unit_type.value = "NAVY"
+    move2.execution_outcome.status = "SUCCESS"
+    move2.execution_outcome.details = {
+        "attacker_wins": True,
+        "attacker_losses_navy": 50,
+        "defender_losses": 150
+    }
+    
+    move3 = MagicMock()
+    move3.action_type.value = "MOVE_TROOPS"
+    move3.unit_type.value = "AIRCRAFT"
+    move3.execution_outcome.status = "SUCCESS"
+    move3.execution_outcome.details = {
+        "attacker_wins": True, # Air strikes win but don't conquer land
+        "attacker_losses": 20,
+        "defender_losses": 30
+    }
+    
+    dummy_env.defense_payload.moves = [move1, move2, move3]
     
     # Mock serialization so it doesn't crash on MagicMock
     monkeypatch.setattr("geomas.simulation.engine.serialize_envelope", lambda env: "{}")
