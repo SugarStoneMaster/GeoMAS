@@ -257,25 +257,36 @@ def extract_presidential_decisions(
         })
 
     # --- Economy ---
-    if envelope.economic_payload:
-        eco_action = _to_str(envelope.economic_payload.action_type)
+    if envelope.original_economic_proposal:
+        eco_payload_prop = getattr(envelope.original_economic_proposal, "payload", None)
+        eco_action = _to_str(eco_payload_prop.action_type) if eco_payload_prop else None
+        
+        # Fallback to final payload if original is missing for some reason
+        if not eco_action and envelope.economic_payload:
+            eco_action = _to_str(envelope.economic_payload.action_type)
+            
         rows.append({
             "turn":        turn,
             "nation_id":   nation_id,
             "domain":      "Economy",
-            "decision":    _to_str(envelope.economic_payload.decision),
+            "decision":    _to_str(envelope.economic_payload.decision) if envelope.economic_payload else "APPROVE",
             "action_type": eco_action,
             "reasoning":   None,  # No private reasoning for economy
         })
 
     # --- Foreign ---
-    if envelope.foreign_payload:
-        for_action = _to_str(envelope.foreign_payload.action_type)
+    if envelope.original_foreign_proposal:
+        for_payload_prop = getattr(envelope.original_foreign_proposal, "payload", None)
+        for_action = _to_str(for_payload_prop.action_type) if for_payload_prop else None
+        
+        if not for_action and envelope.foreign_payload:
+            for_action = _to_str(envelope.foreign_payload.action_type)
+            
         rows.append({
             "turn":        turn,
             "nation_id":   nation_id,
             "domain":      "Foreign",
-            "decision":    _to_str(envelope.foreign_payload.decision),
+            "decision":    _to_str(envelope.foreign_payload.decision) if envelope.foreign_payload else "APPROVE",
             "action_type": for_action,
             "reasoning":   getattr(envelope, "foreign_private_reasoning", None),
         })

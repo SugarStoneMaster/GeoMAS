@@ -54,8 +54,18 @@ def _make_envelope(
     env.defense_private_reasoning = "private defense reasoning"
     env.foreign_private_reasoning = "private foreign reasoning"
 
-    # Original proposal (for presidential decisions' action_type)
+    # Original proposals (for presidential decisions' action_type)
     env.original_defense_proposal = None
+    
+    env.original_economic_proposal = MagicMock()
+    o_eco_payload = MagicMock()
+    o_eco_payload.action_type = eco_action_type
+    env.original_economic_proposal.payload = o_eco_payload
+    
+    env.original_foreign_proposal = MagicMock()
+    o_for_payload = MagicMock()
+    o_for_payload.action_type = for_action_type
+    env.original_foreign_proposal.payload = o_for_payload
 
     # Defense payload
     moves = defense_moves or []
