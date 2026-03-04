@@ -13,6 +13,7 @@ def test_defense_minister_prompt_is_static():
     mock_world = MagicMock()
     mock_world.nations = {"AGRIA": MagicMock()}
     mock_world.nations["AGRIA"].name = "Republic of Agria"
+    mock_world.nations["AGRIA"].nukes = 0
     
     # Mock dependencies of propose() to avoid execution
     with patch("geomas.agents.ministers.DefenseInputBuilder") as MockIB, \
@@ -39,6 +40,7 @@ def test_defense_minister_lazy_init():
     mock_world = MagicMock()
     mock_world.nations = {"AGRIA": MagicMock()}
     mock_world.nations["AGRIA"].name = "Republic of Agria"
+    mock_world.nations["AGRIA"].nukes = 0
     
     with patch("geomas.agents.ministers.DefenseInputBuilder"), \
          patch("geomas.agents.ministers.get_dynamic_proposal_model"):

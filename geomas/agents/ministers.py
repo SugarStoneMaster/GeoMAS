@@ -57,8 +57,8 @@ class BaseMinister:
             "government_type": self.government_type
         }
         
-        # Only ForeignSystemPrompt accepts nukes parameter dynamically
-        if self.prompt_class == ForeignSystemPrompt:
+        # Both ForeignSystemPrompt and DefenseSystemPrompt need the nukes parameter dynamically
+        if self.prompt_class in (ForeignSystemPrompt, DefenseSystemPrompt):
             kwargs["nukes"] = nation.nukes
 
         self.system_prompt = self.prompt_class.generate(**kwargs)

@@ -78,10 +78,10 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 
 2. **`RAISE_WAR_TAX`**
   - **Cost**: **-15 Public Satisfaction**.
-  - **Effect**: Emergency fund generation.
+  - **Effect**: Generates an immediate emergency Budget injection = **(0.01 * National Population)**.
   - **Fields**: `message` (optional, **max ~70 words**).
-  - **Mechanic**: Gain Budget = **(0.01 * National Population)**.
-  - **Constraint**: Requires Satisfaction > 30.
+  - **Constraint**: Mechanically requires current Satisfaction > 30.
+  - **Strategic Context**: Provides critical funds for military or infrastructural expansion, but the severe satisfaction penalty brings the nation closer to the `< 30` threshold (Civil Unrest). Mathmatically viable only if current satisfaction is high enough to sustain the drop.
   - **Message**: Your `message` is delivered to your citizens to explain the necessity of the tax.
 
 3. **`TRADE_PROPOSAL`**

@@ -26,7 +26,8 @@ class DefenseSystemPrompt:
     nation_name: str,
     strategy: GlobalStrategy,
     nation_id: str = None,
-    government_type: GovernmentType | None = None
+    government_type: GovernmentType | None = None,
+    nukes: int = 0
   ) -> str:
     """
     Generate the system prompt for a Defense Minister.
@@ -50,6 +51,20 @@ Your nation is {gov_desc}."""
     elif government_type == GovernmentType.THEOCRACY:
       gov_private_intent = """\n- **HOLY_WAR**: Pursue strategic objectives (conquest, defense) through the lens of fulfilling a sacred religious mission or defending the faith."""
       gov_public_intent = """\n- **HOLY_WAR**: "We act for the divine." Frames military action as a righteous or sacred duty."""
+
+    if nukes > 0:
+      nuclear_block = """3. **`NUCLEAR_OPTION`**
+  - **Fields**: `target_province_id`.
+  - **MUST**: `target_nation_id` = ID of the target nation. CANNOT BE SELF.
+  - ** LAND provinces ONLY** — Cannot nuke OCEAN or VOID provinces (no effect, action wasted).
+  - **Devastation**: 90% Population death, 100% Units destroyed, 80% Production loss.
+  - **Fallout**: Trust with target → 0. Trust with ALL other nations drops by -80.
+  - **Mechanics**: A nuclear strike results in total tactical annihilation of the target province. However, issuing a strike causes immediate and permanent diplomatic isolation (-80 Trust with all nations globaly). The decision to propose this depends on your `GlobalStrategy` and whether the military objective justifies the total collapse of your international standing."""
+    else:
+      nuclear_block = """3. **`NUCLEAR_OPTION`**
+  - **Fields**: `target_province_id`.
+  - **MUST**: `target_nation_id` = ID of the target nation. CANNOT BE SELF.
+  - **Mechanics**: Your nation currently possesses **0 nuclear warheads** and does not have the technological capability to construct or acquire them. Attempting to use the `NUCLEAR_OPTION` when you have 0 warheads will result in a FAILED action and a wasted turn."""
 
     return f"""You are the **Defense Minister of Nation {effective_name}**.
 
@@ -92,13 +107,7 @@ Constantly anticipate the potential reactions and future moves of other nations.
    - **Aircraft can fly over ANY terrain.**
   - **Combat**: Moving units to an ENEMY province initiates combat.
   - **Stationing (Allies)**: Moving units to an **ALLIED** province (Mutual Defense/Non-Aggression) stations them as **Guest Troops**. They are safe and do NOT trigger war. You can move them out later (use the allied province ID as `source`).
-3. **`NUCLEAR_OPTION`**
-  - **Fields**: `target_province_id`.
-  - **MUST**: `target_nation_id` = ID of the target nation. CANNOT BE SELF.
-  - ** LAND provinces ONLY** — Cannot nuke OCEAN or VOID provinces (no effect, action wasted).
-  - **Devastation**: 90% Population death, 100% Units destroyed, 80% Production loss.
-  - **Fallout**: Trust with target → 0. Trust with ALL other nations drops by -80.
-  - **Strategic Doctrine**: A nuclear strike is the most extreme tool in your arsenal. It results in total tactical annihilation of the target province but triggers immediate and permanent diplomatic isolation. Using this option causes your Trust with ALL nations to drop by -80. The decision to propose this depends on your `GlobalStrategy` and whether the military objective justifies the total collapse of your international standing.
+{nuclear_block}
  
 ## Public Justification
 - **`public_statement`**: You MUST provide a `public_statement` (max ~70 words) that summarizes and justifies your chosen actions. This is your primary tool for **moral washing** or diplomatic signaling.

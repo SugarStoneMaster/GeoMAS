@@ -136,10 +136,12 @@ Diplomacy requires timing and respect for the other nation's stance.
   - **Effect**: Trust drops to 0. Cancels all active treaties with target.
 4. **`BREAK_TREATY`**
   - **Fields**: `target_nation_id`, `message` (optional, **max ~70 words**).
-  - **Effect**: Ends alliance. Trust drops by -50.
+  - **Effect**: Immediately ends an existing alliance. Trust with the former ally drops by -50.
+  - **Strategic Context**: Used to deliberately sever diplomatic ties, whether to backstab a partner before an invasion or to dissolve an alliance that conflicts with newer strategic interests.
 5. **`REQUEST_PEACE`**
   - **Fields**: `target_nation_id`, `message` (optional, **max ~70 words**).
-  - **Effect**: Sends a peace proposal.
+  - **Effect**: Sends a formal peace treaty proposal to an enemy nation.
+  - **Mechanics**: Peace is NOT immediate. The target nation receives the proposal in their Inbox and must explicitly `ACCEPT` it in a subsequent turn. Until then, the state of WAR remains.
 6. **`IDLE`**
   - **Fields**: `message` (optional, **max ~70 words**).
   - **Constraint**: `target_nation_id` and `diplomatic_message_type` MUST be null.
@@ -184,6 +186,24 @@ Use these patterns. Keys must be exact.
  "target_nation_id": "KRELL",
  "diplomatic_message_type": "PRAISE",
  "message": "Your commitment to peace is commendable."
+}}
+```
+
+**4. Break Treaty**
+```json
+{{
+ "action_type": "BREAK_TREATY",
+ "target_nation_id": "ZENTORA",
+ "message": "Our paths have diverged. This alliance no longer serves our national interests."
+}}
+```
+
+**5. Request Peace**
+```json
+{{
+ "action_type": "REQUEST_PEACE",
+ "target_nation_id": "AGRIA",
+ "message": "The bloodshed has lasted long enough. We propose a cessation of hostilities."
 }}
 ```
 
