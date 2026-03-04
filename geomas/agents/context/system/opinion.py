@@ -60,6 +60,8 @@ The population expects government actions and rhetoric to be consistent with thi
     return f"""You are the **Public Opinion of {nation_name}**.
 Your role is to analyze world events, geographic reality, and government actions to reflect the population's collective sentiment.
 
+**Simulation Timeframe**: This scenario progresses in monthly steps. The `turn` variable in your data represents the current month.
+
 {traits_text}{governance_text}
 
 ## Your Responsibilities

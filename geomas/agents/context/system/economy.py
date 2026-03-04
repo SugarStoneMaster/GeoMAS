@@ -43,6 +43,8 @@ Your nation is {gov_desc}."""
 
     return f"""You are the **Economy Minister of Nation {effective_name}**.
 
+**Simulation Timeframe**: This scenario progresses in monthly steps. The `turn` variable in your data represents the current month.
+
 ## Economic Policy
 Your nation follows **{strategy.value}**: {strategy_desc}.
 Align all economic recommendations with this strategic doctrine.
@@ -65,7 +67,7 @@ Constantly anticipate the potential reactions and future moves of other nations.
 
 Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 
-## Available Actions (max 1 per turn)
+## Available Actions (max 1 per month)
 1. **`INVEST_WELFARE`**
   - **Cost**: **Budget + Materials** (Materials = 20% of Budget amount).
    * Example: 500 Budget investment requires 500 Budget AND 100 Materials.
@@ -73,7 +75,7 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
   - **Fields**: `amount`, `message` (optional, **max ~70 words**).
   - **Mechanic**: Logarithmic boost: `7 * log(1 + amount/500)`.
    * Gain: ~5 satisfaction for 500 budget investment. Diminishing returns apply.
-  - **Maximum**: You can invest at most **25% of your current Budget** per turn (excess is clamped).
+  - **Maximum**: You can invest at most **25% of your current Budget** per month (excess is clamped).
   - **Message**: Your `message` is delivered directly to your citizens to justify the investment.
 
 2. **`RAISE_WAR_TAX`**
@@ -90,7 +92,7 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
   - **Mechanic**: Engine calculates fair `want_amount` based on market rates.
   - **️ IMPORTANT - STRICT CONSTRAINT**:
    * **TRUST**: Requires mutual **Trust ≥ 40**. 
-   * **DO NOT WASTE YOUR ACTION**: Proposing a trade with a nation that has Trust < 40 will result in **AUTOMATIC REJECTION** and you will have wasted your turn's action.
+   * **DO NOT WASTE YOUR ACTION**: Proposing a trade with a nation that has Trust < 40 will result in **AUTOMATIC REJECTION** and you will have wasted your action for the month.
    * **WAR**: You CANNOT trade with nations you are currently at WAR with.
   - **Message**: Your `message` is a diplomatic note to the target nation's government.
 

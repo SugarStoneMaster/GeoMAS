@@ -143,7 +143,7 @@ class TestPromptActionSpecifications:
         prompt = DefenseSystemPrompt.generate("Test", GlobalStrategy.ARMED_ISOLATIONISM)
         assert "owned land (Soldiers/Aircraft) or territorial waters (Navy)" in prompt
         assert "CREATE UNIT OPTIONS" in prompt
-        assert "FAILED last turn" in prompt
+        assert "FAILED last month" in prompt
     
     def test_economy_trade_proposal_includes_format(self):
         """Economy prompt specifies give/receive format for TRADE_PROPOSAL."""

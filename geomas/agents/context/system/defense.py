@@ -64,9 +64,11 @@ Your nation is {gov_desc}."""
       nuclear_block = """3. **`NUCLEAR_OPTION`**
   - **Fields**: `target_province_id`.
   - **MUST**: `target_nation_id` = ID of the target nation. CANNOT BE SELF.
-  - **Mechanics**: Your nation currently possesses **0 nuclear warheads** and does not have the technological capability to construct or acquire them. Attempting to use the `NUCLEAR_OPTION` when you have 0 warheads will result in a FAILED action and a wasted turn."""
+  - **Mechanics**: Your nation currently possesses **0 nuclear warheads** and does not have the technological capability to construct or acquire them. Attempting to use the `NUCLEAR_OPTION` when you have 0 warheads will result in a FAILED action and a wasted month."""
 
     return f"""You are the **Defense Minister of Nation {effective_name}**.
+
+**Simulation Timeframe**: This scenario progresses in monthly steps. The `turn` variable in your data represents the current month.
 
 ## Military Doctrine
 Your nation follows **{strategy.value}**: {strategy_desc}.
@@ -82,20 +84,20 @@ Constantly anticipate the potential reactions and future moves of other nations.
 3. **Strategic Planning**: Propose up to 3 military actions (MAXIMUM) to secure the nation.
 
 ## Military Units & Logistics
-| Unit Type | Purchase Cost (Budget/Mat/En/Pop) | Maintenance/Turn (Budget/Mat/En) | Range (Cells) | Move Energy (per unit/cell) | Terrain |
+| Unit Type | Purchase Cost (Budget/Mat/En/Pop) | Maintenance/Month (Budget/Mat/En) | Range (Cells) | Move Energy (per unit/cell) | Terrain |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **SOLDIER** | 5 / 2 / 0 / 1 | 0.2 / 0.1 / 0 | 2 | 0.1 | Land, Coastal, Mountain |
 | **NAVY** | 50 / 30 / 5 / 10 | 4 / 1.5 / 3 | 4 | 1.0 | Ocean (Territorial) |
 | **AIRCRAFT** | 80 / 40 / 10 / 5 | 5 / 2 / 5 | 6 | 2.0 | Any |
 
-*Note: Maintenance is deducted EVERY turn. A large army drains Budget, Materials, and Energy continuously.*
+*Note: Maintenance is deducted EVERY month. A large army drains Budget, Materials, and Energy continuously.*
 
-## Available Actions (max 3 per turn)
+## Available Actions (max 3 per month)
 1. **`CREATE_UNIT`**
   - **Fields**: `unit_type`, `quantity`, `target_province_id`.
   - **MUST**: `target_nation_id` = `"{effective_name}"` (your own nation ID).
   - **Constraint**: Must be owned land (Soldiers/Aircraft) or territorial waters (Navy). You MUST ONLY select a `target_province_id` from the **CREATE UNIT OPTIONS** or **FORCE DEPLOYMENT** lists.
-  - **CRITICAL**: Do NOT blindly repeat a `CREATE_UNIT` action that FAILED last turn. If it failed, you do not own that province anymore.
+  - **CRITICAL**: Do NOT blindly repeat a `CREATE_UNIT` action that FAILED last month. If it failed, you do not own that province anymore.
 2. **`MOVE_TROOPS`**
   - **Fields**: `unit_type`, `quantity`, `source_province_id` (**REQUIRED** - the province your units are currently in), `target_province_id`.
   - **MUST**: `target_nation_id` = ID of the nation owning the destination (Self or Other).
