@@ -701,6 +701,22 @@ class SimulationEngine:
                     world=self.world,
                     government_type=rebel_gov
                 )
+
+            # 3. Handle Regime Change
+            modified_nation_data = scenario_result.get("modified_nation")
+            if modified_nation_data:
+                target_id = modified_nation_data["id"]
+                new_strat = modified_nation_data["strategy"]
+                new_gov = modified_nation_data["government_type"]
+                
+                print(f"[SCENARIO] Regime Change for: {target_id}")
+                agent = self.agents.get(target_id)
+                if agent:
+                    agent.change_regime(new_gov, new_strat)
+                    
+                op_agent = self.opinion_agents.get(target_id)
+                if op_agent:
+                    op_agent.government_type = new_gov
                 
         # 0. UPKEEP PHASE (resources, consumption, crisis)
         run_upkeep_phase(self.world, self.turn_logs)

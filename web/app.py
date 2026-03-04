@@ -59,7 +59,23 @@ def scenario_selection_dialog(num_turns: int):
     )
     st.caption(f"Scenario fires in **{trigger_turn - sim.world.turn}** turns (turn **{trigger_turn}**).")
 
-    choice = st.selectbox("Scenario Type", ["Nessuno", "PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE"], index=0)
+    choice = st.selectbox("Scenario Type", ["Nessuno", "PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE", "CAMBIO GOVERNO"], index=0)
+
+    # If CAMBIO GOVERNO, we need extra inputs
+    target_nation = None
+    new_gov = None
+    new_strat = None
+    if choice == "CAMBIO GOVERNO":
+        from geomas.agents.schemas.protocol import GovernmentType
+        from geomas.agents.schemas import GlobalStrategy
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+             target_nation = st.selectbox("Nazione Target", sorted(list(sim.world.nations.keys())))
+        with col2:
+             new_gov = st.selectbox("Nuovo Governo", [g.value for g in GovernmentType])
+        with col3:
+             new_strat = st.selectbox("Nuova Strategia", [s.value for s in GlobalStrategy])
 
     if st.button("🚀 Conferma e Avvia", type="primary", use_container_width=True):
         import json
@@ -67,8 +83,13 @@ def scenario_selection_dialog(num_turns: int):
         st.session_state["total_run_turns"] = num_turns
         st.session_state["scenario_trigger_turn"] = trigger_turn
 
-        if choice in ["PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE"]:
+        if choice in ["PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE", "CAMBIO GOVERNO"]:
             scenario_data = {"type": choice, "turn": trigger_turn}
+            if choice == "CAMBIO GOVERNO":
+                scenario_data["target_id"] = target_nation
+                scenario_data["new_gov"] = new_gov
+                scenario_data["new_strategy"] = new_strat
+                
             sim.planned_scenario = scenario_data
             if sim.db:
                 sim.db.update_simulation_scenario(sim.simulation_id, json.dumps(scenario_data))
@@ -177,7 +198,7 @@ with st.sidebar:
                     st.rerun()
             
             st.markdown("### 🌍 Scenario Events")
-            scenario_opts = ["Non-scenario", "PANDEMIA", "RESOURCE_DISCOVERY", "INSURRECTION"]
+            scenario_opts = ["Non-scenario", "PANDEMIA", "RESOURCE_DISCOVERY", "INSURRECTION", "REGIME_CHANGE"]
             selected_scenario = st.selectbox("Trigger Scenario", scenario_opts, index=0)
             
             # Constrain trigger strictly within the remaining turns of the loaded simulation
@@ -189,10 +210,31 @@ with st.sidebar:
                 slider_max = max(current_turn + 1, max_turn)
                 target_scenario_turn = st.slider("Trigger Turn", current_turn, slider_max, current_turn)
             
+            if selected_scenario == "REGIME_CHANGE":
+                from geomas.agents.schemas.protocol import GovernmentType
+                from geomas.agents.schemas import GlobalStrategy
+                
+                c_nat, c_gov, c_strat = st.columns(3)
+                with c_nat:
+                    st.session_state["scenario_rc_target"] = st.selectbox("Target Nation", sorted(list(sim.world.nations.keys())))
+                with c_gov:
+                    st.session_state["scenario_rc_gov"] = st.selectbox("New Government", [g.value for g in GovernmentType])
+                with c_strat:
+                    st.session_state["scenario_rc_strat"] = st.selectbox("New Strategy", [s.value for s in GlobalStrategy])
+            
             if selected_scenario != "Non-scenario":
                 st.session_state["enable_scenarios"] = True
                 st.session_state["scenario_type"] = selected_scenario
                 st.session_state["scenario_trigger_turn"] = target_scenario_turn
+                
+                # Manual trigger override for forks
+                trigger_data = {"type": selected_scenario, "turn": target_scenario_turn}
+                if selected_scenario == "REGIME_CHANGE":
+                    trigger_data["target_id"] = st.session_state.get("scenario_rc_target")
+                    trigger_data["new_gov"] = st.session_state.get("scenario_rc_gov")
+                    trigger_data["new_strategy"] = st.session_state.get("scenario_rc_strat")
+                    
+                st.session_state["manual_scenario_trigger"] = trigger_data
             else:
                 st.session_state["enable_scenarios"] = False
                 st.session_state["scenario_trigger_turn"] = -1

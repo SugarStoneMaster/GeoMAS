@@ -235,7 +235,35 @@ class NationAgent:
                 payload=ForeignProposalPayload(action_type=ForeignActionType.IDLE),
                 target_trust_impact=0.0
             )
-
+    def change_regime(self, new_gov: GovernmentType, new_strat: GlobalStrategy):
+        """
+        Executes a Regime Change.
+        Updates internal strategy, regenerates Prompts, pushes updates to Ministers,
+        and tags existing memory as belonging to the previous administration.
+        """
+        self.strategy = new_strat
+        self.government_type = new_gov
+        self.last_strategy = new_strat
+        
+        # 1. Regenerate President System Prompt
+        self.president_system_prompt = PresidentSystemPrompt.generate(
+            nation_name=self.world.nations[self.id].name,
+            strategy=new_strat,
+            cultural_traits=getattr(self.world.nations[self.id], 'cultural_traits', None),
+            nation_id=self.id,
+            government_type=new_gov
+        )
+        
+        # 2. Update Ministers
+        for minister in [self.defense_minister, self.economy_minister, self.foreign_minister]:
+            minister.strategy = new_strat
+            minister.government_type = new_gov
+            
+        # 3. Tag existing memory so the new regime doesn't get confused by old actions
+        for i in range(len(self.memory)):
+            if not self.memory[i].startswith("[Previous Government/Cabinet]"):
+                self.memory[i] = f"[Previous Government/Cabinet] {self.memory[i]}"
+                
     def _presidential_decision(self, turn: int, briefing: CabinetBriefing, injections: Optional[List[str]] = None) -> PresidentialDecree:
         """
         The President reviews the briefing and issues a Decree.

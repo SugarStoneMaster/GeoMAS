@@ -47,6 +47,7 @@ class EventType(str, Enum):
     
     # Global Scenarios
     GLOBAL_SCENARIO = "GLOBAL_SCENARIO"
+    REGIME_CHANGE = "REGIME_CHANGE"
 
 # Base Importance Scores for Salience Calculation
 EVENT_IMPORTANCE = {

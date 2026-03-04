@@ -410,13 +410,78 @@ def trigger_separatist_insurrection(world: WorldState, context_manager: ContextM
     
     logs = [f"🔥 [SCENARIO DETECTED] Insurrection triggered in {motherland.name}. {rebel_name} formed."]
     
-    # Return instructions for the Engine to instantiate the new agent
     return {
         "logs": logs,
         "new_nation": {
             "id": rebel_id,
             "strategy": rebel_strategy,
             "government_type": rebel_gov
+        }
+    }
+
+def trigger_regime_change(world: WorldState, context_manager: ContextManager, turn: int, trigger: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Executes the Regime Change scenario.
+    - Forces a nation to immediately adopt a new GovernmentType and GlobalStrategy.
+    - Broadcasts a neutral global event.
+    - Injects a private event for the new administration.
+    """
+    from geomas.agents.context.events.schemas import EventType, NotableEvent
+    from geomas.agents.schemas.protocol import GovernmentType
+    from geomas.agents.schemas import GlobalStrategy
+    
+    target_id = trigger.get("target_id")
+    raw_gov = trigger.get("new_gov")
+    raw_strat = trigger.get("new_strategy")
+    
+    if not target_id or target_id not in world.nations:
+        return {"logs": ["⚠️ [SCENARIO FAILED] Target nation for Regime Change is invalid or missing."]}
+        
+    nation = world.nations[target_id]
+    
+    # Parse Enums
+    try:
+        new_gov = GovernmentType(raw_gov)
+        new_strat = GlobalStrategy(raw_strat)
+    except ValueError as e:
+        return {"logs": [f"⚠️ [SCENARIO FAILED] Invalid ENUM for Regime Change: {e}"]}
+        
+    # Update NationState Backend
+    nation.government_type = new_gov.value
+    
+    # 1. Neutral Global Notification
+    global_msg = f"🏛️ [GLOBAL EVENT] A new government has been formed in {nation.name}. The transition of political power is complete."
+    world.global_events.append(f"T{turn}: {global_msg}")
+    
+    global_event = NotableEvent(
+        turn=turn,
+        event_type=EventType.GLOBAL_SCENARIO,
+        actors=[target_id],
+        summary=global_msg,
+        relevance_to=None  # Global
+    )
+    context_manager.global_events.append(global_event)
+    
+    # 2. Private Ideological Directive
+    private_msg = f"⚖️ [REGIME CHANGE] The previous administration has fallen. You are the newly installed government of {nation.name}. Your new Government is {new_gov.value} and your new Global Strategy is {new_strat.value}. Act exclusively according to your new ideology."
+    private_event = NotableEvent(
+        turn=turn,
+        event_type=EventType.REGIME_CHANGE,
+        actors=[target_id],
+        summary=private_msg,
+        relevance_to=[target_id]  # Private
+    )
+    context_manager.global_events.append(private_event)
+    
+    logs = [f"⚖️ [SCENARIO DETECTED] Regime Change in {nation.name}. Now {new_gov.value} / {new_strat.value}."]
+    
+    # Instruct the Engine to call NationAgent.change_regime
+    return {
+        "logs": logs,
+        "modified_nation": {
+            "id": target_id,
+            "strategy": new_strat,
+            "government_type": new_gov
         }
     }
 
@@ -438,5 +503,7 @@ def check_and_trigger_scenario(world: WorldState, context_manager: ContextManage
         return {"logs": logs}
     elif s_type == "INSURREZIONE" or s_type == "SEPARATIST_INSURRECTION":
         return trigger_separatist_insurrection(world, context_manager, current_turn)
+    elif s_type == "REGIME_CHANGE" or s_type == "CAMBIO GOVERNO":
+        return trigger_regime_change(world, context_manager, current_turn, scenario_trigger)
         
     return {"logs": []}
