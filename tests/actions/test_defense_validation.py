@@ -56,7 +56,7 @@ class TestDefenseStrictValidation:
         assert any("CREATE_UNIT: target_nation_id corrected" in log for log in logs)
         
         # 2. Check that unit WAS created (success)
-        assert "Created 1x SOLDIER" in logs[-1]
+        assert any("Created 1x SOLDIER" in log for log in logs)
         assert world.provinces[p1].soldiers == initial_soldiers + 1
 
     def test_move_troops_wrong_nation_id(self):

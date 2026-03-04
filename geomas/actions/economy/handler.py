@@ -30,6 +30,15 @@ def execute_economic(
 ) -> None:
     """Execute an economic action."""
     if not payload.action_type:
+        # Fallback if None
+        payload.execution_outcome.status = "SUCCESS"
+        payload.execution_outcome.reason = "Minister is idle."
+        return
+        
+    if payload.action_type == EconomicActionType.IDLE or payload.action_type == "IDLE":
+        payload.execution_outcome.status = "SUCCESS"
+        payload.execution_outcome.reason = "Minister is idle."
+        engine.logs.append(f"💰 [ECONOMY] IDLE: {payload.message}" if payload.message else "💰 [ECONOMY] IDLE")
         return
     
     nation = engine.world.nations.get(nation_id)
