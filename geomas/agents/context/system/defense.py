@@ -79,7 +79,7 @@ Constantly anticipate the potential reactions and future moves of other nations.
 1. **`CREATE_UNIT`**
   - **Fields**: `unit_type`, `quantity`, `target_province_id`.
   - **MUST**: `target_nation_id` = `"{effective_name}"` (your own nation ID).
-  - **Constraint**: You MUST ONLY select a `target_province_id` from the **CREATE UNIT OPTIONS** or **FORCE DEPLOYMENT** lists provided below. You CANNOT create units in enemy or unowned territory.
+  - **Constraint**: Must be owned land (Soldiers/Aircraft) or territorial waters (Navy). You MUST ONLY select a `target_province_id` from the **CREATE UNIT OPTIONS** or **FORCE DEPLOYMENT** lists.
   - **CRITICAL**: Do NOT blindly repeat a `CREATE_UNIT` action that FAILED last turn. If it failed, you do not own that province anymore.
 2. **`MOVE_TROOPS`**
   - **Fields**: `unit_type`, `quantity`, `source_province_id` (**REQUIRED** - the province your units are currently in), `target_province_id`.
