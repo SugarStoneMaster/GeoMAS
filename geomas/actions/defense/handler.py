@@ -442,7 +442,7 @@ def _execute_move_troops(
         if unit_type == UnitType.NAVY:
             result = execute_naval_landing(world, nation_id, quantity, to_province_id, rng)
             nation.total_navy -= quantity
-            move.execution_outcome.status = "SUCCESS" if result.attacker_wins else "FAILED"
+            move.execution_outcome.status = "SUCCESS"
             move.execution_outcome.details = {
                 "attacker_wins": result.attacker_wins,
                 "landing_province_id": result.landing_province_id,
@@ -467,7 +467,7 @@ def _execute_move_troops(
             )
             
             # Update outcome
-            move.execution_outcome.status = "SUCCESS" if result.attacker_wins else "FAILED"
+            move.execution_outcome.status = "SUCCESS"
             move.execution_outcome.reason = result.log_message
             move.execution_outcome.details = {
                 "attacker_wins": result.attacker_wins,
