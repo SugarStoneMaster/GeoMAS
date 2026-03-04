@@ -323,8 +323,13 @@ class SimulationEngine:
             nuke_rng = random.Random(self.map_seed + self.history_seed + 999) 
             
             # Assignment
+            n_nations = len(self.world.nations)
             for nid in nuke_recipients:
-                self.world.nations[nid].nukes = nuke_rng.randint(2, 5)
+                if n_nations >= 8:
+                    self.world.nations[nid].nukes = nuke_rng.randint(50, 100)
+                else:
+                    self.world.nations[nid].nukes = nuke_rng.randint(2, 5)
+                    
                 strat, gov = get_strat_gov(self.agents[nid])
                 print(f"[INIT] {nid} ({strat}/{gov}) assigned {self.world.nations[nid].nukes} Nuclear Weapons (Strict Requirement).")
             
