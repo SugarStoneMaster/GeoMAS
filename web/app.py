@@ -225,6 +225,13 @@ with st.sidebar:
             
             constraint_type = st.radio("Constraint", ["FORBID", "FORCE"], horizontal=True)
             
+            # Duration config
+            col_dur1, col_dur2 = st.columns([1, 1])
+            with col_dur1:
+                is_infinite = st.checkbox("Infinite Duration (Until cleared)", value=False)
+            with col_dur2:
+                dur_val = st.number_input("Duration (Months)", min_value=1, value=1, step=1, disabled=is_infinite)
+            
             # 3. Add Injection
             if st.button("➕ Add Constraint"):
                 injection = {
@@ -232,7 +239,8 @@ with st.sidebar:
                     "role": target_role,
                     "action": target_action,
                     "details": action_details,
-                    "type": constraint_type
+                    "type": constraint_type,
+                    "duration": 9999 if is_infinite else dur_val
                 }
                 st.session_state["injections"].append(injection)
                 st.success(f"Added: {constraint_type} {target_action} for {target_nation} {target_role}")
@@ -242,7 +250,8 @@ with st.sidebar:
                 st.markdown("#### Active Constraints")
                 for i, inj in enumerate(st.session_state["injections"]):
                     details_str = f" ({inj['details']})" if inj['details'] else ""
-                    st.caption(f"{i+1}. {inj['nation_id']} ({inj['role']}): **{inj['type']} {inj['action']}**{details_str}")
+                    dur_str = "∞" if inj.get("duration", 1) > 9000 else inj.get("duration", 1)
+                    st.caption(f"{i+1}. {inj['nation_id']} ({inj['role']}): **{inj['type']} {inj['action']}**{details_str} [Dur: {dur_str}]")
                 
                 if st.button("Clear All"):
                     st.session_state["injections"] = []
@@ -426,10 +435,18 @@ if st.session_state["remaining_turns"] != 0 and sim:
     # Perform one step
     sim.step(injections=active_injections, scenario_trigger=scenario_trigger)
     
-    # CLEAR INJECTIONS after one use (make them one-shot)
+    # Update active injections based on duration logic built into SimulationEngine.run()
+    # The front-end must mirrors the duration decrement since we bypass run() and call step() directly.
     if active_injections:
-        st.session_state["injections"] = []
-        st.toast("🧪 One-shot injection applied and cleared.", icon="⚡")
+        new_injections = []
+        for inj in active_injections:
+            if inj.get("duration", 1) > 1:
+                inj["duration"] -= 1
+                new_injections.append(inj)
+        st.session_state["injections"] = new_injections
+        
+        if not new_injections:
+            st.toast("🧪 All constraints expired and cleared.", icon="⚡")
     
     # Decrement if not Autoplay
     if st.session_state["remaining_turns"] > 0:

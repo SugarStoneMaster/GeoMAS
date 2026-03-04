@@ -935,9 +935,27 @@ class SimulationEngine:
         
 
     def run(self, steps: int = 1, injections: Optional[List[dict]] = None, scenario_trigger: Optional[dict] = None):
-        """Runs the simulation for N steps, forwarding optional injections and scenario trigger to each step."""
+        """Runs the simulation for N steps, applying injections that have a valid duration."""
+        active_injections = []
+        if injections:
+            import copy
+            active_injections = copy.deepcopy(injections)
+            # Default duration is 1 if not specified
+            for inj in active_injections:
+                if 'duration' not in inj:
+                    inj['duration'] = 1
+
         for _ in range(steps):
-            self.step(injections=injections, scenario_trigger=scenario_trigger)
+            current_injections = [inj for inj in active_injections if inj['duration'] > 0]
+            
+            self.step(
+                injections=copy.deepcopy(current_injections) if current_injections else None, 
+                scenario_trigger=scenario_trigger
+            )
+            
+            # Decrement duration after the step completes
+            for inj in active_injections:
+                inj['duration'] -= 1
     
     # --- CACHE ACCESS METHODS ---
     
