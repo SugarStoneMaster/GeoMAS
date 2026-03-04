@@ -463,7 +463,7 @@ def trigger_regime_change(world: WorldState, context_manager: ContextManager, tu
     context_manager.global_events.append(global_event)
     
     # 2. Private Ideological Directive
-    private_msg = f"⚖️ [REGIME CHANGE] The previous administration has fallen. You are the newly installed government of {nation.name}. Your new Government is {new_gov.value} and your new Global Strategy is {new_strat.value}. Act exclusively according to your new ideology."
+    private_msg = f"⚖️ [REGIME CHANGE] The government of {nation.name} has changed. You are the newly installed administration. Your new Government type is {new_gov.value} and your new Global Strategy is {new_strat.value}. Act exclusively according to these new parameters."
     private_event = NotableEvent(
         turn=turn,
         event_type=EventType.REGIME_CHANGE,
