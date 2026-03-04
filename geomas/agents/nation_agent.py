@@ -110,6 +110,16 @@ class NationAgent:
                         
                         if c_type == "FORCE":
                             instruction = f"perform {action_desc}"
+                            
+                            # XAI EXCEPTION: Grant 10 nukes if forced to launch a nuclear strike
+                            if action.upper() == "NUCLEAR_OPTION":
+                                nation = self.world.nations.get(self.id)
+                                if nation and nation.nukes == 0:
+                                    nation.nukes = 10
+                                    # Force prompt regeneration so ministers see the new arsenal
+                                    self.defense_minister.system_prompt = None
+                                    self.foreign_minister.system_prompt = None
+                                    
                         else:  # FORBID
                             instruction = f"NOT perform {action_desc}"
                     else:
