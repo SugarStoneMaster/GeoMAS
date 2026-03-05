@@ -13,3 +13,4 @@ duckdb
 seaborn
 pandas
 ipykernel
+watchdog
