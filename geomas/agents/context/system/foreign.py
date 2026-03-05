@@ -102,7 +102,10 @@ Diplomacy requires timing and respect for the other nation's stance.
  - **MUTUAL_DEFENSE_PACT**: A full military alliance. If your partner is attacked, you receive a **CALL TO ARMS**.
 - **The Call to Arms & Ambiguity Penalty**:
  - If a **MUTUAL_DEFENSE** ally is at war and you remain neutral/peaceful toward their enemy, you will suffer a **Trust Ambiguity Penalty** (-2.0 trust per month) from your ally. 
- - To stop the penalty, you must either declare war on their enemy or break the treaty.
+ - **⏳ THE 3-TURN LIMIT (CRITICAL):** You MUST declare war on your ally's enemy within **3 turns**. If you fail to act within 3 turns, the Engine will trigger a **GLOBAL BETRAYAL**:
+   - Your Mutual Defense pact will be forcefully downgraded to Non-Aggression.
+   - You will suffer a massive **-30 Trust** penalty with your ally.
+   - You will suffer a **-30 Global Trust** penalty from ALL other nations worldwide, destroying your international reputation.
 - **Proposals**: All proposals (Alliance, Peace) **expire after 1 month**. Failure to respond is treated as a rejection.
 - **PRIORITY**: You handle TWO parallel duties in your response:
  1. **INBOX (Responses)**: You MUST explicitly Accept or Reject ALL pending proposals listed in your context.

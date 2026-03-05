@@ -121,7 +121,7 @@ def test_cta_3_turn_betrayal():
     # Turn 3: BETRAYAL
     sim._apply_ambiguity_penalty()
     assert w.nations["NAT_C"].betrayal_tracker.get("NAT_B", 0) == 0
-    assert w.relationship_matrix["NAT_C"]["NAT_B"] == RelationshipState.PEACE
+    assert w.relationship_matrix["NAT_C"]["NAT_B"] == RelationshipState.NON_AGGRESSION
     assert any("[BETRAYAL]" in e for e in sim.turn_logs)
     
     # Global Trust Penalty (-30)

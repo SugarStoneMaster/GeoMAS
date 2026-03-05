@@ -82,7 +82,7 @@ def test_final_betrayal_is_selective():
         
     # VERIFY: B has betrayed A, but NOT C.
     # B-A Alliance should be broken
-    assert w.relationship_matrix["NAT_A"]["NAT_B"] == RelationshipState.PEACE
+    assert w.relationship_matrix["NAT_A"]["NAT_B"] == RelationshipState.NON_AGGRESSION
     # B-C Alliance should remain (even if C is an aggressor, B didn't fail C)
     assert w.relationship_matrix["NAT_C"]["NAT_B"] == RelationshipState.MUTUAL_DEFENSE
     

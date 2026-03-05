@@ -73,12 +73,12 @@ def test_global_betrayal_trigger():
     assert w.nations["NAT_A"].betrayal_tracker["NAT_B"] == 0
     
     # 2. Alliance Broken
-    assert w.relationship_matrix["NAT_A"]["NAT_B"] == RelationshipState.PEACE
-    assert w.relationship_matrix["NAT_B"]["NAT_A"] == RelationshipState.PEACE
+    assert w.relationship_matrix["NAT_A"]["NAT_B"] == RelationshipState.NON_AGGRESSION
+    assert w.relationship_matrix["NAT_B"]["NAT_A"] == RelationshipState.NON_AGGRESSION
     
-    # 3. Massive Trust Hit for Victim (-50 hit)
-    # 76 - 50 = 26.0
-    assert w.trust_matrix["NAT_B"]["NAT_A"] == 26.0
+    # 3. Massive Trust Hit for Victim (-30 hit)
+    # 76 - 30 = 46.0
+    assert w.trust_matrix["NAT_B"]["NAT_A"] == 46.0
     
     # 4. Global Trust Penalty (-30)
     # Observer D started at 50 -> should be 20

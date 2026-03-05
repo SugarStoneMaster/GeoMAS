@@ -623,14 +623,15 @@ class SimulationEngine:
     def _execute_global_betrayal(self, traitor_id: str, victim_id: str):
         """
         Executes the consequences of a Global Betrayal (ignoring Mutual Defense for 3 turns).
-        1. Break Alliance (Trust -> 0, Rel -> PEACE).
-        2. Global Trust Penalty (-30) from ALL nations.
-        3. Global Event Log.
+        1. Downgrade Alliance to NON_AGGRESSION.
+        2. Local Trust Penalty (-30).
+        3. Global Trust Penalty (-30) from ALL other nations.
+        4. Global Event Log.
         """
-        # 1. Break Alliance
-        self.world.relationship_matrix[traitor_id][victim_id] = RelationshipState.PEACE
-        self.world.relationship_matrix[victim_id][traitor_id] = RelationshipState.PEACE
-        self.engine.adjust_trust(victim_id, traitor_id, -50.0) # Massive hit
+        # 1. Downgrade Alliance
+        self.world.relationship_matrix[traitor_id][victim_id] = RelationshipState.NON_AGGRESSION
+        self.world.relationship_matrix[victim_id][traitor_id] = RelationshipState.NON_AGGRESSION
+        self.engine.adjust_trust(victim_id, traitor_id, -30.0) # Severe hit, but recoverable
         
         # 2. Global Penalty
         for observer_id in self.agents.keys():
@@ -641,7 +642,7 @@ class SimulationEngine:
             self.engine.adjust_trust(observer_id, traitor_id, -30.0)
             
         # 3. Log
-        msg = f"🌍 [BETRAYAL] {traitor_id} has abandoned {victim_id} to their fate! The world condemns this treachery. (Mutual Defense Pact Broken)."
+        msg = f"🌍 [BETRAYAL] {traitor_id} has abandoned {victim_id} to their fate! The world condemns this treachery. (Mutual Defense Pact downgraded to Non-Aggression)."
         self.turn_logs.append(msg)
         self.world.global_events.append(f"T{self.world.turn}: {msg}")
 
