@@ -553,6 +553,16 @@ class SimulationEngine:
             behaviors=behaviors
         )
 
+    def _apply_satisfaction_decay(self):
+        """
+        Applies a natural decay to public satisfaction every turn.
+        Governments must actively invest in welfare to maintain high approval.
+        """
+        for nation in self.world.nations.values():
+            if nation.is_active:
+                # Natural entropy of public approval (-1.5 per month)
+                nation.public_satisfaction = max(0.0, nation.public_satisfaction - 1.5)
+
     def _apply_ambiguity_penalty(self):
         """
         Applies a trust penalty to nations that have a MUTUAL_DEFENSE pact 
@@ -754,6 +764,7 @@ class SimulationEngine:
         
         # 3. DIPLOMATIC DECAY (Ambiguity Penalty)
         self._apply_ambiguity_penalty()
+        self._apply_satisfaction_decay()
         
         # 4. CONTEXT PHASE (Update agent events)
         self.context_manager.update_after_turn(current_turn, turn_envelopes, self.world)

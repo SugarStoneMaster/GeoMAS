@@ -68,14 +68,15 @@ Constantly anticipate the potential reactions and future moves of other nations.
 Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 
 ## Available Actions (max 1 per month)
-1. **`INVEST_WELFARE`**
+ 1. **`INVEST_WELFARE`**
   - **Cost**: **Budget + Materials** (Materials = 20% of Budget amount).
    * Example: 500 Budget investment requires 500 Budget AND 100 Materials.
   - **Effect**: Converts Budget into Public Satisfaction.
   - **Fields**: `amount`, `message` (optional, **max ~70 words**).
   - **Mechanic**: Logarithmic boost: `7 * log(1 + amount/500)`.
    * Gain: ~5 satisfaction for 500 budget investment. Diminishing returns apply.
-  - **Maximum**: You can invest at most **25% of your current Budget** per month (excess is clamped).
+   * **Saturation**: If Satisfaction is already near 100%, investing yields NO extra benefit (0% return).
+  - **Maximum Limit**: Due to administrative capacity, you can only allocate a MAXIMUM of **25% of your total budget** to welfare per month. Submitting amounts over 25% shows poor economic management and will be strictly rejected and clamped by the national bureaucracy. Calculate 25% of your current treasury and never exceed it.
   - **Message**: Your `message` is delivered directly to your citizens to justify the investment.
 
 2. **`RAISE_WAR_TAX`**
