@@ -176,9 +176,9 @@ def test_execution_waterfall():
     logs = engine.execute_envelope(envelope)
     
     # Verify State: 2 units created
-    assert world.nations[nation_id].total_budget == 1.0
+    assert world.nations[nation_id].total_budget == pytest.approx(1.0)
     # Materials deducted
-    assert world.nations[nation_id].total_materials == 100.0 - (2 * 2 * bureaucracy_mult)
+    assert world.nations[nation_id].total_materials == pytest.approx(100.0 - (2 * 2 * bureaucracy_mult))
     
     # Verify Logs: 2 created, 1 failed
     created_count = sum(1 for l in logs if "Created" in l)
