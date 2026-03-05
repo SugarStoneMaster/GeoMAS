@@ -71,9 +71,9 @@ UNIT_TERRAIN_CONSTRAINTS: dict[UnitType, set[TerrainType]] = {
 # --- TERRAIN COMBAT MODIFIERS ---
 # Defense multiplier when defending on specific terrain
 TERRAIN_DEFENSE_MULTIPLIER: dict[TerrainType, float] = {
-    TerrainType.LAND: 1.0,       # Baseline
-    TerrainType.COASTAL: 0.9,    # Slight disadvantage (multiple attack vectors)
-    TerrainType.MOUNTAIN: 1.5,   # Strong defensive advantage
+    TerrainType.LAND: 1.2,       # Baseline advantage to defender
+    TerrainType.COASTAL: 1.0,    # Neutralized disadvantage
+    TerrainType.MOUNTAIN: 2.5,   # Massive defensive advantage
     TerrainType.OCEAN: 1.0,      # Baseline for naval combat
     TerrainType.VOID: 1.0,       # Neutral baseline for non-actionable zones
 }

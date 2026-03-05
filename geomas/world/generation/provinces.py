@@ -94,6 +94,7 @@ def create_provinces(
         provinces_dict[r_idx] = ProvinceState(
             id=r_idx,
             owner_id=nation_id,
+            core_nation_id=nation_id,
             terrain=terrain,
             coordinates=(float(cell_centroids[r_idx][0]), float(cell_centroids[r_idx][1])),
             vertices=cell_vertices[r_idx],

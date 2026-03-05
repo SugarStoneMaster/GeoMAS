@@ -97,13 +97,13 @@ class TestTerrainDefenseModifiers:
     
     def test_mountain_best_defense(self):
         """Mountains should have the best defense bonus."""
-        assert TERRAIN_DEFENSE_MULTIPLIER[TerrainType.MOUNTAIN] == 1.5
+        assert TERRAIN_DEFENSE_MULTIPLIER[TerrainType.MOUNTAIN] == 2.5
         for terrain in TerrainType:
             assert TERRAIN_DEFENSE_MULTIPLIER[terrain] <= TERRAIN_DEFENSE_MULTIPLIER[TerrainType.MOUNTAIN]
     
-    def test_coastal_slight_disadvantage(self):
-        """Coastal should have slight defense disadvantage."""
-        assert TERRAIN_DEFENSE_MULTIPLIER[TerrainType.COASTAL] < 1.0
+    def test_coastal_neutralized(self):
+        """Coastal disadvantage has been neutralized for balance."""
+        assert TERRAIN_DEFENSE_MULTIPLIER[TerrainType.COASTAL] == 1.0
 
 
 class TestCanPlaceUnit:
@@ -184,10 +184,10 @@ class TestGetTerrainDefenseBonus:
     """Tests for get_terrain_defense_bonus helper."""
     
     def test_mountain_bonus(self):
-        assert get_terrain_defense_bonus(TerrainType.MOUNTAIN) == 1.5
+        assert get_terrain_defense_bonus(TerrainType.MOUNTAIN) == 2.5
     
     def test_land_baseline(self):
-        assert get_terrain_defense_bonus(TerrainType.LAND) == 1.0
+        assert get_terrain_defense_bonus(TerrainType.LAND) == 1.2
     
     def test_ocean_baseline(self):
         assert get_terrain_defense_bonus(TerrainType.OCEAN) == 1.0

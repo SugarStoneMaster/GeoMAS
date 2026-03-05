@@ -22,14 +22,24 @@ def calculate_nation_aggregates(nation: NationState, world: WorldState) -> Dict[
     for p_id in nation.province_ids:
         prov = world.provinces.get(p_id)
         if prov:
+            is_occupied = (prov.core_nation_id is not None and prov.owner_id != prov.core_nation_id)
+            
+            # Occupation modifiers
+            prod_mod = 0.5 if is_occupied else 1.0  # Passive resistance halves production
+            work_mod = 0.1 if is_occupied else 1.0  # Only 10% of pop acts as collaborators for army/work
+            tax_mod = 0.5 if is_occupied else 1.0   # Halve taxes
+            
             total_pop += prov.population
-            total_workers += prov.workers
+            total_workers += int(prov.workers * work_mod)
             total_soldiers += prov.soldiers
             total_aircraft += prov.aircraft
             total_navy += prov.navy
-            total_food_prod += prov.food_production
-            total_energy_prod += prov.energy_production
-            total_materials_prod += prov.materials_production
+            total_food_prod += prov.food_production * prod_mod
+            total_energy_prod += prov.energy_production * prod_mod
+            total_materials_prod += prov.materials_production * prod_mod
+            
+            # Dynamically recalculate tax revenue here since population fluctuates
+            prov.tax_revenue = (prov.population * 1.0) * tax_mod  # 1.0 is TAX_RATE
     
     # Also count navy in territorial waters
     for p_id in nation.territorial_water_ids:

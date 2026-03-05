@@ -37,6 +37,7 @@ class ProvinceState(BaseModel):
     """
     id: int
     owner_id: Optional[str] = None  # None if Ocean or Unclaimed
+    core_nation_id: Optional[str] = None  # Original owner at Turn 1. Used to calculate Occupation penalties.
     terrain: TerrainType
     coordinates: Tuple[float, float]  # Centroid (x, y)
     vertices: List[Tuple[float, float]] = Field(default_factory=list)
