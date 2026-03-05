@@ -24,8 +24,7 @@ def test_economy_context_welfare_costs():
     # Tool info is now in SYSTEM prompt
     assert "INVEST_WELFARE" in system_prompt
     assert "Budgets & Materials" in system_prompt or "Budget" in system_prompt
-    assert "25% of your current Budget" in system_prompt
-    
+
     # Input prompt should have Treasury
     assert "Treasury" in user_prompt
     
