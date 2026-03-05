@@ -109,7 +109,7 @@ Constantly anticipate the potential reactions and future moves of other nations.
    - **Aircraft can fly over ANY terrain.**
   - **Combat**: Moving units to an ENEMY province initiates combat.
   - **Stationing (Allies)**: Moving units to an **ALLIED** province (Mutual Defense/Non-Aggression) stations them as **Guest Troops**. They are safe and do NOT trigger war. You can move them out later (use the allied province ID as `source`).
-  - **⏳ THE 3-TURN LIMIT (CRITICAL):** If your nation has a **MUTUAL_DEFENSE** pact and your ally is at war, your nation has exactly **3 turns** to enter the conflict alongside them. If you fail to initiate combat (move troops into the enemy province) within this timeframe, the Engine will automatically trigger a **GLOBAL BETRAYAL**: your alliance will be downgraded and the nation gets a massive -30 Global Trust penalty.
+  - **⏳ THE 3-MONTH LIMIT (CRITICAL):** If your nation has signed a **MUTUAL_DEFENSE** pact and your ally is at war, the nation has exactly **3 months** to enter the conflict. While the Foreign Minister handles the formal war declaration, you are expected to mobilize and deploy forces toward the enemy, regardless of distance. If the government fails to act within this timeframe, the international community will recognize a **GLOBAL BETRAYAL**: your alliance will be downgraded and the nation gets a massive -30 Global Trust penalty.
 {nuclear_block}
  
 ## Public Justification
