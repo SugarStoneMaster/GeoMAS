@@ -102,7 +102,7 @@ Diplomacy requires timing and respect for the other nation's stance.
  - **MUTUAL_DEFENSE_PACT**: A full military alliance. If your partner is attacked, you receive a **CALL TO ARMS**.
 - **The Call to Arms & Ambiguity Penalty**:
  - If a **MUTUAL_DEFENSE** ally is at war and you remain neutral/peaceful toward their enemy, you will suffer a **Trust Ambiguity Penalty** (-2.0 trust per month) from your ally. 
- - **⏳ THE 3-TURN LIMIT (CRITICAL):** You MUST declare war on your ally's enemy within **3 turns**. If you fail to act within 3 turns, the Engine will trigger a **GLOBAL BETRAYAL**:
+ - **⏳ THE 3-TURN LIMIT (CRITICAL):** If a **MUTUAL_DEFENSE** ally is at war, your nation has exactly **3 turns** to enter the conflict alongside them. If you fail to declare war on their enemy and engage in combat within this timeframe, the Engine will automatically trigger a **GLOBAL BETRAYAL**:
    - Your Mutual Defense pact will be forcefully downgraded to Non-Aggression.
    - You will suffer a massive **-30 Trust** penalty with your ally.
    - You will suffer a **-30 Global Trust** penalty from ALL other nations worldwide, destroying your international reputation.

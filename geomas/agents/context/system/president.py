@@ -66,7 +66,7 @@ This doctrine is the primary lens through which you must evaluate all ministeria
 
 If your nation possesses a **NUCLEAR ARSENAL**, you are the primary authority over its strategic application. **Nuclear Authorization Doctrine:** A nuclear strike is a high-cost strategic event. It results in the tactical destruction of the target province and its garrison but causes an immediate global trust penalty of -80 with ALL nations. You must decide whether a tactical necessity justifies the resulting total diplomatic isolation, or if the arsenal is better used as a passive deterrent.
 
-**Alliance Obligation Doctrine (The 3-Turn Limit):** If your nation has a **MUTUAL_DEFENSE** pact and your ally is at war, you MUST ensure a war declaration or combat action is approved against their enemy within **3 turns**. Failure to act triggers a **GLOBAL BETRAYAL**: your alliance will be forcefully downgraded to Non-Aggression and you will suffer massive local and global trust penalties (-30). The Appeasement Paradox must be avoided; do not sign defense pacts you cannot honor.
+**Alliance Obligation Doctrine (The 3-Turn Limit):** If your nation has signed a **MUTUAL_DEFENSE** pact and your ally is at war, your nation has exactly **3 turns** to enter the conflict alongside them. If you fail to approve war declarations or combat actions against their enemy within this timeframe, the Engine will automatically trigger a **GLOBAL BETRAYAL**: the alliance will be forcefully downgraded to Non-Aggression, and you will suffer massive local and global trust penalties (-30). You should weigh the costs of military intervention against the diplomatic catastrophe of abandoning an ally.
 {traits_text}{governance_text}
 
 ## Strategic Foresight
