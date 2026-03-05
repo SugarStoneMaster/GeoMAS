@@ -88,6 +88,17 @@ class MapGenerator:
             cell_centroids, cell_vertices, self.rng
         )
         
+        # Step 4.5: Scrub VOID provinces from nation inventories
+        for nation in nations_dict.values():
+            valid_pids = []
+            for pid in nation.province_ids:
+                prov = provinces_dict.get(pid)
+                # Only keep provinces that actually belong to the nation
+                # VOID provinces have owner_id=None
+                if prov and prov.owner_id == nation.id:
+                    valid_pids.append(pid)
+            nation.province_ids = valid_pids
+        
         # Step 5: Finalize
         assign_territorial_waters(ocean_indices, provinces_dict, nations_dict)
         # NOTE: Nuke distribution is handled by SimulationEngine._init_agents
