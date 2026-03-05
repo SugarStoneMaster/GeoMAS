@@ -133,7 +133,7 @@ def _execute_create_unit(
     # Get costs
     costs = UNIT_COSTS[unit_type]
     
-    bureaucracy_mult = calculate_bureaucracy_multiplier(nation)
+    bureaucracy_mult = calculate_bureaucracy_multiplier(nation, world)
     total_budget = costs["budget"] * quantity * bureaucracy_mult
     total_materials = costs["materials"] * quantity * bureaucracy_mult
     total_energy = costs["energy"] * quantity * bureaucracy_mult

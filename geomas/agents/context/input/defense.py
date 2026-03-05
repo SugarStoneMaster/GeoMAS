@@ -135,7 +135,7 @@ class DefenseInputBuilder(BaseInputBuilder):
     def _build_budget_section(self, nation: NationState) -> str:
         """Build available budget section with real constants and maintenance awareness."""
         from geomas.calculators.consumption import calculate_bureaucracy_multiplier
-        bureaucracy_mult = calculate_bureaucracy_multiplier(nation)
+        bureaucracy_mult = calculate_bureaucracy_multiplier(nation, self.world)
         
         # Use real constants from defense schemas
         s_cost = UNIT_COSTS[UnitType.SOLDIER]

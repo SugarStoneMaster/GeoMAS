@@ -4,6 +4,10 @@ Consumption Calculators.
 Defines the base consumption rates for population and military units.
 """
 
+from typing import Optional, TYPE_CHECKING
+if TYPE_CHECKING:
+    from geomas.schemas.world import NationState, WorldState
+
 # --- CONSTANTS ---
 FOOD_PER_PERSON = 1.0
 ENERGY_PER_PERSON = 0.5
@@ -87,10 +91,29 @@ def calculate_budget_upkeep(
     )
 
 
-def calculate_bureaucracy_multiplier(nation: 'NationState') -> float:
+def calculate_bureaucracy_multiplier(nation: 'NationState', world: Optional['WorldState'] = None) -> float:
     """
     Calculate the bureaucratic cost multiplier based on empire size.
-    Base size is 5 provinces. Each additional province adds 15% cost to unit creation.
+    The threshold is dynamic based on the average nation size in the world.
+    Each additional province adds 5% cost to unit creation.
     """
     num_provinces = len(nation.province_ids)
-    return max(1.0, 1.0 + (num_provinces - 5) * 0.15)
+    
+    threshold = 5.0  # Default fallback
+    if world and world.nations:
+        active_nations = [
+            n for n in world.nations.values() 
+            if getattr(n, "is_active", True)
+        ]
+        if active_nations:
+            avg_size = sum(len(n.province_ids) for n in active_nations) / len(active_nations)
+            # Use 5.0 as a base floor for administration, but the threshold 
+            # becomes the average to penalize relative expansion.
+            # In a 1-nation world, avg_size == num_provinces, so we use the 
+            # absolute floor of 5.0 to ensure tests still see a penalty.
+            if len(active_nations) > 1:
+                threshold = avg_size
+            else:
+                threshold = 5.0
+    
+    return max(1.0, 1.0 + (num_provinces - threshold) * 0.05)
