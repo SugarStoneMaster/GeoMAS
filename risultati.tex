@@ -1,3 +1,49 @@
 \chapter{Results}
 \label{chap:results}
-...
+
+This chapter presents the empirical findings derived from the simulation runs outlined in the experimental design (\ref{chap:experimental_design}). By analyzing the telemetry data extracted from the GeoMAS engine, this section validates the framework's capability to model complex geopolitical dynamics and addresses the four primary Research Questions. The analysis progresses from evaluating the macro-stability of the baseline system to dissecting the micro-cognitive behaviors of individual agents when subjected to exogenous shocks or counterfactual constraints.
+
+\section{Baseline Telemetry and System Stability}
+\label{sec:res_baseline}
+\textit{Addresses RQ4: Emergent Socio-Political Equilibria.}
+
+This section analyzes the unperturbed baseline simulations to establish the system's default behavior, ensuring that the engine produces coherent macro-dynamics without spiraling into premature chaos or stagnation.
+% TODO: Inserisci grafici dal Jupyter Notebook (Chapter 1 & 5)
+% - Guns vs Butter (Trade Volume vs Units Created)
+% - Trust Matrix evolution (Networks a T=1, T=25, T=50)
+% - Action Governance: Engine Acceptance Rate e Presidential Veto Rate (dimostra la sanità dell'engine).
+
+\section{Macrodynamics: Scenario Impact Analysis}
+\label{sec:res_scenario}
+\textit{Addresses RQ1: Impact of Exogenous Scenario Perturbations.}
+
+This section evaluates the resilience and adaptability of the multi-agent system when subjected to global environmental shocks (e.g., Insurrection, Pandemic, Resource Discovery, Regime Change).
+% TODO: Inserisci grafici dal Jupyter Notebook (Chapter 2)
+% - Overlay plots (Baseline vs Scenario) per metriche chiave (Satisfaction, Trade Volume, Resources).
+% - Analisi qualitativa: come le Nazioni hanno reagito allo shock specifico.
+% - Tabella riassuntiva "Delta Baseline -> Scenario".
+
+\section{Microdynamics: Strategic Deception and Moral Washing}
+\label{sec:res_deception}
+\textit{Addresses RQ3: Alignment of Diplomatic Intent and Action.}
+
+This section investigates the internal cognitive processes of the LLM agents, specifically assessing their propensity to decouple public rhetoric from private strategic intent based on their Government Type and Global Strategy.
+% TODO: Inserisci grafici dal Jupyter Notebook (Chapter 4)
+% - Divergence plot: Deception Score nei domini Defense vs Foreign.
+% - Boxplots: Deception vs Government Type.
+% - Text mining istogrammi: Frequenza keyword nei Public Statements (es. "liberation", "sacred").
+
+\section{Causal Impacts: Counterfactual Analysis and XAI}
+\label{sec:res_counterfactual}
+\textit{Addresses RQ2: Causal Impact of Forced Strategic Decisions.}
+
+Utilizing the state-forking mechanism, this section traces the causal chain of localized cognitive injections, demonstrating how a single behavioral constraint imposed on one agent cascades through the global geopolitical equilibrium.
+% TODO: Inserisci grafici dal Jupyter Notebook (Chapter 3)
+% - Quale è stato il breakpoint e l'injected prompt.
+% - Prompt Audit: Confronto JSON Envelopes (Base vs Fork) per mostrare il cambio di intent.
+% - Cumulative Divergence Table e grafici a farfalla (effetti a valanga).
+
+\section{Technical Performance and Computational Overhead}
+\label{sec:res_performance}
+This brief section reports on the operational efficiency, token utilization, and estimated costs associated with running the DeepSeek V3.2 models asynchronously over extended simulation horizons.
+% TODO: Dati dal Jupyter Notebook (Chapter 6).
