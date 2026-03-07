@@ -275,22 +275,35 @@ if IS_MAIN:
                     with c_strat:
                         st.session_state["scenario_rc_strat"] = st.selectbox("New Strategy", [s.value for s in GlobalStrategy])
                 
-                if selected_scenario != "Non-scenario":
-                    st.session_state["enable_scenarios"] = True
-                    st.session_state["scenario_type"] = selected_scenario
-                    st.session_state["scenario_trigger_turn"] = target_scenario_turn
-                    
-                    # Manual trigger override for forks
-                    trigger_data = {"type": selected_scenario, "turn": target_scenario_turn}
-                    if selected_scenario == "REGIME_CHANGE":
-                        trigger_data["target_id"] = st.session_state.get("scenario_rc_target")
-                        trigger_data["new_gov"] = st.session_state.get("scenario_rc_gov")
-                        trigger_data["new_strategy"] = st.session_state.get("scenario_rc_strat")
+                # Show current staged scenario (if any)
+                staged = st.session_state.get("manual_scenario_trigger")
+                if staged:
+                    st.success(f"✅ Staged: **{staged['type']}** @ Turn {staged['turn']}")
+                    if st.button("❌ Clear Scenario", use_container_width=True):
+                        st.session_state.pop("manual_scenario_trigger", None)
+                        st.session_state["enable_scenarios"] = False
+                        st.rerun()
                         
-                    st.session_state["manual_scenario_trigger"] = trigger_data
+                # Gate scenario assignment behind an explicit confirm button.
+                # FIX: Without this gate, the trigger would be re-created on every Streamlit
+                # rerun as `current_turn` advances, causing the scenario to fire again
+                # in subsequent turns (observed when running a fork with 2 remaining turns).
+                if selected_scenario != "Non-scenario":
+                    if st.button("📌 Stage Scenario", use_container_width=True):
+                        trigger_data = {"type": selected_scenario, "turn": target_scenario_turn}
+                        if selected_scenario == "REGIME_CHANGE":
+                            trigger_data["target_id"] = st.session_state.get("scenario_rc_target")
+                            trigger_data["new_gov"] = st.session_state.get("scenario_rc_gov")
+                            trigger_data["new_strategy"] = st.session_state.get("scenario_rc_strat")
+                        st.session_state["manual_scenario_trigger"] = trigger_data
+                        st.session_state["enable_scenarios"] = True
+                        st.session_state["scenario_type"] = selected_scenario
+                        st.session_state["scenario_trigger_turn"] = target_scenario_turn
+                        st.rerun()
                 else:
-                    st.session_state["enable_scenarios"] = False
-                    st.session_state["scenario_trigger_turn"] = -1
+                    if not staged:
+                        st.session_state["enable_scenarios"] = False
+                        st.session_state["scenario_trigger_turn"] = -1
                 
                 st.markdown("### 🧪 Counterfactual Injection")
                 
