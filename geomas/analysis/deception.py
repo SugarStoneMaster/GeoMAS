@@ -153,24 +153,9 @@ class DeceptionAnalyzer:
     def calculate_score(cls, envelope: CountryEnvelope) -> float:
         """
         Calculate aggregated deception score for an envelope.
-        
-        Averages defense and foreign domain scores only.
-        Economic domain is excluded: economic actions are directly observable
-        and lack the narrative framing needed for moral washing measurement.
-        
-        Returns:
-            float: 0.0 (honest) to 1.0 (maximum deception)
         """
-        defense_score = cls.calculate_defense_deception(
-            envelope.defense_private_intent,
-            envelope.defense_public_intent
-        )
-        foreign_score = cls.calculate_foreign_deception(
-            envelope.foreign_private_intent,
-            envelope.foreign_public_intent
-        )
-        
-        return (defense_score + foreign_score) / 2.0
+        detailed = cls.calculate_detailed_score(envelope)
+        return detailed["total"]
     
     @classmethod
     def calculate_detailed_score(cls, envelope: CountryEnvelope) -> dict:

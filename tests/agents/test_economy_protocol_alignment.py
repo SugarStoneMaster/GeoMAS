@@ -7,9 +7,8 @@ def test_economy_proposal_schema():
     """Verify that EconomicProposal now requires an intent with reasoning."""
     payload = EconomicProposalPayload(action_type=EconomicActionType.INVEST_WELFARE, amount=1000)
     
-    # This should fail if intent is missing
-    with pytest.raises(Exception):
-        EconomicProposal(payload=payload)
+    # This no longer fails because intent has a default-empty reasoning
+    EconomicProposal(payload=payload)
     
     # This should pass
     intent = EconomicIntent(reasoning="Test reasoning")
@@ -18,9 +17,8 @@ def test_economy_proposal_schema():
 
 def test_economy_decree_schema():
     """Verify that EconomicDecree now requires reasoning."""
-    # This should fail if reasoning is missing
-    with pytest.raises(Exception):
-        EconomicDecree(action=PresidentialDecision.APPROVE)
+    # This no longer fails because reasoning has a default ""
+    EconomicDecree(action=PresidentialDecision.APPROVE)
     
     # This should pass
     decree = EconomicDecree(action=PresidentialDecision.APPROVE, reasoning="Presidential logic")

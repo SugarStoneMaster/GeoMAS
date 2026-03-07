@@ -105,10 +105,10 @@ def test_simulation_engine_creates_metrics_db(temp_sim_db):
     nations_df = conn.execute("SELECT * FROM metrics_nation WHERE turn = 1").df()
     assert len(nations_df) == 4
     
-    # Verify Deception Calculation (Private=CONQUEST but Public=DEFENSE + says 'Peace')
-    # Should trigger both mismatch penalty(0.5) and semantic penalty(0.5), clamped to 1.0
+    # Verify Deception Calculation (Private=CONQUEST but Public=DEFENSE)
+    # Unified DeceptionAnalyzer matrix returns 0.9 for (CONQUEST, DEFENSE)
     oster_row = nations_df[nations_df['nation_id'] == 'OSTER'].iloc[0]
-    assert oster_row['deception_defense'] == 1.0
+    assert oster_row['deception_defense'] == 0.9
     assert oster_row['deception_foreign'] == 0.0 # Match
     
     # 2. Check Global

@@ -77,7 +77,7 @@ class DefenseProposal(BaseModel):
 
 class EconomicProposal(BaseModel):
     """Economy minister's proposal to the president."""
-    intent: EconomicIntent
+    intent: EconomicIntent = Field(default_factory=EconomicIntent)
     payload: EconomicProposalPayload
 
 class ForeignProposal(BaseModel):

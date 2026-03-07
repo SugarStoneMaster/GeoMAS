@@ -12,61 +12,19 @@ from geomas.actions.defense.schemas import DefenseProposalPayload
 from geomas.actions.foreign.schemas import ForeignProposalPayload
 from geomas.actions.economy.schemas import EconomicProposalPayload
 from geomas.analysis.coherence import CoherenceAnalyzer
+from geomas.analysis.deception import DeceptionAnalyzer
 
 
 def calculate_deception_score(envelope: CountryEnvelope) -> Dict[str, float]:
     """
-    Calculates the deception score based on the disparity between private intents
-    and the public statement/intents.
-    
-    Returns:
-        A dictionary with scores for 'defense', 'foreign', 'economy' (always 0 for now as it lacks intents), 
-        and 'overall' (0.0 to 1.0).
-        0.0 = completely honest/transparent.
-        1.0 = completely deceptive.
+    Calculates the deception score based on the unified DeceptionAnalyzer.
     """
-    scores = {
-        "defense": 0.0,
-        "foreign": 0.0,
-        "overall": 0.0
+    detailed = DeceptionAnalyzer.calculate_detailed_score(envelope)
+    return {
+        "defense": detailed["defense"],
+        "foreign": detailed["foreign"],
+        "overall": detailed["total"]
     }
-    
-    public_stmt = (envelope.public_statement or "").lower()
-    
-    # --- Defense Deception ---
-    has_defense = False
-    if hasattr(envelope, 'defense_public_intent') and hasattr(envelope, 'defense_private_intent'):
-        has_defense = True
-        # Direct mismatch
-        if envelope.defense_public_intent != envelope.defense_private_intent:
-            scores["defense"] += 0.5
-            
-        # Semantic check: e.g. private is CONQUEST but public statement says "Peace"
-        if envelope.defense_private_intent == "CONQUEST":
-            if "peace" in public_stmt or "defend" in public_stmt:
-                scores["defense"] += 0.5
-                
-        scores["defense"] = min(1.0, scores["defense"])
-            
-    # --- Foreign Deception ---
-    has_foreign = False
-    if hasattr(envelope, 'foreign_public_intent') and hasattr(envelope, 'foreign_private_intent'):
-        has_foreign = True
-        if envelope.foreign_public_intent != envelope.foreign_private_intent:
-            scores["foreign"] += 0.5
-            
-        if envelope.foreign_private_intent == "COERCION":
-            if "friend" in public_stmt or "cooperat" in public_stmt or "peace" in public_stmt:
-                scores["foreign"] += 0.5
-                
-        scores["foreign"] = min(1.0, scores["foreign"])
-            
-    # Overall is the average of active domains
-    active_domains = sum([has_defense, has_foreign])
-    if active_domains > 0:
-        scores["overall"] = (scores["defense"] + scores["foreign"]) / active_domains
-        
-    return scores
 
 
 def calculate_coherence_score(envelope: CountryEnvelope) -> float:
