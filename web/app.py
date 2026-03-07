@@ -10,6 +10,12 @@ import sys
 import os
 import json
 import time
+import multiprocessing
+
+# --- MULTIPROCESSING GUARD FOR MACOS ---
+# Streamlit re-runs the script in workers on macOS 'spawn'. We must exit early.
+if multiprocessing.current_process().name != "MainProcess":
+    sys.exit(0)
 
 # --- PATH FIX ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -582,8 +588,10 @@ st.divider()
 
 # --- MAIN VIEW ---
 if not sim:
-    st.info("Initialize the simulation using the controls above.")
-    st.stop()
+    if st.runtime.exists():
+        st.info("Initialize the simulation using the controls above.")
+        st.stop()
+    sys.exit(0)
 
 world = sim.world
 

@@ -292,7 +292,17 @@ class ParallelBatchManager:
         worker_dbs = []
         
         while completed < total:
-            new_completed = sum(1 for r in results if r.ready())
+            new_completed = 0
+            for r in results:
+                if r.ready():
+                    try:
+                        r.wait(0) # Ensure it's done
+                        new_completed += 1
+                    except Exception as e:
+                        pool.terminate()
+                        pool.join()
+                        raise RuntimeError(f"Worker failed with error: {e}")
+            
             if new_completed > completed:
                 completed = new_completed
                 if progress_callback:
