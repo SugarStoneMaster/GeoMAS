@@ -75,6 +75,16 @@ The engine is configured with two deterministic seeds, one for map generation an
     \item Optionally initializes a DuckDB database for persistent storage, saving the Turn~0 world snapshot as the baseline.
 \end{enumerate}
 
+\subsubsection{Deterministic Seeding of LLM API Calls}
+\label{sec:llm_seeding}
+Beyond the two structural seeds, GeoMAS introduces a third layer of determinism control at the LLM inference level. For every agent query, the \texttt{LLMClient} computes a unique, reproducible integer \texttt{seed} via SHA-256 hashing over a composite key formed by the \texttt{map\_seed}, the current turn number, the nation identifier, and the ministerial role:
+\[
+\texttt{api\_seed} = \text{SHA-256}(\texttt{map\_seed} \| \texttt{turn} \| \texttt{nation\_id} \| \texttt{role})[:8]
+\]
+This seed is passed directly to the inference endpoint alongside a fixed \texttt{temperature=0.0}. The goal is to minimize stochastic variation in LLM outputs across equivalent runs. However, it must be explicitly acknowledged that \textbf{no commercial LLM inference API guarantees strict output determinism}, even when both temperature and seed are controlled. GPU floating-point accumulation order, multi-tenant batching optimizations on inference servers, and silent model-version drift all introduce small, irreducible stochastic residuals that lie outside the control of the framework.
+
+This limitation has a critical implication for GeoMAS: because the simulation is a sequential, causally coupled system, even a single divergent token in one minister's output, such as selecting a different target province for a troop movement, can cascade into a fundamentally different geopolitical trajectory via a \textbf{butterfly effect}. The altered action modifies the world state, which reshapes every subsequent agent's context window, which in turn skews their decisions, propagating the initial micro-variance into macro-level divergence across subsequent turns. This irreducible \textbf{background noise} is formally accounted for as a threat to conclusion validity (Chapter~\ref{ch:threats_validity}).
+
 \subsection{The Turn Loop}
 Each turn is executed by the \texttt{step()} method and proceeds through several sequential phases:
 
