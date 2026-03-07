@@ -24,7 +24,11 @@ class UIMockLLM(LLMClient):
     """Mock LLM that returns valid dummy objects for UI testing."""
     
     def __init__(self):
-        pass  # Skip parent initialization
+        self.model_name = "mock-model"
+        self.map_seed = 42
+        self.using_direct_client = False
+        self.last_usage = None
+        self.last_raw_content = None
     
     def query_agent(self, system_prompt, user_prompt, response_model, max_retries=3):
         """Returns deterministic responses based on the requested model type."""

@@ -25,6 +25,7 @@ from geomas.agents.llm_client import LLMClient
 from web.views.map_page import render_map_page
 from web.views.logs_page import render_logs_page
 from web.components.event_log import render_event_log
+from geomas.simulation.parallel_runner import ParallelBatchManager
 
 
 # --- PAGE CONFIG ---
@@ -77,19 +78,14 @@ def scenario_selection_dialog(num_turns: int):
         with col3:
              new_strat = st.selectbox("Nuova Strategia", [s.value for s in GlobalStrategy])
 
-    if st.button("🚀 Conferma e Avvia", type="primary", use_container_width=True):
-        import json
-        st.session_state["remaining_turns"] = num_turns
-        st.session_state["total_run_turns"] = num_turns
-        st.session_state["scenario_trigger_turn"] = trigger_turn
-
+        # Prepare Scenario Data
         if choice in ["PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE", "CAMBIO GOVERNO"]:
             scenario_data = {"type": choice, "turn": trigger_turn}
             if choice == "CAMBIO GOVERNO":
                 scenario_data["target_id"] = target_nation
                 scenario_data["new_gov"] = new_gov
                 scenario_data["new_strategy"] = new_strat
-                
+            
             sim.planned_scenario = scenario_data
             if sim.db:
                 sim.db.update_simulation_scenario(sim.simulation_id, json.dumps(scenario_data))
@@ -101,6 +97,43 @@ def scenario_selection_dialog(num_turns: int):
                 sim.db.update_simulation_scenario(sim.simulation_id, None)
             st.session_state["enable_scenarios"] = False
 
+        if st.session_state.get("parallel_mode"):
+            # Parallel Execution Path
+            manager = ParallelBatchManager(n_workers=st.session_state["parallel_instances"])
+            progress_bar = st.progress(0, text="Initializing parallel batch...")
+            
+            def update_progress(current, total, msg=None):
+                progress = current / total
+                text = msg or f"Simulating: {current}/{total} instances finished"
+                progress_bar.progress(progress, text=text)
+            
+            # Map seeds
+            map_seed = st.session_state.get("map_seed", 42)
+            hist_seed = st.session_state.get("history_seed", 99)
+            n_cells = st.session_state.get("n_cells", 300)
+            n_nations = st.session_state.get("n_nations", 4)
+            
+            manager.run_batch(
+                n_turns=num_turns,
+                map_seed=int(map_seed),
+                history_seed=int(hist_seed),
+                n_cells=int(n_cells),
+                n_nations=int(n_nations),
+                planned_scenario=sim.planned_scenario,
+                progress_callback=update_progress,
+                use_mock=st.session_state.get("parallel_dry_run", False)
+            )
+            
+            st.success(f"Successfully finished {st.session_state['parallel_instances']} parallel runs!")
+            import time
+            time.sleep(2)
+            st.session_state["remaining_turns"] = 0
+        else:
+            # Standard single execution path
+            st.session_state["remaining_turns"] = num_turns
+            st.session_state["total_run_turns"] = num_turns
+            st.session_state["scenario_trigger_turn"] = trigger_turn
+
         st.rerun()
 
 
@@ -111,6 +144,14 @@ if "remaining_turns" not in st.session_state:
     st.session_state["remaining_turns"] = 0
 if "injections" not in st.session_state:
     st.session_state["injections"] = []
+if "parallel_mode" not in st.session_state:
+    st.session_state["parallel_mode"] = False
+if "parallel_instances" not in st.session_state:
+    st.session_state["parallel_instances"] = 3
+if "parallel_dry_run" not in st.session_state:
+    st.session_state["parallel_dry_run"] = True
+if "parallel_running" not in st.session_state:
+    st.session_state["parallel_running"] = False
 
 
 
@@ -122,6 +163,15 @@ with st.sidebar:
     mode = st.radio("Mode", ["Live Simulation", "Analysis / Forking"], index=0, key="app_mode")
     
     st.divider()
+    
+    if mode == "Live Simulation":
+        st.markdown("### 🧬 Parallel Execution")
+        st.session_state["parallel_mode"] = st.checkbox("Enable Parallel Mode", value=st.session_state["parallel_mode"], help="Run multiple simulations concurrently with same seed.")
+        if st.session_state["parallel_mode"]:
+            st.session_state["parallel_instances"] = st.slider("Instances", 2, 6, st.session_state["parallel_instances"])
+            st.session_state["parallel_dry_run"] = st.checkbox("Parallel Dry Run", value=st.session_state["parallel_dry_run"], help="Use Mock LLM (zero cost, high speed) for all parallel instances.")
+            st.info("💡 Useful for variance analysis. Each run uses unique DB workers, merged at end.")
+        st.divider()
     
     if mode == "Analysis / Forking":
         # 0. Simulation Selection
