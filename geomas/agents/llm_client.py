@@ -62,7 +62,8 @@ class LLMClient:
         temperature: float = 0.0,
         max_tokens: int = 1000,
         reasoning_effort: str = "minimal",
-        top_p: Optional[float] = None
+        top_p: Optional[float] = None,
+        map_seed: int = 47
     ):
         """
         Args:
@@ -92,6 +93,7 @@ class LLMClient:
         self.max_tokens = max_tokens
         self.reasoning_effort = reasoning_effort
         self.top_p = top_p
+        self.map_seed = map_seed
 
         # Claude: Strict output mode, disable any reasoning effort
         if self.model_name and self.model_name.startswith("anthropic/"):
@@ -235,6 +237,19 @@ class LLMClient:
         """
         messages = self._build_messages(system_prompt, user_prompt)
         
+        # Calculate deterministic seed if context is provided
+        api_seed = None
+        if not context:
+            context = self._extract_metadata(system_prompt, user_prompt)
+            
+        if self.map_seed is not None:
+            import hashlib
+            turn = context.get("turn", 0)
+            nation = context.get("nation_id", "GLOBAL")
+            role = context.get("role", "SYSTEM")
+            seed_string = f"{self.map_seed}_{turn}_{nation}_{role}"
+            api_seed = int(hashlib.sha256(seed_string.encode('utf-8')).hexdigest()[:8], 16)
+        
         # Retry loop for Rate Limiting (Network/API)
         max_rate_retries = 5
         base_wait = 3.0
@@ -258,6 +273,10 @@ class LLMClient:
                 # Add top_p if specified
                 if self.top_p is not None:
                     kwargs["top_p"] = self.top_p
+                    
+                # Add deterministic seed if calculated
+                if api_seed is not None:
+                    kwargs["seed"] = api_seed
 
                 # We trust instructor to handle validation retries via max_retries
                 response, raw_completion = self.client.chat.completions.create_with_completion(
@@ -351,6 +370,19 @@ class LLMClient:
     ) -> T:
         """Async version of query_agent."""
         messages = self._build_messages(system_prompt, user_prompt)
+        
+        # Calculate deterministic seed if context is provided
+        api_seed = None
+        if not context:
+            context = self._extract_metadata(system_prompt, user_prompt)
+            
+        if self.map_seed is not None:
+            import hashlib
+            turn = context.get("turn", 0)
+            nation = context.get("nation_id", "GLOBAL")
+            role = context.get("role", "SYSTEM")
+            seed_string = f"{self.map_seed}_{turn}_{nation}_{role}"
+            api_seed = int(hashlib.sha256(seed_string.encode('utf-8')).hexdigest()[:8], 16)
 
         max_rate_retries = 3
         base_wait = 3.0
@@ -374,6 +406,10 @@ class LLMClient:
                 # Add top_p if specified
                 if self.top_p is not None:
                     kwargs["top_p"] = self.top_p
+                    
+                # Add deterministic seed if calculated
+                if api_seed is not None:
+                    kwargs["seed"] = api_seed
 
                 response, raw_completion = await self.aclient.chat.completions.create_with_completion(
                     model=model_arg,
@@ -497,6 +533,17 @@ class LLMClient:
             Tuple of (parsed_response, usage_stats)
         """
         messages = self._build_messages(system_prompt, user_prompt)
+        
+        # Calculate deterministic seed
+        api_seed = None
+        context = self._extract_metadata(system_prompt, user_prompt)
+        if self.map_seed is not None:
+            import hashlib
+            turn = context.get("turn", 0)
+            nation = context.get("nation_id", "GLOBAL")
+            role = context.get("role", "SYSTEM")
+            seed_string = f"{self.map_seed}_{turn}_{nation}_{role}"
+            api_seed = int(hashlib.sha256(seed_string.encode('utf-8')).hexdigest()[:8], 16)
 
         try:
             # Use raw litellm.completion to get full response with usage
@@ -545,6 +592,10 @@ class LLMClient:
             # Add top_p if specified
             if self.top_p is not None:
                 kwargs["top_p"] = self.top_p
+                
+            # Add deterministic seed if calculated
+            if api_seed is not None:
+                kwargs["seed"] = api_seed
 
             # Parse with Pydantic (using instructor for structured parsing)
             parsed = self.client.chat.completions.create(
