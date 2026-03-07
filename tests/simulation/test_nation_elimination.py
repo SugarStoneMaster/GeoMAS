@@ -96,6 +96,7 @@ class TestNationElimination:
                  defense_private_intent=DefenseIntentType.IDLE,
                  defense_private_reasoning="IDLE",
                  economic_payload=EconomicPayload(decision="VETO", action_type=None),
+                 economic_private_reasoning="IDLE",
                  foreign_payload=ForeignPayload(decision="VETO", action_type=None),
                  foreign_public_intent=ForeignIntentType.IDLE,
                  foreign_private_intent=ForeignIntentType.IDLE,

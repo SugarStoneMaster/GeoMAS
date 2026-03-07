@@ -10,7 +10,7 @@ from geomas.agents.nation_agent import NationAgent
 from geomas.agents.schemas import (
     GlobalStrategy,
     DefenseProposal, DefenseIntent, DefenseIntentType, 
-    EconomicProposal,
+    EconomicProposal, EconomicIntent,
     ForeignProposal, ForeignIntent, ForeignIntentType,
     PresidentialDecree, Decision, DefenseDecree, EconomicDecree, ForeignDecree
 )
@@ -55,6 +55,7 @@ class TestNationAgent:
             payload=DefensePayload(decision=Decision.APPROVE, moves=[])
         )
         eco_prop = EconomicProposal(
+            intent=EconomicIntent(reasoning="Economic reasoning"),
             payload=EconomicPayload(decision=Decision.APPROVE)
         )
         for_prop = ForeignProposal(
@@ -129,8 +130,8 @@ class TestNationAgent:
             urgency=10
         )
         eco_prop = EconomicProposal(
-            payload=EconomicPayload(decision=Decision.APPROVE), 
-            projected_cost=0
+            intent=EconomicIntent(reasoning="Ok"),
+            payload=EconomicPayload(decision=Decision.APPROVE)
         )
         for_prop = ForeignProposal(
             intent=ForeignIntent(
@@ -192,6 +193,7 @@ class TestNationAgent:
             payload=DefensePayload(decision=Decision.APPROVE, moves=[])
         )
         eco_prop = EconomicProposal(
+            intent=EconomicIntent(reasoning="Nothing to do."),
             payload=EconomicPayload(decision=Decision.APPROVE, action_type=EconomicActionType.IDLE)
         )
         for_prop = ForeignProposal(

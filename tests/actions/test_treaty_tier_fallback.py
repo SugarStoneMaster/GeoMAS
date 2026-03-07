@@ -42,6 +42,7 @@ def test_alliance_proposal_without_tier_defaults_to_non_aggression():
         defense_private_intent=DefenseIntentType.IDLE,
         defense_private_reasoning="Test",
         economic_payload=EconomicPayload(),
+        economic_private_reasoning="Test"
     )
     
     # Execute

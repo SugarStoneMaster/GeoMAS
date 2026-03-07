@@ -10,7 +10,7 @@ from geomas.agents.schemas import (
     DefenseIntentType, ForeignIntentType,
     DefensePayload, EconomicPayload, ForeignPayload,
     DefenseProposal, EconomicProposal, ForeignProposal,
-    DefenseIntent, ForeignIntent
+    DefenseIntent, ForeignIntent, EconomicIntent
 )
 
 @pytest.fixture
@@ -26,6 +26,7 @@ def mock_act_response():
             defense_private_intent=DefenseIntentType.DETERRENCE,
             defense_private_reasoning="Defense reasoning",
             economic_payload=EconomicPayload(),
+            economic_private_reasoning="Economic reasoning",
             foreign_payload=ForeignPayload(),
             foreign_public_intent=ForeignIntentType.COOPERATION,
             foreign_private_intent=ForeignIntentType.COOPERATION,
@@ -55,6 +56,7 @@ def mock_act_response():
                 payload=DefensePayload(moves=[])
             ),
             original_economic_proposal=EconomicProposal(
+                intent=EconomicIntent(reasoning="Minister reasoning"),
                 payload=EconomicPayload()
             ),
             original_foreign_proposal=ForeignProposal(

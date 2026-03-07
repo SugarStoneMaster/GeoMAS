@@ -5,7 +5,7 @@ from geomas.schemas.world import WorldState, NationState, ProvinceState, Terrain
 from geomas.agents.llm_client import LLMClient
 from geomas.agents.schemas import (
     PresidentialDecree, DefenseProposal, EconomicProposal, ForeignProposal,
-    DefenseIntent, DefenseIntentType,
+    DefenseIntent, DefenseIntentType, EconomicIntent,
     ForeignIntent, ForeignIntentType, GlobalStrategy, PresidentialDecision,
     DefenseDecree, EconomicDecree, ForeignDecree, CountryEnvelope, CabinetBriefing
 )
@@ -54,6 +54,7 @@ def test_nation_agent_collects_injections_for_president(clean_world):
         payload=DefenseProposalPayload(moves=[])
     )
     eco_prop = EconomicProposal(
+        intent=EconomicIntent(reasoning="R"),
         payload=EconomicProposalPayload(action_type=EconomicActionType.IDLE)
     )
     for_prop = ForeignProposal(
@@ -102,6 +103,7 @@ def test_envelope_captures_raw_president_response(clean_world):
         payload=DefenseProposalPayload(moves=[])
     )
     eco_prop = EconomicProposal(
+        intent=EconomicIntent(reasoning="R"),
         payload=EconomicProposalPayload(action_type=EconomicActionType.IDLE)
     )
     for_prop = ForeignProposal(

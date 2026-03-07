@@ -18,18 +18,21 @@ def test_pandemic_scenario_trigger():
     from geomas.actions.economy.schemas import EconomicPayload, EconomicActionType
     from geomas.agents.schemas import ForeignProposal, ForeignIntent, ForeignIntentType
     from geomas.actions.foreign.schemas import ForeignPayload, ForeignActionType
-    from geomas.agents.schemas import PresidentialDecree, PresidentialDecision, DefenseDecree, EconomicDecree, ForeignDecree
+    from geomas.agents.schemas import (
+        PresidentialDecree, PresidentialDecision, DefenseDecree, EconomicDecree, ForeignDecree, EconomicIntent
+    )
 
     dummy_defense = DefenseProposal(
         intent=DefenseIntent(public_intent=DefenseIntentType.IDLE, private_intent=DefenseIntentType.IDLE, reasoning="T"), 
         payload=DefensePayload(moves=[])
     )
     dummy_economy = EconomicProposal(
-        payload=EconomicPayload(action_type=EconomicActionType.IDLE), projected_cost=0
+        intent=EconomicIntent(reasoning="T"),
+        payload=EconomicPayload(action_type=EconomicActionType.IDLE)
     )
     dummy_foreign = ForeignProposal(
         intent=ForeignIntent(public_intent=ForeignIntentType.IDLE, private_intent=ForeignIntentType.IDLE, reasoning="T"),
-        payload=ForeignPayload(action_type=ForeignActionType.IDLE), target_trust_impact=0
+        payload=ForeignPayload(action_type=ForeignActionType.IDLE)
     )
     dummy_president = PresidentialDecree(
         defense=DefenseDecree(action=PresidentialDecision.APPROVE, reasoning="T"),
@@ -114,18 +117,21 @@ def mock_engine_llm(engine):
     from geomas.actions.economy.schemas import EconomicPayload, EconomicActionType
     from geomas.agents.schemas import ForeignProposal, ForeignIntent, ForeignIntentType
     from geomas.actions.foreign.schemas import ForeignPayload, ForeignActionType
-    from geomas.agents.schemas import PresidentialDecree, PresidentialDecision, DefenseDecree, EconomicDecree, ForeignDecree
+    from geomas.agents.schemas import (
+        PresidentialDecree, PresidentialDecision, DefenseDecree, EconomicDecree, ForeignDecree, EconomicIntent
+    )
 
     dummy_defense = DefenseProposal(
         intent=DefenseIntent(public_intent=DefenseIntentType.IDLE, private_intent=DefenseIntentType.IDLE, reasoning="T"), 
         payload=DefensePayload(moves=[])
     )
     dummy_economy = EconomicProposal(
-        payload=EconomicPayload(action_type=EconomicActionType.IDLE), projected_cost=0
+        intent=EconomicIntent(reasoning="T"),
+        payload=EconomicPayload(action_type=EconomicActionType.IDLE)
     )
     dummy_foreign = ForeignProposal(
         intent=ForeignIntent(public_intent=ForeignIntentType.IDLE, private_intent=ForeignIntentType.IDLE, reasoning="T"),
-        payload=ForeignPayload(action_type=ForeignActionType.IDLE), target_trust_impact=0
+        payload=ForeignPayload(action_type=ForeignActionType.IDLE)
     )
     dummy_president = PresidentialDecree(
         defense=DefenseDecree(action=PresidentialDecision.APPROVE, reasoning="T"),

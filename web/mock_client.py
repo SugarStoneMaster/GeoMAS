@@ -10,7 +10,8 @@ from geomas.agents.schemas import (
     DefenseIntent, DefenseIntentType,
     ForeignIntent, ForeignIntentType,
     DefenseProposal, EconomicProposal, ForeignProposal,
-    PresidentialDecree, Decision, DefenseDecree, EconomicDecree, ForeignDecree
+    PresidentialDecree, Decision, DefenseDecree, EconomicDecree, ForeignDecree,
+    EconomicIntent
 )
 from geomas.actions.defense import DefensePayload, Decision
 from geomas.actions.economy import EconomicPayload, EconomicActionType
@@ -39,8 +40,8 @@ class UIMockLLM(LLMClient):
             )
         
         elif issubclass(response_model, EconomicProposal):
-            # No intent field anymore
             return response_model(
+                intent=EconomicIntent(reasoning="Economic growth"),
                 payload={
                     "action_type": EconomicActionType.INVEST_WELFARE
                 }
@@ -80,12 +81,13 @@ class UIMockLLM(LLMClient):
                 defense_public_intent=DefenseIntentType.DEFENSE,
                 defense_private_intent=DefenseIntentType.IDLE,
                 defense_private_reasoning="No threats detected, maintaining defensive posture.",
-                # Economic (no intents)
+                # Economic
                 economic_payload=EconomicPayload(
                     decision=Decision.APPROVE,
                     action_type=EconomicActionType.INVEST_WELFARE,
                     amount=50.0
                 ),
+                economic_private_reasoning="Economic reasoning.",
                 # Foreign
                 foreign_payload=ForeignPayload(decision=Decision.APPROVE),
                 foreign_public_intent=ForeignIntentType.COOPERATION,

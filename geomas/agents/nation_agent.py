@@ -12,7 +12,7 @@ from geomas.agents.schemas import (
     PresidentialDecree, Decision, PresidentialDecision,
     DefenseProposal, EconomicProposal, ForeignProposal,
     DefenseIntentType, ForeignIntentType,
-    DefenseIntent, ForeignIntent,
+    DefenseIntent, ForeignIntent, EconomicIntent,
     GovernmentType
 )
 from geomas.actions.common import Decision
@@ -211,10 +211,10 @@ class NationAgent:
                 timeout=100.0
             )
         except Exception as e:
-            print(f"[WARN] Economy minister failed for {self.id}: {repr(e)}")
+            print(f"[ERROR] Economy minister failed for {self.id}: {repr(e)}")
             return EconomicProposal(
-                payload=EconomicProposalPayload(action_type=EconomicActionType.IDLE),
-                projected_cost=0.0
+                intent=EconomicIntent(reasoning=f"Minister failure: {str(e)[:100]}"),
+                payload=EconomicProposalPayload(action_type=EconomicActionType.IDLE)
             )
 
     async def _safe_apropose_foreign(self, turn: int, injection: Optional[str] = None) -> ForeignProposal:
@@ -370,9 +370,12 @@ class NationAgent:
                 give_amount=prop_payload.give_amount,
                 want_type=prop_payload.want_type
             )
+            eco_reasoning = f"{briefing.economy.intent.reasoning} [President: {decree.economy.reasoning}]"
         else: # VETO or ACKNOWLEDGE -> No action
             eco_decision = Decision.VETO if decree.economy.action == PresidentialDecision.VETO else Decision.APPROVE
             eco_payload = EconomicPayload(decision=eco_decision, action_type=EconomicActionType.IDLE)
+            action_desc = "VETOED" if decree.economy.action == PresidentialDecision.VETO else "ACKNOWLEDGED IDLE"
+            eco_reasoning = f"{action_desc}: {decree.economy.reasoning}"
 
         # --- FOREIGN ---
         if decree.foreign.action == PresidentialDecision.APPROVE:
@@ -413,6 +416,7 @@ class NationAgent:
             defense_private_reasoning=def_reasoning,
             
             economic_payload=eco_payload,
+        economic_private_reasoning=eco_reasoning,
             
             foreign_payload=for_payload,
             foreign_public_intent=for_pub_intent,
@@ -479,9 +483,10 @@ class NationAgent:
         return summary + " " + ", ".join(actions)
 
     def _summarize_economy(self, proposal: EconomicProposal) -> str:
-        """Format economic proposal for President (no intent fields)."""
+        """Format economic proposal for President."""
+        intent = proposal.intent
         payload = proposal.payload
-        summary = "**Action:**"
+        summary = f"**Reasoning:** {intent.reasoning}\n**Action:**"
         
         if payload.action_type:
             # Build details from explicit fields

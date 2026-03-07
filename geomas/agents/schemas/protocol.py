@@ -63,6 +63,11 @@ class ForeignIntent(BaseModel):
     reasoning: str = Field(..., description="Explanation of strategy and any divergence (Public vs Private).")
 
 
+class EconomicIntent(BaseModel):
+    """Economic strategic intent with reasoning."""
+    reasoning: str = Field("", description="Explanation of economic strategy and proposed actions.")
+
+
 # --- INTERMEDIATE PROPOSALS (Minister to President) ---
 
 class DefenseProposal(BaseModel):
@@ -72,6 +77,7 @@ class DefenseProposal(BaseModel):
 
 class EconomicProposal(BaseModel):
     """Economy minister's proposal to the president."""
+    intent: EconomicIntent
     payload: EconomicProposalPayload
 
 class ForeignProposal(BaseModel):
@@ -106,7 +112,7 @@ class DefenseDecree(BaseModel):
 class EconomicDecree(BaseModel):
     """President's decision on Economy."""
     action: PresidentialDecision
-    reasoning: str
+    reasoning: str = ""
 
 class ForeignDecree(BaseModel):
     """President's decision on Foreign Affairs."""
@@ -178,6 +184,9 @@ class CountryEnvelope(BaseModel):
     # ECONOMIC DOMAIN
     # ═══════════════════════════════════════════════════════════════
     economic_payload: EconomicPayload
+    economic_private_reasoning: str = Field(
+        "", description="Internal reasoning for economic decisions (XAI)."
+    )
     
     # ═══════════════════════════════════════════════════════════════
     # FOREIGN DOMAIN

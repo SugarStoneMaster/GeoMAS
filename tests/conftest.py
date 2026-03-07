@@ -54,6 +54,7 @@ def create_test_envelope(
         defense_private_reasoning="Test reasoning",
         # Economic
         economic_payload=economic_payload or EconomicPayload(decision=Decision.APPROVE),
+        economic_private_reasoning="Test reasoning",
         # Foreign
         foreign_payload=foreign_payload or ForeignPayload(decision=Decision.APPROVE),
         foreign_public_intent=foreign_public_intent or ForeignIntentType.IDLE,

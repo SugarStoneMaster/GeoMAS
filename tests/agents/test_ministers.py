@@ -17,8 +17,8 @@ from geomas.agents.schemas import (
     DefenseIntent,
    
     ForeignIntent,
+    EconomicIntent,
     DefenseIntentType,
-    
     ForeignIntentType,
     DefensePayload,
     EconomicPayload,
@@ -149,6 +149,7 @@ class TestEconomicMinister(TestMinisterBase):
         
         # Mock response
         mock_response = EconomicProposal(
+            intent=EconomicIntent(reasoning="Test reasoning"),
             payload=EconomicPayload(
                 decision=Decision.APPROVE,
                 action_type=EconomicActionType.INVEST_WELFARE,
@@ -184,8 +185,8 @@ class TestEconomicMinister(TestMinisterBase):
         
         # Mock response
         client.query_agent.return_value = EconomicProposal(
-            payload=EconomicPayload(decision=Decision.APPROVE, action_type=None),
-            projected_cost=0.0
+            intent=EconomicIntent(reasoning="Test"),
+            payload=EconomicPayload(decision=Decision.APPROVE, action_type=None)
         )
         
         minister.propose(GlobalStrategy.COALITION_BUILDER, turn=1)

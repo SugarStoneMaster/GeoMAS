@@ -78,6 +78,7 @@ def test_simulation_engine_creates_metrics_db(temp_sim_db):
             defense_private_reasoning="Fake reasoning",
             
             economic_payload=EconomicPayload(),
+            economic_private_reasoning="Fake reasoning",
             
             foreign_payload=ForeignPayload(),
             foreign_public_intent=ForeignIntentType.COOPERATION,

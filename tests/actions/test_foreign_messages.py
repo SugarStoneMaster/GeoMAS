@@ -36,6 +36,7 @@ def create_valid_envelope(nation_id, turn, foreign_payload):
         defense_private_reasoning="Test",
         # Economy (Defaults)
         economic_payload=EconomicPayload(),
+        economic_private_reasoning="Test reasoning"
     )
 
 def test_alliance_proposal_carries_message(world):

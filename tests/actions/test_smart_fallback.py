@@ -25,6 +25,7 @@ def create_envelope(sender_id, payload):
         defense_private_intent=DefenseIntentType.IDLE,
         defense_private_reasoning="Test",
         economic_payload=EconomicPayload(),
+        economic_private_reasoning="Test"
     )
 
 def test_fallback_infers_mutual_defense_from_message():

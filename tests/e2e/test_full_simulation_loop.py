@@ -43,10 +43,9 @@ class E2EMockLLM(LLMClient):
                 urgency=1
             )
         elif issubclass(response_model, EconomicProposal):
-            # NO INTENT FIELD
             return response_model(
-                payload={"decision": Decision.APPROVE, "action_type": EconomicActionType.INVEST_WELFARE},
-                projected_cost=10.0
+                intent={"reasoning": "Economic stability"},
+                payload={"decision": Decision.APPROVE, "action_type": EconomicActionType.INVEST_WELFARE}
             )
         elif issubclass(response_model, ForeignProposal):
             return response_model(
@@ -55,8 +54,7 @@ class E2EMockLLM(LLMClient):
                     "private_intent": ForeignIntentType.COOPERATION,
                     "reasoning": "Coop"
                 },
-                payload={"decision": Decision.APPROVE, "action_type": ForeignActionType.SEND_DIPLOMATIC_MESSAGE},
-                target_trust_impact=0.1
+                payload={"decision": Decision.APPROVE, "action_type": ForeignActionType.SEND_DIPLOMATIC_MESSAGE}
             )
         elif issubclass(response_model, PresidentialDecree):
             return PresidentialDecree(
@@ -76,12 +74,13 @@ class E2EMockLLM(LLMClient):
                 defense_public_intent=DefenseIntentType.IDLE,
                 defense_private_intent=DefenseIntentType.IDLE,
                 defense_private_reasoning="Peace is best.",
-                # Economic - honest (no intent fields)
+                # Economic - honest
                 economic_payload=EconomicPayload(
                     decision=Decision.APPROVE, 
                     action_type=EconomicActionType.INVEST_WELFARE,
                     amount=10.0
                 ),
+                economic_private_reasoning="Economic reasoning.",
                 # Foreign - honest
                 foreign_payload=ForeignPayload(decision=Decision.APPROVE),
                 foreign_public_intent=ForeignIntentType.COOPERATION,

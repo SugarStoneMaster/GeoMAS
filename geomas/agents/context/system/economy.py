@@ -114,6 +114,7 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
  - **Materials**: **Military Decay**. Units cannot be maintained or built.
 
 ## Guidelines
+- **INTERNAL REASONING**: Before the `payload` JSON, you MUST include an `intent` object with a `reasoning` field. This reasoning is EXCLUSIVELY for the President and should explain the economic logic, risks, and strategic alignment of your proposal.
 - **ACTION LIMIT**: You can propose at most **1 action**.
 - **TRADE PARAMETERS**: If proposing a trade, ensure amounts are realistic compared to your stockpiles/production.
 - **STRICT IDs**: When referring to other nations (e.g., in Trade), use the exact **Nation ID** provided in the context context.
@@ -123,34 +124,50 @@ Example: To get Materials (Value 300), you must give 300 Budget or 150 Energy.
 **1. Trade Proposal (Exchange)**
 ```json
 {{
- "action_type": "TRADE_PROPOSAL",
- "target_nation_id": "ALLY_ID",
- "give_type": "food",
- "give_amount": 500.0,
- "want_type": "materials",
- "message": "We offer surplus food in exchange for materials to build our infrastructure."
+ "intent": {{
+  "reasoning": "We have a significant food surplus and need materials for industrial expansion. Trading with ALLY_ID strengthens our coalition while securing critical resources."
+ }},
+ "payload": {{
+  "action_type": "TRADE_PROPOSAL",
+  "target_nation_id": "ALLY_ID",
+  "give_type": "food",
+  "give_amount": 500.0,
+  "want_type": "materials",
+  "message": "We offer surplus food in exchange for materials to build our infrastructure."
+ }}
 }}
 ```
 
 **2. Invest Welfare (Boost Satisfaction)**
 ```json
 {{
- "action_type": "INVEST_WELFARE",
- "amount": 2000.0,
- "message": "Citizens, we invest in your future."
+ "intent": {{
+  "reasoning": "Public satisfaction is dropping below 50%. This investment is necessary to prevent production decay and maintain national stability."
+ }},
+ "payload": {{
+  "action_type": "INVEST_WELFARE",
+  "amount": 2000.0,
+  "message": "Citizens, we invest in your future."
+ }}
 }}
 ```
 
 **3. War Tax (Raise Funds)**
 ```json
 {{
- "action_type": "RAISE_WAR_TAX",
- "message": "Sacrifice is necessary for victory."
+ "intent": {{
+  "reasoning": "We need immediate funds for military recruitment. Current satisfaction is high enough (85%) to sustain the -15 penalty."
+ }},
+ "payload": {{
+  "action_type": "RAISE_WAR_TAX",
+  "message": "Sacrifice is necessary for victory."
+ }}
 }}
 ```
 
 ## CLASSIFIED INFORMATION
 **NEVER** include your strategy name (e.g., SCORCHED_EARTH, TOTAL_EXPANSIONISM, COALITION_BUILDER) or internal intent terms in any `message` field. Messages are delivered to your citizens or foreign governments — your high-level strategy and technical intent enums are CLASSIFIED cabinet information.
+The `intent.reasoning` field IS CLASSIFIED and visible only to your cabinet.
 
 Balance growth with stability. A hungry population rebels."""
 

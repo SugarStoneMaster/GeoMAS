@@ -10,7 +10,7 @@ from geomas.agents.schemas import (
     DefensePayload, EconomicPayload, ForeignPayload,
     DefenseIntentType, ForeignIntentType,
     DefenseProposal, EconomicProposal, ForeignProposal,
-    DefenseIntent, ForeignIntent
+    DefenseIntent, ForeignIntent, EconomicIntent
 )
 from geomas.actions.defense.schemas import DefenseProposalPayload
 from geomas.actions.economy.schemas import EconomicProposalPayload, EconomicActionType
@@ -46,6 +46,7 @@ def test_history_restoration_minimal(temp_db):
         defense_private_intent=DefenseIntentType.IDLE,
         defense_private_reasoning="None",
         economic_payload=EconomicPayload(decision=Decision.APPROVE, action_type=None),
+        economic_private_reasoning="None",
         foreign_payload=ForeignPayload(decision=Decision.APPROVE, action_type=None),
         foreign_public_intent=ForeignIntentType.IDLE,
         foreign_private_intent=ForeignIntentType.IDLE,
@@ -123,6 +124,7 @@ def test_action_injection_parsing():
                 payload=DefenseProposalPayload(moves=[])
             ),
             EconomicProposal(
+                intent=EconomicIntent(reasoning="mock"),
                 payload=EconomicProposalPayload(action_type=EconomicActionType.IDLE)
             ),
             ForeignProposal(

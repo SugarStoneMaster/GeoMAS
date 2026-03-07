@@ -27,6 +27,7 @@ def create_valid_envelope(nation_id, turn, economic_payload):
         public_statement="Test statement",
         # Economy
         economic_payload=economic_payload,
+        economic_private_reasoning="Test reasoning",
         # Defense (Defaults)
         defense_payload=DefensePayload(),
         defense_public_intent=DefenseIntentType.IDLE,

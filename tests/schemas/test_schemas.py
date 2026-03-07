@@ -43,7 +43,8 @@ def test_envelope_structure():
             foreign_payload=ForeignPayload(decision=Decision.APPROVE),
             foreign_public_intent=ForeignIntentType.IDLE,
             foreign_private_intent=ForeignIntentType.IDLE,
-            foreign_private_reasoning="Test"
+            foreign_private_reasoning="Test",
+            economic_private_reasoning="Test"
         )
 
 
@@ -62,6 +63,7 @@ def test_envelope_valid():
         defense_private_reasoning="Maintaining peace.",
         # Economic
         economic_payload=EconomicPayload(decision=Decision.APPROVE),
+        economic_private_reasoning="Investing in development.",
         # Foreign
         foreign_payload=ForeignPayload(decision=Decision.APPROVE),
         foreign_public_intent=ForeignIntentType.COOPERATION,
