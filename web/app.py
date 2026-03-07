@@ -461,16 +461,21 @@ if st.session_state["remaining_turns"] != 0 and sim:
     
     # Check for manual trigger first
     if "manual_scenario_trigger" in st.session_state:
-        scenario_trigger = st.session_state.pop("manual_scenario_trigger")
-        st.toast(f"🚨 Executing Manual Scenario: {scenario_trigger['type']}!", icon="🔥")
+        trigger = st.session_state["manual_scenario_trigger"]
+        if trigger.get("turn") == sim.world.turn:
+            scenario_trigger = st.session_state.pop("manual_scenario_trigger")
+            st.toast(f"🚨 Executing Manual Scenario: {scenario_trigger['type']}!", icon="🔥")
     # Otherwise check for midpoint trigger or explicit fork trigger
     elif st.session_state.get("enable_scenarios", False) and st.session_state["remaining_turns"] > 0:
         target_turn = st.session_state.get("scenario_trigger_turn", -1)
         if target_turn == sim.world.turn:
-            scenario_trigger = {
-                "type": st.session_state.get("scenario_type", "PANDEMIA"),
-                "turn": target_turn
-            }
+            if getattr(sim, "planned_scenario", None) and sim.planned_scenario.get("turn") == target_turn:
+                scenario_trigger = sim.planned_scenario
+            else:
+                scenario_trigger = {
+                    "type": st.session_state.get("scenario_type", "PANDEMIA"),
+                    "turn": target_turn
+                }
             st.toast(f"🚨 Executing Scenario: {scenario_trigger['type']}!", icon="🔥")
 
     

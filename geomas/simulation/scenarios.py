@@ -431,6 +431,9 @@ def trigger_regime_change(world: WorldState, context_manager: ContextManager, tu
     from geomas.agents.schemas import GlobalStrategy
     
     target_id = trigger.get("target_id")
+    if isinstance(target_id, str):
+        target_id = target_id.upper()
+        
     raw_gov = trigger.get("new_gov")
     raw_strat = trigger.get("new_strategy")
     
@@ -448,6 +451,7 @@ def trigger_regime_change(world: WorldState, context_manager: ContextManager, tu
         
     # Update NationState Backend
     nation.government_type = new_gov.value
+    nation.global_strategy = new_strat.value
     
     # 1. Neutral Global Notification
     global_msg = f"🏛️ [GLOBAL EVENT] A new government has been formed in {nation.name}. The transition of political power is complete."
