@@ -21,7 +21,7 @@ def worker_routine(
     worker_id: int, 
     n_turns: int, 
     map_seed: int, 
-    history_seed_offset: int, 
+    history_seed: int, 
     n_cells: int, 
     n_nations: int,
     base_data_dir: str,
@@ -47,7 +47,7 @@ def worker_routine(
     # Initialize Engine
     sim = SimulationEngine(
         map_seed=map_seed,
-        history_seed=history_seed_offset,
+        history_seed=history_seed,
         n_cells=n_cells,
         n_nations=n_nations,
         llm_client=client,
@@ -272,15 +272,11 @@ class ParallelBatchManager:
         
         results = []
         for i in range(self.n_workers):
-            # Each worker gets a slightly different history seed offset for variety
-            # while maintaining individual determinism.
-            # Using i*1000 ensures they don't overlap easily even with small seeds.
-            seed_offset = history_seed + (i * 1000)
-            
+            # All workers use the exact same seeds for 100% parity
             res = pool.apply_async(
                 worker_routine,
                 args=(
-                    i, n_turns, map_seed, seed_offset, n_cells, n_nations, 
+                    i, n_turns, map_seed, history_seed, n_cells, n_nations, 
                     self.data_dir, planned_scenario, use_mock
                 )
             )
