@@ -8,6 +8,8 @@ Run with: streamlit run web/app.py
 import streamlit as st
 import sys
 import os
+import json
+import time
 
 # --- PATH FIX ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -78,6 +80,9 @@ def scenario_selection_dialog(num_turns: int):
         with col3:
              new_strat = st.selectbox("Nuova Strategia", [s.value for s in GlobalStrategy])
 
+    st.divider()
+
+    if st.button("🚀 Conferma e Avvia", type="primary", use_container_width=True):
         # Prepare Scenario Data
         if choice in ["PANDEMIA", "SCOPERTA RISORSE", "INSURREZIONE", "CAMBIO GOVERNO"]:
             scenario_data = {"type": choice, "turn": trigger_turn}
@@ -125,7 +130,6 @@ def scenario_selection_dialog(num_turns: int):
             )
             
             st.success(f"Successfully finished {st.session_state['parallel_instances']} parallel runs!")
-            import time
             time.sleep(2)
             st.session_state["remaining_turns"] = 0
         else:
