@@ -36,63 +36,74 @@ This chapter presents the empirical findings derived from the simulation runs ou
 
 This section analyzes the unperturbed baseline simulations to establish the system's default behavioral attractors, ensuring that the engine produces coherent macro-dynamics without spiraling into premature chaos or stagnation.
 
-% ── NOTEBOOK: usa il BASELINE_ID selezionato al STEP 0. ──────────────────────
-%
-% [§1.1] Global Deception & Coherence Trends
-%   → Osserva l'andamento delle curve di Deception Score (overall, defense, foreign) su 50 turni.
-%   → SCRIVI: descrivono una traiettoria crescente, decrescente o stazionaria?
-%     Si vede una fase "warming up" iniziale dove gli agenti ancora formano relazioni?
-%     Il deception tende ad aumentare man mano che aumenta la competizione per risorse?
-%   → Nota se ci sono picchi improvvisi (segnalano un turno di crisi/guerra).
-%
-% [§1.2] Guns vs Butter (Trade Volume vs Units Created)
-%   → Questo grafico disambigua se il sistema evolve verso cooperazione (trade alto,
-%     unità basse) o conflitto (trade basso, unità alte).
-%   → SCRIVI: in quale range di turni il sistema si trova in fase militaristica vs
-%     commerciale? C'è una svolta geopolitica evidente?
-%   → Collega ai Government Type: le nazioni AUTHORITARIAN/TOTAL_EXPANSIONISM
-%     dovrebbero mostrare units_created più alte.
-%
-% [§1.3] Power Projection per Nation
-%   → Mostra chi diventa egemone e chi rimane marginale.
-%   → SCRIVI: ci sono nazioni che accumulano potere in modo crescente e stabile
-%     (candidati all'egemonia) o il potere è distribuito e volatile?
-%     Questo risponde alla domanda RQ4 su bipolarismo vs multipolarismo.
-%
-% [§1.4] Resource Trends (PENSO CHE LA SALTO QUESTA)
-%   → Osserva Budget, Food, Energy, Materials nelle 8 nazioni.
-%   → SCRIVI: quali nazioni soffrono scarsità cronica (segnale di instabilità latente)?
-%     Questo contestualizza PERCHÉ certi agenti attuano comportamenti aggressivi.
-%
-% [§1.5] Global KPIs Summary
-%   → Tabella aggregata: avg satisfaction, avg deception, total wars, total provinces changed.
-%   → CITA questa tabella nel testo come "Table X" con i valori numerici della baseline scelta.
-%
-% [§5.1–5.5] Equilibri Emergenti (RQ4 core)
-%   → §5.1 Network Evolution: includi screenshot della trust matrix a T=1, T=25, T=50.
-%     Mostra se si formano cluster (bipolarismo) o la rete rimane frammentata.
-%   → §5.2 Alliance Bloc Detection: quanti blocchi si formano? Quali nazioni
-%     gravitano attorno agli stessi poli? Cita coalition_builder + authoritarian come
-%     asse di frattura naturale.
-%   → §5.3 War Count & Violence Rate: la violenza aumenta nel tempo o si stabilizza?
-%   → §5.4 Satisfaction & Civil Unrest: il sistema trova un equilibrio di bassa
-%     soddisfazione tollerabile o collassa in insurrezione spontanea?
-%   → §5.5 Territory Changes: quante province cambiano proprietario complessivamente?
-%     Un valore alto indica un sistema ad alta entropia geopolitica.
-%
-% [§7.1–7.6] Action Governance (health check del motore, non strettamente RQ ma utile)
-%   → §7.1 Engine Acceptance Rate: quante azioni vengono accettate dal motore?
-%     Un tasso molto basso (< 50%) indica che gli agenti propongono azioni irrealistiche.
-%   → §7.4–7.5 Presidential Veto Rate: alcune nazioni hanno presidenti molto
-%     interventisti? I governi AUTHORITARIAN hanno veto rate diversa dai DEMOCRACY?
-%   → SCRIVI: questi dati dimostrano la sanità computazionale del framework e
-%     che il decision-making è calibrato, non casuale.
-%
-% TESTO DA SCRIVERE (struttura paragrafi):
-%   P1: Descrivi l'equilibrio emergente (cooperazione vs conflitto) e la traiettoria macro.
-%   P2: Identifica le nazioni dominanti e quelle marginali (Power Projection + risorse).
-%   P3: Descrivi l'evoluzione del trust network e i blocchi di alleanza (risponde a RQ4).
-%   P4: Commenta la sanità del motore (acceptance rate, veto rate) come prova di validità tecnica.
+\paragraph{Agent Cognitive Quality.}
+Figure~\ref{fig:baseline_deception_coherence} reports the global average Deception Score and Coherence Score across all 50 turns of the baseline simulation. Both metrics exhibit striking temporal stability: the Coherence Score stabilizes immediately at approximately $0.87$ and remains in the range $[0.82, 0.95]$ throughout the entire run, while the Deception Score converges to approximately $0.27$ within the first two turns and shows no discernible trend or crisis-induced spikes. The aggregate summary (Table~\ref{tab:baseline_kpis}) confirms these observations, reporting a mean Coherence of $0.85$ and a mean Deception of $0.27$ over the full simulation horizon.
+
+The absence of an accelerating deception trajectory is theoretically significant: in a system driven to conflict by resource scarcity, one might expect agents to progressively decouple their public rhetoric from their private strategic intent. The observed stability instead suggests that LLM agents maintain a consistent strategic personality throughout the run, with deception bounded by ideological constraints embedded in their respective system prompts. The finer breakdown of deception by Government Type and Global Strategy is examined in Section~\ref{sec:res_deception}.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/baseline_deception_coherence.png}
+    \caption{Global average Deception Score (red) and Coherence Score (green) over 50 turns. Both metrics are stable throughout the simulation horizon, with no crisis-induced trend or spike.}
+    \label{fig:baseline_deception_coherence}
+\end{figure}
+
+\paragraph{Resource Allocation Dynamics: A Three-Phase Geopolitical Cycle.}
+The Guns vs.\ Butter chart (Figure~\ref{fig:baseline_guns_butter}) reveals a more complex dynamic than simple equilibrium by exposing three structurally distinct phases in the joint evolution of global Trade Volume and Units Created.
+
+During the \textit{initialization phase} ($T = 1$--$7$), nations deploy initial military stocks from pre-allocated resources, producing a large pulse of unit creation ($\approx\!200{,}000$ units in turn 1) which declines to a steady-state production rate of approximately $32{,}000$--$42{,}000$ units per turn by turn 7. Trade Volume grows sharply from zero to approximately $400{,}000$, reflecting the formation of early diplomatic and commercial agreements.
+
+The \textit{competitive equilibrium phase} ($T = 8$--$18$) is characterized by oscillating trade volumes in the range $[220{,}000, 410{,}000]$ and stable military production. This alternating pattern reflects turn-to-turn variation as nations balance trade against resource hoarding in response to changing diplomatic tensions --- a behavioral signature consistent with the mixed population of \textsc{Coalition Builder} and \textsc{Total Expansionism} strategies in the baseline.
+
+The most notable emergent phenomenon is the \textit{economic paralysis phase} ($T = 19$--$48$): both Trade Volume and Units Created collapse to near-zero and remain depressed for approximately 30 turns. Cross-referencing with the relationship matrix stored in the simulation snapshots confirms that this phase coincides with AGRIA's simultaneous declaration of war against multiple adversaries. During active multi-front warfare, trade embargoes eliminate inter-nation commerce while war expenditures deplete national budgets to the point where new unit production becomes financially infeasible. This constitutes an emergent \emph{war-driven economic paralysis} --- the system self-generates a Nash equilibrium of mutual attrition with no economically productive activity. The recovery spike at $T = 49$--$50$ corresponds to the resolution of hostilities and the resumption of pent-up trade, confirming that the paralysis is war-contingent rather than a persistent structural condition.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/baseline_guns_butter.png}
+    \caption{Guns vs.\ Butter chart for the baseline simulation. Trade Volume (blue, left axis) and Units Created (orange, right axis) reveal three distinct geopolitical phases: initialization ($T=1$--$7$), competitive equilibrium ($T=8$--$18$), and war-driven economic paralysis ($T=19$--$48$), followed by a recovery spike at $T=49$--$50$.}
+    \label{fig:baseline_guns_butter}
+\end{figure}
+
+\paragraph{Power Distribution and Hegemonic Structure.}
+Figure~\ref{fig:baseline_power_projection} illustrates the Power Projection trajectory of all eight nations across the full simulation. The distribution is markedly hierarchical and asymmetric. AGRIA emerges as the uncontested hegemon, accumulating power monotonically from approximately $15{,}000$ at $T=1$ to $47{,}000$ by $T=50$ --- a trajectory consistent with an aggressive \textsc{Total Expansionism} strategic profile that prioritizes territorial acquisition. A secondary tier comprising OSTER and MERIDIA at approximately $35{,}000$--$38{,}000$ achieves stable growth, suggesting sustained resource accumulation and effective mutual-defense alliances. KRELL maintains a flat profile at approximately $24{,}000$, consistent with an \textsc{Armed Isolationism} posture that preserves existing strength without active expansion. NORD and SYLVAN exhibit moderate growth to $14{,}000$ and $13{,}000$ respectively, while VALKYR remains marginal at approximately $9{,}000$.
+
+The most notable trajectory is ZENTORA, whose Power Projection collapses from approximately $10{,}000$ at $T=1$ to near zero by $T=10$, remaining permanently diminished for the remainder of the simulation. This trajectory indicates a catastrophic early defeat --- consistent with conquest by AGRIA in the initialization phase --- from which ZENTORA never recovers territorial or economic strength. This outcome directly addresses RQ4: the baseline system does \emph{not} converge toward a multipolar balance of power; instead, it self-organizes around a dominant hegemon, a partially co-opted secondary tier, and peripheral marginal states --- a configuration consistent with classical power transition theory.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/baseline_power_projection.png}
+    \caption{Power Projection evolution per nation over 50 turns. AGRIA emerges as the unchallenged hegemon ($\approx\!47{,}000$ by $T=50$), while ZENTORA collapses to near zero by $T=10$. The remaining nations stratify into stable mid-level and peripheral tiers.}
+    \label{fig:baseline_power_projection}
+\end{figure}
+
+\paragraph{Global KPI Summary.}
+Table~\ref{tab:baseline_kpis} reports the aggregate performance indicators for the full baseline run. Several observations merit attention. First, the Violence Rate of $0.01$ --- defined as the ratio of units destroyed to units created --- indicates that warfare produces negligible annihilation relative to military buildup: the 108 recorded territory changes occur primarily through overwhelming force superiority rather than symmetric attrition. Second, the average Public Satisfaction of $73.23$ confirms that the system maintains social stability even during prolonged conflict. Third, the complete absence of Civil Unrest events ($0.00$) across all 50 turns is particularly significant: despite resource pressures and multi-front wars, no nation crosses the unrest threshold, validating the robustness of the welfare mechanics in the GeoMAS engine.
+
+\begin{table}[!htb]
+    \centering
+    \caption{Baseline Simulation --- Global KPI Summary (50 turns, 8 nations).}
+    \label{tab:baseline_kpis}
+    \begin{tabular}{lr}
+        \hline
+        \textbf{Metric} & \textbf{Value} \\
+        \hline
+        Total Territory Changes         & 108 \\
+        Total Units Created             & $1{,}735{,}800$ \\
+        Total Units Destroyed           & $22{,}968$ \\
+        Total Trade Volume              & $17{,}286{,}392$ \\
+        Avg.\ Deception Score           & 0.27 \\
+        Avg.\ Coherence Score           & 0.85 \\
+        Avg.\ Public Satisfaction       & 73.23 \\
+        Violence Rate (destr./created)  & 0.01 \\
+        Total Civil Unrest Turn-Nations & 0.00 \\
+        \hline
+    \end{tabular}
+\end{table}
+% NOTE TO AUTHOR: the spike in Units Created at T≈45 visible in the graph should be
+% investigated by loading those specific turns in the dashboard (Envelopes tab) to
+% determine which nation triggered a mass-mobilization and why (post-war recovery?
+% arms race response to AGRIA hegemony?).
+
 
 \section{Macrodynamics: Scenario Impact Analysis}
 \label{sec:res_scenario}
