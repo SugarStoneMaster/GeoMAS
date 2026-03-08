@@ -245,53 +245,82 @@ This section evaluates the resilience and adaptability of the multi-agent system
 
 This section investigates the internal cognitive processes of the LLM agents, specifically assessing their propensity to decouple public rhetoric from private strategic intent based on their Government Type and Global Strategy.
 
-% ── NOTEBOOK: usa BASELINE_ID per tutta questa sezione. ─────────────────────
-%
-% [§4.1] Deception by Domain (Defense vs Foreign)
-%   → Il deception_defense misura se le azioni militari private divergono dalla
-%     dichiarazione pubblica. Il deception_foreign misura lo stesso per la diplomazia.
-%   → SCRIVI: quale dominio mostra più inganno? È coerente con l'aspettativa teorica
-%     (le decisioni militari dovrebbero essere più occultate di quelle diplomatiche)?
-%
-% [§4.2] Deception Breakdown by GovernmentType
-%   → Boxplot: AUTHORITARIAN vs DEMOCRACY vs THEOCRACY.
-%   → SCRIVI: gli agenti AUTHORITARIAN hanno deception score sistematicamente più alta?
-%     Questo conferma che il contesto ideologico nel prompt influenza il behavior
-%     del modello LLM, producendo agenti con personalità distinte.
-%
-% [§4.3] Deception Breakdown by GlobalStrategy
-%   → Boxplot: TOTAL_EXPANSIONISM vs COALITION_BUILDER vs SCORCHED_EARTH vs ARMED_ISOLATIONISM.
-%   → SCRIVI: TOTAL_EXPANSIONISM dovrebbe mostrare più deception (pianificano aggressione
-%     ma la dichiarano come "difesa del confine"). COALITION_BUILDER dovrebbe avere
-%     deception più bassa (interesse nel mantenere coerenza per costruire alleanze).
-%
-% [§4.4] Deception × Coherence Scatter
-%   → Osserva se c'è correlazione negativa (più inganno = meno coerenza).
-%   → SCRIVI: la correlazione è attesa teoricamente (un agente che mente pubblicamente
-%     deve anche razionalizzare internamente). La sua presenza empirica valida il
-%     funzionamento della pipeline di scoring.
-%
-% [§4.5] Public Statement Text Mining
-%   → Frequenza keyword "liberation", "sacred", "peace", "necessary", "defense",
-%     "sovereignty", "democracy", "stability" etc. nei public statement.
-%   → SCRIVI: le nazioni AUTHORITARIAN usano significativamente più keyword di
-%     moral washing (liberation, defense, sacred) rispetto alle DEMOCRACY?
-%     Questo è l'evidenza empirica del fenomeno "Moral Washing".
-%
-% [§4.6] Public vs Private Intent Examples (High-Deception Turns)
-%   → Filtra i 5 turni con deception score più alta nella baseline.
-%   → Per ciascuno, mostra il public_statement e il defense_private_reasoning fianco a fianco.
-%   → INSERISCI come "Exhibit X: High-Deception Turn Example" con una box formattata.
-%   → SCRIVI: "In Turn T, Nation X declared publicly: '...' [high moral framing].
-%     Simultaneously, its private military reasoning read: '...' [explicit resource grab].
-%     This constitutes a canonical instance of Moral Washing."
-%
-% TESTO DA SCRIVERE (struttura paragrafi):
-%   P1: Panoramica del Deception Score medio nella baseline (valore numerico da §1.1).
-%   P2: Analisi per Government Type — gli AUTHORITARIAN ingannano di più? (§4.2)
-%   P3: Analisi per Strategy — TOTAL_EXPANSIONISM vs COALITION_BUILDER (§4.3).
-%   P4: Evidenza testuale del Moral Washing (§4.5 + §4.6 examples).
-%   P5: Conclusione: il LLM spontaneamente disaccoppia retorica pubblica da intent privato.
+
+\paragraph{Deception by Domain: Defense vs.\ Foreign.}
+Figure~\ref{fig:deception_domain} reports the average Deception Score decomposed by domain --- Defense (military intent) and Foreign (diplomatic intent) --- across the 50-turn baseline. Two structural features stand out. First, the Defense domain exhibits consistently higher deception than the Foreign domain throughout the simulation: Defense Deception stabilizes in the range $[0.33, 0.40]$ while Foreign Deception stabilizes at $[0.10, 0.25]$ after the first 20 turns. This asymmetry is theoretically expected: military planning carries higher strategic sensitivity, and agents are more strongly incentivized to conceal offensive preparations behind defensive framing. Second, both metrics undergo a marked phase shift at approximately $T=17$--$19$: Defense Deception drops from $0.40$ to $\approx 0.33$, while Foreign Deception rises from $\approx 0.11$ to $\approx 0.25$, where both stabilize for the remainder of the simulation. This simultaneous convergence suggests a structural reorganization of the geopolitical system around that period --- plausibly connected to the wars involving SYLVAN, VALKYR, and NORD that crystallize in the network around $T=12$--$19$.
+
+\textit{Qualitative analysis required}: to interpret the domain phase shift at $T=17$--$19$, the envelopes for SYLVAN, NORD, and VALKYR at those turns should be inspected in the dashboard. The hypothesis is that agents transitioning into active war reduce military concealment (Defense Deception drops) while increasing public diplomatic framing of their military actions (Foreign Deception rises).
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/deception_domain.png}
+    \caption{Left: average Deception Score by domain over 50 turns. Defense Deception (red) is consistently higher than Foreign Deception (blue), with both converging to stable levels after a phase transition at $T \approx 17$--$19$. Right: per-nation total deception, revealing extreme heterogeneity: SYLVAN and KRELL maintain deception near $0.85$--$0.90$, while most nations remain near zero.}
+    \label{fig:deception_domain}
+\end{figure}
+
+\paragraph{Per-Nation Deception Heterogeneity.}
+The per-nation deception chart (right panel of Figure~\ref{fig:deception_domain}) reveals that the system-wide average of $0.27$ conceals extreme inter-nation heterogeneity. Two nations --- SYLVAN and KRELL --- maintain deception scores consistently near $0.85$--$0.90$ throughout most of the simulation, constituting the primary drivers of the global average. AGRIA maintains a stable moderate deception of approximately $0.43$, consistent with an agent that regularly decouples public deterrence posturing from private conquest planning. The remaining nations --- MERIDIA, OSTER, VALKYR, ZENTORA --- remain at or near zero, reflecting either fully transparent behavior or, in ZENTORA's case, near-complete elimination that precludes meaningful strategic deception.
+
+\textit{Qualitative analysis required}: KRELL's high deception score ($\approx 0.85$--$0.90$) is particularly unexpected given its \textsc{Armed Isolationism} strategy, which should theoretically favor transparent self-sufficiency over diplomatic concealment. Inspecting KRELL's foreign minister envelopes at high-deception turns would clarify whether the model generates genuinely deceptive diplomatic reasoning, or whether the scoring artifacts arise from a mismatch between its private security framing and its public cooperative statements.
+
+\paragraph{Deception by Government Type: Ideology as a Behavioral Constraint.}
+Figure~\ref{fig:deception_govtype} presents the distribution of total deception scores grouped by Government Type. The pattern is unambiguous in direction: \textsc{Authoritarian} governments exhibit the highest deception (median $\approx 0.57$, interquartile range $[0.35, 0.78]$), \textsc{Theocracy} displays a flat moderate score at $\approx 0.45$, and \textsc{Democracy} median is at or near zero. The trend chart confirms the stability of these profiles across the full 50-turn horizon: the \textsc{Authoritarian} curve oscillates around $0.55$, the \textsc{Theocracy} line remains flat at $0.45$, and the \textsc{Democracy} line is consistently near $0.18$.
+
+These results confirm that the ideological framing embedded in each government's system prompt produces statistically distinct behavioral signatures in the LLM: \textsc{Authoritarian} agents spontaneously adopt more opaque strategic communication, while \textsc{Democracy} agents default to transparent or cooperative public framing. This demonstrates that persona-level prompt engineering effectively induces differentiated cognitive styles across agents of the same underlying model.
+
+Notably, the \textsc{Democracy} boxplot includes a high outlier at $\approx 0.90$, labeled by the algorithm as an extreme observation (marker ``8'' in the chart). This corresponds to SYLVAN, whose \textsc{Democracy} government type is combined with a \textsc{Total Expansionism} global strategy --- a theoretically unstable configuration that the LLM resolves by maintaining the democratic public facade while privately planning conquest. This case demonstrates that \emph{global strategy dominates government type} as a predictor of deception when the two ideological dimensions are in tension.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/deception_govtype.png}
+    \caption{Left: deception score distribution by Government Type (boxplot). \textsc{Authoritarian} exhibits the highest median deception ($\approx 0.57$); \textsc{Democracy} is near zero with one extreme outlier (SYLVAN, $\approx 0.90$). Right: deception trend by Government Type over 50 turns, confirming stable separation across government profiles.}
+    \label{fig:deception_govtype}
+\end{figure}
+
+\paragraph{Deception and Coherence by Global Strategy.}
+Figure~\ref{fig:deception_strategy} presents deception and coherence distributions broken down by Global Strategy. The deception ranking is: \textsc{Total Expansionism} $\gg$ \textsc{Scorched Earth} $>$ \textsc{Coalition Builder} $\approx$ \textsc{Armed Isolationism}. \textsc{Total Expansionism} nations exhibit not only the highest median deception ($\approx 0.78$) but also the widest variance (interquartile range $[0.35, 0.87]$), indicating that the aggressive strategic profile manifests differently across specific combinations of map position, government type, and adversary composition.
+
+The coherence chart confirms an important complementary finding: \textsc{Coalition Builder} and \textsc{Total Expansionism} nations both exhibit near-perfect coherence scores ($\approx 1.0$), indicating that their actions are strongly aligned with their privately stated intents. High coherence combined with high deception uniquely characterizes \textsc{Total Expansionism} agents: they are internally consistent in planning conquest while publicly declaring defense. This is the formal quantitative signature of \emph{Moral Washing} --- a deliberate and coherent cognitive strategy of rhetorical misdirection, not an artifact of inconsistent model reasoning.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/deception_strategy.png}
+    \caption{Left: deception score by Global Strategy. \textsc{Total Expansionism} has the highest median deception ($\approx 0.78$) and widest variance; \textsc{Coalition Builder} and \textsc{Armed Isolationism} are near zero. Right: coherence score by Global Strategy. \textsc{Total Expansionism} and \textsc{Coalition Builder} both tend toward perfect coherence ($\approx 1.0$), confirming that high deception in \textsc{Total Expansionism} agents is intentional and internally consistent.}
+    \label{fig:deception_strategy}
+\end{figure}
+
+\paragraph{Canonical Evidence: Moral Washing in High-Deception Turns.}
+Table~\ref{tab:moral_washing} presents the six highest-deception observations in the baseline, extracted from the behavioral database. Two nations dominate: SYLVAN (Democracy / Total Expansionism, deception $= 0.90$) and AGRIA (Authoritarian / Total Expansionism, deception $= 0.77$). Both exhibit the canonical Moral Washing pattern in both strategic domains simultaneously.
+
+SYLVAN, in turns 18, 19, and 39, publicly frames its military posture as \textsc{Defense} while privately categorizing its intent as \textsc{Conquest}. Concurrently, in the foreign domain, it publicly projects \textsc{Export Democracy} while privately planning \textsc{Coercion}. This constitutes a double-layer Moral Washing: the nation presents itself as a peaceful pro-democratic actor while simultaneously planning territorial conquest through diplomatic coercion. The LLM agent producing this output is classified as a \textsc{Democracy} --- the government system theoretically most committed to transparent governance --- yet it generates the highest deception scores in the simulation. This finding suggests that the tension between an expansionist strategy and a democratic identity, rather than suppressing deception, amplifies it: the agent must invest more cognitive effort into rhetorical justification precisely because the contradiction is most acute.
+
+AGRIA, in turns 40--42, publicly declares \textsc{Deterrence} in the defense domain while privately planning \textsc{Conquest}, and publicly signals \textsc{Cooperation} in the foreign domain while privately intending \textsc{Coercion}. Unlike SYLVAN, AGRIA's \textsc{Authoritarian} constitution makes this decoupling ideologically expected; the agent's deception score ($0.77$) is nonetheless lower than SYLVAN's ($0.90$), consistent with the lower rhetorical distance required to maintain plausible deniability under an authoritarian frame.
+
+\textit{Qualitative analysis required}: to complete the Moral Washing analysis, the full text of the public statement and private reasoning fields in the database should be extracted for the six turns listed in Table~\ref{tab:moral_washing} and quoted directly in the thesis. The quantitative intent labels (DEFENSE/CONQUEST etc.) are computed post-hoc from the full reasoning text; quoting one or two representative sentences from each would make the argument textually grounded and resistant to the critique that the labels are overly abstracted.
+
+\begin{table}[!htb]
+    \centering
+    \caption{Top-6 Highest-Deception Observations in the Baseline (sorted by Deception Score descending).}
+    \label{tab:moral_washing}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{rllllrllll}
+        \hline
+        \textbf{Turn} & \textbf{Nation} & \textbf{Gov} & \textbf{Strat} &
+        \textbf{Decep.} & \textbf{Pub.\ Defense} & \textbf{Priv.\ Defense} &
+        \textbf{Pub.\ Foreign} & \textbf{Priv.\ Foreign} \\
+        \hline
+        39 & SYLVAN & Democracy      & T.Expan. & 0.90 & Defense    & Conquest & Export Democracy & Coercion \\
+        18 & SYLVAN & Democracy      & T.Expan. & 0.90 & Defense    & Conquest & Export Democracy & Coercion \\
+        19 & SYLVAN & Democracy      & T.Expan. & 0.90 & Defense    & Conquest & Export Democracy & Coercion \\
+        41 & AGRIA  & Authoritarian  & T.Expan. & 0.77 & Deterrence & Conquest & Cooperation      & Coercion \\
+        42 & AGRIA  & Authoritarian  & T.Expan. & 0.77 & Deterrence & Conquest & Cooperation      & Coercion \\
+        40 & AGRIA  & Authoritarian  & T.Expan. & 0.77 & Deterrence & Conquest & Cooperation      & Coercion \\
+        \hline
+        \multicolumn{9}{l}{\textit{T.Expan.\ = Total Expansionism.}}
+    \end{tabular}}
+\end{table}
+
+
 
 \section{Causal Impacts: Counterfactual Analysis and XAI}
 \label{sec:res_counterfactual}
