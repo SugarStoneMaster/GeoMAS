@@ -89,17 +89,73 @@ if IS_MAIN:
         target_nation = None
         new_gov = None
         new_strat = None
+        # Extra params for configurable scenarios
+        rd_target_nation = None
+        rd_target_province = None
+        ins_target_nation = None
+        ins_start_province = None
+        ins_steal_pct = 0.25
+
+        nation_ids = sorted(list(sim.world.nations.keys()))
+
         if choice == "CAMBIO GOVERNO":
             from geomas.agents.schemas.protocol import GovernmentType
             from geomas.agents.schemas import GlobalStrategy
             
             col1, col2, col3 = st.columns(3)
             with col1:
-                 target_nation = st.selectbox("Nazione Target", sorted(list(sim.world.nations.keys())))
+                 target_nation = st.selectbox("Nazione Target", nation_ids, key="dlg_rc_nation")
             with col2:
-                 new_gov = st.selectbox("Nuovo Governo", [g.value for g in GovernmentType])
+                 new_gov = st.selectbox("Nuovo Governo", [g.value for g in GovernmentType], key="dlg_rc_gov")
             with col3:
-                 new_strat = st.selectbox("Nuova Strategia", [s.value for s in GlobalStrategy])
+                 new_strat = st.selectbox("Nuova Strategia", [s.value for s in GlobalStrategy], key="dlg_rc_strat")
+
+        elif choice == "SCOPERTA RISORSE":
+            st.markdown("**Configurazione Scoperta Risorse** *(lascia vuoto per selezione automatica)*")
+            col1, col2 = st.columns(2)
+            with col1:
+                rd_target_nation = st.selectbox(
+                    "Nazione (opzionale)", ["-- Automatico --"] + nation_ids, key="dlg_rd_nation"
+                )
+                rd_target_nation = None if rd_target_nation == "-- Automatico --" else rd_target_nation
+
+            with col2:
+                # Province selection only available when a nation is chosen
+                if rd_target_nation:
+                    nation_provinces = sorted(
+                        [pid for pid, p in sim.world.provinces.items() if p.owner_id == rd_target_nation]
+                    )
+                    rd_province_opts = ["-- Automatico --"] + [str(pid) for pid in nation_provinces]
+                    rd_prov_sel = st.selectbox("Provincia (opzionale)", rd_province_opts, key="dlg_rd_prov")
+                    rd_target_province = None if rd_prov_sel == "-- Automatico --" else int(rd_prov_sel)
+                else:
+                    st.caption("Seleziona prima una nazione per scegliere la provincia.")
+
+        elif choice == "INSURREZIONE":
+            st.markdown("**Configurazione Insurrezione** *(lascia vuoto per selezione automatica)*")
+            col1, col2 = st.columns(2)
+            with col1:
+                ins_target_nation = st.selectbox(
+                    "Nazione Madrepatria (opzionale)", ["-- Automatico --"] + nation_ids, key="dlg_ins_nation"
+                )
+                ins_target_nation = None if ins_target_nation == "-- Automatico --" else ins_target_nation
+
+            with col2:
+                if ins_target_nation:
+                    nation_provinces = sorted(
+                        [pid for pid, p in sim.world.provinces.items() if p.owner_id == ins_target_nation]
+                    )
+                    ins_province_opts = ["-- Automatico --"] + [str(pid) for pid in nation_provinces]
+                    ins_prov_sel = st.selectbox("Provincia di Partenza BFS (opzionale)", ins_province_opts, key="dlg_ins_prov")
+                    ins_start_province = None if ins_prov_sel == "-- Automatico --" else int(ins_prov_sel)
+                else:
+                    st.caption("Seleziona prima una nazione per scegliere la provincia.")
+
+            ins_steal_pct = st.slider(
+                "% Territorio Ribelle", min_value=5, max_value=75, value=25, step=5,
+                help="Percentuale del territorio della madrepatria che si separa.",
+                key="dlg_ins_pct"
+            ) / 100.0
 
         st.divider()
 
@@ -110,7 +166,18 @@ if IS_MAIN:
                     scenario_data["target_id"] = target_nation
                     scenario_data["new_gov"] = new_gov
                     scenario_data["new_strategy"] = new_strat
-                
+                elif choice == "SCOPERTA RISORSE":
+                    if rd_target_nation:
+                        scenario_data["target_nation_id"] = rd_target_nation
+                    if rd_target_province is not None:
+                        scenario_data["target_province_id"] = rd_target_province
+                elif choice == "INSURREZIONE":
+                    if ins_target_nation:
+                        scenario_data["target_nation_id"] = ins_target_nation
+                    if ins_start_province is not None:
+                        scenario_data["start_province_id"] = ins_start_province
+                    scenario_data["steal_percentage"] = ins_steal_pct
+
                 sim.planned_scenario = scenario_data
                 if sim.db:
                     sim.db.update_simulation_scenario(sim.simulation_id, json.dumps(scenario_data))
@@ -121,6 +188,7 @@ if IS_MAIN:
                 if sim.db:
                     sim.db.update_simulation_scenario(sim.simulation_id, None)
                 st.session_state["enable_scenarios"] = False
+
 
             if st.session_state.get("parallel_mode"):
                 manager = ParallelBatchManager(n_workers=st.session_state["parallel_instances"])
@@ -269,12 +337,47 @@ if IS_MAIN:
                     
                     c_nat, c_gov, c_strat = st.columns(3)
                     with c_nat:
-                        st.session_state["scenario_rc_target"] = st.selectbox("Target Nation", sorted(list(sim.world.nations.keys())))
+                        st.session_state["scenario_rc_target"] = st.selectbox("Target Nation", sorted(list(sim.world.nations.keys())), key="sb_rc_nation")
                     with c_gov:
-                        st.session_state["scenario_rc_gov"] = st.selectbox("New Government", [g.value for g in GovernmentType])
+                        st.session_state["scenario_rc_gov"] = st.selectbox("New Government", [g.value for g in GovernmentType], key="sb_rc_gov")
                     with c_strat:
-                        st.session_state["scenario_rc_strat"] = st.selectbox("New Strategy", [s.value for s in GlobalStrategy])
+                        st.session_state["scenario_rc_strat"] = st.selectbox("New Strategy", [s.value for s in GlobalStrategy], key="sb_rc_strat")
+
+                elif selected_scenario == "RESOURCE_DISCOVERY":
+                    st.markdown("**Resource Discovery Config** *(leave blank for auto)*")
+                    all_nation_ids = sorted(list(sim.world.nations.keys()))
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        rd_nation = st.selectbox("Nation (optional)", ["-- Auto --"] + all_nation_ids, key="sb_rd_nation")
+                        st.session_state["scenario_rd_nation"] = None if rd_nation == "-- Auto --" else rd_nation
+                    with col2:
+                        if st.session_state.get("scenario_rd_nation"):
+                            prov_ids = sorted([pid for pid, p in sim.world.provinces.items() if p.owner_id == st.session_state["scenario_rd_nation"]])
+                            prov_sel = st.selectbox("Province (optional)", ["-- Auto --"] + [str(pid) for pid in prov_ids], key="sb_rd_prov")
+                            st.session_state["scenario_rd_province"] = None if prov_sel == "-- Auto --" else int(prov_sel)
+                        else:
+                            st.caption("Select a nation first.")
+
+                elif selected_scenario == "INSURRECTION":
+                    st.markdown("**Insurrection Config** *(leave blank for auto)*")
+                    all_nation_ids = sorted(list(sim.world.nations.keys()))
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        ins_nation = st.selectbox("Motherland (optional)", ["-- Auto --"] + all_nation_ids, key="sb_ins_nation")
+                        st.session_state["scenario_ins_nation"] = None if ins_nation == "-- Auto --" else ins_nation
+                    with col2:
+                        if st.session_state.get("scenario_ins_nation"):
+                            prov_ids = sorted([pid for pid, p in sim.world.provinces.items() if p.owner_id == st.session_state["scenario_ins_nation"]])
+                            prov_sel = st.selectbox("Starting Province BFS (optional)", ["-- Auto --"] + [str(pid) for pid in prov_ids], key="sb_ins_prov")
+                            st.session_state["scenario_ins_province"] = None if prov_sel == "-- Auto --" else int(prov_sel)
+                        else:
+                            st.caption("Select a nation first.")
+                    st.session_state["scenario_ins_pct"] = st.slider(
+                        "% Rebel Territory", min_value=5, max_value=75, value=25, step=5,
+                        help="Fraction of the motherland that rebels.", key="sb_ins_pct"
+                    ) / 100.0
                 
+
                 # Show current staged scenario (if any)
                 staged = st.session_state.get("manual_scenario_trigger")
                 if staged:
@@ -295,6 +398,22 @@ if IS_MAIN:
                             trigger_data["target_id"] = st.session_state.get("scenario_rc_target")
                             trigger_data["new_gov"] = st.session_state.get("scenario_rc_gov")
                             trigger_data["new_strategy"] = st.session_state.get("scenario_rc_strat")
+                        elif selected_scenario == "RESOURCE_DISCOVERY":
+                            rd_n = st.session_state.get("scenario_rd_nation")
+                            rd_p = st.session_state.get("scenario_rd_province")
+                            if rd_n:
+                                trigger_data["target_nation_id"] = rd_n
+                            if rd_p is not None:
+                                trigger_data["target_province_id"] = rd_p
+                        elif selected_scenario == "INSURRECTION":
+                            ins_n = st.session_state.get("scenario_ins_nation")
+                            ins_p = st.session_state.get("scenario_ins_province")
+                            ins_pct = st.session_state.get("scenario_ins_pct", 0.25)
+                            if ins_n:
+                                trigger_data["target_nation_id"] = ins_n
+                            if ins_p is not None:
+                                trigger_data["start_province_id"] = ins_p
+                            trigger_data["steal_percentage"] = ins_pct
                         st.session_state["manual_scenario_trigger"] = trigger_data
                         st.session_state["enable_scenarios"] = True
                         st.session_state["scenario_type"] = selected_scenario
