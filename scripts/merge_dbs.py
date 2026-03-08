@@ -41,6 +41,24 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 
+def parse_source(raw: str, default_min_id: int) -> tuple:
+    """
+    Parse a source entry that may optionally carry a per-source min_id suffix.
+    Supported formats:
+      /path/to/simulation.duckdb        → uses default_min_id
+      /path/to/simulation.duckdb:8      → uses min_id=8 for this source only
+    Returns (resolved_path_str, min_id).
+    """
+    # Split on the LAST colon to avoid breaking Windows absolute paths
+    if ":" in raw:
+        # Try to parse the part after the last colon as an integer
+        last_colon = raw.rfind(":")
+        suffix = raw[last_colon + 1:]
+        if suffix.isdigit():
+            return str(Path(raw[:last_colon]).resolve()), int(suffix)
+    return str(Path(raw).resolve()), default_min_id
+
+
 def resolve_metrics_path(sim_db_path: str) -> str:
     """
     Infer the metrics DB path from the simulation DB path.
@@ -92,8 +110,8 @@ def list_sims_in_db(db_path: str):
 def do_merge(
     master_sim: str,
     master_metrics: str,
-    sources: list,
-    from_sim_id: int,
+    sources: list,  # list of (path, min_id) tuples
+    from_sim_id: int,  # global default, used when no per-source override
     cleanup: bool,
     dry_run: bool
 ):
@@ -119,18 +137,19 @@ def do_merge(
 
     if dry_run:
         print("[DRY RUN] The following merges would be performed:")
-        for i, src in enumerate(sources):
+        for i, (src, min_id) in enumerate(sources):
             metrics = resolve_metrics_path(src)
             print(f"  [{i + 1}] SIM:     {src}  ({'OK' if Path(src).exists() else 'MISSING'})")
             print(f"       METRICS: {metrics}  ({'OK' if Path(metrics).exists() else 'MISSING'})")
-            if from_sim_id > 0 and Path(src).exists():
+            print(f"       Min sim ID   : >= {min_id}")
+            if min_id > 0 and Path(src).exists():
                 # Show which sims would actually be included
                 try:
                     import duckdb
                     with duckdb.connect(src, read_only=True) as c:
                         ids = [r[0] for r in c.execute("SELECT id FROM simulation ORDER BY id").fetchall()]
-                    included = [i for i in ids if i >= from_sim_id]
-                    skipped = [i for i in ids if i < from_sim_id]
+                    included = [x for x in ids if x >= min_id]
+                    skipped = [x for x in ids if x < min_id]
                     print(f"       Include sims : {included}")
                     print(f"       Skip sims    : {skipped} (already in master)")
                 except Exception:
@@ -147,8 +166,8 @@ def do_merge(
     succeeded = 0
     failed = 0
 
-    for i, src in enumerate(sources):
-        print(f"[{i + 1}/{len(sources)}] Merging: {src}")
+    for i, (src, min_id) in enumerate(sources):
+        print(f"[{i + 1}/{len(sources)}] Merging: {src}  (from sim_id >= {min_id})")
 
         if not validate_db(src):
             failed += 1
@@ -161,7 +180,7 @@ def do_merge(
             # Patch the merger to NOT auto-delete source files and respect from_sim_id
             actual_metrics = resolve_metrics_path(src)
 
-            def _filtered_merge(worker_db_path: str, _min_id: int = from_sim_id, _metrics: str = actual_metrics):
+            def _filtered_merge(worker_db_path: str, _min_id: int = min_id, _metrics: str = actual_metrics):
                 """Merge only sims with id >= _min_id, without deleting sources."""
                 import duckdb
 
@@ -348,12 +367,12 @@ def main():
         else resolve_metrics_path(master_sim)
     )
 
-    # Collect all sources
-    sources = [str(Path(p).resolve()) for p in args.sources]
+    # Collect all sources — each entry may carry an optional :min_id suffix
+    sources = [parse_source(p, args.from_sim_id) for p in args.sources]
 
     if args.glob:
         glob_matches = glob_module.glob(args.glob, recursive=True)
-        sources += [str(Path(p).resolve()) for p in glob_matches]
+        sources += [parse_source(p, args.from_sim_id) for p in glob_matches]
 
     if not sources:
         print("[ERROR] No source databases specified. Use --sources or --glob.")
@@ -361,15 +380,15 @@ def main():
         sys.exit(1)
 
     # Remove the master from sources if accidentally included
-    sources = [s for s in sources if s != master_sim]
+    sources = [(s, m) for s, m in sources if s != master_sim]
 
-    # Deduplicate while preserving order
+    # Deduplicate while preserving order (key on path only)
     seen = set()
     unique_sources = []
-    for s in sources:
+    for s, m in sources:
         if s not in seen:
             seen.add(s)
-            unique_sources.append(s)
+            unique_sources.append((s, m))
 
     do_merge(master_sim, master_metrics, unique_sources, args.from_sim_id, args.cleanup, args.dry_run)
 
