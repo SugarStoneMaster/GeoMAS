@@ -3,47 +3,290 @@
 
 This chapter presents the empirical findings derived from the simulation runs outlined in the experimental design (\ref{chap:experimental_design}). By analyzing the telemetry data extracted from the GeoMAS engine, this section validates the framework's capability to model complex geopolitical dynamics and addresses the four primary Research Questions. The analysis progresses from evaluating the macro-stability of the baseline system to dissecting the micro-cognitive behaviors of individual agents when subjected to exogenous shocks or counterfactual constraints.
 
+% ============================================================
+% WORKFLOW COMPLESSIVO — LEGGI PRIMA DI TUTTO
+% ============================================================
+% STEP 0 — Selezione baseline
+%   Hai eseguito 3 run parallele identiche (stesso map_seed, history_seed, n_nations=8).
+%   Visualizza le 3 simulazioni nel notebook (Section 1.5 Global KPIs Summary).
+%   Confronta le metriche aggregate (avg deception, avg satisfaction, war rate) tra i 3.
+%   Scegli come BASELINE_ID quella con comportamento più rappresentativo della mediana
+%   (non la più outlier). Annota il simulation_id scelto.
+%
+% STEP 1 — Esegui i fork degli scenari dalla baseline scelta:
+%   Dalla dashboard (Analysis Mode), carica il turno ~T=25 della baseline.
+%   Esegui 3 fork con scenario diverso ciascuno (Pandemic, Insurrection, Resource Discovery).
+%   Annota i simulation_id dei fork.
+%
+% STEP 2 — Esegui i fork counterfactuali XAI:
+%   Dalla dashboard, carica il turno di maggior tensione della baseline (es. T dove
+%   la nazione più aggressiva ha guerra attiva). Inietta un constraint XAI
+%   (es. FORCE ATTACK su una nazione pacifica, oppure FORBID NUCLEAR sulla più aggressiva).
+%   Annota il simulation_id del fork counterfactuale.
+%
+% STEP 3 — Analizza nel notebook selezionando baseline_id e i fork_id per ciascun capitolo.
+%   Esporta i plot come .png e inseriscili in results/figures/.
+%
+% STEP 4 — Compila le sezioni di questo file nell'ordine in cui appaiono.
+% ============================================================
+
 \section{Baseline Telemetry and System Stability}
 \label{sec:res_baseline}
 \textit{Addresses RQ4: Emergent Socio-Political Equilibria.}
 
-This section analyzes the unperturbed baseline simulations to establish the system's default behavior, ensuring that the engine produces coherent macro-dynamics without spiraling into premature chaos or stagnation.
-% TODO: Inserisci grafici dal Jupyter Notebook (Chapter 1 & 5)
-% - Guns vs Butter (Trade Volume vs Units Created)
-% - Trust Matrix evolution (Networks a T=1, T=25, T=50)
-% - Action Governance: Engine Acceptance Rate e Presidential Veto Rate (dimostra la sanità dell'engine).
+This section analyzes the unperturbed baseline simulations to establish the system's default behavioral attractors, ensuring that the engine produces coherent macro-dynamics without spiraling into premature chaos or stagnation.
+
+% ── NOTEBOOK: usa il BASELINE_ID selezionato al STEP 0. ──────────────────────
+%
+% [§1.1] Global Deception & Coherence Trends
+%   → Osserva l'andamento delle curve di Deception Score (overall, defense, foreign) su 50 turni.
+%   → SCRIVI: descrivono una traiettoria crescente, decrescente o stazionaria?
+%     Si vede una fase "warming up" iniziale dove gli agenti ancora formano relazioni?
+%     Il deception tende ad aumentare man mano che aumenta la competizione per risorse?
+%   → Nota se ci sono picchi improvvisi (segnalano un turno di crisi/guerra).
+%
+% [§1.2] Guns vs Butter (Trade Volume vs Units Created)
+%   → Questo grafico disambigua se il sistema evolve verso cooperazione (trade alto,
+%     unità basse) o conflitto (trade basso, unità alte).
+%   → SCRIVI: in quale range di turni il sistema si trova in fase militaristica vs
+%     commerciale? C'è una svolta geopolitica evidente?
+%   → Collega ai Government Type: le nazioni AUTHORITARIAN/TOTAL_EXPANSIONISM
+%     dovrebbero mostrare units_created più alte.
+%
+% [§1.3] Power Projection per Nation
+%   → Mostra chi diventa egemone e chi rimane marginale.
+%   → SCRIVI: ci sono nazioni che accumulano potere in modo crescente e stabile
+%     (candidati all'egemonia) o il potere è distribuito e volatile?
+%     Questo risponde alla domanda RQ4 su bipolarismo vs multipolarismo.
+%
+% [§1.4] Resource Trends
+%   → Osserva Budget, Food, Energy, Materials nelle 8 nazioni.
+%   → SCRIVI: quali nazioni soffrono scarsità cronica (segnale di instabilità latente)?
+%     Questo contestualizza PERCHÉ certi agenti attuano comportamenti aggressivi.
+%
+% [§1.5] Global KPIs Summary
+%   → Tabella aggregata: avg satisfaction, avg deception, total wars, total provinces changed.
+%   → CITA questa tabella nel testo come "Table X" con i valori numerici della baseline scelta.
+%
+% [§5.1–5.5] Equilibri Emergenti (RQ4 core)
+%   → §5.1 Network Evolution: includi screenshot della trust matrix a T=1, T=25, T=50.
+%     Mostra se si formano cluster (bipolarismo) o la rete rimane frammentata.
+%   → §5.2 Alliance Bloc Detection: quanti blocchi si formano? Quali nazioni
+%     gravitano attorno agli stessi poli? Cita coalition_builder + authoritarian come
+%     asse di frattura naturale.
+%   → §5.3 War Count & Violence Rate: la violenza aumenta nel tempo o si stabilizza?
+%   → §5.4 Satisfaction & Civil Unrest: il sistema trova un equilibrio di bassa
+%     soddisfazione tollerabile o collassa in insurrezione spontanea?
+%   → §5.5 Territory Changes: quante province cambiano proprietario complessivamente?
+%     Un valore alto indica un sistema ad alta entropia geopolitica.
+%
+% [§7.1–7.6] Action Governance (health check del motore, non strettamente RQ ma utile)
+%   → §7.1 Engine Acceptance Rate: quante azioni vengono accettate dal motore?
+%     Un tasso molto basso (< 50%) indica che gli agenti propongono azioni irrealistiche.
+%   → §7.4–7.5 Presidential Veto Rate: alcune nazioni hanno presidenti molto
+%     interventisti? I governi AUTHORITARIAN hanno veto rate diversa dai DEMOCRACY?
+%   → SCRIVI: questi dati dimostrano la sanità computazionale del framework e
+%     che il decision-making è calibrato, non casuale.
+%
+% TESTO DA SCRIVERE (struttura paragrafi):
+%   P1: Descrivi l'equilibrio emergente (cooperazione vs conflitto) e la traiettoria macro.
+%   P2: Identifica le nazioni dominanti e quelle marginali (Power Projection + risorse).
+%   P3: Descrivi l'evoluzione del trust network e i blocchi di alleanza (risponde a RQ4).
+%   P4: Commenta la sanità del motore (acceptance rate, veto rate) come prova di validità tecnica.
 
 \section{Macrodynamics: Scenario Impact Analysis}
 \label{sec:res_scenario}
 \textit{Addresses RQ1: Impact of Exogenous Scenario Perturbations.}
 
-This section evaluates the resilience and adaptability of the multi-agent system when subjected to global environmental shocks (e.g., Insurrection, Pandemic, Resource Discovery, Regime Change).
-% TODO: Inserisci grafici dal Jupyter Notebook (Chapter 2)
-% - Overlay plots (Baseline vs Scenario) per metriche chiave (Satisfaction, Trade Volume, Resources).
-% - Analisi qualitativa: come le Nazioni hanno reagito allo shock specifico.
-% - Tabella riassuntiva "Delta Baseline -> Scenario".
+This section evaluates the resilience and adaptability of the multi-agent system when subjected to global environmental shocks, including insurrection, pandemic, and resource discovery events.
+
+% ── NOTEBOOK: usa BASELINE_ID vs uno dei fork-scenario alla volta. ───────────
+%
+% [§2.1] Multi-Metric Overlay (Baseline vs Scenario)
+%   → Seleziona BASELINE_ID come sim A e il fork con scenario come sim B.
+%   → Metriche chiave da sovrapporre: public_satisfaction, trade_volume,
+%     soldiers (unità militari), budget medio, global_deception_avg.
+%   → SCRIVI per OGNI scenario (pandemia, insurrezione, resource discovery):
+%     - "A quale turno l'effetto dello shock diventa visibile nelle metriche?"
+%     - "Quali nazioni reagiscono per prime? Come?"
+%     - "Il sistema si riprende (resilienza) o diverge permanentemente dalla baseline?"
+%
+% [§2.2] Trust Heatmap Comparison
+%   → Confronta la trust matrix BASELINE vs SCENARIO a T_fork, T_fork+10, T_fine.
+%   → SCRIVI: lo scenario altera le relazioni diplomatiche? La pandemia, per esempio,
+%     porta a riduzione del trust globale (competizione per risorse) o a solidarietà?
+%     L'insurrezione genera un cambio di alleanze verso la nazione colpita?
+%
+% [§2.3] Summary Statistics (Δ Baseline → Scenario)
+%   → Tabella con i delta: Δ satisfaction, Δ trade_volume, Δ wars, Δ territories.
+%   → INSERISCI questa tabella come "Table X: Scenario Impact Summary".
+%   → SCRIVI: quale scenario ha l'impatto quantitativamente maggiore?
+%     Quale il sistema assorbe più facilmente?
+%
+% ANALISI QUALITATIVA (da fare nella dashboard Streamlit, non nel notebook):
+%   → Carica il turno T_fork+1 di ogni simulazione fork nella dashboard.
+%   → Leggi i "Notable Events" e gli "Envelopes" delle nazioni più colpite.
+%   → CITA 1-2 esempi di ragionamento testuale dell'agente che risponde allo shock.
+%     Es: "In risposta all'insurrection, AGRIA nel turno T+2 scrive nel suo
+%     Defense Reasoning: '...'. Questo dimostra che l'agente percepisce la
+%     destabilizzazione e adatta la strategia militare."
+%
+% TESTO DA SCRIVERE (struttura paragrafi):
+%   Un sottoparagrafo per ogni scenario testato:
+%   \subsection*{Scenario: [Nome]}
+%   P1: Descrivi lo shock e il turno di iniezione.
+%   P2: Analisi quantitativa (Δ metriche, overlay plot).
+%   P3: Analisi qualitativa (come gli agenti ragionano, citazione dal log).
+%   P4: Conclusione: il sistema è resiliente o diverge? Risposta calibrata?
 
 \section{Microdynamics: Strategic Deception and Moral Washing}
 \label{sec:res_deception}
 \textit{Addresses RQ3: Alignment of Diplomatic Intent and Action.}
 
 This section investigates the internal cognitive processes of the LLM agents, specifically assessing their propensity to decouple public rhetoric from private strategic intent based on their Government Type and Global Strategy.
-% TODO: Inserisci grafici dal Jupyter Notebook (Chapter 4)
-% - Divergence plot: Deception Score nei domini Defense vs Foreign.
-% - Boxplots: Deception vs Government Type.
-% - Text mining istogrammi: Frequenza keyword nei Public Statements (es. "liberation", "sacred").
+
+% ── NOTEBOOK: usa BASELINE_ID per tutta questa sezione. ─────────────────────
+%
+% [§4.1] Deception by Domain (Defense vs Foreign)
+%   → Il deception_defense misura se le azioni militari private divergono dalla
+%     dichiarazione pubblica. Il deception_foreign misura lo stesso per la diplomazia.
+%   → SCRIVI: quale dominio mostra più inganno? È coerente con l'aspettativa teorica
+%     (le decisioni militari dovrebbero essere più occultate di quelle diplomatiche)?
+%
+% [§4.2] Deception Breakdown by GovernmentType
+%   → Boxplot: AUTHORITARIAN vs DEMOCRACY vs THEOCRACY.
+%   → SCRIVI: gli agenti AUTHORITARIAN hanno deception score sistematicamente più alta?
+%     Questo conferma che il contesto ideologico nel prompt influenza il behavior
+%     del modello LLM, producendo agenti con personalità distinte.
+%
+% [§4.3] Deception Breakdown by GlobalStrategy
+%   → Boxplot: TOTAL_EXPANSIONISM vs COALITION_BUILDER vs SCORCHED_EARTH vs ARMED_ISOLATIONISM.
+%   → SCRIVI: TOTAL_EXPANSIONISM dovrebbe mostrare più deception (pianificano aggressione
+%     ma la dichiarano come "difesa del confine"). COALITION_BUILDER dovrebbe avere
+%     deception più bassa (interesse nel mantenere coerenza per costruire alleanze).
+%
+% [§4.4] Deception × Coherence Scatter
+%   → Osserva se c'è correlazione negativa (più inganno = meno coerenza).
+%   → SCRIVI: la correlazione è attesa teoricamente (un agente che mente pubblicamente
+%     deve anche razionalizzare internamente). La sua presenza empirica valida il
+%     funzionamento della pipeline di scoring.
+%
+% [§4.5] Public Statement Text Mining
+%   → Frequenza keyword "liberation", "sacred", "peace", "necessary", "defense",
+%     "sovereignty", "democracy", "stability" etc. nei public statement.
+%   → SCRIVI: le nazioni AUTHORITARIAN usano significativamente più keyword di
+%     moral washing (liberation, defense, sacred) rispetto alle DEMOCRACY?
+%     Questo è l'evidenza empirica del fenomeno "Moral Washing".
+%
+% [§4.6] Public vs Private Intent Examples (High-Deception Turns)
+%   → Filtra i 5 turni con deception score più alta nella baseline.
+%   → Per ciascuno, mostra il public_statement e il defense_private_reasoning fianco a fianco.
+%   → INSERISCI come "Exhibit X: High-Deception Turn Example" con una box formattata.
+%   → SCRIVI: "In Turn T, Nation X declared publicly: '...' [high moral framing].
+%     Simultaneously, its private military reasoning read: '...' [explicit resource grab].
+%     This constitutes a canonical instance of Moral Washing."
+%
+% TESTO DA SCRIVERE (struttura paragrafi):
+%   P1: Panoramica del Deception Score medio nella baseline (valore numerico da §1.1).
+%   P2: Analisi per Government Type — gli AUTHORITARIAN ingannano di più? (§4.2)
+%   P3: Analisi per Strategy — TOTAL_EXPANSIONISM vs COALITION_BUILDER (§4.3).
+%   P4: Evidenza testuale del Moral Washing (§4.5 + §4.6 examples).
+%   P5: Conclusione: il LLM spontaneamente disaccoppia retorica pubblica da intent privato.
 
 \section{Causal Impacts: Counterfactual Analysis and XAI}
 \label{sec:res_counterfactual}
 \textit{Addresses RQ2: Causal Impact of Forced Strategic Decisions.}
 
 Utilizing the state-forking mechanism, this section traces the causal chain of localized cognitive injections, demonstrating how a single behavioral constraint imposed on one agent cascades through the global geopolitical equilibrium.
-% TODO: Inserisci grafici dal Jupyter Notebook (Chapter 3)
-% - Quale è stato il breakpoint e l'injected prompt.
-% - Prompt Audit: Confronto JSON Envelopes (Base vs Fork) per mostrare il cambio di intent.
-% - Cumulative Divergence Table e grafici a farfalla (effetti a valanga).
+
+% ── NOTEBOOK: usa BASELINE_ID (sim A) vs il fork XAI (sim B). ───────────────
+%
+% PREPARAZIONE — scegli il fork point e il constraint:
+%   → Identifica nella baseline il turno più "critico" (es. il turno in cui
+%     una nazione democratica ha le risorse più basse e ha firmato una pace recente).
+%   → Scegli come injection: FORCE ATTACK (da nazione X verso Y) oppure
+%     FORBID NUCLEAR (sulla nazione più armata).
+%   → Annota: fork_turn T, nation_id iniettata, constraint type, nation target.
+%
+% [§3.2] Prompt Audit: Envelope Comparison at Fork Point
+%   → Seleziona BASELINE_ID e XAI_FORK_ID, turno T (fork turn).
+%   → Il notebook mostra side-by-side il defense_private_reasoning della nazione
+%     iniettata nella baseline e nel fork.
+%   → ESPORTA questo confronto come immagine / tabella formattata.
+%   → SCRIVI: "At Turn T, the injected constraint replaced the agent's natural
+%     reasoning with: '[FORCED: ATTACK ...]'. The agent's observable output JSON
+%     — the action selected — changed from [no_attack] to [MILITARY_ATTACK].
+%     This demonstrates the mechanical traceability of the XAI injection."
+%
+% [§3.1] Divergence Visualization
+%   → Grafico overlay Baseline vs XAI Fork su: satisfaction, trust medio, unità militari,
+%     territori conquistati, trade volume.
+%   → SCRIVI: "From Turn T onward, the trajectories visibly diverge. By Turn T+5,
+%     [Metric X] in the XAI Fork is [N]% higher/lower than the baseline. By T+15,
+%     [Metric Y] shows [evidence of cascade effect]."
+%   → Identifica l'effetto a cascata: la vittima dell'ATTACK forzato chiede alleanze?
+%     Le altre nazioni cambiano trust verso l'aggressore?
+%
+% [§3.3] Cumulative Divergence Table
+%   → Tabella con la somma cumulativa delle divergenze per metrica.
+%   → INSERISCI come "Table X: Cumulative Divergence from Counterfactual Injection".
+%   → SCRIVI: quale metrica accumula la divergenza più grande nel tempo?
+%     Questo risponde a RQ2: quale dimensione del sistema è più sensibile all'injection?
+%
+% ANALISI QUALITATIVA (da fare nella dashboard):
+%   → Carica i turni T+1, T+5, T+10 del fork XAI nella dashboard.
+%   → Osserva nelle Nations View come la nazione bersaglio dell'attacco forzato
+%     cambia la sua strategia nelle request successive.
+%   → CITA un esempio: "In the subsequent turn, Nation Y — having been attacked — 
+%     shifted its Foreign Minister's reasoning from cooperative to defensive:
+%     '...' [cita reasoning]. Its trust toward Nation X dropped from [X] to [Y]."
+%
+% TESTO DA SCRIVERE (struttura paragrafi):
+%   P1: Descrivi il fork point, la nazione iniettata, il constraint scelto e perché.
+%   P2: Prompt Audit — mostra il cambio di reasoning all'injection turn (§3.2).
+%   P3: Analisi quantitativa della divergenza nelle metriche globali (§3.1 + §3.3).
+%   P4: Effetto a cascata — come reagiscono le altre nazioni a questa singola decisione?
+%   P5: Conclusione: il forking + injection dimostra la causalità. La singola deviazione
+%       è tracciabile attraverso tutto il sistema, validando il framework come strumento XAI.
 
 \section{Technical Performance and Computational Overhead}
 \label{sec:res_performance}
 This brief section reports on the operational efficiency, token utilization, and estimated costs associated with running the DeepSeek V3.2 models asynchronously over extended simulation horizons.
-% TODO: Dati dal Jupyter Notebook (Chapter 6).
+
+% ── NOTEBOOK: usa BASELINE_ID. ───────────────────────────────────────────────
+%
+% NON C'È UN CAPITOLO DEDICATO AL TOKEN COST nel notebook attuale.
+% Usa i dati dal database direttamente:
+%   SELECT model, SUM(total_tokens), SUM(cost), COUNT(*) FROM token_usage
+%   WHERE simulation_id = '<BASELINE_ID>'
+%   GROUP BY model, agent_type
+%
+% Metriche da riportare:
+%   - Totale token consumati per run da 50 turni.
+%   - Costo stimato in USD (calcolato da litellm o dal campo cost nel DB).
+%   - Breakdown per agent_type (defense, foreign, economy, opinion, president).
+%   - Latenza media per turno (se loggata).
+%   - Numero di chiamate LLM totali per run.
+%
+% SCRIVI:
+%   P1: "A full 50-turn baseline simulation with 8 nations consumed approximately
+%       [X] total tokens at an estimated cost of $[Y] USD using DeepSeek V3.2
+%       via the LiteLLM gateway."
+%   P2: "The Defense and Foreign minister agents are the primary token consumers,
+%       accounting for [Z]% of total usage, consistent with their higher
+%       reasoning complexity (multi-step JSON generation + private reasoning field)."
+%   P3: "The asynchronous ministerial proposal pipeline (concurrent per-nation) reduced
+%       wall-clock time per turn from ~[A]s (sequential) to ~[B]s (parallel),
+%       enabling the full 50-turn run within [C] hours."
+%
+% TABELLA SUGGERITA:
+%   \begin{table}[h]
+%     \caption{Token Usage and Cost Breakdown — 50-turn Baseline}
+%     Agent Type | Total Tokens | Avg per Turn | Cost (USD)
+%     Defense    | ...          | ...          | ...
+%     Foreign    | ...          | ...          | ...
+%     Economy    | ...          | ...          | ...
+%     Opinion    | ...          | ...          | ...
+%     President  | ...          | ...          | ...
+%     TOTAL      | ...          | ...          | ...
+%   \end{table}
