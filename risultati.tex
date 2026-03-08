@@ -382,40 +382,40 @@ Utilizing the state-forking mechanism, this section traces the causal chain of l
 \label{sec:res_performance}
 This brief section reports on the operational efficiency, token utilization, and estimated costs associated with running the DeepSeek V3.2 models asynchronously over extended simulation horizons.
 
-% ── NOTEBOOK: usa BASELINE_ID. ───────────────────────────────────────────────
-%
-% NON C'È UN CAPITOLO DEDICATO AL TOKEN COST nel notebook attuale.
-% Usa i dati dal database direttamente:
-%   SELECT model, SUM(total_tokens), SUM(cost), COUNT(*) FROM token_usage
-%   WHERE simulation_id = '<BASELINE_ID>'
-%   GROUP BY model, agent_type
-%
-% Metriche da riportare:
-%   - Totale token consumati per run da 50 turni.
-%   - Costo stimato in USD (calcolato da litellm o dal campo cost nel DB).
-%   - Breakdown per agent_type (defense, foreign, economy, opinion, president).
-%   - Latenza media per turno (se loggata).
-%   - Numero di chiamate LLM totali per run.
-%
-% SCRIVI:
-%   P1: "A full 50-turn baseline simulation with 8 nations consumed approximately
-%       [X] total tokens at an estimated cost of $[Y] USD using DeepSeek V3.2
-%       via the LiteLLM gateway."
-%   P2: "The Defense and Foreign minister agents are the primary token consumers,
-%       accounting for [Z]% of total usage, consistent with their higher
-%       reasoning complexity (multi-step JSON generation + private reasoning field)."
-%   P3: "The asynchronous ministerial proposal pipeline (concurrent per-nation) reduced
-%       wall-clock time per turn from ~[A]s (sequential) to ~[B]s (parallel),
-%       enabling the full 50-turn run within [C] hours."
-%
-% TABELLA SUGGERITA:
-%   \begin{table}[h]
-%     \caption{Token Usage and Cost Breakdown — 50-turn Baseline}
-%     Agent Type | Total Tokens | Avg per Turn | Cost (USD)
-%     Defense    | ...          | ...          | ...
-%     Foreign    | ...          | ...          | ...
-%     Economy    | ...          | ...          | ...
-%     Opinion    | ...          | ...          | ...
-%     President  | ...          | ...          | ...
-%     TOTAL      | ...          | ...          | ...
-%   \end{table}
+
+\paragraph{Token Budget and Cost Efficiency.}
+A full 50-turn baseline simulation with 8 nations and 4 agent types per nation consumed a total of $12{,}675{,}664$ tokens at an estimated API cost of \textbf{\$2.2007 USD} using DeepSeek V3.2 via the LiteLLM gateway. The cumulative cost trajectory (Figure~\ref{fig:token_cost}, right panel) is perfectly linear, indicating near-constant per-turn complexity with no progressive context bloat or emergent cost spikes. The mean cost per turn is approximately \$0.044, equivalent to \$0.0055 per nation per turn --- a cost structure that makes large-scale multi-agent simulation economically viable for repeated experimental runs.
+
+Table~\ref{tab:token_breakdown} reports the per-agent-type breakdown. The Foreign Minister is the largest single consumer ($3{,}457{,}561$ tokens, $69{,}151$ avg/turn), followed by the Defense Minister ($3{,}385{,}782$ tokens, $67{,}716$ avg/turn), the Economy Minister ($3{,}088{,}035$ tokens, $61{,}761$ avg/turn), and the President ($2{,}744{,}286$ tokens, $54{,}886$ avg/turn). The ranking reflects the structural complexity of each agent's context window: the Foreign Minister must reason over the full bilateral relationship matrix (tracking trust, treaties, and diplomatic history for all $n(n-1)/2 = 28$ nation pairs), while the President integrates summarized outputs from three ministerial reports rather than raw world state, reducing its per-call token footprint.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/token_cost.png}
+    \caption{Left: token usage per agent type per turn over 50 turns. All four agent types grow rapidly in the first 15 turns as geopolitical complexity increases, then reach a stable plateau. A transient drop is visible at $T \approx 17$--$19$ across all agents simultaneously, coinciding with the diplomatic phase transition identified in Section~\ref{sec:res_baseline}. Right: cumulative API cost in USD, growing linearly to a total of \$2.2007 for the full 50-turn run.}
+    \label{fig:token_cost}
+\end{figure}
+
+\begin{table}[!htb]
+    \centering
+    \caption{Token Usage and Estimated Cost Breakdown by Agent Type (50-turn baseline, 8 nations).}
+    \label{tab:token_breakdown}
+    \begin{tabular}{lrrr}
+        \hline
+        \textbf{Agent Type} & \textbf{Total Tokens} & \textbf{Avg/Turn} & \textbf{Cost (USD)} \\
+        \hline
+        Foreign Minister  & $3{,}457{,}561$ & 69{,}151 & \$0.5668 \\
+        Defense Minister  & $3{,}385{,}782$ & 67{,}716 & \$0.5791 \\
+        Economy Minister  & $3{,}088{,}035$ & 61{,}761 & \$0.5209 \\
+        President         & $2{,}744{,}286$ & 54{,}886 & \$0.5339 \\
+        \hline
+        \textbf{Total}    & $\mathbf{12{,}675{,}664}$ & 253{,}514 & \textbf{\$2.2007} \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\paragraph{Token Usage Dynamics and the T$\approx$17--19 Anomaly.}
+Figure~\ref{fig:token_cost} (left panel) shows that token usage per agent grows rapidly during the first 10--15 turns, as nations accumulate diplomatic history, form relationships, and develop increasingly rich contextual backgrounds that are injected into each LLM call. After this warm-up phase all four agent types stabilize at their respective plateaus: Foreign Minister ($\approx 68{,}000$--$70{,}000$ tokens/turn), Defense Minister ($\approx 63{,}000$--$66{,}000$), Economy Minister ($\approx 62{,}000$--$65{,}000$), and President ($\approx 52{,}000$--$55{,}000$).
+
+A salient anomaly is the synchronized drop in token usage across all agent types at $T \approx 17$--$19$, after which all agents settle at slightly lower plateaus than their pre-drop peaks. The precise temporal coincidence of this drop with the deception domain phase transition observed in Section~\ref{sec:res_deception} suggests a structural cause: ZENTORA's permanent elimination from the active nation pool around this period reduces the total number of active bilateral relationships (from 28 to 21), which shortens the diplomatic context injected into each Foreign and Defense Minister call.
+
+\textit{Pending investigation}: the token drop warrants further investigation to confirm whether it is caused by (a) ZENTORA's elimination reducing context size, (b) a change in the LLM provider's context compression behavior at those turns, or (c) a context-trimming mechanism in the GeoMAS engine that truncates older diplomatic history. The relevant diagnostic is to compare the raw prompt length (in characters) for the Foreign minister of a surviving nation at turn 16 vs.\ turn 20.
