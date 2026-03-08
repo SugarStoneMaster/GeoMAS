@@ -552,7 +552,7 @@ def check_and_trigger_scenario(
             target_province_id=scenario_trigger.get("target_province_id")
         )
         return {"logs": logs}
-    elif s_type == "INSURREZIONE" or s_type == "SEPARATIST_INSURRECTION":
+    elif s_type in ("INSURREZIONE", "INSURRECTION", "SEPARATIST_INSURRECTION"):
         return trigger_separatist_insurrection(
             world, context_manager, current_turn,
             target_nation_id=scenario_trigger.get("target_nation_id"),
