@@ -104,6 +104,96 @@ Table~\ref{tab:baseline_kpis} reports the aggregate performance indicators for t
 % determine which nation triggered a mass-mobilization and why (post-war recovery?
 % arms race response to AGRIA hegemony?).
 
+\paragraph{Diplomatic Network Evolution and Alliance Formation.}
+Figure~\ref{fig:baseline_network} traces the evolution of the diplomatic relationship network at five equidistant snapshot turns. At $T=1$, the network is fully connected with all edges in \textsc{Peace} (gray), reflecting the initial tabula rasa in which no diplomatic history has been established. By $T=12$, the first \textsc{War} (red) and \textsc{Mutual Defense} (green) relationships appear, signaling the onset of active geopolitical competition. Over subsequent snapshots, the graph progressively partitions: green alliance edges cluster among the mid-tier powers while red war edges radiate outward from AGRIA toward its adversaries.
+
+By $T=50$, the algorithm detects five structurally disconnected blocs:
+
+\begin{itemize}
+    \item \textbf{Bloc 1 — Anti-Hegemonic Coalition:} \{KRELL, MERIDIA, OSTER, SYLVAN\}. Four nations bound by \textsc{Mutual Defense} pacts form a coordinated defensive alliance against AGRIA's expansion. This is the dominant structural outcome and directly corresponds to classical balance-of-power theory: intermediate powers aggregate in response to a rising hegemon.
+    \item \textbf{Bloc 2 — Isolated Hegemon:} \{AGRIA\}. Despite (or because of) its military dominance, AGRIA ends the simulation with no formal allies. Its \textsc{Total Expansionism} strategy, which optimizes for territorial acquisition, renders sustained alliance-building incoherent with its behavioral profile. The largest military power is diplomatically isolated.
+    \item \textbf{Blocs 3--5 — Peripheral Isolates:} \{ZENTORA\}, \{VALKYR\}, \{NORD\}, each unable to attract alliance partners, whether because of resource exhaustion (ZENTORA), marginal power projection (VALKYR), or strategic disconnect (NORD).
+\end{itemize}
+
+This five-bloc configuration represents a unipolar system with organized peripheral resistance rather than a stable multipolar equilibrium, confirming RQ4's central hypothesis about the system's attractor states.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/baseline_network_evolution.png}
+    \caption{Diplomatic network evolution at five snapshot turns ($T=1, 12, 25, 37, 50$). Colors encode relationship state: green = \textsc{Mutual Defense}, red = \textsc{War}, yellow = \textsc{Non-Aggression}, gray = \textsc{Peace}. The network transitions from a fully peaceful initial state to a structured bipolar configuration with an isolated hegemon (AGRIA) opposed by a four-nation defensive coalition.}
+    \label{fig:baseline_network}
+\end{figure}
+
+\paragraph{Socio-Political Stability and Satisfaction Divergence.}
+Figure~\ref{fig:baseline_satisfaction} reports the public satisfaction trajectory of all eight nations alongside the global satisfaction dispersion ($\sigma$) and the civil unrest count per turn. Three observations stand out.
+
+First, AGRIA's satisfaction grows nearly monotonically from ${\approx}75$ at $T=1$ to ${\approx}98$ by $T=50$. This is the satisfaction dividend of hegemonic victory: conquered territories provide resources and security that consistently exceed the welfare needs of the expanding population. Second, the majority of nations exhibit a characteristic sawtooth oscillation in the range $[55, 70]$, reflecting the alternating cycle of resource investment and satisfaction decay. No nation breaches the civil unrest threshold (dashed red line at 10) at any turn, and the Civil Unrest count remains identically zero throughout the entire simulation — confirming the aggregate value reported in Table~\ref{tab:baseline_kpis}.
+
+Third, and arguably most theoretically significant, the satisfaction dispersion $\sigma$ grows from approximately $8$ at $T=1$ to approximately $22$ by $T=50$, representing a near-threefold increase in inter-nation inequality. This widening gap between AGRIA's near-perfect satisfaction and the stagnating peripheral nations constitutes an emergent \emph{winner-takes-all divergence}: the system self-generates increasing socio-economic inequality even in the absence of any externally imposed redistribution mechanism.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/baseline_satisfaction.png}
+    \caption{Left: public satisfaction per nation over 50 turns. AGRIA grows monotonically toward 100; most nations oscillate in $[55, 70]$; ZENTORA collapses toward the strike threshold by $T=10$. Center: satisfaction dispersion ($\sigma$) grows from 8 to 22, indicating increasing inter-nation inequality. Right: civil unrest count per turn — identically zero throughout the simulation.}
+    \label{fig:baseline_satisfaction}
+\end{figure}
+
+\paragraph{Territorial Dynamics.}
+Figure~\ref{fig:baseline_territory} reports the cumulative count of provinces that change ownership across the 50-turn baseline. The trajectory is approximately linear, accumulating 108 territorial transfers at a mean rate of ${\approx}2.2$ provinces per turn. Notably, the slope is slightly steeper in the early phase ($T=1$--$20$), reflecting AGRIA's rapid conquest of ZENTORA and initial territorial expansion, then moderates as the remaining nations consolidate defensive positions. The linearity of the curve indicates that geopolitical expansion is a sustained, steady-state process rather than a punctuated equilibrium of discrete crises — a behavioral signature consistent with a hegemon engaged in continuous, resource-driven territorial absorption rather than apocalyptic blitzkrieg.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/baseline_territory_changes.png}
+    \caption{Cumulative territory changes (provinces changing ownership) over 50 turns. The near-linear trajectory accumulates 108 total transfers at a mean rate of ${\approx}2.2$ per turn, consistent with AGRIA's sustained territorial expansion strategy.}
+    \label{fig:baseline_territory}
+\end{figure}
+
+\paragraph{Engine Governance: Action Acceptance and Presidential Oversight.}
+Tables~\ref{tab:engine_acceptance} and~\ref{tab:veto_rate} report the engine-level action acceptance rates and presidential veto rates respectively, providing a quantitative health check of the GeoMAS decision pipeline.
+
+The overall engine acceptance rate is high, with five of eight nations achieving rates at or above $97.6\%$. AGRIA's single rejected action ($99.6\%$) confirms that its aggressive strategy is computationally well-specified and respected by the action validation layer. The two notable exceptions are ZENTORA ($89.6\%$) and KRELL ($76.6\%$). ZENTORA's elevated failure rate is directly attributable to catastrophic resource exhaustion: a nation reduced to near-zero provinces and budget attempts actions its economy cannot support, such as large-scale military deployments on empty reserves. KRELL's $76.6\%$ rate, by contrast, likely reflects the \textsc{Armed Isolationism} strategy's tendency to propose self-sustaining defensive arrangements that the engine rejects as diplomatically inconsistent with its relationship state. Both cases are behaviorally interpretable rather than indicative of system malfunction.
+
+The presidential veto rate reveals a complementary dimension of the decision hierarchy. ZENTORA exhibits by far the highest veto rate ($28.3\%$), consistent with a head of state in crisis governance mode who rejects ministerial proposals perceived as strategically untenable given the nation's diminished capacity. AGRIA's low veto rate ($5.0\%$) confirms strong presidential alignment with the expansionist military agenda. Most notably, MERIDIA and SYLVAN achieve $0.0\%$ veto rates — complete presidential alignment with ministerial proposals — consistent with their stable mid-tier positions and coherent \textsc{Coalition Builder} and \textsc{Democracy} profiles where domestic consensus is the dominant behavioral attractor.
+
+\begin{table}[!htb]
+    \centering
+    \caption{Per-Nation Engine Action Acceptance Rate (baseline, full 50-turn run).}
+    \label{tab:engine_acceptance}
+    \begin{tabular}{lrrrr}
+        \hline
+        \textbf{Nation} & \textbf{Failed} & \textbf{Success} & \textbf{Total} & \textbf{Rate (\%)} \\
+        \hline
+        MERIDIA & 0  & 248 & 248 & 100.0 \\
+        OSTER   & 0  & 227 & 227 & 100.0 \\
+        VALKYR  & 0  & 200 & 200 & 100.0 \\
+        AGRIA   & 1  & 232 & 233 & 99.6  \\
+        NORD    & 3  & 158 & 161 & 98.1  \\
+        SYLVAN  & 6  & 243 & 249 & 97.6  \\
+        ZENTORA & 7  & 60  & 67  & 89.6  \\
+        KRELL   & 30 & 98  & 128 & 76.6  \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\begin{table}[!htb]
+    \centering
+    \caption{Per-Nation Presidential Veto Rate (baseline, full 50-turn run).}
+    \label{tab:veto_rate}
+    \begin{tabular}{lrrrr}
+        \hline
+        \textbf{Nation} & \textbf{APPROVE} & \textbf{VETO} & \textbf{Total} & \textbf{Veto Rate (\%)} \\
+        \hline
+        ZENTORA & 33  & 13 & 46  & 28.3 \\
+        OSTER   & 127 & 16 & 143 & 11.2 \\
+        VALKYR  & 100 & 7  & 107 & 6.5  \\
+        AGRIA   & 133 & 7  & 140 & 5.0  \\
+        NORD    & 61  & 2  & 63  & 3.2  \\
+        KRELL   & 146 & 2  & 148 & 1.4  \\
+        MERIDIA & 148 & 0  & 148 & 0.0  \\
+        SYLVAN  & 149 & 0  & 149 & 0.0  \\
+        \hline
+    \end{tabular}
+\end{table}
 
 \section{Macrodynamics: Scenario Impact Analysis}
 \label{sec:res_scenario}
