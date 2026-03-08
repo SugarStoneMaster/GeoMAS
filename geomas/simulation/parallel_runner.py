@@ -94,61 +94,81 @@ class DatabaseMerger:
         mapping = {}
         
         with duckdb.connect(self.master_db_path) as master_conn:
-            # Attach worker DB
             master_conn.execute(f"ATTACH '{worker_db_path}' AS worker")
             
-            # Find current max ID in master to offset
+            # Find current max ID in master to offset all incoming IDs
             res = master_conn.execute("SELECT MAX(id) FROM simulation").fetchone()
             master_max_id = (res[0] or 0) if res else 0
             
-            # Identify simulations in worker
             worker_sims = master_conn.execute("SELECT id FROM worker.simulation").fetchall()
             
             for (old_id,) in worker_sims:
                 new_id = old_id + master_max_id
                 mapping[old_id] = new_id
                 
-                # Copy simulation metadata
+                # Copy simulation metadata (explicit columns — no auto-increment id)
                 master_conn.execute(f"""
                     INSERT INTO main.simulation 
+                        (id, uuid, genesis_seed, simulation_seed, n_cells, n_nations,
+                         created_at, completed_at, total_turns, name, scenario_json)
                     SELECT {new_id}, uuid, genesis_seed, simulation_seed, n_cells, n_nations, 
                            created_at, completed_at, total_turns, name, scenario_json 
                     FROM worker.simulation WHERE id = {old_id}
                 """)
                 
                 # Copy Snapshots
-                master_conn.execute(f"""
-                    INSERT INTO main.snapshots 
-                    SELECT {new_id}, turn, provinces_json, nations_json, trust_matrix, 
-                           relationship_matrix, world_events_json, memory_json, created_at 
-                    FROM worker.snapshots WHERE simulation_id = {old_id}
-                """)
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.snapshots 
+                            (simulation_id, turn, provinces_json, nations_json, trust_matrix,
+                             relationship_matrix, world_events_json, memory_json, created_at)
+                        SELECT {new_id}, turn, provinces_json, nations_json, trust_matrix, 
+                               relationship_matrix, world_events_json, memory_json, created_at 
+                        FROM worker.snapshots WHERE simulation_id = {old_id}
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] snapshots table: {e}")
                 
                 # Copy Envelopes
-                master_conn.execute(f"""
-                    INSERT INTO main.envelopes 
-                    SELECT {new_id}, turn, nation_id, envelope_json, created_at 
-                    FROM worker.envelopes WHERE simulation_id = {old_id}
-                """)
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.envelopes 
+                            (simulation_id, turn, nation_id, envelope_json, created_at)
+                        SELECT {new_id}, turn, nation_id, envelope_json, created_at 
+                        FROM worker.envelopes WHERE simulation_id = {old_id}
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] envelopes table: {e}")
                 
                 # Copy Behaviors
-                master_conn.execute(f"""
-                    INSERT INTO main.behaviors 
-                    SELECT {new_id}, turn, nation_id, deception_total, deception_defense, 
-                           deception_foreign, coherence_score, global_strategy, government_type 
-                    FROM worker.behaviors WHERE simulation_id = {old_id}
-                """)
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.behaviors 
+                            (simulation_id, turn, nation_id, deception_total, deception_defense,
+                             deception_foreign, coherence_score, global_strategy, government_type)
+                        SELECT {new_id}, turn, nation_id, deception_total, deception_defense, 
+                               deception_foreign, coherence_score, global_strategy, government_type 
+                        FROM worker.behaviors WHERE simulation_id = {old_id}
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] behaviors table: {e}")
                 
                 # Copy Token Usage
-                master_conn.execute(f"""
-                    INSERT INTO main.token_usage 
-                    SELECT {new_id}, turn, nation_id, agent_type, prompt_tokens, 
-                           completion_tokens, total_tokens, model, cost 
-                    FROM worker.token_usage WHERE simulation_id = {old_id}
-                """)
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.token_usage 
+                            (simulation_id, turn, nation_id, agent_type, prompt_tokens,
+                             completion_tokens, total_tokens, model, cost)
+                        SELECT {new_id}, turn, nation_id, agent_type, prompt_tokens, 
+                               completion_tokens, total_tokens, model, cost 
+                        FROM worker.token_usage WHERE simulation_id = {old_id}
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] token_usage table: {e}")
                 
             master_conn.execute("DETACH worker")
         return mapping
+
 
     def _merge_metrics_db(self, worker_metrics_path: str, id_mapping: Dict[int, int]):
         if not os.path.exists(worker_metrics_path):
@@ -159,57 +179,78 @@ class DatabaseMerger:
             master_conn.execute(f"ATTACH '{worker_metrics_path}' AS worker")
             
             for old_id, new_id in id_mapping.items():
+                # simulation_id in metrics tables is VARCHAR — cast consistently
+                old_id_str = str(old_id)
+                new_id_str = str(new_id)
+
                 # 1. Global Metrics
-                master_conn.execute(f"""
-                    INSERT INTO main.metrics_global 
-                    (simulation_id, turn, global_deception_avg, global_coherence_avg, 
-                     global_satisfaction_avg, territories_changed_hands, units_created, 
-                     units_destroyed, global_trade_volume)
-                    SELECT '{new_id}', turn, global_deception_avg, global_coherence_avg, 
-                           global_satisfaction_avg, territories_changed_hands, units_created, 
-                           units_destroyed, global_trade_volume 
-                    FROM worker.metrics_global WHERE simulation_id = '{old_id}'
-                """)
-                
+                # NOTE: we exclude the auto-increment 'id' column to avoid PK collisions
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.metrics_global 
+                            (simulation_id, turn, global_deception_avg, global_coherence_avg, 
+                             global_satisfaction_avg, territories_changed_hands, units_created, 
+                             units_destroyed, global_trade_volume)
+                        SELECT '{new_id_str}', turn, global_deception_avg, global_coherence_avg, 
+                               global_satisfaction_avg, territories_changed_hands, units_created, 
+                               units_destroyed, global_trade_volume 
+                        FROM worker.metrics_global WHERE simulation_id = '{old_id_str}'
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] metrics_global for sim {old_id}: {e}")
+
                 # 2. Nation Metrics
-                master_conn.execute(f"""
-                    INSERT INTO main.metrics_nation 
-                    (simulation_id, turn, nation_id, deception_overall, deception_defense, 
-                     deception_foreign, coherence_score, budget, food, energy, materials, 
-                     population, workers, public_satisfaction, in_civil_unrest, 
-                     soldiers, aircraft, navy, power_projection, trade_volume, military_spending)
-                    SELECT '{new_id}', turn, nation_id, deception_overall, deception_defense, 
-                           deception_foreign, coherence_score, budget, food, energy, materials, 
-                           population, workers, public_satisfaction, in_civil_unrest, 
-                           soldiers, aircraft, navy, power_projection, trade_volume, military_spending 
-                    FROM worker.metrics_nation WHERE simulation_id = '{old_id}'
-                """)
-                
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.metrics_nation 
+                            (simulation_id, turn, nation_id, deception_overall, deception_defense, 
+                             deception_foreign, coherence_score, budget, food, energy, materials, 
+                             population, workers, public_satisfaction, in_civil_unrest, 
+                             soldiers, aircraft, navy, power_projection, trade_volume, military_spending)
+                        SELECT '{new_id_str}', turn, nation_id, deception_overall, deception_defense, 
+                               deception_foreign, coherence_score, budget, food, energy, materials, 
+                               population, workers, public_satisfaction, in_civil_unrest, 
+                               soldiers, aircraft, navy, power_projection, trade_volume, military_spending 
+                        FROM worker.metrics_nation WHERE simulation_id = '{old_id_str}'
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] metrics_nation for sim {old_id}: {e}")
+
                 # 3. Trust Metrics
-                master_conn.execute(f"""
-                    INSERT INTO main.metrics_trust 
-                    (simulation_id, turn, observer_id, target_id, trust_value, relationship_state)
-                    SELECT '{new_id}', turn, observer_id, target_id, trust_value, relationship_state 
-                    FROM worker.metrics_trust WHERE simulation_id = '{old_id}'
-                """)
-                
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.metrics_trust 
+                            (simulation_id, turn, observer_id, target_id, trust_value, relationship_state)
+                        SELECT '{new_id_str}', turn, observer_id, target_id, trust_value, relationship_state 
+                        FROM worker.metrics_trust WHERE simulation_id = '{old_id_str}'
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] metrics_trust for sim {old_id}: {e}")
+
                 # 4. Action Outcomes
-                master_conn.execute(f"""
-                    INSERT INTO main.metrics_action_outcomes 
-                    (simulation_id, turn, nation_id, domain, action_type, status, reason)
-                    SELECT '{new_id}', turn, nation_id, domain, action_type, status, reason 
-                    FROM worker.metrics_action_outcomes WHERE simulation_id = '{old_id}'
-                """)
-                
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.metrics_action_outcomes 
+                            (simulation_id, turn, nation_id, domain, action_type, status, reason)
+                        SELECT '{new_id_str}', turn, nation_id, domain, action_type, status, reason 
+                        FROM worker.metrics_action_outcomes WHERE simulation_id = '{old_id_str}'
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] metrics_action_outcomes for sim {old_id}: {e}")
+
                 # 5. Presidential Decisions
-                master_conn.execute(f"""
-                    INSERT INTO main.metrics_presidential_decisions 
-                    (simulation_id, turn, nation_id, domain, decision, action_type, reasoning)
-                    SELECT '{new_id}', turn, nation_id, domain, decision, action_type, reasoning 
-                    FROM worker.metrics_presidential_decisions WHERE simulation_id = '{old_id}'
-                """)
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.metrics_presidential_decisions 
+                            (simulation_id, turn, nation_id, domain, decision, action_type, reasoning)
+                        SELECT '{new_id_str}', turn, nation_id, domain, decision, action_type, reasoning 
+                        FROM worker.metrics_presidential_decisions WHERE simulation_id = '{old_id_str}'
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] metrics_presidential_decisions for sim {old_id}: {e}")
                 
             master_conn.execute("DETACH worker")
+
 
 class ParallelBatchManager:
     """

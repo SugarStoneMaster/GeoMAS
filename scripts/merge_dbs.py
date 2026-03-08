@@ -3,27 +3,36 @@
 merge_dbs.py — CLI script to merge multiple GeoMAS DuckDB databases into a single master.
 
 Usage:
+    # Merge all sims from source (including duplicates of baselines!)
     python scripts/merge_dbs.py \\
         --master data/simulation.duckdb \\
-        --sources /path/to/copy_a/data/simulation.duckdb /path/to/copy_b/data/simulation.duckdb
+        --sources /path/to/copy_a/data/simulation.duckdb
+
+    # Merge only NEW simulations (skip baselines already in master):
+    python scripts/merge_dbs.py \\
+        --master data/simulation.duckdb \\
+        --sources /path/to/copy_a/data/simulation.duckdb \\
+        --from-sim-id 4   # only sims with ID >= 4 in the source
+
+    # Inspect what's inside a source DB before merging:
+    python scripts/merge_dbs.py --list-sims /path/to/copy_a/data/simulation.duckdb
 
     # Or using pattern matching (glob):
     python scripts/merge_dbs.py \\
         --master data/simulation.duckdb \\
-        --glob "/path/to/copies/*/data/simulation.duckdb"
+        --glob "/path/to/copies/*/data/simulation.duckdb" \\
+        --from-sim-id 4
 
 Notes:
     - Each source DB must have a corresponding <name>_metrics.duckdb in the same directory.
-      (e.g. simulation.duckdb + simulation_metrics.duckdb)
     - The master DB is updated IN PLACE. Backup it first if needed.
-    - Source DBs are NOT deleted (unlike in the parallel_runner worker flow). 
-      Use --cleanup to delete them after a successful merge.
+    - Use --from-sim-id to skip baseline simulations already present in the master.
+    - Source DBs are NOT deleted unless --cleanup is specified.
 """
 import argparse
 import glob as glob_module
 import os
 import sys
-import shutil
 from pathlib import Path
 
 
@@ -61,7 +70,33 @@ def validate_db(path: str) -> bool:
     return True
 
 
-def do_merge(master_sim: str, master_metrics: str, sources: list[str], cleanup: bool, dry_run: bool):
+def list_sims_in_db(db_path: str):
+    """Print a table of simulations in a DB — useful for choosing --from-sim-id."""
+    import duckdb
+    if not validate_db(db_path):
+        return
+    with duckdb.connect(db_path, read_only=True) as conn:
+        rows = conn.execute(
+            "SELECT id, name, total_turns, created_at, scenario_json FROM simulation ORDER BY id"
+        ).fetchall()
+    print(f"\nSimulations in: {db_path}")
+    print(f"{'ID':>4}  {'Name':<20}  {'Turns':>5}  {'Created At':<20}  Scenario")
+    print("-" * 80)
+    for r in rows:
+        sim_id, name, turns, created_at, scenario_json = r
+        scen = scenario_json[:40] if scenario_json else "—"
+        print(f"{sim_id:>4}  {(name or '?'):<20}  {(turns or 0):>5}  {str(created_at):<20}  {scen}")
+    print()
+
+
+def do_merge(
+    master_sim: str,
+    master_metrics: str,
+    sources: list,
+    from_sim_id: int,
+    cleanup: bool,
+    dry_run: bool
+):
     """
     Core merge logic. Iterates sources and merges each one into the master.
     """
@@ -73,6 +108,7 @@ def do_merge(master_sim: str, master_metrics: str, sources: list[str], cleanup: 
     print(f"  Master simulation DB : {master_sim}")
     print(f"  Master metrics DB    : {master_metrics}")
     print(f"  Total source DBs     : {len(sources)}")
+    print(f"  From sim ID          : >= {from_sim_id}  (0 = all sims)")
     print(f"  Dry run              : {dry_run}")
     print(f"  Cleanup sources      : {cleanup}")
     print(f"{'='*60}\n")
@@ -87,6 +123,18 @@ def do_merge(master_sim: str, master_metrics: str, sources: list[str], cleanup: 
             metrics = resolve_metrics_path(src)
             print(f"  [{i + 1}] SIM:     {src}  ({'OK' if Path(src).exists() else 'MISSING'})")
             print(f"       METRICS: {metrics}  ({'OK' if Path(metrics).exists() else 'MISSING'})")
+            if from_sim_id > 0 and Path(src).exists():
+                # Show which sims would actually be included
+                try:
+                    import duckdb
+                    with duckdb.connect(src, read_only=True) as c:
+                        ids = [r[0] for r in c.execute("SELECT id FROM simulation ORDER BY id").fetchall()]
+                    included = [i for i in ids if i >= from_sim_id]
+                    skipped = [i for i in ids if i < from_sim_id]
+                    print(f"       Include sims : {included}")
+                    print(f"       Skip sims    : {skipped} (already in master)")
+                except Exception:
+                    pass
         print("\n[DRY RUN] No changes made.")
         return
 
@@ -110,24 +158,98 @@ def do_merge(master_sim: str, master_metrics: str, sources: list[str], cleanup: 
         print(f"          Metrics:  {metrics_path}")
 
         try:
-            # Patch the merger to NOT auto-delete source files (unlike worker flow)
-            # We do this by temporarily monkey-patching merge_worker to use
-            # a custom non-destructive version.
-            _original_merge_worker = merger.merge_worker
+            # Patch the merger to NOT auto-delete source files and respect from_sim_id
+            actual_metrics = resolve_metrics_path(src)
 
-            def _non_destructive_merge_worker(worker_db_path: str):
-                """Merge without deleting the source file afterwards."""
-                worker_metrics_path = worker_db_path.replace(".duckdb", "_metrics.duckdb")
-                # Infer correct metrics path
-                actual_metrics = resolve_metrics_path(worker_db_path)
-                id_mapping = merger._merge_simulation_db(worker_db_path)
-                if id_mapping and os.path.exists(actual_metrics):
-                    merger._merge_metrics_db(actual_metrics, id_mapping)
-                # Do NOT delete sources here — cleanup is handled separately
+            def _filtered_merge(worker_db_path: str, _min_id: int = from_sim_id, _metrics: str = actual_metrics):
+                """Merge only sims with id >= _min_id, without deleting sources."""
+                import duckdb
 
-            merger.merge_worker = _non_destructive_merge_worker
-            merger.merge_worker(src)
-            merger.merge_worker = _original_merge_worker
+                # --- Simulation DB ---
+                id_mapping = {}
+                with duckdb.connect(merger.master_db_path) as master_conn:
+                    master_conn.execute(f"ATTACH '{worker_db_path}' AS worker")
+                    res = master_conn.execute("SELECT MAX(id) FROM simulation").fetchone()
+                    master_max_id = (res[0] or 0) if res else 0
+
+                    worker_sims = master_conn.execute(
+                        f"SELECT id FROM worker.simulation WHERE id >= {_min_id} ORDER BY id"
+                    ).fetchall()
+
+                    if not worker_sims:
+                        print(f"          ⚠️  No sims with id >= {_min_id} found in source. Skipping.")
+                        master_conn.execute("DETACH worker")
+                        return {}
+
+                    for (old_id,) in worker_sims:
+                        new_id = old_id + master_max_id
+                        id_mapping[old_id] = new_id
+                        print(f"          Sim {old_id} → new Sim {new_id}")
+
+                        # Explicit column lists prevent PK collisions on auto-increment `id`
+                        master_conn.execute(f"""
+                            INSERT INTO main.simulation
+                                (id, uuid, genesis_seed, simulation_seed, n_cells, n_nations,
+                                 created_at, completed_at, total_turns, name, scenario_json)
+                            SELECT {new_id}, uuid, genesis_seed, simulation_seed, n_cells, n_nations,
+                                   created_at, completed_at, total_turns, name, scenario_json
+                            FROM worker.simulation WHERE id = {old_id}
+                        """)
+                        try:
+                            master_conn.execute(f"""
+                                INSERT INTO main.snapshots
+                                    (simulation_id, turn, provinces_json, nations_json, trust_matrix,
+                                     relationship_matrix, world_events_json, memory_json, created_at)
+                                SELECT {new_id}, turn, provinces_json, nations_json, trust_matrix,
+                                       relationship_matrix, world_events_json, memory_json, created_at
+                                FROM worker.snapshots WHERE simulation_id = {old_id}
+                            """)
+                        except Exception as e:
+                            print(f"          [WARN] snapshots: {e}")
+                        try:
+                            master_conn.execute(f"""
+                                INSERT INTO main.envelopes
+                                    (simulation_id, turn, nation_id, envelope_json, created_at)
+                                SELECT {new_id}, turn, nation_id, envelope_json, created_at
+                                FROM worker.envelopes WHERE simulation_id = {old_id}
+                            """)
+                        except Exception as e:
+                            print(f"          [WARN] envelopes: {e}")
+                        try:
+                            master_conn.execute(f"""
+                                INSERT INTO main.behaviors
+                                    (simulation_id, turn, nation_id, deception_total, deception_defense,
+                                     deception_foreign, coherence_score, global_strategy, government_type)
+                                SELECT {new_id}, turn, nation_id, deception_total, deception_defense,
+                                       deception_foreign, coherence_score, global_strategy, government_type
+                                FROM worker.behaviors WHERE simulation_id = {old_id}
+                            """)
+                        except Exception as e:
+                            print(f"          [WARN] behaviors: {e}")
+                        try:
+                            master_conn.execute(f"""
+                                INSERT INTO main.token_usage
+                                    (simulation_id, turn, nation_id, agent_type, prompt_tokens,
+                                     completion_tokens, total_tokens, model, cost)
+                                SELECT {new_id}, turn, nation_id, agent_type, prompt_tokens,
+                                       completion_tokens, total_tokens, model, cost
+                                FROM worker.token_usage WHERE simulation_id = {old_id}
+                            """)
+                        except Exception as e:
+                            print(f"          [WARN] token_usage: {e}")
+                    master_conn.execute("DETACH worker")
+
+                # --- Metrics DB ---
+                if id_mapping and os.path.exists(_metrics):
+                    merger._merge_metrics_db(_metrics, id_mapping)
+
+                return id_mapping
+
+            result = _filtered_merge(src)
+
+            if not result:
+                failed += 1
+                continue
 
             print(f"          ✅ Done")
             succeeded += 1
@@ -190,8 +312,33 @@ def main():
         default=False,
         help="Show what would be merged without making any changes."
     )
+    parser.add_argument(
+        "--from-sim-id",
+        type=int,
+        default=0,
+        metavar="N",
+        help=(
+            "Only merge simulations with ID >= N from each source. "
+            "Use this to skip baseline sims already present in the master "
+            "(e.g. --from-sim-id 4 to skip Sims 1-3 that were already in the original project). "
+            "Default 0 = merge all simulations."
+        )
+    )
+    parser.add_argument(
+        "--list-sims",
+        nargs="*",
+        metavar="PATH",
+        help="List all simulations in one or more DB files (diagnostic, no merge performed)."
+    )
 
     args = parser.parse_args()
+
+    # --list-sims shortcut: just inspect and exit
+    if args.list_sims is not None:
+        paths = args.list_sims or [args.master]
+        for p in paths:
+            list_sims_in_db(str(Path(p).resolve()))
+        sys.exit(0)
 
     # Resolve master paths
     master_sim = str(Path(args.master).resolve())
@@ -224,7 +371,7 @@ def main():
             seen.add(s)
             unique_sources.append(s)
 
-    do_merge(master_sim, master_metrics, unique_sources, args.cleanup, args.dry_run)
+    do_merge(master_sim, master_metrics, unique_sources, args.from_sim_id, args.cleanup, args.dry_run)
 
 
 if __name__ == "__main__":
