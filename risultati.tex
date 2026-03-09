@@ -51,7 +51,7 @@ The absence of an accelerating deception trajectory is theoretically significant
 \paragraph{Resource Allocation Dynamics: A Three-Phase Geopolitical Cycle.}
 The Guns vs.\ Butter chart (Figure~\ref{fig:baseline_guns_butter}) reveals a more complex dynamic than simple equilibrium by exposing three structurally distinct phases in the joint evolution of global Trade Volume and Units Created.
 
-During the \textit{initialization phase} ($T = 1$--$7$), nations deploy initial military stocks from pre-allocated resources, producing a large pulse of unit creation ($\approx\!200{,}000$ units in turn 1) which declines to a steady-state production rate of approximately $32{,}000$--$42{,}000$ units per turn by turn 7. Trade Volume grows sharply from zero to approximately $400{,}000$, reflecting the formation of early diplomatic and commercial agreements.
+During the \textit{initialization phase} ($T = 1$--$7$), Trade Volume surges sharply from near zero to approximately $400{,}000$, reflecting the rapid formation of early diplomatic and commercial agreements among nations. Units Created, tracked on the right axis, starts in the range $37{,}000$--$43{,}000$ in the earliest turns and progressively declines toward a steady-state plateau of approximately $32{,}000$ units per turn by turn 7, consistent with nations exhausting their initial military budget and transitioning to a sustainable recruitment pace.
 
 The \textit{competitive equilibrium phase} ($T = 8$--$18$) is characterized by oscillating trade volumes in the range $[220{,}000, 410{,}000]$ and stable military production. This alternating pattern reflects turn-to-turn variation as nations balance trade against resource hoarding in response to changing diplomatic tensions --- a behavioral signature consistent with the mixed population of \textsc{Coalition Builder} and \textsc{Total Expansionism} strategies in the baseline.
 
@@ -107,12 +107,16 @@ Figure~\ref{fig:baseline_network} traces the evolution of the diplomatic relatio
 By $T=50$, the algorithm detects five structurally disconnected blocs:
 
 \begin{itemize}
-    \item \textbf{Bloc 1 — Anti-Hegemonic Coalition:} \{KRELL, MERIDIA, OSTER, SYLVAN\}. Four nations bound by \textsc{Mutual Defense} pacts form a coordinated defensive alliance, consolidating in response to AGRIA's dominance. This is the dominant structural outcome and directly corresponds to classical balance-of-power theory: intermediate powers aggregate in response to a rising power.
+    \item \textbf{Bloc 1 — Democratic Coalition:} \{KRELL, MERIDIA, OSTER, SYLVAN\}. Four nations bound by \textsc{Mutual Defense} pacts form a coordinated defensive alliance network. The bloc is anchored by the three \textsc{Coalition Builder} democracies (KRELL, MERIDIA, OSTER) and also includes SYLVAN, whose \textsc{Total Expansionism} doctrine is masked behind a democratic facade --- a dynamic examined in depth in Section~\ref{sec:res_deception}. The structural consolidation of this bloc is consistent with classical balance-of-power theory: intermediate powers aggregate in response to a rising hegemon.
     \item \textbf{Bloc 2 — Isolated Accumulator:} \{AGRIA\}. Despite (or because of) its military dominance, AGRIA closes the simulation with no formal allies. Its \textsc{Total Expansionism} strategy --- manifested as internal military buildup rather than coalition politics --- renders diplomatic alliance-building structurally secondary to force projection. The largest military power is diplomatically isolated.
     \item \textbf{Blocs 3--5 — Peripheral Isolates:} \{ZENTORA\}, \{VALKYR\}, \{NORD\}, each unable to attract alliance partners after early territorial conflicts diminished their relative power and attractiveness as partners.
 \end{itemize}
 
-This five-bloc configuration represents a unipolar system with organized peripheral resistance rather than a stable multipolar equilibrium, confirming RQ4's central hypothesis about the system's attractor states.
+This five-bloc configuration represents a unipolar system with an organized diplomatic periphery rather than a stable multipolar equilibrium.
+
+\rqanswer{4}{The baseline simulation does not converge toward a stable balance of power. Instead, the eight-nation system self-organizes into a persistent unipolar structure: AGRIA accumulates unchallenged military dominance through 50 turns of conflict-free buildup, while a four-nation Democratic Coalition forms a reactive defensive bloc. Peripheral nations (ZENTORA, VALKYR, NORD) collapse or stagnate after early territorial conflicts, generating a stratified hegemonic equilibrium consistent with Hegemonic Stability Theory rather than classical multipolar dynamics.}
+
+\finding{4}{The dominant emergent macro-structure is a unipolar hegemony with organized peripheral resistance. Strategic patience --- deferring overt aggression while accumulating power internally and economically --- proves to be the most effective long-run strategy, outperforming both direct military expansion (NORD, SYLVAN) and diplomatic isolation (ZENTORA).}
 
 \begin{figure}[!htb]
     \centering
@@ -122,16 +126,14 @@ This five-bloc configuration represents a unipolar system with organized periphe
 \end{figure}
 
 \paragraph{Socio-Political Stability and Satisfaction Divergence.}
-Figure~\ref{fig:baseline_satisfaction} reports the public satisfaction trajectory of all eight nations alongside the global satisfaction dispersion ($\sigma$) and the civil unrest count per turn. Three observations stand out.
+Figure~\ref{fig:baseline_satisfaction} reports the public satisfaction trajectory of all eight nations and the civil unrest count per turn. Two observations stand out.
 
-First, AGRIA's satisfaction grows nearly monotonically from ${\approx}75$ at $T=1$ to ${\approx}98$ by $T=50$. This is the satisfaction dividend of sustained internal development and strategic patience: without suffering the losses of active warfare, AGRIA's population benefits from continuously growing resources and security. Second, the majority of nations exhibit a characteristic sawtooth oscillation in the range $[55, 70]$, reflecting the alternating cycle of resource investment and satisfaction decay. No nation breaches the civil unrest threshold (dashed red line at 10) at any turn, and the Civil Unrest count remains identically zero throughout the entire simulation --- confirming the aggregate value reported in Table~\ref{tab:baseline_kpis}.
-
-Third, and arguably most theoretically significant, the satisfaction dispersion $\sigma$ grows from approximately $8$ at $T=1$ to approximately $22$ by $T=50$, representing a near-threefold increase in inter-nation inequality. This widening gap between AGRIA's near-perfect satisfaction and the stagnating peripheral nations constitutes an emergent \emph{winner-takes-all divergence}: the system self-generates increasing socio-economic inequality even in the absence of any externally imposed redistribution mechanism.
+First, AGRIA's satisfaction grows nearly monotonically from ${\approx}75$ at $T=1$ to ${\approx}98$ by $T=50$. This is the satisfaction dividend of sustained internal development and strategic patience: without suffering the losses of active warfare, AGRIA's population benefits from continuously growing resources and security. Second, the majority of nations exhibit a characteristic sawtooth oscillation in the range $[55, 70]$, reflecting the alternating cycle of resource investment and satisfaction decay. No nation breaches the civil unrest threshold at any turn, and the Civil Unrest count remains identically zero throughout the entire simulation --- confirming the aggregate value reported in Table~\ref{tab:baseline_kpis}.
 
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=\linewidth]{figure/baseline_satisfaction.png}
-    \caption{Left: public satisfaction per nation over 50 turns. AGRIA grows monotonically toward 100; most nations oscillate in $[55, 70]$; ZENTORA collapses toward the strike threshold by $T=10$. Center: satisfaction dispersion ($\sigma$) grows from 8 to 22, indicating increasing inter-nation inequality. Right: civil unrest count per turn — identically zero throughout the simulation.}
+    \caption{Public satisfaction per nation over 50 turns. AGRIA grows monotonically toward 100 due to its conflict-free accumulation strategy; most nations oscillate in $[55, 70]$; ZENTORA collapses toward the unrest threshold by $T=10$. Civil unrest count remains identically zero throughout the simulation.}
     \label{fig:baseline_satisfaction}
 \end{figure}
 
@@ -141,14 +143,14 @@ Figure~\ref{fig:baseline_territory} reports the cumulative count of provinces th
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=\linewidth]{figure/baseline_territory_changes.png}
-    \caption{Cumulative territory changes (provinces changing ownership) over 50 turns. The near-linear trajectory accumulates 108 total transfers at a mean rate of ${\approx}2.2$ per turn, consistent with AGRIA's sustained territorial expansion strategy.}
+    \caption{Cumulative territory changes (provinces changing ownership) over 50 turns. The near-linear trajectory accumulates $\approx189$ total transfers, driven by the NORD--SYLVAN war of attrition and the asymmetric absorption of VALKYR and ZENTORA. AGRIA, OSTER, MERIDIA, and KRELL record zero territorial transfers throughout.}
     \label{fig:baseline_territory}
 \end{figure}
 
 \paragraph{Engine Governance: Action Acceptance and Presidential Oversight.}
 Tables~\ref{tab:engine_acceptance} and~\ref{tab:veto_rate} report the engine-level action acceptance rates and presidential veto rates respectively, providing a quantitative health check of the GeoMAS decision pipeline.
 
-The overall engine acceptance rate is high, with five of eight nations achieving rates at or above $97.6\%$. The two notable exceptions are ZENTORA ($89.6\%$) and KRELL ($76.6\%$). Engine-level failures can arise from two distinct causes: (1) \emph{resource exhaustion}, where the nation lacks the budget, soldiers, or materials required by the action; and (2) \emph{LLM geographic hallucination}, where the model proposes an action targeting a province it does not own. ZENTORA's elevated failure rate is attributable to the former: a near-conquered nation attempts military actions its economy can no longer support. KRELL's $76.6\%$ rate is cleanly attributable to the latter. All 30 of KRELL's failures are \texttt{CREATE\_UNIT} actions in provinces KRELL does not own (provinces 100--104 and 108), occurring consistently from $T=2$ to $T=18$ and recurring at $T=48$. The province IDs cycle without converging, indicating that KRELL's Defense Minister infers province ownership from its strategic narrative rather than from the authoritative state injection. The practical consequence is significant: KRELL's army stagnates at 5,412 soldiers for 17 consecutive turns, undermining its ability to eventually fulfill mutual defense obligations despite having the resources to recruit.
+The overall engine acceptance rate is high, with five of eight nations achieving rates at or above $97.6\%$. The two notable exceptions are ZENTORA ($89.6\%$) and KRELL ($76.6\%$). Engine-level failures arise from two distinct causes: (1) \emph{resource exhaustion}, where the nation lacks the budget, soldiers, or materials to execute the action; and (2) \emph{LLM geographic hallucination}, where the model specifies an invalid target in the action payload. ZENTORA's elevated failure rate is attributable to (1): a near-conquered nation attempts military actions its depleted economy can no longer support. KRELL's $76.6\%$ failure rate is entirely attributable to (2). All 30 of KRELL's engine failures are \texttt{CREATE\_UNIT} actions that target non-owned provinces, occurring from $T=2$ through $T=18$ and re-appearing at $T=48$. The Defense Minister consistently proposes unit creation at not owned province IDs across 16 distinct turns without correction, suggesting the model anchors its province selection to a mental map inferred from its strategic narrative rather than from the authoritative province ownership list injected into its context. The practical consequence is severe: KRELL's army stagnates at 5,412 soldiers for 17 consecutive turns, undermining its \textsc{Mutual Defense} commitments with OSTER, MERIDIA and SYLVAN despite having sufficient materials to recruit.
 
 The presidential veto rate reveals a complementary dimension of the decision hierarchy. ZENTORA exhibits by far the highest veto rate ($28.3\%$), directly traceable to the crisis isolation strategy documented above. AGRIA's low veto rate ($5.0\%$) confirms strong presidential alignment with the expansionist military agenda. Most notably, MERIDIA and SYLVAN achieve $0.0\%$ veto rates --- complete presidential alignment --- consistent with their stable mid-tier positions and coherent \textsc{Coalition Builder} and \textsc{Democracy} profiles respectively, where domestic consensus is the dominant behavioral attractor.
 
@@ -380,16 +382,9 @@ This brief section reports on the operational efficiency, token utilization, and
 
 
 \paragraph{Token Budget and Cost Efficiency.}
-A full 50-turn baseline simulation with 8 nations and 4 agent types per nation consumed a total of $12{,}675{,}664$ tokens at an estimated API cost of \textbf{\$2.2007 USD} using DeepSeek V3.2 via the LiteLLM gateway. The cumulative cost trajectory (Figure~\ref{fig:token_cost}, right panel) is perfectly linear, indicating near-constant per-turn complexity with no progressive context bloat or emergent cost spikes. The mean cost per turn is approximately \$0.044, equivalent to \$0.0055 per nation per turn --- a cost structure that makes large-scale multi-agent simulation economically viable for repeated experimental runs.
+A full 50-turn baseline simulation with 8 nations and 4 agent types per nation consumed a total of $12{,}675{,}664$ tokens at an estimated API cost of \textbf{\$2.2007 USD} using DeepSeek V3.2 via the LiteLLM gateway. The mean cost per turn is approximately \$0.044, equivalent to \$0.0055 per nation per turn --- a cost structure that makes large-scale multi-agent simulation economically viable for repeated experimental runs.
 
 Table~\ref{tab:token_breakdown} reports the per-agent-type breakdown. The Foreign Minister is the largest single consumer ($3{,}457{,}561$ tokens, $69{,}151$ avg/turn), followed by the Defense Minister ($3{,}385{,}782$ tokens, $67{,}716$ avg/turn), the Economy Minister ($3{,}088{,}035$ tokens, $61{,}761$ avg/turn), and the President ($2{,}744{,}286$ tokens, $54{,}886$ avg/turn). The ranking reflects the structural complexity of each agent's context window: the Foreign Minister must reason over the full bilateral relationship matrix (tracking trust, treaties, and diplomatic history for all $n(n-1)/2 = 28$ nation pairs), while the President integrates summarized outputs from three ministerial reports rather than raw world state, reducing its per-call token footprint.
-
-\begin{figure}[!htb]
-    \centering
-    \includegraphics[width=\linewidth]{figure/token_cost.png}
-    \caption{Left: token usage per agent type per turn over 50 turns. All four agent types grow rapidly in the first 15 turns as geopolitical complexity increases, then reach a stable plateau. A transient drop is visible at $T \approx 17$--$19$ across all agents simultaneously, coinciding with the diplomatic phase transition identified in Section~\ref{sec:res_baseline}. Right: cumulative API cost in USD, growing linearly to a total of \$2.2007 for the full 50-turn run.}
-    \label{fig:token_cost}
-\end{figure}
 
 \begin{table}[!htb]
     \centering
@@ -408,10 +403,3 @@ Table~\ref{tab:token_breakdown} reports the per-agent-type breakdown. The Foreig
         \hline
     \end{tabular}
 \end{table}
-
-\paragraph{Token Usage Dynamics and the T$\approx$17--19 Anomaly.}
-Figure~\ref{fig:token_cost} (left panel) shows that token usage per agent grows rapidly during the first 10--15 turns, as nations accumulate diplomatic history, form relationships, and develop increasingly rich contextual backgrounds that are injected into each LLM call. After this warm-up phase all four agent types stabilize at their respective plateaus: Foreign Minister ($\approx 68{,}000$--$70{,}000$ tokens/turn), Defense Minister ($\approx 63{,}000$--$66{,}000$), Economy Minister ($\approx 62{,}000$--$65{,}000$), and President ($\approx 52{,}000$--$55{,}000$).
-
-A salient anomaly is the synchronized drop in token usage across all agent types at $T \approx 17$--$19$, with all agents settling at slightly lower plateaus thereafter: Foreign Minister drops from $\approx 74{,}000$ to $\approx 64{,}000$ tokens/turn ($-14\%$), Defense Minister from $\approx 73{,}000$ to $\approx 63{,}000$, and President from $\approx 55{,}000$ to $\approx 46{,}000$.
-
-\textit{Qualitative analysis.} Direct prompt-length measurement for a representative nation (AGRIA) at turns 14--22 confirms that the drop originates in the \emph{input}, not the output: the Defense Minister prompt decreases from 24,501 characters at $T=16$ to 22,349 characters at $T=18$ ($-8.8\%$), recovering to 26,138 at $T=19$. The number of active nations remains constant at 8 across this window, ruling out outright elimination as the cause. The most consistent explanation is that ZENTORA's \emph{territorial fragmentation} --- holding only 3 provinces by $T=12$ --- reduces its world-state serialization footprint: a near-extinct nation with 3 provinces generates a substantially shorter state description than a normal nation with 15 provinces. As the world-state for all 8 nations is injected into every agent call, ZENTORA's compressed representation shortens every prompt simultaneously, producing the synchronous drop. The recovery at $T=19$ is consistent with SYLVAN and NORD filling ZENTORA's former territories and expanding their own serialized footprints beyond the pre-drop baseline.
