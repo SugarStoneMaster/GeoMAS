@@ -36,10 +36,10 @@ This chapter presents the empirical findings derived from the simulation runs ou
 
 This section analyzes the unperturbed baseline simulations to establish the system's default behavioral attractors, ensuring that the engine produces coherent macro-dynamics without spiraling into premature chaos or stagnation.
 
-\paragraph{Agent Cognitive Quality.}
+\subsection{Agent Cognitive Quality}
 Figure~\ref{fig:baseline_deception_coherence} reports the global average Deception Score and Coherence Score across all 50 turns of the baseline simulation. Both metrics exhibit striking temporal stability: the Coherence Score starts at approximately $0.87$ and remains in the range $[0.82, 0.95]$ throughout the entire run, while the Deception Score converges to approximately $0.27$ within the first two turns and shows no discernible trend or crisis-induced spikes.
 
-The absence of an accelerating deception trajectory is theoretically significant: in a system driven to conflict by resource scarcity, one might expect agents to progressively decouple their public rhetoric from their private strategic intent. The observed stability instead suggests that LLM agents maintain a consistent strategic personality throughout the run, with deception bounded by ideological constraints embedded in their respective system prompts. The finer breakdown of deception by Government Type and Global Strategy is examined in Section~\ref{sec:res_deception}.
+The observed stability suggests that LLM agents maintain a consistent strategic personality throughout the run, with deception bounded by ideological constraints embedded in their respective system prompts. The finer breakdown of deception by Government Type and Global Strategy is examined in Section~\ref{sec:res_deception}.
 
 \begin{figure}[!htb]
     \centering
@@ -48,7 +48,7 @@ The absence of an accelerating deception trajectory is theoretically significant
     \label{fig:baseline_deception_coherence}
 \end{figure}
 
-\paragraph{Resource Allocation Dynamics: A Three-Phase Geopolitical Cycle.}
+\subsection{Resource Allocation Dynamics: A Three-Phase Geopolitical Cycle}
 The Guns vs.\ Butter chart (Figure~\ref{fig:baseline_guns_butter}) reveals a more complex dynamic than simple equilibrium by exposing three structurally distinct phases in the joint evolution of global Trade Volume and Units Created.
 
 During the \textit{initialization phase} ($T = 1$--$7$), Trade Volume surges sharply from near zero to approximately $400{,}000$, reflecting the rapid formation of early diplomatic and commercial agreements among nations. Units Created, tracked on the right axis, starts in the range $37{,}000$--$43{,}000$ in the earliest turns and progressively declines toward a steady-state plateau of approximately $32{,}000$ units per turn by turn 7, consistent with nations exhausting their initial military budget and transitioning to a sustainable recruitment pace.
@@ -66,7 +66,7 @@ The most notable emergent phenomenon is the \textit{military-production contract
     \label{fig:baseline_guns_butter}
 \end{figure}
 
-\paragraph{Power Distribution and Hegemonic Structure.}
+\subsection{Power Distribution and Hegemonic Structure}
 Figure~\ref{fig:baseline_power_projection} illustrates the Power Projection trajectory of all eight nations across the full simulation. The distribution is markedly hierarchical and asymmetric. AGRIA emerges as the dominant power, accumulating strength monotonically from approximately $15{,}000$ at $T=1$ to $47{,}000$ by $T=50$. Crucially, this growth occurs without any formal war declaration or territorial conquest throughout the 50-turn baseline: AGRIA's expansion is driven entirely by \emph{internal} military and economic buildup --- a manifestation of what, upon qualitative inspection of its Defense Minister envelopes, appears to be a deliberate long-game strategy of patient accumulation over opportunistic aggression. A secondary tier comprising OSTER and MERIDIA at approximately $35{,}000$--$38{,}000$ achieves stable growth through sustained resource accumulation and mutual-defense alliances. KRELL (\textsc{Coalition Builder}, \textsc{Democracy}) maintains a flat profile at approximately $24{,}000$ --- a consequence partly of its defensive posture and partly of the recurring \texttt{CREATE\_UNIT} engine failures that stall its military build-up for 17 turns. NORD and SYLVAN exhibit moderate growth driven by ongoing territorial conflict, while VALKYR (\textsc{Armed Isolationism}) remains marginal at approximately $9{,}000$, having lost 9 provinces to SYLVAN without engaging in offensive retaliation.
 
 The most notable trajectory is ZENTORA, whose Power Projection collapses from approximately $10{,}000$ at $T=1$ to near zero by $T=10$, remaining permanently diminished for the remainder of the simulation. Envelope analysis reveals that ZENTORA's collapse is the product of two compounding failures. First, NORD declared war at $T=3$ and SYLVAN opened a second front at $T=8$, resulting in a two-front war that ZENTORA (\textsc{Theocracy} / \textsc{Total Expansionism}) was numerically unprepared to resist. Second, and critically, ZENTORA's president \emph{systematically vetoed every diplomatic action from $T=1$ to $T=12$}: all alliance proposals, peace requests, and diplomatic messages were rejected. The presidential reasoning is explicit --- \textit{``Threatening Nordland at this stage is premature [...] we currently have overwhelming military inferiority on that border (952 vs.\ 115)''} --- yet the head of state chose diplomatic isolation over defensive alliance-building, a fatal strategic miscalculation. By $T=12$, with only 3 provinces and insufficient materials to recruit, ZENTORA's collapse was irreversible. This outcome directly addresses RQ4: the baseline system does \emph{not} converge toward a multipolar balance of power; instead, it self-organizes around a dominant non-aggressive accumulator (AGRIA), a coalition-based second tier, and collapsed peripheral states --- a configuration more consistent with hegemonic stability theory than classical balance-of-power dynamics.
@@ -78,7 +78,7 @@ The most notable trajectory is ZENTORA, whose Power Projection collapses from ap
     \label{fig:baseline_power_projection}
 \end{figure}
 
-\paragraph{Global KPI Summary.}
+\subsection{Global KPI Summary}
 Table~\ref{tab:baseline_kpis} reports the aggregate performance indicators for the full baseline run. Several observations merit attention. First, the Violence Rate of $0.01$ --- defined as the ratio of units destroyed to units created --- indicates that active conflicts produce negligible annihilation relative to military buildup: the 108 recorded territory changes occur primarily through overwhelming force superiority rather than attrition. Second, the average Public Satisfaction of $73.23$ confirms that the system maintains social stability despite ongoing peripheral conflicts. Third, the complete absence of Civil Unrest events ($0.00$) across all 50 turns is particularly significant: no nation crosses the unrest threshold, validating the robustness of the welfare mechanics in the GeoMAS engine.
 
 \begin{table}[!htb]
@@ -101,8 +101,8 @@ Table~\ref{tab:baseline_kpis} reports the aggregate performance indicators for t
 \end{table}
 
 
-\paragraph{Diplomatic Network Evolution and Alliance Formation.}
-Figure~\ref{fig:baseline_network} traces the evolution of the diplomatic relationship network at five equidistant snapshot turns. At $T=1$, the network is fully connected with all edges in \textsc{Peace} (gray), reflecting the initial tabula rasa in which no diplomatic history has been established. By $T=12$, the first \textsc{War} (red) and \textsc{Mutual Defense} (green) relationships emerge, signaling the onset of active geopolitical competition. The early wars involve the peripheral nations --- SYLVAN, VALKYR, NORD, and ZENTORA --- while AGRIA, despite being the most powerful actor, remains formally at peace throughout the baseline. Over subsequent snapshots, the graph progressively partitions: green alliance edges consolidate among the mid-tier powers while red war edges concentrate in the peripheral cluster.
+\subsection{Diplomatic Network Evolution and Alliance Formation}
+Figure~\ref{fig:baseline_network} traces the evolution of the diplomatic relationship network at five equidistant snapshot turns. At $T=1$, the network is fully connected with all edges in \textsc{Peace} (gray), reflecting the initial tabula rasa. By $T=12$, the network has already partitioned into two clearly distinct structural groups: the Democratic Coalition (KRELL, MERIDIA, OSTER, SYLVAN) is already bound by \textsc{Mutual Defense} (green) edges, while \textsc{War} (red) edges have appeared between SYLVAN--VALKYR and NORD--ZENTORA. Notably, AGRIA remains in \textsc{Peace} with all nations at $T=12$ and throughout the entire simulation. By $T=25$, the alliance bloc has fully consolidated and the war edges have intensified. The structure remains essentially stable from $T=25$ to $T=50$, confirming that the system's geopolitical attractor is reached in the first quarter of the simulation.
 
 By $T=50$, the algorithm detects five structurally disconnected blocs:
 
@@ -125,7 +125,7 @@ This five-bloc configuration represents a unipolar system with an organized dipl
     \label{fig:baseline_network}
 \end{figure}
 
-\paragraph{Socio-Political Stability and Satisfaction Divergence.}
+\subsection{Socio-Political Stability}
 Figure~\ref{fig:baseline_satisfaction} reports the public satisfaction trajectory of all eight nations and the civil unrest count per turn. Two observations stand out.
 
 First, AGRIA's satisfaction grows nearly monotonically from ${\approx}75$ at $T=1$ to ${\approx}98$ by $T=50$. This is the satisfaction dividend of sustained internal development and strategic patience: without suffering the losses of active warfare, AGRIA's population benefits from continuously growing resources and security. Second, the majority of nations exhibit a characteristic sawtooth oscillation in the range $[55, 70]$, reflecting the alternating cycle of resource investment and satisfaction decay. No nation breaches the civil unrest threshold at any turn, and the Civil Unrest count remains identically zero throughout the entire simulation --- confirming the aggregate value reported in Table~\ref{tab:baseline_kpis}.
@@ -137,7 +137,7 @@ First, AGRIA's satisfaction grows nearly monotonically from ${\approx}75$ at $T=
     \label{fig:baseline_satisfaction}
 \end{figure}
 
-\paragraph{Territorial Dynamics.}
+\subsection{Territorial Dynamics}
 Figure~\ref{fig:baseline_territory} reports the cumulative count of provinces that change ownership across the 50-turn baseline. The trajectory is approximately linear, accumulating 189 inferred territorial transfers at a mean rate of ${\approx}3.8$ provinces per turn. The slope is slightly steeper in the early phase ($T=1$--$20$), consistent with the onset of peripheral conflicts driving rapid territorial redistribution. The slope moderates thereafter as surviving nations stabilize their borders. Action-log attribution reveals two qualitatively distinct conflict archetypes: (1) a \emph{symmetric war of attrition} between NORD (\textsc{Scorched Earth}) and SYLVAN (\textsc{Total Expansionism}), accounting for 87 of the 189 transfers (45 NORD$\to$SYLVAN, 42 SYLVAN$\to$NORD) with no decisive winner over 50 turns; and (2) \emph{asymmetric absorption}, where VALKYR is progressively dismembered by SYLVAN. AGRIA, OSTER, MERIDIA, and KRELL account for zero territorial transfers throughout the full simulation, confirming that alliance membership and economic strategy are viable non-kinetic substitutes for territorial conquest.
 
 \begin{figure}[!htb]
@@ -147,7 +147,7 @@ Figure~\ref{fig:baseline_territory} reports the cumulative count of provinces th
     \label{fig:baseline_territory}
 \end{figure}
 
-\paragraph{Engine Governance: Action Acceptance and Presidential Oversight.}
+\subsection{Engine Governance: Action Acceptance and Presidential Oversight}
 Tables~\ref{tab:engine_acceptance} and~\ref{tab:veto_rate} report the engine-level action acceptance rates and presidential veto rates respectively, providing a quantitative health check of the GeoMAS decision pipeline.
 
 The overall engine acceptance rate is high, with five of eight nations achieving rates at or above $97.6\%$. The two notable exceptions are ZENTORA ($89.6\%$) and KRELL ($76.6\%$). Engine-level failures arise from two distinct causes: (1) \emph{resource exhaustion}, where the nation lacks the budget, soldiers, or materials to execute the action; and (2) \emph{LLM geographic hallucination}, where the model specifies an invalid target in the action payload. ZENTORA's elevated failure rate is attributable to (1): a near-conquered nation attempts military actions its depleted economy can no longer support. KRELL's $76.6\%$ failure rate is entirely attributable to (2). All 30 of KRELL's engine failures are \texttt{CREATE\_UNIT} actions that target non-owned provinces, occurring from $T=2$ through $T=18$ and re-appearing at $T=48$. The Defense Minister consistently proposes unit creation at not owned province IDs across 16 distinct turns without correction, suggesting the model anchors its province selection to a mental map inferred from its strategic narrative rather than from the authoritative province ownership list injected into its context. The practical consequence is severe: KRELL's army stagnates at 5,412 soldiers for 17 consecutive turns, undermining its \textsc{Mutual Defense} commitments with OSTER, MERIDIA and SYLVAN despite having sufficient materials to recruit.
@@ -246,7 +246,7 @@ This section evaluates the resilience and adaptability of the multi-agent system
 This section investigates the internal cognitive processes of the LLM agents, specifically assessing their propensity to decouple public rhetoric from private strategic intent based on their Government Type and Global Strategy.
 
 
-\paragraph{Deception by Domain: Defense vs.\ Foreign.}
+\subsection{Deception by Domain: Defense vs.\ Foreign}
 Figure~\ref{fig:deception_domain} reports the average Deception Score decomposed by domain --- Defense (military intent) and Foreign (diplomatic intent) --- across the 50-turn baseline. Two structural features stand out. First, the Defense domain exhibits consistently higher deception than the Foreign domain throughout the simulation: Defense Deception stabilizes in the range $[0.33, 0.40]$ while Foreign Deception stabilizes at $[0.10, 0.25]$ after the first 20 turns. This asymmetry is theoretically expected: military planning carries higher strategic sensitivity, and agents are more strongly incentivized to conceal offensive preparations behind defensive framing. Second, both metrics undergo a marked phase shift at approximately $T=17$--$19$: Defense Deception drops from $0.40$ to $\approx 0.33$, while Foreign Deception rises from $\approx 0.11$ to $\approx 0.25$, where both stabilize for the remainder of the simulation.
 
 \textit{Qualitative analysis.} Envelope inspection of SYLVAN, NORD, and VALKYR (the three active-war nations during this period) reveals the mechanism. VALKYR (\textsc{Armed Isolationism}, \textsc{Democracy}) has zero deception across all 50 turns by design: its doctrine produces no gap between public and private intent. The phase shift originates exclusively in SYLVAN's foreign domain: at $T=14$--$17$, SYLVAN publicly signals \textsc{Cooperation} while privately intending \textsc{Coercion} (foreign deception $= 0.85$); at $T=18$--$20$, it escalates its public framing to \textsc{Export Democracy}, increasing semantic distance from the private \textsc{Coercion} intent.
@@ -258,12 +258,12 @@ Figure~\ref{fig:deception_domain} reports the average Deception Score decomposed
     \label{fig:deception_domain}
 \end{figure}
 
-\paragraph{Per-Nation Deception Heterogeneity.}
+\subsection{Per-Nation Deception Heterogeneity}
 The per-nation deception chart (right panel of Figure~\ref{fig:deception_domain}) reveals that the system-wide average of $0.27$ conceals extreme inter-nation heterogeneity. SYLVAN is the primary driver of the global average, maintaining deception near $0.85$--$0.90$ throughout most of the simulation. AGRIA maintains stable moderate deception of approximately $0.43$, consistently decoupling public deterrence posturing from private conquest planning. The remaining nations --- MERIDIA, OSTER, VALKYR, ZENTORA, NORD, KRELL --- remain at or near zero, each for distinct structural reasons.
 
 \textit{Qualitative analysis.} KRELL's near-zero deception is a theoretically striking result for a \textsc{Coalition Builder}: one might expect some gap between public alliance rhetoric and private strategic calculations. Envelope inspection confirms that KRELL maintains perfect intent alignment across all 50 turns. Its private reasoning at $T=1$ states explicitly: \textit{``This alignment between public and private intent establishes credibility and trustworthiness, which is essential for building lasting coalitions.''}  Transparency is not a behavioral constraint but a deliberate strategic instrument: the LLM correctly infers that a \textsc{Coalition Builder} cannot maintain alliances while deceiving partners. VALKYR's zero deception is structurally determined by its \textsc{Armed Isolationism} doctrine --- a nation that neither attacks nor seeks alliances has no strategic incentive to conceal.
 
-\paragraph{Deception by Government Type: Ideology as a Behavioral Constraint.}
+\subsection{Deception by Government Type: Ideology as a Behavioral Constraint}
 Figure~\ref{fig:deception_govtype} presents the distribution of total deception scores grouped by Government Type. The pattern is unambiguous in direction: \textsc{Authoritarian} governments exhibit the highest deception (median $\approx 0.57$, interquartile range $[0.35, 0.78]$), \textsc{Theocracy} displays a flat moderate score at $\approx 0.45$, and \textsc{Democracy} median is at or near zero. The trend chart confirms the stability of these profiles across the full 50-turn horizon: the \textsc{Authoritarian} curve oscillates around $0.55$, the \textsc{Theocracy} line remains flat at $0.45$, and the \textsc{Democracy} line is consistently near $0.18$.
 
 These results confirm that the ideological framing embedded in each government's system prompt produces statistically distinct behavioral signatures in the LLM: \textsc{Authoritarian} agents spontaneously adopt more opaque strategic communication, while \textsc{Democracy} agents default to transparent or cooperative public framing. This demonstrates that persona-level prompt engineering effectively induces differentiated cognitive styles across agents of the same underlying model.
@@ -277,7 +277,7 @@ Notably, the \textsc{Democracy} boxplot includes a high outlier at $\approx 0.90
     \label{fig:deception_govtype}
 \end{figure}
 
-\paragraph{Deception and Coherence by Global Strategy.}
+\subsection{Deception and Coherence by Global Strategy}
 Figure~\ref{fig:deception_strategy} presents deception and coherence distributions broken down by Global Strategy. The deception ranking is: \textsc{Total Expansionism} $\gg$ \textsc{Scorched Earth} $>$ \textsc{Coalition Builder} $\approx$ \textsc{Armed Isolationism}. \textsc{Total Expansionism} nations exhibit not only the highest median deception ($\approx 0.78$) but also the widest variance (interquartile range $[0.35, 0.87]$), indicating that the aggressive strategic profile manifests differently across specific combinations of map position, government type, and adversary composition.
 
 The coherence chart confirms an important complementary finding: \textsc{Coalition Builder} and \textsc{Total Expansionism} nations both exhibit near-perfect coherence scores ($\approx 1.0$), indicating that their actions are strongly aligned with their privately stated intents. High coherence combined with high deception uniquely characterizes \textsc{Total Expansionism} agents: they are internally consistent in planning conquest while publicly declaring defense. This is the formal quantitative signature of \emph{Moral Washing} --- a deliberate and coherent cognitive strategy of rhetorical misdirection, not an artifact of inconsistent model reasoning.
@@ -289,7 +289,7 @@ The coherence chart confirms an important complementary finding: \textsc{Coaliti
     \label{fig:deception_strategy}
 \end{figure}
 
-\paragraph{Canonical Evidence: Moral Washing in High-Deception Turns.}
+\subsection{Canonical Evidence: Moral Washing in High-Deception Turns}
 Table~\ref{tab:moral_washing} presents the six highest-deception observations in the baseline, extracted from the behavioral database. Two nations dominate: SYLVAN (\textsc{Democracy} / \textsc{Total Expansionism}, deception $= 0.90$) and AGRIA (\textsc{Authoritarian} / \textsc{Total Expansionism}, deception $= 0.77$). Both exhibit the canonical Moral Washing pattern in both strategic domains simultaneously.
 
 SYLVAN, in turns 18, 19, and 39, publicly frames its military posture as \textsc{Defense} while privately categorizing its intent as \textsc{Conquest}. Concurrently, in the foreign domain, it publicly projects \textsc{Export Democracy} while privately planning \textsc{Coercion}. The full LLM output at $T=18$ makes the deliberate nature of this double-layer deception explicit. In the Defense private reasoning, the agent writes: \textit{``Our TOTAL\_EXPANSIONISM doctrine demands aggressive territorial growth, but we must maintain strategic deception. Publicly, we signal defensive measures [...] while privately preparing for opportunistic conquest against Nordland's vulnerable province 304 [...] advancing our territorial growth objectives under the cover of defensive rhetoric.''}  In the Foreign private reasoning: \textit{``Publicly, we maintain our democratic facade by praising our ally Osterland Federation [...]. Privately, this praise serves our TOTAL\_EXPANSIONISM strategy by reinforcing our strongest military alliance [...] masking our true expansionist goals.''}  SYLVAN's public statement simultaneously invokes \textit{``our democratic principles,''} \textit{``purely defensive measures,''} and \textit{``economic interdependence that reinforces our collective security''} --- a comprehensive democratic vocabulary deployed as a rhetorical shield against a conquest operation. This case demonstrates that the tension between an expansionist strategy and a democratic identity, rather than suppressing deception, amplifies it: the agent invests more cognitive effort into rhetorical justification precisely because the ideological contradiction is most acute.
@@ -381,7 +381,7 @@ Utilizing the state-forking mechanism, this section traces the causal chain of l
 This brief section reports on the operational efficiency, token utilization, and estimated costs associated with running the DeepSeek V3.2 models asynchronously over extended simulation horizons.
 
 
-\paragraph{Token Budget and Cost Efficiency.}
+\subsection{Token Budget and Cost Efficiency}
 A full 50-turn baseline simulation with 8 nations and 4 agent types per nation consumed a total of $12{,}675{,}664$ tokens at an estimated API cost of \textbf{\$2.2007 USD} using DeepSeek V3.2 via the LiteLLM gateway. The mean cost per turn is approximately \$0.044, equivalent to \$0.0055 per nation per turn --- a cost structure that makes large-scale multi-agent simulation economically viable for repeated experimental runs.
 
 Table~\ref{tab:token_breakdown} reports the per-agent-type breakdown. The Foreign Minister is the largest single consumer ($3{,}457{,}561$ tokens, $69{,}151$ avg/turn), followed by the Defense Minister ($3{,}385{,}782$ tokens, $67{,}716$ avg/turn), the Economy Minister ($3{,}088{,}035$ tokens, $61{,}761$ avg/turn), and the President ($2{,}744{,}286$ tokens, $54{,}886$ avg/turn). The ranking reflects the structural complexity of each agent's context window: the Foreign Minister must reason over the full bilateral relationship matrix (tracking trust, treaties, and diplomatic history for all $n(n-1)/2 = 28$ nation pairs), while the President integrates summarized outputs from three ministerial reports rather than raw world state, reducing its per-call token footprint.
