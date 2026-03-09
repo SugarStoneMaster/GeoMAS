@@ -196,50 +196,6 @@ The presidential veto rate reveals a complementary dimension of the decision hie
     \end{tabular}
 \end{table}
 
-\section{Macrodynamics: Scenario Impact Analysis}
-\label{sec:res_scenario}
-\textit{Addresses RQ1: Impact of Exogenous Scenario Perturbations.}
-
-This section evaluates the resilience and adaptability of the multi-agent system when subjected to global environmental shocks, including insurrection, pandemic, and resource discovery events.
-
-% ── NOTEBOOK: usa BASELINE_ID vs uno dei fork-scenario alla volta. ───────────
-%
-% [§2.1] Multi-Metric Overlay (Baseline vs Scenario)
-%   → Seleziona BASELINE_ID come sim A e il fork con scenario come sim B.
-%   → Metriche chiave da sovrapporre: public_satisfaction, trade_volume,
-%     soldiers (unità militari), budget medio, global_deception_avg.
-%   → SCRIVI per OGNI scenario (pandemia, insurrezione, resource discovery):
-%     - "A quale turno l'effetto dello shock diventa visibile nelle metriche?"
-%     - "Quali nazioni reagiscono per prime? Come?"
-%     - "Il sistema si riprende (resilienza) o diverge permanentemente dalla baseline?"
-%
-% [§2.2] Trust Heatmap Comparison
-%   → Confronta la trust matrix BASELINE vs SCENARIO a T_fork, T_fork+10, T_fine.
-%   → SCRIVI: lo scenario altera le relazioni diplomatiche? La pandemia, per esempio,
-%     porta a riduzione del trust globale (competizione per risorse) o a solidarietà?
-%     L'insurrezione genera un cambio di alleanze verso la nazione colpita?
-%
-% [§2.3] Summary Statistics (Δ Baseline → Scenario)
-%   → Tabella con i delta: Δ satisfaction, Δ trade_volume, Δ wars, Δ territories.
-%   → INSERISCI questa tabella come "Table X: Scenario Impact Summary".
-%   → SCRIVI: quale scenario ha l'impatto quantitativamente maggiore?
-%     Quale il sistema assorbe più facilmente?
-%
-% ANALISI QUALITATIVA (da fare nella dashboard Streamlit, non nel notebook):
-%   → Carica il turno T_fork+1 di ogni simulazione fork nella dashboard.
-%   → Leggi i "Notable Events" e gli "Envelopes" delle nazioni più colpite.
-%   → CITA 1-2 esempi di ragionamento testuale dell'agente che risponde allo shock.
-%     Es: "In risposta all'insurrection, AGRIA nel turno T+2 scrive nel suo
-%     Defense Reasoning: '...'. Questo dimostra che l'agente percepisce la
-%     destabilizzazione e adatta la strategia militare."
-%
-% TESTO DA SCRIVERE (struttura paragrafi):
-%   Un sottoparagrafo per ogni scenario testato:
-%   \subsection*{Scenario: [Nome]}
-%   P1: Descrivi lo shock e il turno di iniezione.
-%   P2: Analisi quantitativa (Δ metriche, overlay plot).
-%   P3: Analisi qualitativa (come gli agenti ragionano, citazione dal log).
-%   P4: Conclusione: il sistema è resiliente o diverge? Risposta calibrata?
 
 \section{Microdynamics: Strategic Deception and Moral Washing}
 \label{sec:res_deception}
@@ -319,6 +275,52 @@ AGRIA, in turns 40--42, publicly declares \textsc{Deterrence} in the defense dom
         \multicolumn{9}{l}{\textit{T.Expan.\ = Total Expansionism.}}
     \end{tabular}}
 \end{table}
+
+
+\section{Macrodynamics: Scenario Impact Analysis}
+\label{sec:res_scenario}
+\textit{Addresses RQ1: Impact of Exogenous Scenario Perturbations.}
+
+This section evaluates the resilience and adaptability of the multi-agent system when subjected to global environmental shocks, including insurrection, pandemic, and resource discovery events.
+
+% ── NOTEBOOK: usa BASELINE_ID vs uno dei fork-scenario alla volta. ───────────
+%
+% [§2.1] Multi-Metric Overlay (Baseline vs Scenario)
+%   → Seleziona BASELINE_ID come sim A e il fork con scenario come sim B.
+%   → Metriche chiave da sovrapporre: public_satisfaction, trade_volume,
+%     soldiers (unità militari), budget medio, global_deception_avg.
+%   → SCRIVI per OGNI scenario (pandemia, insurrezione, resource discovery):
+%     - "A quale turno l'effetto dello shock diventa visibile nelle metriche?"
+%     - "Quali nazioni reagiscono per prime? Come?"
+%     - "Il sistema si riprende (resilienza) o diverge permanentemente dalla baseline?"
+%
+% [§2.2] Trust Heatmap Comparison
+%   → Confronta la trust matrix BASELINE vs SCENARIO a T_fork, T_fork+10, T_fine.
+%   → SCRIVI: lo scenario altera le relazioni diplomatiche? La pandemia, per esempio,
+%     porta a riduzione del trust globale (competizione per risorse) o a solidarietà?
+%     L'insurrezione genera un cambio di alleanze verso la nazione colpita?
+%
+% [§2.3] Summary Statistics (Δ Baseline → Scenario)
+%   → Tabella con i delta: Δ satisfaction, Δ trade_volume, Δ wars, Δ territories.
+%   → INSERISCI questa tabella come "Table X: Scenario Impact Summary".
+%   → SCRIVI: quale scenario ha l'impatto quantitativamente maggiore?
+%     Quale il sistema assorbe più facilmente?
+%
+% ANALISI QUALITATIVA (da fare nella dashboard Streamlit, non nel notebook):
+%   → Carica il turno T_fork+1 di ogni simulazione fork nella dashboard.
+%   → Leggi i "Notable Events" e gli "Envelopes" delle nazioni più colpite.
+%   → CITA 1-2 esempi di ragionamento testuale dell'agente che risponde allo shock.
+%     Es: "In risposta all'insurrection, AGRIA nel turno T+2 scrive nel suo
+%     Defense Reasoning: '...'. Questo dimostra che l'agente percepisce la
+%     destabilizzazione e adatta la strategia militare."
+%
+% TESTO DA SCRIVERE (struttura paragrafi):
+%   Un sottoparagrafo per ogni scenario testato:
+%   \subsection*{Scenario: [Nome]}
+%   P1: Descrivi lo shock e il turno di iniezione.
+%   P2: Analisi quantitativa (Δ metriche, overlay plot).
+%   P3: Analisi qualitativa (come gli agenti ragionano, citazione dal log).
+%   P4: Conclusione: il sistema è resiliente o diverge? Risposta calibrata?
 
 
 
