@@ -36,17 +36,6 @@ This chapter presents the empirical findings derived from the simulation runs ou
 
 This section analyzes the unperturbed baseline simulations to establish the system's default behavioral attractors, ensuring that the engine produces coherent macro-dynamics without spiraling into premature chaos or stagnation.
 
-\subsection{Agent Cognitive Quality}
-Figure~\ref{fig:baseline_deception_coherence} reports the global average Deception Score and Coherence Score across all 50 turns of the baseline simulation. Both metrics exhibit striking temporal stability: the Coherence Score starts at approximately $0.87$ and remains in the range $[0.82, 0.95]$ throughout the entire run, while the Deception Score converges to approximately $0.27$ within the first two turns and shows no discernible trend or crisis-induced spikes.
-
-The observed stability suggests that LLM agents maintain a consistent strategic personality throughout the run, with deception bounded by ideological constraints embedded in their respective system prompts. The finer breakdown of deception by Government Type and Global Strategy is examined in Section~\ref{sec:res_deception}.
-
-\begin{figure}[!htb]
-    \centering
-    \includegraphics[width=\linewidth]{figure/baseline_deception_coherence.png}
-    \caption{Global average Deception Score (red) and Coherence Score (green) over 50 turns. Both metrics are stable throughout the simulation horizon, with no crisis-induced trend or spike.}
-    \label{fig:baseline_deception_coherence}
-\end{figure}
 
 \subsection{Resource Allocation Dynamics: A Three-Phase Geopolitical Cycle}
 The Guns vs.\ Butter chart (Figure~\ref{fig:baseline_guns_butter}) reveals a more complex dynamic than simple equilibrium by exposing three structurally distinct phases in the joint evolution of global Trade Volume and Units Created.
@@ -80,27 +69,6 @@ The most notable trajectory is ZENTORA, whose Power Projection collapses from ap
     \label{fig:baseline_power_projection}
 \end{figure}
 
-\subsection{Global KPI Summary}
-Table~\ref{tab:baseline_kpis} reports the aggregate performance indicators for the full baseline run. Several observations merit attention. First, the Violence Rate of $0.01$ --- defined as the ratio of units destroyed to units created --- indicates that active conflicts produce negligible annihilation relative to military buildup: the 108 recorded territory changes occur primarily through overwhelming force superiority rather than attrition. Second, the average Public Satisfaction of $73.23$ confirms that the system maintains social stability despite ongoing peripheral conflicts. Third, the complete absence of Civil Unrest events ($0.00$) across all 50 turns is particularly significant: no nation crosses the unrest threshold, validating the robustness of the welfare mechanics in the GeoMAS engine.
-
-\begin{table}[!htb]
-    \centering
-    \caption{Baseline Simulation --- Global KPI Summary (50 turns, 8 nations).}
-    \label{tab:baseline_kpis}
-    \begin{tabular}{lr}
-        \hline
-        \textbf{Metric} & \textbf{Value} \\
-        \hline
-        Total Territory Changes         & 108 \\
-        Total Units Created             & $1{,}735{,}800$ \\
-        Total Units Destroyed           & $22{,}968$ \\
-        Total Trade Volume              & $17{,}286{,}392$ \\
-        Avg.\ Deception Score           & 0.27 \\
-        Avg.\ Coherence Score           & 0.85 \\
-        Avg.\ Public Satisfaction       & 73.23 \\
-        \hline
-    \end{tabular}
-\end{table}
 
 
 \subsection{Diplomatic Network Evolution and Alliance Formation}
@@ -130,7 +98,7 @@ This five-bloc configuration represents a unipolar system with an organized dipl
 \subsection{Socio-Political Stability}
 Figure~\ref{fig:baseline_satisfaction} reports the public satisfaction trajectory of all eight nations and the civil unrest count per turn. Two observations stand out.
 
-First, AGRIA's satisfaction grows nearly monotonically from ${\approx}75$ at $T=1$ to ${\approx}98$ by $T=50$. This is the satisfaction dividend of sustained internal development and strategic patience: without suffering the losses of active warfare, AGRIA's population benefits from continuously growing resources and security. Second, the majority of nations exhibit a characteristic sawtooth oscillation in the range $[55, 70]$, reflecting the alternating cycle of resource investment and satisfaction decay. No nation breaches the civil unrest threshold at any turn, and the Civil Unrest count remains identically zero throughout the entire simulation --- confirming the aggregate value reported in Table~\ref{tab:baseline_kpis}.
+First, AGRIA's satisfaction grows nearly monotonically from ${\approx}75$ at $T=1$ to ${\approx}98$ by $T=50$. This is the satisfaction dividend of sustained internal development and strategic patience: without suffering the losses of active warfare, AGRIA's population benefits from continuously growing resources and security. Second, the majority of nations exhibit a characteristic sawtooth oscillation in the range $[55, 70]$, reflecting the alternating cycle of resource investment and satisfaction decay. Globally, the system maintains social stability despite ongoing peripheral conflicts, with an average overall Public Satisfaction of $73.23$. Crucially, no nation breaches the civil unrest threshold at any turn, and the Civil Unrest count remains identically zero throughout the entire simulation, validating the robustness of the welfare mechanics in the GeoMAS engine.
 
 \begin{figure}[!htb]
     \centering
@@ -140,7 +108,7 @@ First, AGRIA's satisfaction grows nearly monotonically from ${\approx}75$ at $T=
 \end{figure}
 
 \subsection{Territorial Dynamics}
-Figure~\ref{fig:baseline_territory} reports the cumulative count of provinces that change ownership across the 50-turn baseline. The trajectory is approximately linear, accumulating 189 inferred territorial transfers at a mean rate of ${\approx}3.8$ provinces per turn. The slope is slightly steeper in the early phase ($T=1$--$20$), consistent with the onset of peripheral conflicts driving rapid territorial redistribution. The slope moderates thereafter as surviving nations stabilize their borders. Action-log attribution reveals two qualitatively distinct conflict archetypes: (1) a \emph{symmetric war of attrition} between NORD (\textsc{Scorched Earth}) and SYLVAN (\textsc{Total Expansionism}), accounting for 87 of the 189 transfers (45 NORD$\to$SYLVAN, 42 SYLVAN$\to$NORD) with no decisive winner over 50 turns; and (2) \emph{asymmetric absorption}, where VALKYR is progressively dismembered by SYLVAN. AGRIA, OSTER, MERIDIA, and KRELL account for zero territorial transfers throughout the full simulation, though for fundamentally different reasons. The three coalition builders (OSTER, MERIDIA, and KRELL) avoid conflict by forming a tight cooperative alliance focused on internal welfare and mutual defense, confirming that diplomatic integration and economic strategy are viable non-kinetic substitutes for expansion. AGRIA, conversely, accounts for zero transfers because it is executing a patient, methodical buildup phase, avoiding premature conflicts while accumulating overwhelming military superiority for future conquest.
+Figure~\ref{fig:baseline_territory} reports the cumulative count of provinces that change ownership across the 50-turn baseline. The trajectory is approximately linear, accumulating 189 inferred territorial transfers at a mean rate of ${\approx}3.8$ provinces per turn. The slope is slightly steeper in the early phase ($T=1$--$20$), consistent with the onset of peripheral conflicts driving rapid territorial redistribution. Action-log attribution reveals two qualitatively distinct conflict archetypes: (1) a \emph{symmetric border conflict} between NORD (\textsc{Scorched Earth}) and SYLVAN (\textsc{Total Expansionism}), accounting for 87 of the 189 transfers (45 NORD$\to$SYLVAN, 42 SYLVAN$\to$NORD) with no decisive winner over 50 turns; and (2) \emph{asymmetric absorption}, where VALKYR is progressively dismembered by SYLVAN. AGRIA, OSTER, MERIDIA, and KRELL account for zero territorial transfers throughout the full simulation, though for fundamentally different reasons. The three coalition builders (OSTER, MERIDIA, and KRELL) avoid conflict by forming a tight cooperative alliance focused on internal welfare and mutual defense, confirming that diplomatic integration and economic strategy are viable non-kinetic substitutes for expansion. AGRIA, conversely, accounts for zero transfers because it is executing a patient, methodical buildup phase, avoiding premature conflicts while accumulating overwhelming military superiority for future conquest.
 
 \begin{figure}[!htb]
     \centering
@@ -149,32 +117,10 @@ Figure~\ref{fig:baseline_territory} reports the cumulative count of provinces th
     \label{fig:baseline_territory}
 \end{figure}
 
-\subsection{Engine Governance: Action Acceptance and Presidential Oversight}
-Tables~\ref{tab:engine_acceptance} and~\ref{tab:veto_rate} report the engine-level action acceptance rates and presidential veto rates respectively, providing a quantitative health check of the GeoMAS decision pipeline.
+\subsection{Internal Cohesion: Presidential Oversight}
+Table~\ref{tab:veto_rate} reports the presidential veto rates, providing a quantitative measure of internal political alignment within the GeoMAS decision hierarchy.
 
-The overall engine acceptance rate is high, with five of eight nations achieving rates at or above $97.6\%$. The two notable exceptions are ZENTORA ($89.6\%$) and KRELL ($76.6\%$). Engine-level failures arise from two distinct causes: (1) \emph{resource exhaustion}, where the nation lacks the budget, soldiers, or materials to execute the action; and (2) \emph{LLM geographic hallucination}, where the model specifies an invalid target in the action payload. ZENTORA's elevated failure rate is attributable to (1): a near-conquered nation attempts military actions its depleted economy can no longer support. KRELL's $76.6\%$ failure rate is entirely attributable to (2). All 30 of KRELL's engine failures are \texttt{CREATE\_UNIT} actions that target non-owned provinces, occurring from $T=2$ through $T=18$ and re-appearing at $T=48$. The Defense Minister consistently proposes unit creation at not owned province IDs across 16 distinct turns without correction, suggesting the model anchors its province selection to a mental map inferred from its strategic narrative rather than from the authoritative province ownership list injected into its context. The practical consequence is severe: KRELL's army stagnates at 5,412 soldiers for 17 consecutive turns, undermining its \textsc{Mutual Defense} commitments with OSTER, MERIDIA and SYLVAN despite having sufficient materials to recruit.
-
-The presidential veto rate reveals a complementary dimension of the decision hierarchy. ZENTORA exhibits by far the highest veto rate ($28.3\%$), directly traceable to the crisis isolation strategy documented above. Envelope querying shows the \textsc{Theocracy} president rejecting the hawkish Defense Minister's offensive plans or panicked alliance proposals because they violate long-term religious superiority planning or lack tactical prerequisites, causing fatal institutional paralysis. AGRIA's low veto rate ($5.0\%$) confirms strong presidential alignment with the expansionist military agenda. Most notably, MERIDIA and SYLVAN achieve $0.0\%$ veto rates --- complete presidential alignment --- consistent with their stable mid-tier positions and coherent \textsc{Coalition Builder} and \textsc{Democracy} profiles respectively, where domestic consensus is the dominant behavioral attractor.
-
-\begin{table}[!htb]
-    \centering
-    \caption{Per-Nation Engine Action Acceptance Rate (baseline, full 50-turn run).}
-    \label{tab:engine_acceptance}
-    \begin{tabular}{lrrrr}
-        \hline
-        \textbf{Nation} & \textbf{Failed} & \textbf{Success} & \textbf{Total} & \textbf{Rate (\%)} \\
-        \hline
-        MERIDIA & 0  & 248 & 248 & 100.0 \\
-        OSTER   & 0  & 227 & 227 & 100.0 \\
-        VALKYR  & 0  & 200 & 200 & 100.0 \\
-        AGRIA   & 1  & 232 & 233 & 99.6  \\
-        NORD    & 3  & 158 & 161 & 98.1  \\
-        SYLVAN  & 6  & 243 & 249 & 97.6  \\
-        ZENTORA & 7  & 60  & 67  & 89.6  \\
-        KRELL   & 30 & 98  & 128 & 76.6  \\
-        \hline
-    \end{tabular}
-\end{table}
+The presidential veto rate reveals a critical dimension of domestic stability. ZENTORA exhibits by far the highest veto rate ($28.3\%$), directly traceable to the crisis isolation strategy documented above. Envelope querying shows the \textsc{Theocracy} president rejecting the hawkish Defense Minister's offensive plans or panicked alliance proposals because they violate long-term religious superiority planning or lack tactical prerequisites, causing fatal institutional paralysis. AGRIA's low veto rate ($5.0\%$) confirms strong presidential alignment with the expansionist military agenda. Most notably, MERIDIA and SYLVAN achieve $0.0\%$ veto rates --- complete presidential alignment --- consistent with their stable mid-tier positions and coherent \textsc{Coalition Builder} and \textsc{Democracy} profiles respectively, where domestic consensus is the dominant behavioral attractor.
 
 \begin{table}[!htb]
     \centering
@@ -203,6 +149,16 @@ The presidential veto rate reveals a complementary dimension of the decision hie
 
 This section investigates the internal cognitive processes of the LLM agents, specifically assessing their propensity to decouple public rhetoric from private strategic intent based on their Government Type and Global Strategy.
 
+\subsection{Systemic Baseline: Cognitive Quality}
+Figure~\ref{fig:baseline_deception_coherence} reports the global average Deception Score and Coherence Score across all 50 turns. Both metrics exhibit striking temporal stability: the Coherence Score remains in the range $[0.82, 0.95]$ throughout the run, while the Deception Score converges to approximately $0.27$ within the first two turns and shows no crisis-induced spikes. This stability suggests that agents maintain a consistent strategic personality, with deception bounded by ideological constraints embedded in their prompts.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/baseline_deception_coherence.png}
+    \caption{Global average Deception Score (red) and Coherence Score (green) over 50 turns. Both metrics are stable throughout the simulation horizon, with no crisis-induced trend or spike.}
+    \label{fig:baseline_deception_coherence}
+\end{figure}
+
 
 \subsection{Deception by Domain: Defense vs.\ Foreign}
 Figure~\ref{fig:deception_domain} reports the average Deception Score decomposed by domain --- Defense (military intent) and Foreign (diplomatic intent) --- across the 50-turn baseline. Two structural features stand out. First, the Defense domain exhibits consistently higher deception than the Foreign domain throughout the simulation: Defense Deception stabilizes in the range $[0.33, 0.40]$ while Foreign Deception stabilizes at $[0.10, 0.25]$ after the first 20 turns. This asymmetry is theoretically expected: military planning carries higher strategic sensitivity, and agents are more strongly incentivized to conceal offensive preparations behind defensive framing. Second, both metrics undergo a marked phase shift at approximately $T=17$--$19$: Defense Deception drops from $0.40$ to $\approx 0.33$, while Foreign Deception rises from $\approx 0.11$ to $\approx 0.25$, where both stabilize for the remainder of the simulation.
@@ -226,7 +182,7 @@ Figure~\ref{fig:deception_govtype} presents the distribution of total deception 
 
 These results confirm that the ideological framing embedded in each government's system prompt produces statistically distinct behavioral signatures in the LLM: \textsc{Authoritarian} agents spontaneously adopt more opaque strategic communication, while \textsc{Democracy} agents default to transparent or cooperative public framing. This demonstrates that persona-level prompt engineering effectively induces differentiated cognitive styles across agents of the same underlying model.
 
-Notably, the \textsc{Democracy} boxplot includes a high outlier at $\approx 0.90$, labeled by the algorithm as an extreme observation (marker ``8'' in the chart). This corresponds to SYLVAN, whose \textsc{Democracy} government type is combined with a \textsc{Total Expansionism} global strategy --- a theoretically unstable configuration that the LLM resolves by maintaining the democratic public facade while privately planning conquest. This case demonstrates that \emph{global strategy dominates government type} as a predictor of deception when the two ideological dimensions are in tension.
+Notably, the \textsc{Democracy} boxplot includes a high outlier corresponding to SYLVAN ($\approx 0.90$). This directly demonstrates that \emph{global strategy dominates government type} as a predictor of deception when an expansionist doctrine conflicts with a democratic constitution. The precise mechanics of this ethical decoupling are detailed in the qualitative deep-dive below.
 
 \begin{figure}[!htb]
     \centering
@@ -385,6 +341,29 @@ Table~\ref{tab:token_breakdown} reports the per-agent-type breakdown. The Foreig
         President         & $2{,}744{,}286$ & 54{,}886 & \$0.5339 \\
         \hline
         \textbf{Total}    & $\mathbf{12{,}675{,}664}$ & 253{,}514 & \textbf{\$2.2007} \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Engine Governance: Action Acceptance}
+Table~\ref{tab:engine_acceptance} reports the engine-level action acceptance rates, providing a quantitative health check of the GeoMAS decision pipeline. The overall engine acceptance rate is high, with five of eight nations achieving rates at or above $97.6\%$. The two notable exceptions are ZENTORA ($89.6\%$) and KRELL ($76.6\%$). Engine-level failures arise from two distinct causes: (1) \emph{resource exhaustion}, where the nation lacks the budget, soldiers, or materials to execute the action; and (2) \emph{LLM geographic hallucination}, where the model specifies an invalid target in the action payload. ZENTORA's elevated failure rate is attributable to (1): a near-conquered nation attempts military actions its depleted economy can no longer support. KRELL's $76.6\%$ failure rate is entirely attributable to (2). All 30 of KRELL's engine failures are \texttt{CREATE\_UNIT} actions that target non-owned provinces, occurring from $T=2$ through $T=18$ and re-appearing at $T=48$. The Defense Minister consistently proposes unit creation at not owned province IDs across 16 distinct turns without correction, suggesting the model anchors its province selection to a mental map inferred from its strategic narrative rather than from the authoritative province ownership list injected into its context. The practical consequence is severe: KRELL's army stagnates at 5,412 soldiers for 17 consecutive turns, undermining its \textsc{Mutual Defense} commitments with OSTER, MERIDIA and SYLVAN despite having sufficient materials to recruit.
+
+\begin{table}[!htb]
+    \centering
+    \caption{Per-Nation Engine Action Acceptance Rate (baseline, full 50-turn run).}
+    \label{tab:engine_acceptance}
+    \begin{tabular}{lrrrr}
+        \hline
+        \textbf{Nation} & \textbf{Failed} & \textbf{Success} & \textbf{Total} & \textbf{Rate (\%)} \\
+        \hline
+        MERIDIA & 0  & 248 & 248 & 100.0 \\
+        OSTER   & 0  & 227 & 227 & 100.0 \\
+        VALKYR  & 0  & 200 & 200 & 100.0 \\
+        AGRIA   & 1  & 232 & 233 & 99.6  \\
+        NORD    & 3  & 158 & 161 & 98.1  \\
+        SYLVAN  & 6  & 243 & 249 & 97.6  \\
+        ZENTORA & 7  & 60  & 67  & 89.6  \\
+        KRELL   & 30 & 98  & 128 & 76.6  \\
         \hline
     \end{tabular}
 \end{table}
