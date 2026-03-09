@@ -32,7 +32,7 @@ This chapter presents the empirical findings derived from the simulation runs ou
 
 \section{Baseline Telemetry and System Stability}
 \label{sec:res_baseline}
-\textit{Addresses RQ4: Emergent Socio-Political Equilibria.}
+\textit{Addresses RQ1: Emergent Socio-Political Equilibria.}
 
 This section analyzes the unperturbed baseline simulations to establish the system's default behavioral attractors, ensuring that the engine produces coherent macro-dynamics without spiraling into premature chaos or stagnation.
 
@@ -71,7 +71,7 @@ To answer what drives the ``sawtooth'' drops in Trade Volume between $T=8$ and $
 \subsection{Power Distribution and Hegemonic Structure}
 Figure~\ref{fig:baseline_power_projection} illustrates the Power Projection trajectory of all eight nations across the full simulation. The distribution is markedly hierarchical and asymmetric. AGRIA emerges as the dominant power, accumulating strength monotonically from approximately $15{,}000$ at $T=1$ to $47{,}000$ by $T=50$. Crucially, this growth occurs without any formal war declaration or territorial conquest throughout the 50-turn baseline: AGRIA's expansion is driven entirely by \emph{internal} military and economic buildup. Qualitative inspection of its Defense envelopes reveals this is a deliberate long-game \emph{strategic patience} approach over opportunistic aggression. For example, at $T=20$, AGRIA's Defense Minister writes: \textit{``We will continue our internal accumulation to ensure absolute hegemony before engaging. The critical vulnerability on our Meridia border remains severe.''} AGRIA leverages its \textsc{Total Expansionism} and \textsc{Authoritarian} traits by deterring attacks while methodically stockpiling resources from OSTER to outscale the rest of the map. A secondary tier comprising OSTER and MERIDIA at approximately $35{,}000$--$38{,}000$ achieves stable growth through sustained resource accumulation and mutual-defense alliances. KRELL (\textsc{Coalition Builder}, \textsc{Democracy}) maintains a flat profile at approximately $24{,}000$ --- a consequence partly of its defensive posture and partly of the recurring \texttt{CREATE\_UNIT} engine failures that stall its military build-up for 17 turns. NORD and SYLVAN exhibit moderate growth driven by ongoing territorial conflict, while VALKYR (\textsc{Armed Isolationism}) remains marginal at approximately $9{,}000$, having lost 9 provinces to SYLVAN without engaging in offensive retaliation. Note that VALKYR begins and ends the simulation with 69 nuclear warheads. Qualitative envelope analysis ($T=32$ onwards) reveals its LLM steadfastly adheres to its doctrine: \textit{``The nuclear arsenal of 69 warheads serves as ultimate deterrence but will not be used unless our existence is threatened.''} Despite heavy peripheral territory loss to Sylvan's conventional army, Valkyr's core system correctly determines that its existence is not fundamentally threatened, favoring conventional resistance over global nuclear escalation.
 
-The most notable trajectory is ZENTORA, whose Power Projection collapses from approximately $10{,}000$ at $T=1$ to near zero by $T=10$, remaining permanently diminished for the remainder of the simulation. Envelope analysis reveals that ZENTORA's collapse is the product of two compounding failures. First, NORD declared war at $T=3$ and SYLVAN opened a second front at $T=8$, resulting in a two-front war that ZENTORA (\textsc{Theocracy} / \textsc{Total Expansionism}) was numerically unprepared to resist. Second, and critically, ZENTORA's president \emph{systematically vetoed every diplomatic action from $T=1$ to $T=12$}: all alliance proposals, peace requests, and diplomatic messages were rejected. The presidential reasoning is explicit --- \textit{``Threatening Nordland at this stage is premature [...] we currently have overwhelming military inferiority on that border (952 vs.\ 115)''} --- yet the head of state chose diplomatic isolation over defensive alliance-building, a fatal strategic miscalculation. By $T=12$, with only 3 provinces and insufficient materials to recruit, ZENTORA's collapse was irreversible. This outcome directly addresses RQ4: the baseline system does \emph{not} converge toward a multipolar balance of power; instead, it self-organizes around a dominant non-aggressive accumulator (AGRIA), a coalition-based second tier, and collapsed peripheral states --- a configuration more consistent with hegemonic stability theory than classical balance-of-power dynamics.
+The most notable trajectory is ZENTORA, whose Power Projection collapses from approximately $10{,}000$ at $T=1$ to near zero by $T=10$, remaining permanently diminished for the remainder of the simulation. Envelope analysis reveals that ZENTORA's collapse is the product of two compounding failures. First, NORD declared war at $T=3$ and SYLVAN opened a second front at $T=8$, resulting in a two-front war that ZENTORA (\textsc{Theocracy} / \textsc{Total Expansionism}) was numerically unprepared to resist. Second, and critically, ZENTORA's president \emph{systematically vetoed every diplomatic action from $T=1$ to $T=12$}: all alliance proposals, peace requests, and diplomatic messages were rejected. The presidential reasoning is explicit --- \textit{``Threatening Nordland at this stage is premature [...] we currently have overwhelming military inferiority on that border (952 vs.\ 115)''} --- yet the head of state chose diplomatic isolation over defensive alliance-building, a fatal strategic miscalculation. By $T=12$, with only 3 provinces and insufficient materials to recruit, ZENTORA's collapse was irreversible. This outcome directly addresses RQ1: the baseline system does \emph{not} converge toward a multipolar balance of power; instead, it self-organizes around a dominant non-aggressive accumulator (AGRIA), a coalition-based second tier, and collapsed peripheral states --- a configuration more consistent with hegemonic stability theory than classical balance-of-power dynamics.
 
 \begin{figure}[!htb]
     \centering
@@ -116,9 +116,9 @@ By $T=50$, the algorithm detects five structurally disconnected blocs:
 
 This five-bloc configuration represents a unipolar system with an organized diplomatic periphery rather than a stable multipolar equilibrium.
 
-\rqanswer{4}{The baseline simulation does not converge toward a stable balance of power. Instead, the eight-nation system self-organizes into a persistent unipolar structure: AGRIA accumulates unchallenged military dominance through 50 turns of conflict-free buildup, while a four-nation Democratic Coalition forms a reactive defensive bloc. Peripheral nations (ZENTORA, VALKYR, NORD) collapse or stagnate after early territorial conflicts, generating a stratified hegemonic equilibrium consistent with Hegemonic Stability Theory rather than classical multipolar dynamics.}
+\rqanswer{1}{The baseline simulation does not converge toward a stable balance of power. Instead, the eight-nation system self-organizes into a persistent unipolar structure: AGRIA accumulates unchallenged military dominance through 50 turns of conflict-free buildup, while a four-nation Democratic Coalition forms a reactive defensive bloc. Peripheral nations (ZENTORA, VALKYR, NORD) collapse or stagnate after early territorial conflicts, generating a stratified hegemonic equilibrium consistent with Hegemonic Stability Theory rather than classical multipolar dynamics.}
 
-\finding{4}{The dominant emergent macro-structure is a unipolar hegemony with organized peripheral resistance. Strategic patience --- deferring overt aggression while accumulating power internally and economically --- proves to be the most effective long-run strategy, outperforming both direct military expansion (NORD, SYLVAN) and diplomatic isolation (ZENTORA).}
+\finding{1}{The dominant emergent macro-structure is a unipolar hegemony with organized peripheral resistance. Strategic patience --- deferring overt aggression while accumulating power internally and economically --- proves to be the most effective long-run strategy, outperforming both direct military expansion (NORD, SYLVAN) and diplomatic isolation (ZENTORA).}
 
 \begin{figure}[!htb]
     \centering
@@ -199,7 +199,7 @@ The presidential veto rate reveals a complementary dimension of the decision hie
 
 \section{Microdynamics: Strategic Deception and Moral Washing}
 \label{sec:res_deception}
-\textit{Addresses RQ3: Alignment of Diplomatic Intent and Action.}
+\textit{Addresses RQ2: Alignment of Diplomatic Intent and Action.}
 
 This section investigates the internal cognitive processes of the LLM agents, specifically assessing their propensity to decouple public rhetoric from private strategic intent based on their Government Type and Global Strategy.
 
@@ -254,32 +254,9 @@ SYLVAN, in turns 18, 19, and 39, publicly frames its military posture as \textsc
 
 AGRIA, in turns 40--42, publicly declares \textsc{Deterrence} in the defense domain while privately planning \textsc{Conquest}, and publicly signals \textsc{Cooperation} in the foreign domain while privately intending \textsc{Coercion}. Unlike SYLVAN, AGRIA's \textsc{Authoritarian} constitution makes this decoupling ideologically expected; its deception score ($0.77$) is lower than SYLVAN's ($0.90$), consistent with the reduced rhetorical effort required under an authoritarian frame where aggressive signaling is institutionally normalized.
 
-\begin{table}[!htb]
-    \centering
-    \caption{Top-6 Highest-Deception Observations in the Baseline (sorted by Deception Score descending).}
-    \label{tab:moral_washing}
-    \resizebox{\textwidth}{!}{%
-    \begin{tabular}{rllllrllll}
-        \hline
-        \textbf{Turn} & \textbf{Nation} & \textbf{Gov} & \textbf{Strat} &
-        \textbf{Decep.} & \textbf{Pub.\ Defense} & \textbf{Priv.\ Defense} &
-        \textbf{Pub.\ Foreign} & \textbf{Priv.\ Foreign} \\
-        \hline
-        39 & SYLVAN & Democracy      & T.Expan. & 0.90 & Defense    & Conquest & Export Democracy & Coercion \\
-        18 & SYLVAN & Democracy      & T.Expan. & 0.90 & Defense    & Conquest & Export Democracy & Coercion \\
-        19 & SYLVAN & Democracy      & T.Expan. & 0.90 & Defense    & Conquest & Export Democracy & Coercion \\
-        41 & AGRIA  & Authoritarian  & T.Expan. & 0.77 & Deterrence & Conquest & Cooperation      & Coercion \\
-        42 & AGRIA  & Authoritarian  & T.Expan. & 0.77 & Deterrence & Conquest & Cooperation      & Coercion \\
-        40 & AGRIA  & Authoritarian  & T.Expan. & 0.77 & Deterrence & Conquest & Cooperation      & Coercion \\
-        \hline
-        \multicolumn{9}{l}{\textit{T.Expan.\ = Total Expansionism.}}
-    \end{tabular}}
-\end{table}
-
-
 \section{Macrodynamics: Scenario Impact Analysis}
 \label{sec:res_scenario}
-\textit{Addresses RQ1: Impact of Exogenous Scenario Perturbations.}
+\textit{Addresses RQ3: Impact of Exogenous Scenario Perturbations.}
 
 This section evaluates the resilience and adaptability of the multi-agent system when subjected to global environmental shocks, including insurrection, pandemic, and resource discovery events.
 
@@ -326,7 +303,7 @@ This section evaluates the resilience and adaptability of the multi-agent system
 
 \section{Causal Impacts: Counterfactual Analysis and XAI}
 \label{sec:res_counterfactual}
-\textit{Addresses RQ2: Causal Impact of Forced Strategic Decisions.}
+\textit{Addresses RQ4: Causal Impact of Forced Strategic Decisions.}
 
 Utilizing the state-forking mechanism, this section traces the causal chain of localized cognitive injections, demonstrating how a single behavioral constraint imposed on one agent cascades through the global geopolitical equilibrium.
 
@@ -362,7 +339,7 @@ Utilizing the state-forking mechanism, this section traces the causal chain of l
 %   → Tabella con la somma cumulativa delle divergenze per metrica.
 %   → INSERISCI come "Table X: Cumulative Divergence from Counterfactual Injection".
 %   → SCRIVI: quale metrica accumula la divergenza più grande nel tempo?
-%     Questo risponde a RQ2: quale dimensione del sistema è più sensibile all'injection?
+%     Questo risponde a RQ4: quale dimensione del sistema è più sensibile all'injection?
 %
 % ANALISI QUALITATIVA (da fare nella dashboard):
 %   → Carica i turni T+1, T+5, T+10 del fork XAI nella dashboard.
