@@ -365,16 +365,18 @@ Figure~\ref{fig:pandemic_network} presents the diplomatic network at five equidi
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=\linewidth]{figure/scenario_pandemic_satisfaction.png}
-    \caption{Public satisfaction per nation under the pandemic scenario. [CAPTION TO BE COMPLETED]}
+    \caption{Public satisfaction per nation: baseline (left) vs.\ pandemic scenario fork (right). The baseline exhibits a steady upward trend converging toward 100. Post-fork, the pandemic collapses satisfaction universally: all nations compress into a $40$--$70$ range by $T=50$, reversing the baseline's growth trajectory. No nation crosses the civil unrest threshold ($\approx\!20$).}
     \label{fig:pandemic_satisfaction}
 \end{figure}
 
-% [TESTO DA SCRIVERE]
-% P1: Descrivi il delta medio di satisfaction nei 25 turni post-fork rispetto alla baseline.
-% P2: Nazioni che scendono sotto 20 (soglia unrest threshold)? Ci sono civil unrest events?
-% P3: Qualitative: cita un Economy Minister che alloca esplicitamente budget extra al welfare
-%     in risposta alla pandemia, oppure un caso dove non lo fa nonostante il calo di satisfaction.
-% P4 (se applicabile): Nota il caveat sulla calibrazione del motore (si veda Sec.~\ref{sec:threats}).
+
+Figure~\ref{fig:pandemic_satisfaction} reveals a stark structural divergence in the socio-political trajectory of the two timelines. In the \textbf{baseline}, public satisfaction follows the already-documented pattern: a monotonically increasing trend with sawtooth oscillations, driven by improving economic conditions and expanding trade, approaching or reaching the maximum value of 100 for most nations by $T=50$. Only ZENTORA departs from this trajectory, declining toward the civil unrest threshold ($\approx\!20$) as its structural collapse unfolds.
+
+The \textbf{pandemic fork} produces a qualitatively different outcome. The two timelines are indistinguishable through $T=25$, after which the shock injection immediately inverts the satisfaction trajectory. A punctual spike at $T=25$ — reflecting the inherited state at the fork point, where satisfaction was still at its pre-shock high — is followed by a \textbf{broad, universal collapse} across all surviving nations. The multi-turn upward trend that defined the baseline is replaced by a declining and stagnating regime: by $T=50$, all nations cluster within the approximate range $[40, 70]$, effectively halved from the baseline ceiling.
+
+Three aspects of this collapse merit attention. First, the shock is \textbf{structurally symmetric}: no single nation diverges markedly in either direction relative to the others. The pandemic penalizes all agents roughly uniformly, compressing inter-nation variance rather than creating extreme outliers. This is consistent with the nature of the perturbation as a global biological event rather than a targeted shock. Second, and critically, \textbf{no nation crosses the civil unrest threshold} ($\approx\!20$, red dashed line) during the fork, suggesting that while the pandemic dramatically depresses long-run welfare, the LLM agents adaptively prevent catastrophic internal collapse — either through emergency welfare spending or doctrinal flexibility.
+
+Third, a calibration caveat applies here (see also Section~\ref{sec:threats}): the GeoMAS satisfaction engine's sensitivity parameters have not been exhaustively validated against real-world benchmarks. The finding that no nation enters unrest may reflect a genuine emergent resilience of the agents, or may partly reflect an engine that does not penalize satisfaction loss aggressively enough under demographic pressure. Both interpretations are consistent with the data, and the result should be read as indicative rather than definitive.
 
 
 \subsubsection{Territorial Dynamics}
