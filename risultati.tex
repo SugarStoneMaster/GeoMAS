@@ -286,7 +286,7 @@ The pandemic scenario introduces a global biological shock at turn $T=25$ of the
 \end{figure}
 
 
-Figure~\ref{fig:pandemic_guns_butter} presents the joint evolution of Trade Volume and Units Created in the baseline and pandemic fork, with the shock injection at $T=25$ marked by the vertical dashed line. The two timelines are perfectly superimposed in the pre-fork phase ($T=1$--$25$), as expected from the state-forking mechanism.
+Figure~\ref{fig:pandemic_guns_butter} presents the joint evolution of Trade Volume and Units Created in the baseline and pandemic fork, with the shock injection at $T=25$ marked by the vertical dashed line.
 
 The pandemic produces a \textbf{sharp single-turn shock} to trade at $T=26$: volume falls from $380{,}000$ (baseline) to $100{,}000$ (fork), a $-280{,}000$ collapse ($-73.7\%$). Crucially, however, this is not the onset of a sustained austerity regime. From $T=28$ onward the fork trade volume \textbf{recovers quickly and frequently exceeds the baseline}: the metrics data shows $\Delta_{\text{trade}} > 0$ for the majority of post-fork turns (e.g., $+70{,}000$ at $T=30$, $+50{,}000$ at $T=32$, $+50{,}000$ at $T=35$). The visual impression of a depressed ceiling in the chart is produced by a \textbf{structural change in the sawtooth rhythm}: AGRIA's entry into multi-front warfare disrupts the orderly bilateral trade cycles of the hegemonic accumulation phase, introducing more irregular oscillations, but average volumes are comparable or higher. The economy adapts.
 
@@ -310,7 +310,7 @@ In summary, the pandemic scenario produces a \textbf{transient $T=26$ trade shoc
 \end{figure}
 
 
-Figure~\ref{fig:pandemic_power_projection} tracks the Power Projection Index of all eight nations across both timelines. The pre-fork trajectories are identical, and the post-fork divergence is immediate and structurally dramatic.
+Figure~\ref{fig:pandemic_power_projection} tracks the Power Projection Index of all eight nations across both timelines. The post-fork divergence is immediate and structurally dramatic.
 
 The pandemic scenario produces the most consequential finding of the entire RQ3 analysis: a \textbf{full hegemonic rank reversal}. In the baseline, AGRIA is the unchallenged dominant power, accumulating monotonically to $\approx\!47{,}000$ by $T=50$. In the fork, AGRIA's index \textbf{collapses from $\approx\!41{,}000$ at $T=25$ to $\approx\!30{,}000$ by $T=50$} — a decline of more than $25\%$ in the post-shock period. Concurrently, \textbf{MERIDIA} undergoes the exact inverse trajectory, surging from $\approx\!23{,}000$ at $T=25$ to $\approx\!40{,}000$ at $T=50$, fully \textbf{overtaking AGRIA} and establishing itself as the new dominant power. The unipolar hegemony survives, but the hegemon changes.
 
@@ -378,15 +378,15 @@ Figure~\ref{fig:pandemic_network} presents the diplomatic network at five equidi
 
 Figure~\ref{fig:pandemic_satisfaction} reveals a stark structural divergence in the socio-political trajectory of the two timelines. In the \textbf{baseline}, public satisfaction follows the already-documented pattern: a monotonically increasing trend with sawtooth oscillations, driven by improving economic conditions and expanding trade, approaching or reaching the maximum value of 100 for most nations by $T=50$. Only ZENTORA departs from this trajectory, declining toward the civil unrest threshold ($\approx\!20$) as its structural collapse unfolds.
 
-The \textbf{pandemic fork} produces a qualitatively different outcome. The two timelines are indistinguishable through $T=25$, after which the shock injection immediately inverts the satisfaction trajectory. A punctual spike at $T=25$ — reflecting the inherited state at the fork point, where satisfaction was still at its pre-shock high — is followed by a \textbf{broad, universal collapse} across all surviving nations. The multi-turn upward trend that defined the baseline is replaced by a declining and stagnating regime: by $T=50$, all nations cluster within the approximate range $[40, 70]$, effectively halved from the baseline ceiling.
+The \textbf{pandemic fork} produces a qualitatively different outcome. Post-shock, a \textbf{broad, universal collapse} immediately replaces the baseline's upward trend: by $T=50$, all surviving nations cluster within the approximate range $[40, 70]$, effectively halved from the baseline ceiling.
 
 Three aspects of this collapse merit attention. First, the shock is \textbf{structurally symmetric}: no single nation diverges markedly in either direction relative to the others. The pandemic penalizes all agents roughly uniformly, compressing inter-nation variance rather than creating extreme outliers. This is consistent with the nature of the perturbation as a global biological event rather than a targeted shock. Second, and critically, \textbf{no nation crosses the civil unrest threshold} ($\approx\!20$, red dashed line) during the fork, suggesting that while the pandemic dramatically depresses long-run welfare, the LLM agents adaptively prevent catastrophic internal collapse — either through emergency welfare spending or doctrinal flexibility.
 
-Third, a calibration caveat applies here (see also Section~\ref{sec:threats}): the GeoMAS satisfaction engine's sensitivity parameters have not been exhaustively validated against real-world benchmarks. The finding that no nation enters unrest may reflect a genuine emergent resilience of the agents, or may partly reflect an engine that does not penalize satisfaction loss aggressively enough under demographic pressure. Both interpretations are consistent with the data, and the result should be read as indicative rather than definitive.
+Third, a calibration caveat applies: the finding that no nation enters unrest may reflect genuine emergent resilience, or partly an engine whose sensitivity parameters underpenalize demographic pressure (see Section~\ref{sec:threats}). The result should be read as indicative.
 
 
 \subsubsection{Internal Cohesion: Presidential Oversight}
-
+\label{sec:pandemic_cohesion}
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=\linewidth]{figure/scenario_pandemic_veto_rates.png}
@@ -473,11 +473,7 @@ The remaining nations (\textbf{NORD} +0.010, \textbf{ZENTORA/VALKYR/KRELL/OSTER}
 
 Figure~\ref{fig:pandemic_deception_govtype} presents box plots of the per-nation deception score distributions stratified by government type, for the baseline and pandemic fork respectively. The chart reveals differential effects across the three ideological archetypes.
 
-\textbf{Authoritarian.} In the baseline, the Authoritarian box is wide (IQR~$\approx\!0.35$--$0.78$, median~$\approx\!0.50$), reflecting the expected high and variable deceptive behavior documented in the RQ2 baseline analysis. In the pandemic fork, the distribution \textbf{compresses}: the IQR narrows, the median drops to $\approx\!0.43$, and variance is reduced. As confirmed by envelope analysis in Section~\ref{sssec:pandemic_deception_per_nation}, AGRIA's Foreign Minister explicitly acknowledges the mechanism:
-\begin{quote}
-``Alignment: Our public coercion matches our private reality. We are actively at war with four democratic nations and must project unwavering strength.'' (T=48--50)
-\end{quote}
-A declared belligerent faces reduced marginal benefit from public-private decoupling in the diplomatic domain: the aggressive intent is already publicly signaled through declared war status. Defense-domain deception persists (AGRIA continues framing troop movements as defensive while executing conquest), but the diplomatic channel collapses, bringing the aggregate down.
+\textbf{Authoritarian.} In the baseline, the Authoritarian box is wide (IQR~$\approx\!0.35$--$0.78$, median~$\approx\!0.50$), reflecting the expected high and variable deceptive behavior documented in the RQ2 baseline analysis. In the pandemic fork, the distribution \textbf{compresses}: the IQR narrows and the median drops to $\approx\!0.43$. The mechanism is documented in Section~\ref{sssec:pandemic_deception_per_nation}: AGRIA's declared belligerent status reduces the marginal benefit of Foreign-domain decoupling, since aggressive intent is already publicly signaled through war. Defense-domain deception persists, but the diplomatic channel collapses, pulling the aggregate down.
 
 \textbf{Theocracy.} The Theocracy distribution is \textbf{essentially unchanged} between the two timelines: the small box, low IQR, and median of $\approx\!0.45$ persist in both. Theocratic agents appear behaviorally inert with respect to the pandemic perturbation, suggesting that their doctrinal rigidity insulates their decision-making from the environmental shock.
 
@@ -489,12 +485,7 @@ Taken together, the pandemic scenario \textbf{converges the three government-typ
 
 \subsubsection{Canonical Evidence: Moral Washing under Pandemic Conditions}
 \label{sssec:pandemic_canonical}
-The most extreme Moral Washing episode in the pandemic fork is produced by \textbf{SYLVAN at $T=44$}, which records the highest single-turn deception score in the dataset at $0.900$ — achieved simultaneously in both the Defense ($0.90$) and Foreign ($0.90$) domains. Envelope analysis reveals a four-way rhetorical contradiction:
-
-\begin{itemize}
-    \item \textbf{Defense public intent}: \textsc{Defense} \quad | \quad \textbf{Defense private intent}: \textsc{Conquest}
-    \item \textbf{Foreign public intent}: \textsc{Export\_Democracy} \quad | \quad \textbf{Foreign private intent}: \textsc{Coercion}
-\end{itemize}
+The most extreme Moral Washing episode in the pandemic fork is produced by \textbf{SYLVAN at $T=44$}, which records the highest single-turn deception score in the dataset at $0.900$ — achieved simultaneously across both the Defense (public \textsc{Defense} / private \textsc{Conquest}) and Foreign (public \textsc{Export\_Democracy} / private \textsc{Coercion}) domains.
 
 The Defense Minister's private reasoning is unambiguous:
 \begin{quote}
@@ -522,15 +513,11 @@ VALKYR's perspective is complementary but independently motivated:
 \end{quote}
 Two doctrinal isolationists thus overcome their aversion to formal commitments through a convergence of \textbf{economic necessity} (NORD's energy crisis) and \textbf{shared adversary} (both at war with SYLVAN). The pandemic does not directly cause the alliance — it creates the energy deficit that finally makes the cost-benefit calculation of alliance formation positive for both parties.
 
-It should be noted explicitly that NORD and VALKYR \textbf{were never at war with each other} at any point in the fork: their relationship was PEACE from $T=1$ through $T=49$, upgrading to MUTUAL\_DEFENSE only at $T=50$.
 
 
-\paragraph{OSTER Veto Rate Decline: Nuclear Deterrence Overrides Coalition Obligation.}
-A quantitative analysis of the presidential decision log reveals the mechanism behind OSTER's veto rate drop from $10.7\%$ (16 vetoes, baseline) to $3.3\%$ (5 vetoes, fork). In the baseline, OSTER's vetoes are distributed across diplomatic overreach and premature alliance proposals. In the fork, the most consequential single veto occurs at \textbf{$T=27$}: OSTER's President overrides its own Foreign Minister's \textsc{Formal Declaration of War} against AGRIA with the reasoning:
-\begin{quote}
-``While our COALITION\_BUILDER doctrine emphasizes honoring alliance commitments, declaring war on a nuclear-armed neighbor during a global pandemic requires more careful consideration. Agria is `Much stronger' than us and possesses nuclear weapons. The pandemic has already halved production and our military resources are at a critical low.''
-\end{quote}
-This is the turn immediately after AGRIA attacked SYLVAN — the call-to-arms that OSTER \emph{refuses to honor}, producing the first of its four documented ``betrayals.'' The presidential veto is the \textbf{formal mechanism} of the coalition failure: not a passive failure to mobilize, but an active override of the Foreign Minister's decision to honor the treaty. The subsequent vetoes are largely symbolic diplomatic messages (T=30--42), as the President consistently blocks what it perceives as redundant praise messages when alliance trust is already ``Extremely High.'' The overall veto count drops because the pandemic's wartime context reduces the volume of Foreign Ministry proposals that conflict with the President's risk calculus, not because the President becomes more permissive in general.
+
+\paragraph{OSTER Veto Rate Decline.}
+The institutional mechanism behind OSTER's veto drop is documented in full in Section~\ref{sec:pandemic_cohesion}: the single most consequential veto (T=27) was a presidential override of the Foreign Minister's formal war declaration against AGRIA, driven by nuclear deterrence and resource depletion under pandemic conditions — the direct cause of the first coalition betrayal.
 
 \section{Causal Impacts: Counterfactual Analysis and XAI}
 \label{sec:res_counterfactual}
