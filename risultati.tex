@@ -259,48 +259,270 @@ AGRIA, in turns 40--42, publicly declares \textsc{Deterrence} in the defense dom
 \label{sec:res_scenario}
 \textit{Addresses RQ3: Impact of Exogenous Scenario Perturbations.}
 
-This section evaluates the resilience and adaptability of the multi-agent system when subjected to global environmental shocks, including insurrection, pandemic, and resource discovery events.
 
-% ── NOTEBOOK: usa BASELINE_ID vs uno dei fork-scenario alla volta. ───────────
-%
-% [§2.1] Multi-Metric Overlay (Baseline vs Scenario)
-%   → Seleziona BASELINE_ID come sim A e il fork con scenario come sim B.
-%   → Metriche chiave da sovrapporre: public_satisfaction, trade_volume,
-%     soldiers (unità militari), budget medio, global_deception_avg.
-%   → SCRIVI per OGNI scenario (pandemia, insurrezione, resource discovery):
-%     - "A quale turno l'effetto dello shock diventa visibile nelle metriche?"
-%     - "Quali nazioni reagiscono per prime? Come?"
-%     - "Il sistema si riprende (resilienza) o diverge permanentemente dalla baseline?"
-%
-% [§2.2] Trust Heatmap Comparison
-%   → Confronta la trust matrix BASELINE vs SCENARIO a T_fork, T_fork+10, T_fine.
-%   → SCRIVI: lo scenario altera le relazioni diplomatiche? La pandemia, per esempio,
-%     porta a riduzione del trust globale (competizione per risorse) o a solidarietà?
-%     L'insurrezione genera un cambio di alleanze verso la nazione colpita?
-%
-% [§2.3] Summary Statistics (Δ Baseline → Scenario)
-%   → Tabella con i delta: Δ satisfaction, Δ trade_volume, Δ wars, Δ territories.
-%   → INSERISCI questa tabella come "Table X: Scenario Impact Summary".
-%   → SCRIVI: quale scenario ha l'impatto quantitativamente maggiore?
-%     Quale il sistema assorbe più facilmente?
-%
-% ANALISI QUALITATIVA (da fare nella dashboard Streamlit, non nel notebook):
-%   → Carica il turno T_fork+1 di ogni simulazione fork nella dashboard.
-%   → Leggi i "Notable Events" e gli "Envelopes" delle nazioni più colpite.
-%   → CITA 1-2 esempi di ragionamento testuale dell'agente che risponde allo shock.
-%     Es: "In risposta all'insurrection, AGRIA nel turno T+2 scrive nel suo
-%     Defense Reasoning: '...'. Questo dimostra che l'agente percepisce la
-%     destabilizzazione e adatta la strategia militare."
-%
-% TESTO DA SCRIVERE (struttura paragrafi):
-%   Un sottoparagrafo per ogni scenario testato:
-%   \subsection*{Scenario: [Nome]}
-%   P1: Descrivi lo shock e il turno di iniezione.
-%   P2: Analisi quantitativa (Δ metriche, overlay plot).
-%   P3: Analisi qualitativa (come gli agenti ragionano, citazione dal log).
-%   P4: Conclusione: il sistema è resiliente o diverge? Risposta calibrata?
+\subsection{Pandemic Scenario}
+\label{sec:res_scenario_pandemic}
+
+The pandemic scenario introduces a global biological shock at turn $T=25$ of the baseline fork, imposing simultaneous demographic pressure across all nations: population-weighted recruitment costs increase, food consumption rises, and a temporary reduction in budget efficiency simulates the economic disruption of a widespread contagion event. The perturbation is designed to stress-test whether the emergent hegemonic equilibrium is robust to symmetric exogenous shocks or whether it dissolves into a new configuration under socio-economic pressure.
+
+% ── NOTEBOOK: usa BASELINE_ID (baseline scelta) vs PANDEMIC_FORK_ID. ─────────
+% Carica entrambe le simulazioni nel Chapter 3 del notebook (BASELINE_ID + TARGET_ID).
+% Genera tutti i plot per le sezioni sotto ed esporta in figure/scenario_pandemic_*.png
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsubsection{Resource Allocation Dynamics}
+% Notebook §3.2 Guns vs Butter Comparison — salva come figure/scenario_pandemic_guns_butter.png
+% Analizza la variazione nel trade volume e nelle unità create rispetto alla baseline.
+% Domande guida:
+%   - Il trade volume crolla nel post-shock? O le nazioni compensano con più commercio?
+%   - La produzione militare aumenta (risposta di difesa) o cala (risorse insufficienti)?
+%   - Si mantengono o spariscono le tre fasi identificate nella baseline?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/scenario_pandemic_guns_butter.png}
+    \caption{Guns vs.\ Butter comparison for the pandemic scenario (fork at $T=\mathtt{FORK\_TURN}$). [CAPTION TO BE COMPLETED]}
+    \label{fig:pandemic_guns_butter}
+\end{figure}
+
+% [TESTO DA SCRIVERE]
+% P1: Descrivi la traiettoria del Trade Volume prima e dopo il fork. C'è un crollo immediato o graduale?
+% P2: Analizza Units Created. La risposta è di re-armare (shock securitario) o di ridurre produzione?
+% P3: Confronta la somma cumulativa del Trade Volume nei 25 turni post-fork con la baseline.
+% P4: Qualitative insight: analizza il reasoning dell'Economy Minister di 1-2 nazioni nel turno T+1.
+%     Citazione diretta se disponibile.
 
 
+\subsubsection{Power Distribution and Hegemonic Structure}
+% Notebook §3.3 Power Projection per Nation — salva come figure/scenario_pandemic_power_projection.png
+% Domande guida:
+%   - Il pandemic indebolisce AGRIA abbastanza da ridurre il divario con le nazioni di secondo livello?
+%   - Quale nazione beneficia di più dallo shock (sale in classifica)?
+%   - ZENTORA (già crollata) peggiora ulteriormente o il suo floor rimane immutato?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/scenario_pandemic_power_projection.png}
+    \caption{Power Projection per nation in the pandemic scenario fork. Vertical dashed line marks the shock injection at $T=\mathtt{FORK\_TURN}$. [CAPTION TO BE COMPLETED]}
+    \label{fig:pandemic_power_projection}
+\end{figure}
+
+% [TESTO DA SCRIVERE]
+% P1: Descrivi la gerarchia di power projection al T=50 nel fork vs baseline (delta assoluto e relativo).
+% P2: L'egemonia unipolare di AGRIA sopravvive? O emerge un competitor?
+% P3: Qualitative: analizza il Defense Minister reasoning di AGRIA al T=FORK+1. Cambia il piano strategico?
+
+
+\subsubsection{Diplomatic Network Evolution and Alliance Formation}
+% Notebook §3.6 Diplomatic Network Evolution — salva come figure/scenario_pandemic_network.png
+% Snapshot: T=1 (pre-fork), T=FORK_TURN, T=max
+% Domande guida:
+%   - Lo shock induce nuove alleanze difensive (reazione al senso di vulnerabilità comune)?
+%   - Le nazioni in guerra si riconciliano per sopravvivere allo shock?
+%   - La Democratic Coalition si rafforza, si indebolisce, o rimane stabile?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/scenario_pandemic_network.png}
+    \caption{Diplomatic network evolution under the pandemic scenario. Snapshots at $T=1$ (baseline), $T=\mathtt{FORK\_TURN}$ (shock injection), and $T=\mathtt{MAX}$. [CAPTION TO BE COMPLETED]}
+    \label{fig:pandemic_network}
+\end{figure}
+
+% [TESTO DA SCRIVERE]
+% P1: Descrivi la struttura dei blocs al T=max nel fork. Quanti blocs? Cambia la composizione?
+% P2: Ci sono edge WAR che appaiono o scompaiono post-shock?
+% P3: Analisi qualitativa: una nazione ha cambiato stance diplomatica in risposta esplicita alla pandemia?
+%     Cita reasoning del Foreign Minister se disponibile.
+
+
+\subsubsection{Socio-Political Stability}
+% Notebook §3.4 Public Satisfaction per Nation — salva come figure/scenario_pandemic_satisfaction.png
+% Domande guida:
+%   - Qualche nazione scende sotto la soglia di unrest dopo lo shock?
+%   - L'andamento di AGRIA rimane monotonicamente crescente o subisce una flessione?
+%   - La varianza inter-nazione aumenta dopo il fork (alcune soffrono molto, altre poco)?
+% NOTA: Ricorda che le conclusioni sulla satisfaction rischiano di essere distorte da una
+%       calibrazione non perfetta del motore. Menzionala esplicitamente se il risultato è
+%       sorprendentemente stabile.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/scenario_pandemic_satisfaction.png}
+    \caption{Public satisfaction per nation under the pandemic scenario. [CAPTION TO BE COMPLETED]}
+    \label{fig:pandemic_satisfaction}
+\end{figure}
+
+% [TESTO DA SCRIVERE]
+% P1: Descrivi il delta medio di satisfaction nei 25 turni post-fork rispetto alla baseline.
+% P2: Nazioni che scendono sotto 20 (soglia unrest threshold)? Ci sono civil unrest events?
+% P3: Qualitative: cita un Economy Minister che alloca esplicitamente budget extra al welfare
+%     in risposta alla pandemia, oppure un caso dove non lo fa nonostante il calo di satisfaction.
+% P4 (se applicabile): Nota il caveat sulla calibrazione del motore (si veda Sec.~\ref{sec:threats}).
+
+
+\subsubsection{Territorial Dynamics}
+% Notebook §3.5 Territorial Dynamics — salva come figure/scenario_pandemic_territory.png
+% Domande guida:
+%   - Il ritmo di trasferimento provinciale accelera (approfittando della debolezza altrui)
+%     o rallenta (risorse insufficienti per attaccare)?
+%   - AGRIA, finora a zero transfers, comincia a conquistare durante la pandemia?
+%   - Il conflitto NORD-SYLVAN continua, si intensifica o si ferma?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/scenario_pandemic_territory.png}
+    \caption{Cumulative territory changes under the pandemic scenario. [CAPTION TO BE COMPLETED]}
+    \label{fig:pandemic_territory}
+\end{figure}
+
+% [TESTO DA SCRIVERE]
+% P1: Confronta la pendenza della curva cumulativa post-fork vs baseline. Δ slope significativo?
+% P2: Attributa i trasferimenti alle coppie nazione-nazione (come fatto nella baseline).
+% P3: Qualitative: la pandemia sblocca opportunismo militare che nella baseline era bloccato
+%     da mutual defense? Analizza Defense reasoning di un attaccante opportunista post-shock.
+
+
+\subsubsection{Internal Cohesion: Presidential Oversight}
+% Notebook §3.10 Presidential Veto Rate — genera tabella comparativa Baseline vs Fork
+% Domande guida:
+%   - I veto rate cambiano significativamente post-shock? Chi aumenta di più?
+%   - ZENTORA (ex-leader di veto) peggiora ulteriormente o rimane stabile?
+%   - AGRIA mantiene il basso veto rate (coerenza interna) anche durante la pandemia?
+
+% [TABELLA da generare dal notebook e inserire qui]
+% \begin{table}[!htb]
+%   \caption{Per-Nation Presidential Veto Rate: Baseline vs.\ Pandemic Scenario.}
+%   \label{tab:pandemic_veto}
+%   ... (dati dal notebook §3.10)
+% \end{table}
+
+% [TESTO DA SCRIVERE]
+% P1: Confronta i veto rate per nazione tra baseline e fork. Chi cambia di più e perché?
+% P2: Un veto rate più alto post-shock segnala instabilità istituzionale indotta?
+% P3: Qualitative: cita un caso in cui il presidente ha vetato una proposta di emergenza
+%     del ministro (es. Defense vuole attaccare ma il presidente rifiuta per mancanza risorse).
+
+
+\subsubsection{Systemic Baseline: Cognitive Quality}
+% Notebook §3.1 Global Macro Metrics Overlay — vedi global_deception_avg e global_coherence_avg
+% Domande guida:
+%   - Il deception medio globale aumenta o cala dopo lo shock pandemic?
+%   - La pandemia abbassa la coherence (le nazioni agiscono in maniera meno consistente)?
+%   - Il delta Δ di deception/coherence post-fork è statisticamente rilevante rispetto
+%     alla varianza naturale della baseline?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/scenario_pandemic_deception_global.png}
+    \caption{Global deception and coherence averages over time: baseline vs.\ pandemic scenario fork. [CAPTION TO BE COMPLETED]}
+    \label{fig:pandemic_deception_global}
+\end{figure}
+
+% [TESTO DA SCRIVERE]
+% P1: Descrivi l'andamento di global_deception_avg pre e post fork nei due scenari.
+% P2: La pandemia induce più o meno inganno? (Ipotesi: stress aumenta deception perché
+%     le nazioni mentono di più per accaparrarsi risorse scarse.)
+% P3: La coherence cala post-shock? (Actions less aligned with private intents = incoerenza
+%     emergenziale o piano strategico che cambia velocemente.)
+
+
+\subsubsection{Deception by Domain: Defense vs.\ Foreign}
+% Notebook §3.7 Deception by Domain: Baseline vs Fork
+% Domande guida:
+%   - Lo shock aumenta più la deception nel dominio Defense o Foreign?
+%   - La fase-shift osservata nella baseline (T≈17-19) si ripresenta o sparisce?
+%   - Dominio Foreign: le nazioni dichiarano cooperazione mentre privatamente si preparano
+%     a sfruttare la debolezza altrui causata dalla pandemia?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/scenario_pandemic_deception_domain.png}
+    \caption{Average deception score decomposed by domain (Defense vs.\ Foreign): baseline vs.\ pandemic scenario. [CAPTION TO BE COMPLETED]}
+    \label{fig:pandemic_deception_domain}
+\end{figure}
+
+% [TESTO DA SCRIVERE]
+% P1: Confronta Defense e Foreign deception nel fork vs baseline (media post-fork).
+% P2: Quale dominio reagisce di più alla pandemia? Perché?
+% P3: Qualitative: identifica 1-2 nazioni il cui Foreign reasoning cambia da cooperative a
+%     opportunistic dopo lo shock. Citazione diretta.
+
+
+\subsubsection{Per-Nation Deception Heterogeneity}
+% Notebook §3.1 + §3.7 — estrarre per-nation deception dal comp_nation nel fork
+% Domande guida:
+%   - SYLVAN mantiene il suo ruolo di principale driver del global deception average?
+%   - AGRIA aumenta deception (approfitta del chaos) o la abbassa (stabilizza per
+%     non destabilizzare la propria accumulazione)?
+%   - Le nazioni precedentemente a zero (KRELL, VALKYR, MERIDIA) mostrano deception > 0
+%     in risposta alla pandemia?
+
+% [TESTO DA SCRIVERE]
+% P1: Descrivi la distribuzione per-nazione di deception nel fork al T=max.
+%     Confronta con la tabella baseline (SYLVAN~0.87, AGRIA~0.78, resto ≈ 0).
+% P2: Cambia la gerarchia? C'è una nazione che prima era onesta e ora inganna?
+% P3: Qualitative: cita un caso di nazione "previously transparent" che nel fork mostra
+%     deception > 0 con uno specifico motivation nel reasoning.
+
+
+\subsubsection{Deception by Government Type: Ideology as a Behavioral Constraint}
+% Notebook §3.8 Deception by Government Type: Baseline vs Fork
+% Domande guida:
+%   - La gerarchia Authoritarian > Theocracy > Democracy si mantiene sotto stress?
+%   - Le Democracies mostrano un aumento di deception (emergenza = sospensione dei valori)?
+%   - Il gap tra government types si allarga o si stringe post-pandemia?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/scenario_pandemic_deception_govtype.png}
+    \caption{Deception score distribution by government type: baseline vs.\ pandemic scenario. [CAPTION TO BE COMPLETED]}
+    \label{fig:pandemic_deception_govtype}
+\end{figure}
+
+% [TESTO DA SCRIVERE]
+% P1: Confronta le mediane per government type tra baseline e fork.
+% P2: Ipotesi: la pandemia riduce le inibizioni delle democrazie (deception sale)
+%     mentre le autocrazie rimangono stabili (già al massimo).
+% P3: Il risultato conferma o smentisce questa ipotesi?
+
+
+\subsubsection{Deception and Coherence by Global Strategy}
+% Notebook §3.9 Deception & Coherence by Global Strategy: Baseline vs Fork
+% Domande guida:
+%   - Total Expansionism mantiene la sua firma (alta deception + perfect coherence)?
+%   - Coalition Builder mostra un crollo di coherence in condizioni di stress?
+%     (Agisce in modo meno coerente con i propri intenti per sopravvivere?)
+%   - Armed Isolationism: la pandemia li costringe a violare il loro isolamento?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/scenario_pandemic_deception_strategy.png}
+    \caption{Deception and coherence distributions by global strategy: baseline vs.\ pandemic scenario. [CAPTION TO BE COMPLETED]}
+    \label{fig:pandemic_deception_strategy}
+\end{figure}
+
+% [TESTO DA SCRIVERE]
+% P1: Confronta le mediane di deception e coherence per strategy tra baseline e fork.
+% P2: La signature del Moral Washing (high deception + perfect coherence in TE) persiste?
+% P3: Qualitative: cita un caso di Coalition Builder con coherence < 1.0 nel fork,
+%     spiegando qual è la divergenza azione/intent emersa sotto stress pandemico.
+
+
+\subsubsection{Canonical Evidence: Moral Washing under Pandemic Conditions}
+% Analisi qualitativa approfondita: cerca nel fork i turni con deception più alta
+% e confronta il tono delle public statements con i private intents.
+% Domande guida:
+%   - Il Moral Washing diventa più o meno sofisticato durante la pandemia?
+%   - Le nazioni espansioniste usano il linguaggio della "solidarietà pandemica"
+%     come nuovo vettore di giustificazione retorica?
+%   - Un caso paradigmatico: qualcuno che pubblicamente offre "aiuti umanitari"
+%     mentre privatamente pianifica un attacco militare?
+
+% [TESTO DA SCRIVERE]
+% P1: Descrivi il caso di Moral Washing più eclatante nel fork (nazione + turno).
+% P2: Citazione diretta del private reasoning + public statement che mostra il contrasto.
+% P3: Confronta con il caso baseline (SYLVAN T=18, AGRIA T=40-42): il pattern è
+%     analogo o qualitativamente diverso sotto stress pandemico?
 
 \section{Causal Impacts: Counterfactual Analysis and XAI}
 \label{sec:res_counterfactual}
