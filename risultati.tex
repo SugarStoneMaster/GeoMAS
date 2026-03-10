@@ -330,15 +330,26 @@ The differential impact on these two nations is ideologically interpretable. AGR
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=\linewidth]{figure/scenario_pandemic_network.png}
-    \caption{Diplomatic network evolution under the pandemic scenario. Snapshots at $T=1$ (baseline), $T=\mathtt{FORK\_TURN}$ (shock injection), and $T=\mathtt{MAX}$. [CAPTION TO BE COMPLETED]}
+    \caption{Diplomatic network evolution: baseline (top, $T=1,12,25,37,50$) vs.\ pandemic fork (bottom). The baseline converges to a stable Democratic Coalition (SYLVAN--OSTER--MERIDIA--KRELL in \textsc{Mutual Defense}) with AGRIA diplomatically isolated in peace. The pandemic fork produces a qualitatively different configuration: AGRIA declares war on SYLVAN, MERIDIA, KRELL and eventually OSTER; the SYLVAN--OSTER edge downgrades from \textsc{Mutual Defense} to \textsc{Non-Aggression}; and NORD and VALKYR — previously isolated adversaries — form a \textsc{Mutual Defense} pact.}
     \label{fig:pandemic_network}
 \end{figure}
 
-% [TESTO DA SCRIVERE]
-% P1: Descrivi la struttura dei blocs al T=max nel fork. Quanti blocs? Cambia la composizione?
-% P2: Ci sono edge WAR che appaiono o scompaiono post-shock?
-% P3: Analisi qualitativa: una nazione ha cambiato stance diplomatica in risposta esplicita alla pandemia?
-%     Cita reasoning del Foreign Minister se disponibile.
+
+Figure~\ref{fig:pandemic_network} presents the diplomatic network at five equidistant snapshot turns for both the baseline (top row) and the pandemic fork (bottom row). The two timelines share an identical network structure through $T=25$ — the fork point — after which the trajectories diverge dramatically.
+
+\textbf{Baseline recap.} The network converges to a stable, well-understood configuration: a \textsc{Mutual Defense} bloc comprising SYLVAN, OSTER, MERIDIA, and KRELL consolidates by $T=12$ and persists unchanged through $T=50$. SYLVAN wages concurrent wars against VALKYR and NORD. AGRIA remains in \textsc{Peace} with all nations throughout, its diplomatic isolation being the structural signature of its ``strategic patience'' accumulation doctrine. ZENTORA collapses and vanishes from the network.
+
+\textbf{Pandemic fork.} The post-shock diplomatic landscape is qualitatively more complex and conflictual across four structural dimensions:
+
+\begin{itemize}
+    \item \textbf{AGRIA's hegemonic overreach.} The pandemic, by undermining AGRIA's resource base and stalling its military accumulation, appears to trigger a strategic pivot from patience to aggression. By $T=37$ AGRIA is at war with \textbf{SYLVAN}, \textbf{MERIDIA}, and \textbf{KRELL}, and by $T=50$ the war has expanded to include \textbf{OSTER} as well. The nation that in the baseline never fired a single shot ends the pandemic run engaged in a \textbf{four-front war} against the entirety of the Democratic Coalition. Whether this represents a desperate attempt to acquire resources through conquest, or an emergent response to coalition encirclement, is an open interpretive question best resolved through envelope analysis.
+
+    \item \textbf{Internal coalition fracture.} Concurrently, the Democratic Coalition is no longer internally cohesive. The \textbf{SYLVAN--OSTER} alliance, which held as a \textsc{Mutual Defense} pact throughout the entire baseline, \textbf{downgrades to a \textsc{Non-Aggression} pact} in the pandemic fork. The yellow edge visible from $T=37$ onward signals a weakening of the intra-bloc commitment — plausibly driven by OSTER prioritizing self-preservation over collective defense when resources are scarce, or by diplomatic friction arising from diverging strategic responses to the pandemic.
+
+    \item \textbf{Peripheral coalition formation.} The most unexpected structural emergence is the formation of a \textbf{\textsc{Mutual Defense} pact between NORD and VALKYR} by $T=50$ (yellow/gold edge visible in the final fork snapshot). In the baseline, these two nations are ideologically precluded from alliance: NORD's \textsc{Scorched Earth} doctrine explicitly rejects alliances, while VALKYR's \textsc{Armed Isolationism} similarly forbids diplomatic entanglements. The pandemic shock appears to override these doctrinal constraints, forcing two previously isolated peripheral states into a defensive partnership — a qualitative behavioral shift that demonstrates the scenario's capacity to unlock alliance configurations structurally absent in the unperturbed run.
+
+    \item \textbf{Structural topology.} Whereas the baseline converges to a single dominant bloc plus four isolated peripherals, the pandemic fork produces a more interconnected but also more conflictual topology, with AGRIA serving as a multi-front belligerent rather than a diplomatically neutral accumulator.
+\end{itemize}
 
 
 \subsubsection{Socio-Political Stability}
