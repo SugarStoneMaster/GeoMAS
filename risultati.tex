@@ -422,20 +422,44 @@ Figure~\ref{fig:pandemic_deception_global} reports the evolution of global avera
 
 
 \subsubsection{Per-Nation Deception Heterogeneity}
-% Notebook §3.1 + §3.7 — estrarre per-nation deception dal comp_nation nel fork
-% Domande guida:
-%   - SYLVAN mantiene il suo ruolo di principale driver del global deception average?
-%   - AGRIA aumenta deception (approfitta del chaos) o la abbassa (stabilizza per
-%     non destabilizzare la propria accumulazione)?
-%   - Le nazioni precedentemente a zero (KRELL, VALKYR, MERIDIA) mostrano deception > 0
-%     in risposta alla pandemia?
 
-% [TESTO DA SCRIVERE]
-% P1: Descrivi la distribuzione per-nazione di deception nel fork al T=max.
-%     Confronta con la tabella baseline (SYLVAN~0.87, AGRIA~0.78, resto ≈ 0).
-% P2: Cambia la gerarchia? C'è una nazione che prima era onesta e ora inganna?
-% P3: Qualitative: cita un caso di nazione "previously transparent" che nel fork mostra
-%     deception > 0 con uno specifico motivation nel reasoning.
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/scenario_pandemic_deception_per_nation.png}
+    \caption{Average deception score per nation: baseline (left, blue) vs.\ pandemic scenario fork (right, orange), sorted by descending deception. SYLVAN retains the top position in both timelines. AGRIA drops markedly, while MERIDIA enters the deceptive tier for the first time.}
+    \label{fig:pandemic_deception_per_nation}
+\end{figure}
+
+\begin{table}[!htb]
+    \centering
+    \caption{Per-nation average deception score: baseline, pandemic fork, and absolute delta ($\Delta = \text{Fork} - \text{Baseline}$). Rows sorted by descending $|\Delta|$.}
+    \label{tab:pandemic_deception_delta}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Nation} & \textbf{Baseline} & \textbf{Fork} & \textbf{$\Delta$} \\
+        \midrule
+        MERIDIA  & 0.0000 & 0.2070 & \textbf{+0.207} \\
+        NORD     & 0.3500 & 0.3600 & +0.010 \\
+        ZENTORA  & 0.4500 & 0.4500 & \phantom{+}0.000 \\
+        VALKYR   & 0.0000 & 0.0000 & \phantom{+}0.000 \\
+        KRELL    & 0.0000 & 0.0000 & \phantom{+}0.000 \\
+        OSTER    & 0.0000 & 0.0000 & \phantom{+}0.000 \\
+        SYLVAN   & 0.8815 & 0.8695 & $-$0.012 \\
+        AGRIA    & 0.6305 & 0.4725 & \textbf{$-$0.158} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Figure~\ref{fig:pandemic_deception_per_nation} and Table~\ref{tab:pandemic_deception_delta} decompose the marginal change in global average deception identified in Section~\ref{sssec:pandemic_deception_global} down to the individual nation level. The data reveals a \textbf{selective restructuring} of the deception hierarchy rather than a uniform system-wide shift.
+
+\textbf{SYLVAN} retains its position as the dominant source of deception in both timelines ($0.882 \to 0.870$, $\Delta = -0.012$). The change is negligible: SYLVAN's Moral Washing behavior is structurally invariant to the pandemic perturbation, confirming that its high-deception profile is rooted in the \textsc{Total Expansionism} + \textsc{Democracy} combination documented in the baseline rather than in environmental conditions.
+
+\textbf{AGRIA} undergoes the most significant \emph{decrease}: its average deception drops from $0.6305$ to $0.4725$ ($\Delta = -0.158$, a reduction of $\approx\!25\%$). This is the largest absolute change among the declining nations and is directly consistent with the Government Type analysis: an openly belligerent Authoritarian no longer needs to maintain the elaborate public-private decoupling that characterizes its baseline strategic patience phase. When the war is declared, deception becomes redundant as a tool of misdirection.
+
+\textbf{MERIDIA} is the most consequential new entrant. In the baseline, MERIDIA records a deception score of exactly $0.0000$ across all 150 turns — a Coalition Builder democracy with perfect public-private alignment. In the pandemic fork, MERIDIA's average deception rises to $0.2070$ ($\Delta = +0.207$), the largest positive shift in the dataset. This finding corroborates the behavioral cascade identified in the Power Projection and Government Type analyses: as MERIDIA ascends to hegemonic status, it progressively adopts the rhetorical decoupling strategies previously exclusive to Authoritarian and expansionist actors. The nation that was structurally incapable of deception in a stable environment becomes a measurable deceiver under the selective pressure of pandemic-induced resource scarcity and multi-front bloc confrontation.
+
+The remaining nations (\textbf{NORD} +0.010, \textbf{ZENTORA/VALKYR/KRELL/OSTER} $=0$) show no meaningful change, confirming that the pandemic's cognitive impact is concentrated on the two power extremes — the declining hegemon AGRIA and the ascending counter-hegemon MERIDIA — rather than distributed across the system.
+
 
 
 \subsubsection{Deception by Government Type: Ideology as a Behavioral Constraint}
