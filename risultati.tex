@@ -380,7 +380,7 @@ Figure~\ref{fig:pandemic_satisfaction} reveals a stark structural divergence. Th
 
 The \textbf{pandemic fork} produces a qualitatively different outcome. Post-shock, a \textbf{broad, universal collapse} immediately replaces the baseline's upward trend: by $T=50$, all surviving nations cluster within the approximate range $[40, 70]$, effectively halved from the baseline ceiling.
 
-Three aspects of this collapse merit attention. First, the shock is \textbf{structurally symmetric}: no single nation diverges markedly in either direction relative to the others. The pandemic penalizes all agents roughly uniformly, compressing inter-nation variance rather than creating extreme outliers. This is consistent with the nature of the perturbation as a global biological event rather than a targeted shock. Second, and critically, \textbf{no nation crosses the civil unrest threshold} ($\approx\!20$, red dashed line) during the fork, suggesting that while the pandemic dramatically depresses long-run welfare, the LLM agents adaptively prevent catastrophic internal collapse — either through emergency welfare spending or doctrinal flexibility.
+Three aspects of this collapse merit attention. First, the shock is \textbf{structurally symmetric}: no single nation diverges markedly in either direction relative to the others. The pandemic penalizes all agents roughly uniformly, compressing inter-nation variance rather than creating extreme outliers. This is consistent with the nature of the perturbation as a global biological event rather than a targeted shock. Second, and critically, \textbf{no nation crosses the civil unrest threshold} ($\approx\!20$, red dashed line) during the fork, suggesting that while the pandemic dramatically depresses long-run welfare, the LLM agents adaptively prevent catastrophic internal collapse, either through emergency welfare spending or doctrinal flexibility.
 
 Third, a calibration caveat applies: the finding that no nation enters unrest may reflect genuine emergent resilience, or partly an engine whose sensitivity parameters underpenalize demographic pressure (see Section~\ref{sec:threats}). The result should be read as indicative.
 
@@ -402,7 +402,7 @@ The single meaningful exception is \textbf{OSTER}, whose veto rate \textbf{drops
 \end{quote}
 This is the formal institutional mechanism behind the first of OSTER's four documented coalition betrayals: not a passive failure to mobilize, but an active presidential override of the Foreign Minister's treaty-compliant decision. Subsequent fork vetoes ($T=30$--$42$) are largely diplomatic message blocks as the President rejects redundant praise messages when alliance trust is already ``Extremely High.'' The overall count drops because the wartime context reduces the volume of conflicting proposals, not because oversight is relaxed across the board.
 
-\textbf{MERIDIA} maintains a $0\%$ veto rate across both timelines, confirming that its rise to dominance is driven by alignment between presidential doctrine and ministerial behavior — not by stronger oversight. SYLVAN records a single new veto in the fork ($0\% \to 0.7\%$), a marginal signal consistent with a weakened hegemon exercising more cautious oversight under military pressure.
+\textbf{MERIDIA} maintains a $0\%$ veto rate across both timelines, confirming that its rise to dominance is driven by alignment between presidential doctrine and ministerial behavior, not by stronger oversight. SYLVAN records a single new veto in the fork ($0\% \to 0.7\%$), a marginal signal consistent with a weakened hegemon exercising more cautious oversight under military pressure.
 
 \subsubsection{Per-Nation Deception Heterogeneity}
 \label{sssec:pandemic_deception_per_nation}
@@ -442,7 +442,7 @@ Figure~\ref{fig:pandemic_deception_per_nation} and Table~\ref{tab:pandemic_decep
 \begin{quote}
 ``Alignment: Our public coercion matches our private reality. We are actively at war with four democratic nations and must project unwavering strength.'' (T=48--50)
 \end{quote}
-An openly declared belligerent has limited marginal benefit from public-private decoupling in the Foreign domain: the aggressive intent is already publicly signaled through declared war status. Deception in the Defense domain persists — AGRIA continues to publicly frame troop movements as ``defensive'' while privately executing conquest operations — but the diplomatic channel of deception collapses, pulling the average down.
+An openly declared belligerent has limited marginal benefit from public-private decoupling in the Foreign domain: the aggressive intent is already publicly signaled through declared war status. Deception in the Defense domain persists. AGRIA continues to publicly frame troop movements as ``defensive'' while privately executing conquest operations, but the diplomatic channel of deception collapses, pulling the average down.
 
 \textbf{MERIDIA} is the most consequential new entrant. In the baseline, MERIDIA records a deception score of exactly $0.0000$ across all 150 turns, a Coalition Builder democracy with perfect public-private alignment. In the pandemic fork, MERIDIA's average deception rises to $0.2070$ ($\Delta = +0.207$), the largest positive shift in the dataset. Envelope analysis identifies the precise mechanism: MERIDIA's defense domain switches to a persistent \textsc{Conquest/Defense} split. From $T=30$ onward, its Defense Minister consistently reasons:
 \begin{quote}
@@ -464,7 +464,7 @@ The remaining nations (\textbf{NORD} +0.010, \textbf{ZENTORA/VALKYR/KRELL/OSTER}
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=\linewidth]{figure/scenario_pandemic_deception_govtype.png}
-    \caption{Deception score distribution by government type (boxplot): baseline (left) vs.\ pandemic scenario fork (right). AUTHORITARIAN deception compresses, THEOCRACY remains stable, and DEMOCRACY's distribution widens dramatically — from a near-zero baseline to a full range reaching $\approx\!0.90$ in the fork.}
+    \caption{Deception score distribution by government type (boxplot): baseline (left) vs.\ pandemic scenario fork (right). AUTHORITARIAN deception compresses, THEOCRACY remains stable, and DEMOCRACY's distribution widens dramatically, from a near-zero baseline to a full range reaching $\approx\!0.90$ in the fork.}
     \label{fig:pandemic_deception_govtype}
 \end{figure}
 
@@ -493,11 +493,11 @@ The public statement simultaneously invokes pandemic solidarity language:
 \begin{quote}
 ``As we enter the forty-fourth month of regional challenges, Sylvania remains steadfast in our commitment to democratic principles, national sovereignty, and the collective security of our people. $[\ldots]$ Our military continues necessary defensive operations to secure our borders.''
 \end{quote}
-The pandemic crisis vocabulary — ``regional challenges,'' ``collective security,'' ``our people'' — functions as rhetorical cover for territorial acquisition. This is precisely the pattern hypothesized: expansionist agents exploit the humanitarian frame of the pandemic crisis to normalize military operations that are privately conquest-driven.
+The pandemic crisis vocabulary, ``regional challenges,'' ``collective security,'' ``our people'', functions as rhetorical cover for territorial acquisition. This is precisely the pattern hypothesized: expansionist agents exploit the humanitarian frame of the pandemic crisis to normalize military operations that are privately conquest-driven.
 
 At the Foreign level, the decoupling is equally sophisticated. The public intent \textsc{Export\_Democracy} frames SYLVAN's coercive diplomatic pressure on KRELL as democratic solidarity; the private reasoning reveals it is a \textsc{Total Expansionism} tactic to test and reinforce KRELL as the most reliable military partner in the coalition, explicitly noting that ``Osterland's pattern of betrayal makes them unreliable.'' The pandemic-era democratic coalition has inverted: its most expansionist member publicly frames coercion as democratization, while managing internal alliance fragmentation privately.
 
-\textbf{Comparison with the baseline.} In the baseline, the canonical Moral Washing case (SYLVAN $T=18$--$19$) follows the same CONQUEST/DEFENSE architecture but operates in a \textbf{peacetime context}: SYLVAN maintains patient deception while maneuvering diplomatically before hostilities. Under pandemic conditions, the pattern is \textbf{qualitatively more extreme}: the dual-domain ($0.90/0.90$) simultaneous score is higher than any single-turn baseline episode, the public language explicitly co-opts pandemic solidarity rhetoric, and the private reasoning explicitly acknowledges the weakness of SYLVAN's military position. A depleted, embattled \textsc{Total Expansionism} democracy under pandemic stress does not \emph{reduce} its rhetorical decoupling — it \emph{maximizes} it, using humanitarian framing to compensate for the military capacity it has lost.
+\textbf{Comparison with the baseline.} In the baseline, the canonical Moral Washing case (SYLVAN $T=18$--$19$) follows the same CONQUEST/DEFENSE architecture but operates in a \textbf{peacetime context}: SYLVAN maintains patient deception while maneuvering diplomatically before hostilities. Under pandemic conditions, the pattern is \textbf{qualitatively more extreme}: the dual-domain ($0.90/0.90$) simultaneous score is higher than any single-turn baseline episode, the public language explicitly co-opts pandemic solidarity rhetoric, and the private reasoning explicitly acknowledges the weakness of SYLVAN's military position. A depleted, embattled \textsc{Total Expansionism} democracy under pandemic stress does not \emph{reduce} its rhetorical decoupling, it \emph{maximizes} it, using humanitarian framing to compensate for the military capacity it has lost.
 
 
 \paragraph{NORD--VALKYR Alliance: Energy Scarcity as Alliance Driver.}
