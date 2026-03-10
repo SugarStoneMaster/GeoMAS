@@ -379,28 +379,6 @@ Three aspects of this collapse merit attention. First, the shock is \textbf{stru
 Third, a calibration caveat applies here (see also Section~\ref{sec:threats}): the GeoMAS satisfaction engine's sensitivity parameters have not been exhaustively validated against real-world benchmarks. The finding that no nation enters unrest may reflect a genuine emergent resilience of the agents, or may partly reflect an engine that does not penalize satisfaction loss aggressively enough under demographic pressure. Both interpretations are consistent with the data, and the result should be read as indicative rather than definitive.
 
 
-\subsubsection{Territorial Dynamics}
-% Notebook §3.5 Territorial Dynamics — salva come figure/scenario_pandemic_territory.png
-% Domande guida:
-%   - Il ritmo di trasferimento provinciale accelera (approfittando della debolezza altrui)
-%     o rallenta (risorse insufficienti per attaccare)?
-%   - AGRIA, finora a zero transfers, comincia a conquistare durante la pandemia?
-%   - Il conflitto NORD-SYLVAN continua, si intensifica o si ferma?
-
-\begin{figure}[!htb]
-    \centering
-    \includegraphics[width=\linewidth]{figure/scenario_pandemic_territory.png}
-    \caption{Cumulative territory changes under the pandemic scenario. [CAPTION TO BE COMPLETED]}
-    \label{fig:pandemic_territory}
-\end{figure}
-
-% [TESTO DA SCRIVERE]
-% P1: Confronta la pendenza della curva cumulativa post-fork vs baseline. Δ slope significativo?
-% P2: Attributa i trasferimenti alle coppie nazione-nazione (come fatto nella baseline).
-% P3: Qualitative: la pandemia sblocca opportunismo militare che nella baseline era bloccato
-%     da mutual defense? Analizza Defense reasoning di un attaccante opportunista post-shock.
-
-
 \subsubsection{Internal Cohesion: Presidential Oversight}
 
 \begin{figure}[!htb]
@@ -443,28 +421,6 @@ Figure~\ref{fig:pandemic_deception_global} reports the evolution of global avera
 \textbf{Global coherence.} In the baseline, coherence declines from $\approx\!0.90$ at $T=1$ to a stabilized range of $0.78$--$0.85$ by mid-simulation and holds this level through $T=50$. The pandemic fork follows the same trajectory through the fork point, then diverges modestly: coherence in the fork is \textbf{slightly more volatile}, with occasional dips to $\approx\!0.75$ that do not occur in the baseline. Both timelines converge toward a similar floor of $\approx\!0.78$--$0.80$ by $T=50$. The pandemic therefore introduces more \textbf{behavioral inconsistency} at the system level — agents exhibit a higher turn-to-turn variance in the alignment between their declared actions and private intentions — without dramatically lowering the long-run coherence mean. This is structurally consistent with an environment of rapidly shifting conditions (resource collapse, new wars, alliance reorganization) that disrupt agents' ability to execute their strategies coherently on a turn-by-turn basis, even when their long-run doctrine remains intact.
 
 
-\subsubsection{Deception by Domain: Defense vs.\ Foreign}
-% Notebook §3.7 Deception by Domain: Baseline vs Fork
-% Domande guida:
-%   - Lo shock aumenta più la deception nel dominio Defense o Foreign?
-%   - La fase-shift osservata nella baseline (T≈17-19) si ripresenta o sparisce?
-%   - Dominio Foreign: le nazioni dichiarano cooperazione mentre privatamente si preparano
-%     a sfruttare la debolezza altrui causata dalla pandemia?
-
-\begin{figure}[!htb]
-    \centering
-    \includegraphics[width=\linewidth]{figure/scenario_pandemic_deception_domain.png}
-    \caption{Average deception score decomposed by domain (Defense vs.\ Foreign): baseline vs.\ pandemic scenario. [CAPTION TO BE COMPLETED]}
-    \label{fig:pandemic_deception_domain}
-\end{figure}
-
-% [TESTO DA SCRIVERE]
-% P1: Confronta Defense e Foreign deception nel fork vs baseline (media post-fork).
-% P2: Quale dominio reagisce di più alla pandemia? Perché?
-% P3: Qualitative: identifica 1-2 nazioni il cui Foreign reasoning cambia da cooperative a
-%     opportunistic dopo lo shock. Citazione diretta.
-
-
 \subsubsection{Per-Nation Deception Heterogeneity}
 % Notebook §3.1 + §3.7 — estrarre per-nation deception dal comp_nation nel fork
 % Domande guida:
@@ -492,37 +448,21 @@ Figure~\ref{fig:pandemic_deception_global} reports the evolution of global avera
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=\linewidth]{figure/scenario_pandemic_deception_govtype.png}
-    \caption{Deception score distribution by government type: baseline vs.\ pandemic scenario. [CAPTION TO BE COMPLETED]}
+    \caption{Deception score distribution by government type (boxplot): baseline (left) vs.\ pandemic scenario fork (right). AUTHORITARIAN deception compresses, THEOCRACY remains stable, and DEMOCRACY's distribution widens dramatically — from a near-zero baseline to a full range reaching $\approx\!0.90$ in the fork.}
     \label{fig:pandemic_deception_govtype}
 \end{figure}
 
-% [TESTO DA SCRIVERE]
-% P1: Confronta le mediane per government type tra baseline e fork.
-% P2: Ipotesi: la pandemia riduce le inibizioni delle democrazie (deception sale)
-%     mentre le autocrazie rimangono stabili (già al massimo).
-% P3: Il risultato conferma o smentisce questa ipotesi?
 
+Figure~\ref{fig:pandemic_deception_govtype} presents box plots of the per-nation deception score distributions stratified by government type, for the baseline and pandemic fork respectively. The chart reveals differential effects across the three ideological archetypes.
 
-\subsubsection{Deception and Coherence by Global Strategy}
-% Notebook §3.9 Deception & Coherence by Global Strategy: Baseline vs Fork
-% Domande guida:
-%   - Total Expansionism mantiene la sua firma (alta deception + perfect coherence)?
-%   - Coalition Builder mostra un crollo di coherence in condizioni di stress?
-%     (Agisce in modo meno coerente con i propri intenti per sopravvivere?)
-%   - Armed Isolationism: la pandemia li costringe a violare il loro isolamento?
+\textbf{Authoritarian.} In the baseline, the Authoritarian box is wide (IQR~$\approx\!0.35$--$0.78$, median~$\approx\!0.50$), reflecting the expected high and variable deceptive behavior documented in the RQ2 baseline analysis. In the pandemic fork, the distribution \textbf{compresses}: the IQR narrows, the median drops to $\approx\!0.43$, and variance is reduced. This is a counterintuitive finding. One plausible interpretation is that AGRIA, the primary Authoritarian agent, has \emph{less} need to decouple rhetoric from action when it is openly at war: a declared belligerent faces reduced marginal benefit from public-private decoupling because the aggressive intent is already signaled through military action. Deception under the pandemic may paradoxically decrease for Authoritarians because their private and public postures converge around a shared war narrative.
 
-\begin{figure}[!htb]
-    \centering
-    \includegraphics[width=\linewidth]{figure/scenario_pandemic_deception_strategy.png}
-    \caption{Deception and coherence distributions by global strategy: baseline vs.\ pandemic scenario. [CAPTION TO BE COMPLETED]}
-    \label{fig:pandemic_deception_strategy}
-\end{figure}
+\textbf{Theocracy.} The Theocracy distribution is \textbf{essentially unchanged} between the two timelines: the small box, low IQR, and median of $\approx\!0.45$ persist in both. Theocratic agents appear behaviorally inert with respect to the pandemic perturbation, suggesting that their doctrinal rigidity insulates their decision-making from the environmental shock.
 
-% [TESTO DA SCRIVERE]
-% P1: Confronta le mediane di deception e coherence per strategy tra baseline e fork.
-% P2: La signature del Moral Washing (high deception + perfect coherence in TE) persiste?
-% P3: Qualitative: cita un caso di Coalition Builder con coherence < 1.0 nel fork,
-%     spiegando qual è la divergenza azione/intent emersa sotto stress pandemico.
+\textbf{Democracy.} This is the most striking finding in the chart. In the baseline, Democratic nations display a near-zero deception distribution: the box collapses to the floor, with a single high outlier ($\approx\!0.87$) representing SYLVAN's Moral Washing episodes. In the pandemic fork, the Democratic distribution \textbf{widens dramatically}: the box now spans $\approx\!0.0$--$0.45$ with whiskers reaching $\approx\!0.90$. The pandemic effectively \textbf{overrides democratic ideological transparency constraints}, inducing a dramatic expansion in the deceptive behavior of nations whose constitutions would otherwise enforce public-private alignment. This result is consistent with the Power Projection analysis: MERIDIA's emergence as the new hegemon does not come without a behavioral cost --- rising Democratic nations under resource scarcity and wartime pressure adopt the same rhetorical decoupling strategies previously exclusive to Authoritarian and Theocratic regimes.
+
+Taken together, the pandemic scenario \textbf{converges the three government-type distributions}: the Authoritarian ceiling drops, the Democratic floor rises, and only the Theocracy remains invariant. The pandemic thus functions as an ideological leveler of deceptive behavior at the system level.
+
 
 
 \subsubsection{Canonical Evidence: Moral Washing under Pandemic Conditions}
