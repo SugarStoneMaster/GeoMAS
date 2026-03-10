@@ -11,20 +11,22 @@ from typing import List, Dict, Any
 
 
 class MetricsDB:
-    def __init__(self, db_path: str = "metrics.duckdb"):
+    def __init__(self, db_path: str = "metrics.duckdb", read_only: bool = False):
         """Initializes the metrics database and creates schemas if they don't exist."""
         self.db_path = db_path
+        self.read_only = read_only
         self._conn = None
         # Ensure directory exists
         os.makedirs(os.path.dirname(os.path.abspath(db_path)) if os.path.dirname(db_path) else ".", exist_ok=True)
         
-        self._create_tables()
+        if not self.read_only:
+            self._create_tables()
 
     @property
     def conn(self):
         """Lazy connection initialization."""
         if self._conn is None:
-            self._conn = duckdb.connect(self.db_path)
+            self._conn = duckdb.connect(self.db_path, read_only=self.read_only)
         return self._conn
 
     def _create_tables(self):

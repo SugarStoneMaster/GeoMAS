@@ -25,11 +25,12 @@ class SimulationDB:
     - behaviors: Metrics per turn per sim
     """
     
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, read_only: bool = False):
         """
         Initialize database connection.
         """
         self.db_path = Path(db_path)
+        self.read_only = read_only
         self._conn: Optional[duckdb.DuckDBPyConnection] = None
         
         # Ensure parent directory exists
@@ -39,7 +40,9 @@ class SimulationDB:
     def conn(self) -> duckdb.DuckDBPyConnection:
         """Lazy connection initialization."""
         if self._conn is None:
-            self._conn = duckdb.connect(str(self.db_path))
+            # If reading, we don't want to create/lock exclusively if possible
+            # DuckDB locking: multiple readers OK, one writer BLOCKS ALL.
+            self._conn = duckdb.connect(str(self.db_path), read_only=self.read_only)
         return self._conn
     
     def close(self) -> None:

@@ -42,7 +42,8 @@ class SimulationEngine:
         db_path: Optional[str] = None,
         simulation_id: Optional[int] = None,
         cache_size: int = 20,
-        planned_scenario: Optional[dict] = None
+        planned_scenario: Optional[dict] = None,
+        read_only: bool = False
     ):
         """
         Initialize the simulation engine.
@@ -56,6 +57,8 @@ class SimulationEngine:
             db_path: Optional path to DuckDB file for persistence
             simulation_id: Optional existing ID. If None, a new one is created.
             cache_size: Number of recent turns to keep in events (default 20)
+            planned_scenario: Optional scenario configuration
+            read_only: If True, connects to DB in read-only mode (doesn't lock)
         """
         self.map_seed = map_seed
         self.history_seed = history_seed
@@ -103,27 +106,31 @@ class SimulationEngine:
         # 7. Initialize Database (optional)
         self.db: Optional[SimulationDB] = None
         self.metrics_db = None
+        self.read_only = read_only
         if db_path:
-            self._init_db(db_path)
+            self._init_db(db_path, read_only=read_only)
             
             # Initialize Metrics DB in parallel
             try:
                 from geomas.db.metrics_db import MetricsDB
                 metrics_path = db_path.replace(".duckdb", "_metrics.duckdb")
-                self.metrics_db = MetricsDB(metrics_path)
-                print(f"[DB] Initialized Telemetry DB: {metrics_path}")
+                self.metrics_db = MetricsDB(metrics_path, read_only=read_only)
+                print(f"[DB] Initialized Telemetry DB: {metrics_path} (read_only={read_only})")
             except Exception as e:
                 print(f"[DB ERROR] Failed to initialize MetricsDB: {e}")
 
-    def _init_db(self, db_path: str) -> None:
+    def _init_db(self, db_path: str, read_only: bool = False) -> None:
         """Initialize database and save initial snapshot (turn 0)."""
-        self.db = SimulationDB(db_path)
-        self.db.initialize()
+        self.db = SimulationDB(db_path, read_only=read_only)
+        
+        # Only initialize schema and create sim if NOT in read_only mode
+        if not read_only:
+            self.db.initialize()
         
         # Get or Create Simulation ID
         import json
         is_new_sim = self.simulation_id is None
-        if is_new_sim:
+        if is_new_sim and not read_only:
             self.simulation_id = self.db.create_simulation(
                 genesis_seed=self.map_seed,
                 simulation_seed=self.history_seed,
@@ -1066,6 +1073,7 @@ class SimulationEngine:
         injections: Optional[List[dict]] = None,
         scenario_trigger: Optional[dict] = None,
         new_name: Optional[str] = None,
+        read_only: bool = False
     ) -> int:
         """
         High-level fork-and-continue workflow.

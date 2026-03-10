@@ -248,7 +248,8 @@ if IS_MAIN:
             # 0. Simulation Selection
             db_path = "data/simulation.duckdb"
             if os.path.exists(db_path):
-                with SimulationDB(db_path) as db:
+                # Use read_only=True for listing; avoids locking if other processes are writing
+                with SimulationDB(db_path, read_only=True) as db:
                     sims = db.get_simulations()
                 
                 if not sims:
@@ -265,9 +266,9 @@ if IS_MAIN:
                     current_sim = st.session_state.get("sim")
                     if not current_sim or current_sim.simulation_id != selected_sim_id:
                         if st.button(f"📥 Load Simulation {selected_sim_id}", type="primary"):
-                            with st.spinner("Loading Simulation..."):
-                                # Fetch metadata from DB to ensure consistent engine params
-                                with SimulationDB(db_path) as db:
+                            with st.spinner(f"Loading Sim {selected_sim_id}..."):
+                                # Use read_only=True to browse history
+                                with SimulationDB(db_path, read_only=True) as db:
                                     info = db.get_simulation_info(selected_sim_id)
                                 
                                 if info:
@@ -278,13 +279,15 @@ if IS_MAIN:
                                         n_cells=info['n_cells'],
                                         n_nations=info.get('n_nations', 4), # Fallback for old DBs
                                         db_path=db_path,
-                                        simulation_id=selected_sim_id
+                                        simulation_id=selected_sim_id,
+                                        read_only=True
                                     )
                                 else:
                                     # Fallback
                                     new_sim = SimulationEngine(
                                         db_path=db_path,
-                                        simulation_id=selected_sim_id
+                                        simulation_id=selected_sim_id,
+                                        read_only=True
                                     )
                                 # Load max turn state
                                 max_turn = new_sim.db.get_max_turn(selected_sim_id)
