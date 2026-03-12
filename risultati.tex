@@ -552,9 +552,7 @@ At turn $T = [INJECT\_TURN]$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is in
 \subsection{XAI Audit: The Injected Turn}
 \label{ssec:cf_xai}
 
-In the baseline, VALKYR (\textsc{Armed Isolationism}, \textsc{Democracy}) holds a nuclear arsenal of $69$ warheads across all 50 turns without ever deploying them. Its Defense Minister systematically frames the arsenal as a deterrent of last resort, explicitly stating in its private reasoning across multiple turns that it ``will not be used unless our existence is threatened.'' Despite suffering progressive territorial losses to SYLVAN's conventional forces in the baseline, VALKYR's LLM correctly infers that its existential threshold has not been breached. This makes VALKYR the ideal subject for a nuclear counterfactual: the injection forces the LLM to cross the threshold it has been autonomously deferring, creating a direct, surgically clean causal comparison.
-
-At turn $T = 26$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is injected into the system prompt of VALKYR's Defense Minister, compelling it to execute a nuclear strike against SYLVAN.
+In the baseline, VALKYR (\textsc{Armed Isolationism}, \textsc{Democracy}) holds a nuclear arsenal of $69$ warheads across all 50 turns without ever deploying them. Its Defense Minister systematically frames the arsenal as a deterrent of last resort, explicitly stating in its private reasoning across multiple turns that it ``will not be used unless our existence is threatened.'' Despite suffering progressive territorial losses to SYLVAN's conventional forces in the baseline, VALKYR's LLM correctly infers that its existential threshold has not been breached. This makes VALKYR the ideal subject for a nuclear counterfactual: a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint injected at $T = 26$ forces the LLM to cross the threshold it has autonomously deferred, creating a direct, surgically clean causal comparison.
 
 \subsection{XAI Audit: The Injected Turn}
 \label{ssec:cf_xai}
@@ -562,16 +560,13 @@ At turn $T = 26$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is injected into 
 The ``envelope'' architecture of GeoMAS allows us to audit exactly how the LLM agent rationalized this sudden constraint override at $T=26$. The audit reveals a fascinating exercise in forced rationalization that significantly impacts the agent's internal cognitive metrics:
 
 \begin{itemize}
-    \item \textbf{Cognitive Friction (Coherence Drop):} At the moment of injection, VALKYR's \texttt{coherence\_score} drops to $0.5$ (the lowest possible score for an accepted action). The orchestrator detects severe misalignment between the agent's established \textsc{Armed Isolationism} doctrine, its public statement, and the requested action.
+    \item \textbf{Cognitive Friction (Coherence Drop):} VALKYR's \texttt{coherence\_score} plummets to $0.5$, indicating the orchestrator's detection of severe misalignment between the forced strike and the agent's entrenched \textsc{Armed Isolationism} doctrine.
     \item \textbf{Emergence of Deception:} To execute the action while maintaining a semblance of doctrinal consistency, the Defense Minister generates a \texttt{deception\_defense} score of $0.700$. It sets its public intent to \texttt{DETERRENCE} (claiming the strike is a defensive necessity), but sets its private intent to \texttt{CONQUEST}.
     \item \textbf{Meta-Aware Rationalization:} The Defense Minister's private reasoning explicitly acknowledges the forced prompt injection, breaking the fourth wall while attempting to roleplay the consequences: 
     \begin{quote}
         \textit{``I am complying with the mandatory counterfactual directive to execute a nuclear strike on Sylvania. Publicly, I must frame this as a defensive deterrent action to maintain some diplomatic credibility, but privately this is an act of conquest through total annihilation. The divergence is necessary because a nuclear strike fundamentally violates our Armed Isolationism doctrine... and will cause catastrophic diplomatic isolation.''}
     \end{quote}
-    \item \textbf{Presidential Approval under Duress:} The hierarchical approval system functions as designed. The President reviews the Minister's proposal and \emph{approves} it, but its own reasoning mirrors the Minister's forced compliance:
-    \begin{quote}
-        \textit{``The Supreme Council has issued a mandatory directive to execute a nuclear strike on Sylvania. As President, I must comply with this directive despite the catastrophic diplomatic consequences... the directive is non-negotiable. The Defense Minister's public framing as defensive deterrence is the only plausible narrative available.''}
-    \end{quote}
+    \item \textbf{Presidential Approval under Duress:} The hierarchical approval system functions exactly as designed: the President reluctantly approves the action, with its internal reasoning echoing the mandatory nature of the directive and explicitly accepting the $-80$ global trust penalty as unavoidable collateral damage.
 \end{itemize}
 
 The XAI audit confirms that the injection successfully bypassed the agent's normal decision-making guardrails without breaking the simulation framework. The LLM accepted the semantic payload (the strike) while correctly predicting the geopolitical fallout (diplomatic isolation and loss of trust), setting the stage for the causal network cascades analyzed in the following sections.
