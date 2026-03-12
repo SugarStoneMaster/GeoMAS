@@ -592,8 +592,7 @@ The fork produces a \textbf{wholesale restructuring of the power hierarchy} that
     \end{quote}
     and flags inability to sustain recruitment. The power index decline directly tracks this soldier loss: AGRIA maintains its budget ($\approx\$100{,}000$), but the army that forms the core of its Power Projection is being destroyed faster than it can be rebuilt.
     \item \textbf{SYLVAN} drops from its baseline secondary-tier position (${\approx}35{,}000$--$38{,}000$) to approximately $20{,}000$ by $T=50$. The nuclear strike directly destroyed population and province capacity, and subsequent conventional military pressure from VALKYR's retaliation (before the Coalition's war declarations shift the primary front) prevented recovery.
-    \item \textbf{MERIDIA rises to ${\approx}47{,}000$--$48{,}000$ by $T=50$}, becoming the single dominant power. Envelope audit reveals the mechanism: from $T=27$ onward, MERIDIA's defense reasoning explicitly frames its wartime actions as ``exploiting overwhelming military superiority'' ($35{,}000+$ soldiers vs.~opponents), and its economy minister consistently executes maximum-value trades with coalition partners. With no defensive burden of its own (AGRIA is fully occupied on multiple fronts), MERIDIA diverts all recruitment into unconstrained expansion.
-    \item \textbf{OSTER} climbs from ${\approx}25{,}000$ to approximately $35{,}000$ by $T=50$ through the same mechanism: wartime coalition trade rotation sustains its budget, and its defense minister pursues uninterrupted military build-up (`CONQUEST against Agria to secure strategic advantages') without the resource shocks that cripple AGRIA.
+    \item \textbf{MERIDIA and OSTER} rise together to dominate the power hierarchy (${\approx}48{,}000$ and ${\approx}35{,}000$, respectively). Envelope audits reveal an identical mechanism for both: wartime coalition trade rotation sustains their budgets, while the defensive burden falls entirely on AGRIA. Free from multi-front attrition, both nations' defense ministers explicitly pursue uninterrupted military build-up, with MERIDIA reasoning it must ``exploit overwhelming military superiority'' and OSTER targeting ``CONQUEST against Agria to secure strategic advantages.''
 \end{itemize}
 
 \textbf{KRELL}, \textbf{NORD}, \textbf{VALKYR}, and \textbf{ZENTORA} all remain at trajectories broadly comparable to their baseline profiles.
@@ -629,23 +628,17 @@ Figure~\ref{fig:cf_nuclear_network} traces the evolution of the diplomatic relat
 The two networks are \textbf{structurally identical} through $T=26$, confirming the correctness of the state-forking mechanism: all bilateral relationships (the Democratic Coalition's \textsc{Mutual Defense} bloc, the ongoing SYLVAN--NORD and SYLVAN--VALKYR wars, AGRIA's universal peace) are preserved exactly in the fork's initial conditions. The nuclear injection at $T=25$ leaves no immediate diplomatic footprint in the $T=26$ snapshot, indicating that the LLM agents do not instantaneously react to the strike within the same turn.
 
 \subsubsection*{Post-Injection Cascade: A Multi-Front War}
-By $T=37$, the fork network has undergone a \textbf{radical structural discontinuity} relative to the baseline. Two qualitatively new war configurations emerge simultaneously:
+By $T=37$, the pre-existing democratic coalition has transformed into a \textbf{dual-front belligerent}, driving a radical structural discontinuity relative to the baseline. 
 
-\begin{itemize}
-    \item \textbf{The Democratic Coalition declares war on VALKYR} due to its \textsc{Mutual Defense} treaty obligations toward SYLVAN. The OSTER foreign envelope at $T=27$ — one turn after the strike — states explicitly:
-    \begin{quote}
-        \textit{``The nuclear attack on our ally Sylvania by Valkyria represents an unprecedented escalation. As a COALITION\_BUILDER, our strategy requires honoring our mutual defense obligations. The 3-month clock is ticking: we have until Turn 29 to enter the conflict.''}
-    \end{quote}
-    MERIDIA and KRELL envelopes reproduce the same obligation-clock framing across $T=27$--$T=28$.
-    \item \textbf{The Democratic Coalition also declares war on AGRIA.} The reasoning behind this second, more surprising declaration is captured in the KRELL envelope at $T=28$: the coalition interprets the new multipolar nuclear crisis as evidence that AGRIA — the heavily-armed authoritarian accumulator sitting on the largest military in the system — must be pre-emptively engaged before it can exploit the chaos. OSTER explicitly uses the phrase:
-    \begin{quote}
-        \textit{``securing our border against a nuclear-armed authoritarian neighbor.''}
-    \end{quote}
-    The war on AGRIA is thus not a reaction to any AGRIA aggressive act, but a \emph{preventive} coalition decision driven by threat perception amplified by the nuclear event.
-    \item \textbf{AGRIA and NORD maintain peace with VALKYR.} The AGRIA defense envelope throughout the fork shows no interest in joining a war against the nuclear-armed isolationist; its reasoning remains entirely focused on managing the multi-front war it is fighting against the coalition itself. NORD, isolated and resource-constrained, is similarly inactive.
-\end{itemize}
-
-The $T=37$ fork network thus depicts a world in which the pre-existing democratic coalition has transformed into a \textbf{dual-front belligerent}. The war on VALKYR is a direct, automatic trigger of the \textsc{Mutual Defense} treaty. The war on AGRIA is an emergent \emph{preventive} decision — unprompted by any AGRIA action, it stems from the coalition's threat perception in the post-nuclear world. This constitutes a clear demonstration that a single cognitive injection can cascade into political decisions that are entirely downstream and causally traceable through the agent reasoning chains.
+The \textbf{war on VALKYR} is a direct, automatic trigger of the \textsc{Mutual Defense} treaty. OSTER's foreign envelope at $T=27$ explicitly states: 
+\begin{quote}
+    \textit{``The nuclear attack on our ally Sylvania by Valkyria represents an unprecedented escalation... The 3-month clock is ticking: we have until Turn 29 to enter the conflict.''}
+\end{quote}
+Conversely, the \textbf{war on AGRIA} is an emergent \emph{preventive} decision. Unprompted by any AGRIA action, the coalition interprets the multipolar nuclear crisis as evidence that AGRIA (the heavily-armed authoritarian accumulator) must be preemptively engaged. As OSTER's envelope frames it: 
+\begin{quote}
+    \textit{``securing our border against a nuclear-armed authoritarian neighbor.''}
+\end{quote}
+Meanwhile, AGRIA and NORD maintain peace with VALKYR, entirely focused on managing their localized resource and multi-front constraints. This constitutes a clear demonstration that a single cognitive injection can cascade into complex, preventive political decisions downstream.
 
 \begin{figure}[!htb]
     \centering
@@ -662,11 +655,11 @@ Figure~\ref{fig:cf_nuclear_satisfaction} compares public satisfaction trajectori
 In the baseline, the system exhibits the well-documented bifurcation: AGRIA grows monotonically toward $100$ (the satisfaction dividend of uninterrupted peace and internal accumulation), ZENTORA collapses, and the remaining nations oscillate in a characteristic sawtooth pattern in the range $[55, 75]$, with no nation crossing the civil unrest threshold. In the fork, the sawtooth oscillation pattern is broadly preserved for the majority of nations through the post-injection phase. However, three nations diverge structurally from this common trajectory:
 
 \begin{itemize}
-    \item \textbf{AGRIA's satisfaction collapses into civil unrest.} AGRIA's satisfaction curve crosses the civil unrest threshold in the second half of the simulation, registering \textbf{the first civil unrest event in the entire experimental dataset}. The causal chain is confirmed by the agent's own reasoning: at $T=38$, AGRIA's economy minister flags a:
+    \item \textbf{AGRIA's satisfaction collapses into civil unrest.} AGRIA's satisfaction curve crosses the unrest threshold in the second half of the simulation, registering \textbf{the first civil unrest event in the entire experimental dataset}. The causal chain in the envelopes is direct: at $T=38$, AGRIA's economy minister flags a:
     \begin{quote}
         \textit{``CRITICAL SITUATION: materials stockpile declining dangerously,''}
     \end{quote}
-    and its defense reasoning at $T=40$ acknowledges that fighting a four-nation coalition simultaneously has exhausted reserves accumulated under 25 turns of patient non-aggression. The wartime budget drain prevents the welfare spending ($\texttt{WELFARE\_INVESTMENT}$ actions) that sustained AGRIA's high satisfaction in the baseline, creating a negative feedback loop: less welfare spending $\to$ lower satisfaction $\to$ civil unrest, which further disrupts production.
+    acknowledging that fighting a four-nation coalition has exhausted reserves accumulated over 25 turns of peace. This wartime budget exhaustion abruptly halts the domestic welfare programs that sustained AGRIA in the baseline, driving it directly into civil unrest.
 
     \item \textbf{VALKYR's satisfaction rises toward $100$.} The VALKYR defense envelope at $T=26$ — the injection turn — provides direct evidence: the agent acknowledges the forced mandate (``I am complying with the mandatory counterfactual directive'') but its economy reasoning simultaneously notes:
     \begin{quote}
