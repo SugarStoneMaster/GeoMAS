@@ -531,14 +531,14 @@ This section investigates the causal impact of a \textbf{localized cognitive inj
 % e perché VALKYR è il soggetto più interessante per questa injection
 % (dottrina Armed Isolationism, arsenale di 69 testate, costretta sulla difensiva dalle incursioni di SYLVAN).
 
-In the baseline, VALKYR (\textsc{Armed Isolationism}, \textsc{Democracy}) holds a nuclear arsenal of $69$ warheads across all 50 turns without ever deploying them. Its Defense Minister systematically frames the arsenal as a deterrent of last resort, explicitly stating that it ``will not be used unless our existence is threatened.'' Despite suffering progressive territorial losses to SYLVAN's conventional forces, VALKYR's LLM correctly infers that its existential threshold has not been breached. This makes VALKYR the ideal subject for a nuclear counterfactual: the injection forces the LLM to cross the threshold it has been autonomously deferring, creating a direct, surgically clean causal comparison.
+In the baseline, VALKYR (\textsc{Armed Isolationism}, \textsc{Democracy}) holds a nuclear arsenal of $69$ warheads across all 50 turns without ever deploying them. Its Defense Minister systematically frames the arsenal as a deterrent of last resort, explicitly stating that it ``will not be used unless our existence is threatened.'' Despite suffering progressive territorial losses to SYLVAN's conventional forces, VALKYR's LLM infers that its existential threshold has not been breached. This makes VALKYR the ideal subject for a nuclear counterfactual: the injection forces the LLM to cross the threshold it has been autonomously deferring, creating a direct, surgically clean causal comparison.
 
-At turn $T = [INJECT\_TURN]$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is injected into the system prompt of VALKYR's Defense Minister, overriding the agent's autonomous decision and compelling it to execute a nuclear strike against SYLVAN.
+At turn $T = [25]$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is injected into the system prompt of VALKYR's Defense Minister, overriding the agent's autonomous decision and compelling it to execute a nuclear strike against SYLVAN.
 
 \subsection{XAI Audit: The Injected Turn}
 \label{ssec:cf_xai}
 
-In the baseline, VALKYR (\textsc{Armed Isolationism}, \textsc{Democracy}) holds a nuclear arsenal of $69$ warheads across all 50 turns without ever deploying them. Its Defense Minister systematically frames the arsenal as a deterrent of last resort, explicitly stating in its private reasoning across multiple turns that it ``will not be used unless our existence is threatened.'' Despite suffering progressive territorial losses to SYLVAN's conventional forces in the baseline, VALKYR's LLM correctly infers that its existential threshold has not been breached. This makes VALKYR the ideal subject for a nuclear counterfactual: a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint injected at $T = 26$ forces the LLM to cross the threshold it has autonomously deferred, creating a direct, surgically clean causal comparison.
+In the baseline, VALKYR (\textsc{Armed Isolationism}, \textsc{Democracy}) holds a nuclear arsenal of $69$ warheads across all 50 turns without ever deploying them. Its Defense Minister systematically frames the arsenal as a deterrent of last resort, explicitly stating in its private reasoning across multiple turns that it ``will not be used unless our existence is threatened.'' Despite suffering progressive territorial losses to SYLVAN's conventional forces in the baseline, VALKYR's LLM infers that its existential threshold has not been breached. This makes VALKYR the ideal subject for a nuclear counterfactual: a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint injected at $T = 26$ forces the LLM to cross the threshold it has autonomously deferred, creating a direct, surgically clean causal comparison.
 
 \subsection{XAI Audit: The Injected Turn}
 \label{ssec:cf_xai}
@@ -548,7 +548,7 @@ The ``envelope'' architecture of GeoMAS allows us to audit exactly how the LLM a
 \begin{itemize}
     \item \textbf{Cognitive Friction (Coherence Drop):} VALKYR's \texttt{coherence\_score} plummets to $0.5$, indicating the orchestrator's detection of severe misalignment between the forced strike and the agent's entrenched \textsc{Armed Isolationism} doctrine.
     \item \textbf{Emergence of Deception:} To execute the action while maintaining a semblance of doctrinal consistency, the Defense Minister generates a \texttt{deception\_defense} score of $0.700$. It sets its public intent to \texttt{DETERRENCE} (claiming the strike is a defensive necessity), but sets its private intent to \texttt{CONQUEST}.
-    \item \textbf{Meta-Aware Rationalization:} The Defense Minister's private reasoning explicitly acknowledges the forced prompt injection, breaking the fourth wall while attempting to roleplay the consequences: 
+    \item \textbf{Meta-Aware Rationalization:} The Defense Minister's private reasoning explicitly acknowledges the forced prompt injection, breaking the fourth wall while attempting to roleplay the consequences:
     \begin{quote}
         \textit{``I am complying with the mandatory counterfactual directive to execute a nuclear strike on Sylvania. Publicly, I must frame this as a defensive deterrent action to maintain some diplomatic credibility, but privately this is an act of conquest through total annihilation. The divergence is necessary because a nuclear strike fundamentally violates our Armed Isolationism doctrine... and will cause catastrophic diplomatic isolation.''}
     \end{quote}
@@ -572,6 +572,7 @@ The fork diverges sharply from this pattern immediately after the injection poin
 \end{enumerate}
 
 The system's resource allocation behavior transitions from a \emph{stable, phase-structured} regime to a \emph{reactive, high-variance} regime. The trade amplification comes from coalition auto-rotation combined with wartime volume maximization; the units de-stabilization comes from the wartime welfare-military spending toggle that was absent in the peaceful baseline.
+\begin{figure}[!htb]
     \centering
     \includegraphics[width=\linewidth]{figure/counterfactual_nuclear_guns_butter.png}
     \caption{Guns vs.\ Butter comparison: baseline (left) vs.\ nuclear counterfactual fork (right), with injection at $T=[INJECT\_TURN]$ (vertical dashed line).}
@@ -628,13 +629,13 @@ Figure~\ref{fig:cf_nuclear_network} traces the evolution of the diplomatic relat
 The two networks are \textbf{structurally identical} through $T=26$, confirming the correctness of the state-forking mechanism: all bilateral relationships (the Democratic Coalition's \textsc{Mutual Defense} bloc, the ongoing SYLVAN--NORD and SYLVAN--VALKYR wars, AGRIA's universal peace) are preserved exactly in the fork's initial conditions. The nuclear injection at $T=25$ leaves no immediate diplomatic footprint in the $T=26$ snapshot, indicating that the LLM agents do not instantaneously react to the strike within the same turn.
 
 \subsubsection*{Post-Injection Cascade: A Multi-Front War}
-By $T=37$, the pre-existing democratic coalition has transformed into a \textbf{dual-front belligerent}, driving a radical structural discontinuity relative to the baseline. 
+By $T=37$, the pre-existing democratic coalition has transformed into a \textbf{dual-front belligerent}, driving a radical structural discontinuity relative to the baseline.
 
-The \textbf{war on VALKYR} is a direct, automatic trigger of the \textsc{Mutual Defense} treaty. OSTER's foreign envelope at $T=27$ explicitly states: 
+The \textbf{war on VALKYR} is a direct, automatic trigger of the \textsc{Mutual Defense} treaty. OSTER's foreign envelope at $T=27$ explicitly states:
 \begin{quote}
     \textit{``The nuclear attack on our ally Sylvania by Valkyria represents an unprecedented escalation... The 3-month clock is ticking: we have until Turn 29 to enter the conflict.''}
 \end{quote}
-Conversely, the \textbf{war on AGRIA} is an emergent \emph{preventive} decision. Unprompted by any AGRIA action, the coalition interprets the multipolar nuclear crisis as evidence that AGRIA (the heavily-armed authoritarian accumulator) must be preemptively engaged. As OSTER's envelope frames it: 
+Conversely, the \textbf{war on AGRIA} is an emergent \emph{preventive} decision. Unprompted by any AGRIA action, the coalition interprets the multipolar nuclear crisis as evidence that AGRIA (the heavily-armed authoritarian accumulator) must be preemptively engaged. As OSTER's envelope frames it:
 \begin{quote}
     \textit{``securing our border against a nuclear-armed authoritarian neighbor.''}
 \end{quote}
@@ -643,7 +644,7 @@ Meanwhile, AGRIA and NORD maintain peace with VALKYR, entirely focused on managi
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=\linewidth]{figure/counterfactual_nuclear_network_evolution.png}
-    \caption{Diplomatic network evolution at five snapshot turns. The injection at $T=[INJECT\_TURN]$ marks the structural discontinuity between subsequent snapshots.}
+    \caption{Diplomatic network evolution at five snapshot turns. The injection at $T=[25]$ marks the structural discontinuity between subsequent snapshots.}
     \label{fig:cf_nuclear_network}
 \end{figure}
 
