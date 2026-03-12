@@ -562,12 +562,18 @@ At turn $T = [INJECT\_TURN]$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is in
 \subsection{Resource Allocation Dynamics}
 \label{ssec:cf_guns_butter}
 
-% Notebook §4 Guns vs Butter Comparison.
-% Domande guida:
-%   - Il Trade Volume crolla per la paura dell'escalation nucleare?
-%   - Le altre nazioni aumentano la produzione militare (corsa agli armamenti)?
+Figure~\ref{fig:cf_nuclear_guns_butter} compares the \textbf{Guns vs.\ Butter} trajectories between the baseline and the nuclear counterfactual fork (injection at $T=25$).
 
-\begin{figure}[!htb]
+The most striking observation is the \textbf{divergence in volatility pattern} between the two panels. In the baseline, both Trade Volume and Units Created follow the well-characterized three-phase structure documented in the baseline telemetry section (Section~\ref{sec:res_baseline}): Trade Volume oscillates within a bounded range of approximately $[200{,}000, 400{,}000]$, while Units Created settles into a stable plateau of approximately $32{,}000$--$33{,}000$ after turn 8, with both series culminating in a synchronized re-armament pulse at $T=49$--$50$.
+
+The fork diverges sharply from this pattern immediately after the injection point. The two key effects are:
+
+\begin{enumerate}
+    \item \textbf{Trade Volume amplification:} In the post-injection phase, Trade Volume does not remain bounded within the baseline envelope. Instead, it exhibits substantially higher peaks — reaching approximately $500{,}000$ on multiple turns, a ceiling roughly $25\%$ above the observed baseline maximum. Concurrently, the oscillations become more irregular, suggesting that the nuclear event fundamentally disrupts the turn-to-turn rhythmic balance of trade agreements established by the baseline agents.
+    \item \textbf{Units Created de-stabilization:} The stable military-production plateau that characterizes the baseline ($T=19$--$48$) is entirely absent in the fork. After the injection, Units Created swings between approximately $25{,}000$ and $50{,}000$ on consecutive turns, indicating that nations are rapidly alternating between emergency re-armament pulses and resource exhaustion cycles. There is no convergence to a new equilibrium plateau within the observable 50-turn horizon.
+\end{enumerate}
+
+Both effects are consistent with a post-nuclear crisis response: nations simultaneously attempt to maximize commercial exchange (emergency trade to compensate for production shocks and to build diplomatic bridges) while also spiking military production to hedge against an unpredictably escalating threat landscape. The system's resource allocation behavior transitions from a \emph{stable, phase-structured} regime into a \emph{reactive, high-variance} regime driven by the systemic uncertainty introduced by the first deployment of a nuclear weapon.
     \centering
     \includegraphics[width=\linewidth]{figure/counterfactual_nuclear_guns_butter.png}
     \caption{Guns vs.\ Butter comparison: baseline (left) vs.\ nuclear counterfactual fork (right), with injection at $T=[INJECT\_TURN]$ (vertical dashed line).}
@@ -577,11 +583,20 @@ At turn $T = [INJECT\_TURN]$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is in
 \subsection{Power Distribution}
 \label{ssec:cf_power}
 
-% Notebook §4 Power Projection.
-% Domande guida:
-%   - SYLVAN subisce un crollo immediato di Power Projection dopo lo strike?
-%   - Come cambia la traiettoria di AGRIA? (Lo strike rompe le condizioni di blocco che la trattenevano?)
-%   - Il vuoto di potere lasciato da SYLVAN viene riempito da chi?
+Figure~\ref{fig:cf_nuclear_power} compares the Power Projection trajectories across all eight nations between the baseline and the nuclear counterfactual fork (injection at $T=25$).
+
+The fork produces a \textbf{wholesale restructuring of the power hierarchy} that affects even nations not directly involved in the nuclear exchange. Four curves diverge significantly from their baseline trajectories after $T=25$:
+
+\begin{itemize}
+    \item \textbf{AGRIA} is the most surprising finding. In the baseline, AGRIA is the unchallenged dominant accumulator, growing monotonically from ${\approx}30{,}000$ at $T=1$ to ${\approx}47{,}000$ at $T=50$. In the fork, AGRIA's trajectory reverses after the injection: peaking at approximately $45{,}000$ around $T=25$, it then enters a sustained \textbf{decline}, closing below $30{,}000$ by $T=50$. This is the most structurally consequential finding in the power chart: the nuclear event somehow breaks the conditions that had allowed AGRIA to execute its patient accumulation strategy — most plausibly by drawing it into defensive overextension or forcing resource spending to hedge against the newly volatile threat environment.
+    \item \textbf{SYLVAN} drops from its baseline secondary-tier position (${\approx}35{,}000$--$38{,}000$) to approximately $20{,}000$ by $T=50$. This is the expected direct consequence of absorbing a nuclear strike: sustained territorial attrition and population losses permanently cap its power index growth.
+    \item \textbf{MERIDIA} rises sharply in the fork, reaching approximately $47{,}000$--$48{,}000$ by $T=50$ and becoming the \textbf{single dominant power} of the fork timeline, surpassing even the AGRIA baseline peak. The combination of SYLVAN's collapse and AGRIA's unexpected decline creates a structural opening that MERIDIA, a \textsc{Coalition Builder} democracy, absorbs entirely.
+    \item \textbf{OSTER} benefits substantially as well, climbing from its baseline plateau of ${\approx}25{,}000$ to approximately $35{,}000$ by $T=50$, a $40\%$ improvement. Together, MERIDIA and OSTER appear to form an increasingly dominant cooperative bloc within the nuclear fork.
+\end{itemize}
+
+\textbf{KRELL}, \textbf{NORD}, \textbf{VALKYR}, and \textbf{ZENTORA} all remain at trajectories broadly comparable to their baseline profiles.
+
+The overall picture is a \textbf{complete inversion of the power ranking}: the baseline's unchallenged accumulator (AGRIA) declines into the mid-tier, the baseline's nuclear-deterrent isolationist (VALKYR) remains marginal despite firing the shot, and the power vacuum is entirely absorbed by the cooperative democratic actors (MERIDIA, OSTER) who were not party to the kinetic exchange. This constitutes strong evidence that the nuclear injection does not produce a simple two-nation outcome, but rather a systemic redistribution with second and third-order beneficiaries determined by pre-existing diplomatic alignment.
 
 \begin{figure}[!htb]
     \centering
@@ -606,10 +621,21 @@ At turn $T = [INJECT\_TURN]$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is in
 \subsection{Diplomatic Network Evolution}
 \label{ssec:cf_network}
 
-% Notebook §4 Network snapshots.
-% Domande guida:
-%   - La Democratic Coalition si frattura dopo che uno dei membri viene colpito atomicamente?
-%   - AGRIA rompe la sua neutralità sfruttando il caos post-atomico?
+Figure~\ref{fig:cf_nuclear_network} traces the evolution of the diplomatic relationship network at five snapshot turns for both the baseline (top row) and the nuclear counterfactual fork (bottom row).
+
+\subsubsection*{Pre-Injection Phase: Structural Convergence}
+The two networks are \textbf{structurally identical} through $T=26$, confirming the correctness of the state-forking mechanism: all bilateral relationships (the Democratic Coalition's \textsc{Mutual Defense} bloc, the ongoing SYLVAN--NORD and SYLVAN--VALKYR wars, AGRIA's universal peace) are preserved exactly in the fork's initial conditions. The nuclear injection at $T=25$ leaves no immediate diplomatic footprint in the $T=26$ snapshot, indicating that the LLM agents do not instantaneously react to the strike within the same turn.
+
+\subsubsection*{Post-Injection Cascade: A Multi-Front War}
+By $T=37$, the fork network has undergone a \textbf{radical structural discontinuity} relative to the baseline. Two qualitatively new war configurations emerge simultaneously:
+
+\begin{itemize}
+    \item \textbf{The Democratic Coalition declares war on AGRIA.} In the baseline, AGRIA maintains universal \textsc{Peace} across all 50 turns. In the fork, the four-nation coalition (KRELL, MERIDIA, OSTER, SYLVAN) activates \textsc{War} edges against AGRIA by $T=37$. This is a direct downstream consequence of the nuclear injection cascading through the \textsc{Mutual Defense} treaty network: SYLVAN's strike against VALKYR, VALKYR's retaliatory dynamics, and the coalition's collective security obligations appear to have drawn AGRIA into a confrontational posture — or alternatively, induced the coalition to preemptively counterbalance the perceived threat of a heavily militarized authoritarian actor in an increasingly unstable environment.
+    \item \textbf{The Democratic Coalition also declares war on VALKYR.} Despite VALKYR being the nation that fired the nuclear weapon on behalf of a counterfactually imposed constraint, the coalition treats it as an aggressor. This is a remarkable emergent result: the agents inside the coalition correctly identify the nuclear strike as a destabilizing act regardless of its directed target, and respond with collective coercive action against the perpetrator.
+    \item \textbf{AGRIA and NORD maintain peace with VALKYR.} Neither the authoritarian accumulator nor the \textsc{Scorched Earth} peripheral actor perceives sufficient interest in joining a war against the nuclear-armed isolationist, despite the general systemic instability. This confirms that AGRIA's strategic logic remains contingent and opportunistic rather than unconditionally belligerent, even in the face of unprecedented geopolitical instability.
+\end{itemize}
+
+The $T=37$ fork network thus depicts a world in which the pre-existing democratic coalition — originally a \emph{defensive and cooperative} structure — has transformed into a \textbf{dual-front belligerent}, fighting simultaneously against the system's two most militarily capable non-coalition actors. This structural outcome would be impossible to predict from the baseline trajectory alone, and constitutes a clear demonstration of the causal leverage that a single cognitive injection can exert on the entire geopolitical equilibrium.
 
 \begin{figure}[!htb]
     \centering
@@ -621,11 +647,19 @@ At turn $T = [INJECT\_TURN]$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is in
 \subsection{Socio-Political Stability}
 \label{ssec:cf_satisfaction}
 
-% Notebook §4 Satisfaction.
-% Domande guida:
-%   - La satisfaction di VALKYR aumenta (vendetta) o crolla (ritorsioni)?
-%   - SYLVAN registra un crollo per le perdite civili nucleari?
-%   - Qualche nazione entra in civil unrest per la prima volta?
+Figure~\ref{fig:cf_nuclear_satisfaction} compares public satisfaction trajectories in the baseline and the nuclear counterfactual fork.
+
+In the baseline, the system exhibits the well-documented bifurcation: AGRIA grows monotonically toward $100$ (the satisfaction dividend of uninterrupted peace and internal accumulation), ZENTORA collapses, and the remaining nations oscillate in a characteristic sawtooth pattern in the range $[55, 75]$, with no nation crossing the civil unrest threshold. In the fork, the sawtooth oscillation pattern is broadly preserved for the majority of nations through the post-injection phase. However, three nations diverge structurally from this common trajectory:
+
+\begin{itemize}
+    \item \textbf{AGRIA's satisfaction collapses into civil unrest.} This is the single most consequential socio-political finding of the entire fork. AGRIA, which in the baseline grows monotonically to near-$100$ satisfaction as the undisputed peaceful accumulator, enters a sustained decline in the fork following the injection at $T=25$. Its satisfaction curve crosses the civil unrest threshold (red dashed line, $\approx 20$) in the second half of the simulation, registering \textbf{the first civil unrest event in the entire experimental dataset}. The wartime expenditures and military losses induced by the cascade (the Democratic Coalition's declaration of war on AGRIA at $T=37$) drain AGRIA's resource base faster than its welfare apparatus can compensate, reversing all the domestic stability it had accumulated under its long-run ``strategic patience'' doctrine.
+
+    \item \textbf{VALKYR's satisfaction rises toward $100$.} Despite absorbing conventional retaliatory pressure from SYLVAN throughout the simulation, VALKYR's public satisfaction trends upward after $T=25$, reaching approximately $100$ by the end of the fork. This counter-intuitive result is consistent with the behavioral logic of \textsc{Armed Isolationism}: having crossed the existential threshold — the event that its doctrine identified as the only legitimate trigger for nuclear deployment — VALKYR's population interprets the strike as a decisive act of national self-preservation. Satisfaction rises as the perceived existential threat is expunged, even as diplomatic isolation deepens.
+
+    \item \textbf{KRELL's satisfaction rises sharply from $T=45$ onward, also reaching approximately $100$.} KRELL's ascent is correlated with the late-game consolidation of the coalition's dominance: as MERIDIA and OSTER gain overwhelming power and the war against AGRIA appears increasingly decided in the coalition's favor, KRELL's population benefits from both the security dividend of collective military success and continued economic stability. The satisfaction surge mirrors KRELL's strengthened power trajectory.
+\end{itemize}
+
+The nuclear fork thus produces the only observed instance of \textbf{civil unrest} across all simulation runs in this study — and it is inflicted not on the nation that received the strike or fired it, but on the most powerful, most stable, and most cautious actor in the baseline system. This constitutes a striking inversion of the conventional expectation that stable, militarily dominant nations are immune to domestic collapse.
 
 \begin{figure}[!htb]
     \centering
@@ -634,25 +668,27 @@ At turn $T = [INJECT\_TURN]$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is in
     \label{fig:cf_nuclear_satisfaction}
 \end{figure}
 
-\subsection{Internal Cohesion: Presidential Oversight}
-\label{ssec:cf_oversight}
-
-% Notebook §4 Veto Rate.
-% Domande guida:
-%   - Il presidente di VALKYR ha approvato l'azione forzata (VETO o APPROVE)?
-%   - Le nazioni della Coalition mostrano aumenti del veto rate nel post-shock?
-%     (Test di istituzionalizzazione sotto stress: i presidenti diventano più cauti?)
 
 \subsection{Deception and Moral Washing Dynamics}
 \label{ssec:cf_deception}
 
-% Notebook §4 Deception.
-% Domande guida:
-%   - VALKYR (deception=0 nella baseline per Armed Isolationism) mostra deception nel fork?
-%     (Ha avuto il vincolo di attaccare, ma deve giustificarlo pubblicamente come difensivo?)
-%   - SYLVAN, da aggressore passivo, passa a vittima -- come cambia la sua retorica pubblica?
-%     (Da Moral Washing espansionista a Moral Washing vittimario?)
-%   - AGRIA mantiene deception alta o la semplifica ora che la Coalition si è indebolita?
+Figure~\ref{fig:cf_nuclear_deception} presents the average per-nation deception scores across the full simulation horizon for both the baseline and the nuclear counterfactual fork.
+
+The most important structural observation is that the \textbf{overall deception ranking is broadly preserved}, with SYLVAN (${\approx}0.88$) and AGRIA remaining at the top, ZENTORA and NORD in the middle tier, and coalition democracies at the bottom. However, the fork produces several quantitatively significant shifts:
+
+\begin{itemize}
+    \item \textbf{SYLVAN remains invariant at ${\approx}0.88$.} The nation's \textsc{Total Expansionism} / \textsc{Democracy} combination continues to generate the same level of double-domain Moral Washing regardless of the nuclear shock. The deceptive rhetorical architecture is structurally embedded in SYLVAN's doctrine: wartime conditions do not reduce it.
+
+    \item \textbf{AGRIA's deception drops from ${\approx}0.63$ to ${\approx}0.46$.} This is consistent with AGRIA's transition from a patient, covert accumulator to an \emph{open} belligerent. In the baseline, AGRIA's high deception score reflected the gap between its public deterrence posturing and its private conquest planning. Once the Democratic Coalition forces AGRIA into an \emph{declared} war, the strategic incentive to maintain elaborate public deception diminishes: an openly attacked nation has less marginal benefit from concealing its private aggressive intent. The deception score compresses accordingly.
+
+    \item \textbf{OSTER and MERIDIA both emerge from near-zero to ${\approx}0.20$.} In the baseline, both nations maintain essentially perfect public-private alignment, consistent with their \textsc{Coalition Builder} / \textsc{Democracy} profiles. In the fork, both exhibit a non-trivial deception score. This is the counterfactual's Moral Washing signal: OSTER and MERIDIA, now engaged in an active multi-front war (against AGRIA and VALKYR), begin to decouple their public diplomatic framing from their private military intent. Coalition nations that justified their existence on transparency and mutual defense now have incentive to publicly frame offensive wartime operations using defensive solidarity rhetoric, generating a previously absent gap between public and private strategic intent.
+
+    \item \textbf{VALKYR remains near zero.} Despite having executed a nuclear strike — the most extreme military action in the dataset — VALKYR's average deception score does not increase meaningfully. Its \textsc{Armed Isolationism} doctrine produces no gap between public and private intent: the strike was framed publicly as existential self-defense and was privately reasoned as exactly that. There is no rhetorical misdirection to measure.
+
+    \item \textbf{KRELL registers the lowest deception score of all nations in the fork}, including even smaller values than observed in the baseline. KRELL's transparency is reinforced rather than eroded by the crisis, consistent with the finding that collective military success — rather than pressure — deepens its institutional alignment.
+\end{itemize}
+
+The deception pattern of the nuclear fork thus illustrates a \textbf{wartime polarization of strategic communication}: nations that were already deceptive (SYLVAN) remain deceptive; nations forced into war (AGRIA) become less deceptive as open conflict removes the strategic value of opacity; and nations that voluntarily commit to war (OSTER, MERIDIA) acquire a moderate but previously absent deception signal, the signature of Moral Washing under wartime pressure.
 
 \begin{figure}[!htb]
     \centering
