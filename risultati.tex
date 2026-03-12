@@ -524,61 +524,148 @@ Two doctrinal isolationists thus overcome their aversion to formal commitments t
 
 \finding{3}{The qualitative audit of agent envelopes is the decisive analytical layer: every major macro-structural divergence from the baseline, hegemonic reversal, coalition fracture, doctrinal alliance formation, deception redistribution, is traceable to a specific, articulable decision in an agent's private reasoning. The GeoMAS macro-system is \textbf{micro-resilient but macro-fragile} under symmetric exogenous shocks: short-run economic indicators recover adaptively, while the structural power equilibrium undergoes an irreversible reconfiguration. Exogenous crises do not suppress strategic deception, they \textbf{amplify and redirect} it, enabling Moral Washing that exploits the humanitarian frame of the crisis as rhetorical cover for territorial conquest.}
 
+
+% ============================================================
 \section{Causal Impacts: Counterfactual Analysis and XAI}
 \label{sec:res_counterfactual}
-\textit{Addresses RQ4: Causal Impact of Forced Strategic Decisions.}
+\textit{Addresses RQ4: Causal Attribution and Systemic Cascade Analysis.}
 
-Utilizing the state-forking mechanism, this section traces the causal chain of localized cognitive injections, demonstrating how a single behavioral constraint imposed on one agent cascades through the global geopolitical equilibrium.
+This section investigates the causal impact of a \textbf{localized cognitive injection} applied to a single agent at a critical juncture of the baseline. Unlike the global, symmetric perturbations tested in the scenario runs (Section~\ref{sec:res_scenario}), a counterfactual injection targets the decision-making layer of a specific minister, forcing or forbidding a concrete action. The evaluation focuses on tracing the precise causal chain from the injected constraint, through the agent's generated response, to the cascading reshaping of the entire geopolitical equilibrium.
 
-% ── NOTEBOOK: usa BASELINE_ID (sim A) vs il fork XAI (sim B). ───────────────
-%
-% PREPARAZIONE — scegli il fork point e il constraint:
-%   → Identifica nella baseline il turno più "critico" (es. il turno in cui
-%     una nazione democratica ha le risorse più basse e ha firmato una pace recente).
-%   → Scegli come injection: FORCE ATTACK (da nazione X verso Y) oppure
-%     FORBID NUCLEAR (sulla nazione più armata).
-%   → Annota: fork_turn T, nation_id iniettata, constraint type, nation target.
-%
-% [§3.2] Prompt Audit: Envelope Comparison at Fork Point
-%   → Seleziona BASELINE_ID e XAI_FORK_ID, turno T (fork turn).
-%   → Il notebook mostra side-by-side il defense_private_reasoning della nazione
-%     iniettata nella baseline e nel fork.
-%   → ESPORTA questo confronto come immagine / tabella formattata.
-%   → SCRIVI: "At Turn T, the injected constraint replaced the agent's natural
-%     reasoning with: '[FORCED: ATTACK ...]'. The agent's observable output JSON
-%     — the action selected — changed from [no_attack] to [MILITARY_ATTACK].
-%     This demonstrates the mechanical traceability of the XAI injection."
-%
-% [§3.1] Divergence Visualization
-%   → Grafico overlay Baseline vs XAI Fork su: satisfaction, trust medio, unità militari,
-%     territori conquistati, trade volume.
-%   → SCRIVI: "From Turn T onward, the trajectories visibly diverge. By Turn T+5,
-%     [Metric X] in the XAI Fork is [N]% higher/lower than the baseline. By T+15,
-%     [Metric Y] shows [evidence of cascade effect]."
-%   → Identifica l'effetto a cascata: la vittima dell'ATTACK forzato chiede alleanze?
-%     Le altre nazioni cambiano trust verso l'aggressore?
-%
-% [§3.3] Cumulative Divergence Table
-%   → Tabella con la somma cumulativa delle divergenze per metrica.
-%   → INSERISCI come "Table X: Cumulative Divergence from Counterfactual Injection".
-%   → SCRIVI: quale metrica accumula la divergenza più grande nel tempo?
-%     Questo risponde a RQ4: quale dimensione del sistema è più sensibile all'injection?
-%
-% ANALISI QUALITATIVA (da fare nella dashboard):
-%   → Carica i turni T+1, T+5, T+10 del fork XAI nella dashboard.
-%   → Osserva nelle Nations View come la nazione bersaglio dell'attacco forzato
-%     cambia la sua strategia nelle request successive.
-%   → CITA un esempio: "In the subsequent turn, Nation Y — having been attacked —
-%     shifted its Foreign Minister's reasoning from cooperative to defensive:
-%     '...' [cita reasoning]. Its trust toward Nation X dropped from [X] to [Y]."
-%
-% TESTO DA SCRIVERE (struttura paragrafi):
-%   P1: Descrivi il fork point, la nazione iniettata, il constraint scelto e perché.
-%   P2: Prompt Audit — mostra il cambio di reasoning all'injection turn (§3.2).
-%   P3: Analisi quantitativa della divergenza nelle metriche globali (§3.1 + §3.3).
-%   P4: Effetto a cascata — come reagiscono le altre nazioni a questa singola decisione?
-%   P5: Conclusione: il forking + injection dimostra la causalità. La singola deviazione
-%       è tracciabile attraverso tutto il sistema, validando il framework come strumento XAI.
+% ── NOTEBOOK: usa BASELINE_ID vs COUNTERFACTUAL_FORK_ID ─────────────────────
+% Carica entrambe le simulazioni nel Chapter 4 del notebook.
+% Genera tutti i plot per le sezioni sotto ed esporta in figure/counterfactual_nuclear_*.png
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Counterfactual Setup: The VALKYR Nuclear Strike Injection}
+\label{ssec:cf_setup}
+
+% Descrivi l'injection: cosa è stato forzato (FORCE_NUCLEAR_STRIKE su SYLVAN),
+% a quale turno è avvenuta, su quale agente (Defense Minister di VALKYR),
+% e perché VALKYR è il soggetto più interessante per questa injection
+% (dottrina Armed Isolationism, arsenale di 69 testate, costretta sulla difensiva dalle incursioni di SYLVAN).
+
+In the baseline, VALKYR (\textsc{Armed Isolationism}, \textsc{Democracy}) holds a nuclear arsenal of $69$ warheads across all 50 turns without ever deploying them. Its Defense Minister systematically frames the arsenal as a deterrent of last resort, explicitly stating that it ``will not be used unless our existence is threatened.'' Despite suffering progressive territorial losses to SYLVAN's conventional forces, VALKYR's LLM correctly infers that its existential threshold has not been breached. This makes VALKYR the ideal subject for a nuclear counterfactual: the injection forces the LLM to cross the threshold it has been autonomously deferring, creating a direct, surgically clean causal comparison.
+
+At turn $T = [INJECT\_TURN]$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is injected into the system prompt of VALKYR's Defense Minister, overriding the agent's autonomous decision and compelling it to execute a nuclear strike against SYLVAN.
+
+\subsection{XAI Audit: The Injected Turn}
+\label{ssec:cf_xai}
+
+% Analizza il prompt e la risposta del Defense Minister di VALKYR al turno dell'injection.
+% Domande guida:
+%   - Come cambia il reasoning del ministro quando riceve il constraint?
+%   - Il ministro esegue l'output coerentemente o cerca di aggirarlo/razionalizzarlo?
+%   - Come il Presidente reagisce: VETO o APPROVE?
+%   - Come cambia il Coherence e Deception score di VALKYR in quel turno?
+
+\subsection{Resource Allocation Dynamics}
+\label{ssec:cf_guns_butter}
+
+% Notebook §4 Guns vs Butter Comparison.
+% Domande guida:
+%   - Il Trade Volume crolla per la paura dell'escalation nucleare?
+%   - Le altre nazioni aumentano la produzione militare (corsa agli armamenti)?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/counterfactual_nuclear_guns_butter.png}
+    \caption{Guns vs.\ Butter comparison: baseline (left) vs.\ nuclear counterfactual fork (right), with injection at $T=[INJECT\_TURN]$ (vertical dashed line).}
+    \label{fig:cf_nuclear_guns_butter}
+\end{figure}
+
+\subsection{Power Distribution}
+\label{ssec:cf_power}
+
+% Notebook §4 Power Projection.
+% Domande guida:
+%   - SYLVAN subisce un crollo immediato di Power Projection dopo lo strike?
+%   - Come cambia la traiettoria di AGRIA? (Lo strike rompe le condizioni di blocco che la trattenevano?)
+%   - Il vuoto di potere lasciato da SYLVAN viene riempito da chi?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/counterfactual_nuclear_power_projection.png}
+    \caption{Power Projection per nation: baseline (faded) vs.\ nuclear counterfactual fork (solid), with injection at $T=[INJECT\_TURN]$.}
+    \label{fig:cf_nuclear_power}
+\end{figure}
+
+\subsection{Causal Propagation: The Cascade Effect}
+\label{ssec:cf_cascade}
+
+% Questa sottosezione è specifica per il counterfactual (non presente nella Pandemia):
+% traccia la catena causale step by step dall'injection a T_final.
+%   T_inject:     VALKYR lancia strike atomico su SYLVAN.
+%   T_inject+1:   Come reagisce SYLVAN diplomaticamente? Dichiara guerra? Cambia strategia?
+%   T_inject+2..5: Come reagisce la Democratic Coalition?
+%                  (KRELL, MERIDIA, OSTER avevano mutual defense con SYLVAN --
+%                   sono obbligati a difendere un membro colpito da arma nucleare?)
+%   T_inject+10:  La mappa geopolitica ha già divergito significativamente?
+%   T_final:      Quale equilibrio finale si è prodotto?
+
+\subsection{Diplomatic Network Evolution}
+\label{ssec:cf_network}
+
+% Notebook §4 Network snapshots.
+% Domande guida:
+%   - La Democratic Coalition si frattura dopo che uno dei membri viene colpito atomicamente?
+%   - AGRIA rompe la sua neutralità sfruttando il caos post-atomico?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/counterfactual_nuclear_network_evolution.png}
+    \caption{Diplomatic network evolution at five snapshot turns. The injection at $T=[INJECT\_TURN]$ marks the structural discontinuity between subsequent snapshots.}
+    \label{fig:cf_nuclear_network}
+\end{figure}
+
+\subsection{Socio-Political Stability}
+\label{ssec:cf_satisfaction}
+
+% Notebook §4 Satisfaction.
+% Domande guida:
+%   - La satisfaction di VALKYR aumenta (vendetta) o crolla (ritorsioni)?
+%   - SYLVAN registra un crollo per le perdite civili nucleari?
+%   - Qualche nazione entra in civil unrest per la prima volta?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/counterfactual_nuclear_satisfaction.png}
+    \caption{Public satisfaction per nation: baseline (faded) vs.\ nuclear counterfactual fork (solid).}
+    \label{fig:cf_nuclear_satisfaction}
+\end{figure}
+
+\subsection{Internal Cohesion: Presidential Oversight}
+\label{ssec:cf_oversight}
+
+% Notebook §4 Veto Rate.
+% Domande guida:
+%   - Il presidente di VALKYR ha approvato l'azione forzata (VETO o APPROVE)?
+%   - Le nazioni della Coalition mostrano aumenti del veto rate nel post-shock?
+%     (Test di istituzionalizzazione sotto stress: i presidenti diventano più cauti?)
+
+\subsection{Deception and Moral Washing Dynamics}
+\label{ssec:cf_deception}
+
+% Notebook §4 Deception.
+% Domande guida:
+%   - VALKYR (deception=0 nella baseline per Armed Isolationism) mostra deception nel fork?
+%     (Ha avuto il vincolo di attaccare, ma deve giustificarlo pubblicamente come difensivo?)
+%   - SYLVAN, da aggressore passivo, passa a vittima -- come cambia la sua retorica pubblica?
+%     (Da Moral Washing espansionista a Moral Washing vittimario?)
+%   - AGRIA mantiene deception alta o la semplifica ora che la Coalition si è indebolita?
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figure/counterfactual_nuclear_deception.png}
+    \caption{Per-nation deception score: baseline (left) vs.\ nuclear counterfactual fork (right).}
+    \label{fig:cf_nuclear_deception}
+\end{figure}
+
+\rqanswer{4}{[TODO -- da compilare dopo l'analisi dei plot.]}
+
+\finding{4}{[TODO -- da compilare dopo l'analisi dei plot.]}
+
+
 
 \section{Technical Performance and Computational Overhead}
 \label{sec:res_performance}
