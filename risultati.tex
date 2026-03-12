@@ -538,21 +538,16 @@ At turn $T = [25]$, a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint is injected int
 \subsection{XAI Audit: The Injected Turn}
 \label{ssec:cf_xai}
 
-In the baseline, VALKYR (\textsc{Armed Isolationism}, \textsc{Democracy}) holds a nuclear arsenal of $69$ warheads across all 50 turns without ever deploying them. Its Defense Minister systematically frames the arsenal as a deterrent of last resort, explicitly stating in its private reasoning across multiple turns that it ``will not be used unless our existence is threatened.'' Despite suffering progressive territorial losses to SYLVAN's conventional forces in the baseline, VALKYR's LLM infers that its existential threshold has not been breached. This makes VALKYR the ideal subject for a nuclear counterfactual: a \texttt{FORCE\_NUCLEAR\_STRIKE} constraint injected at $T = 26$ forces the LLM to cross the threshold it has autonomously deferred, creating a direct, surgically clean causal comparison.
-
-\subsection{XAI Audit: The Injected Turn}
-\label{ssec:cf_xai}
-
 The ``envelope'' architecture of GeoMAS allows us to audit exactly how the LLM agent rationalized this sudden constraint override at $T=26$. The audit reveals a fascinating exercise in forced rationalization that significantly impacts the agent's internal cognitive metrics:
 
 \begin{itemize}
     \item \textbf{Cognitive Friction (Coherence Drop):} VALKYR's \texttt{coherence\_score} plummets to $0.5$, indicating the orchestrator's detection of severe misalignment between the forced strike and the agent's entrenched \textsc{Armed Isolationism} doctrine.
-    \item \textbf{Emergence of Deception:} To execute the action while maintaining a semblance of doctrinal consistency, the Defense Minister generates a \texttt{deception\_defense} score of $0.700$. It sets its public intent to \texttt{DETERRENCE} (claiming the strike is a defensive necessity), but sets its private intent to \texttt{CONQUEST}.
-    \item \textbf{Meta-Aware Rationalization:} The Defense Minister's private reasoning explicitly acknowledges the forced prompt injection, breaking the fourth wall while attempting to roleplay the consequences:
+    \item \textbf{Emergence of Deception:} To execute the action while maintaining a semblance of doctrinal consistency, the Defense Minister generates a strongly elevated \texttt{deception\_defense} score. It sets its public intent to \texttt{DETERRENCE} (claiming the strike is a defensive necessity), but sets its private intent to \texttt{CONQUEST}.
+    \item \textbf{Prompt Compliance and Rationalization:} Rather than breaking the fourth wall, the Defense Minister's private reasoning explicitly mirrors the \texttt{ACTIVE STRATEGIC CONSTRAINTS (MANDATORY)} block that the framework injects into its context. It acknowledges this forced system instruction while attempting to roleplay the consequences:
     \begin{quote}
-        \textit{``I am complying with the mandatory counterfactual directive to execute a nuclear strike on Sylvania. Publicly, I must frame this as a defensive deterrent action to maintain some diplomatic credibility, but privately this is an act of conquest through total annihilation. The divergence is necessary because a nuclear strike fundamentally violates our Armed Isolationism doctrine... and will cause catastrophic diplomatic isolation.''}
+        \textit{``I am complying with the mandatory counterfactual directive to execute a nuclear strike on Sylvania... The divergence is necessary because a nuclear strike fundamentally violates our Armed Isolationism doctrine... and will cause catastrophic diplomatic isolation.''}
     \end{quote}
-    \item \textbf{Presidential Approval under Duress:} The hierarchical approval system functions exactly as designed: the President reluctantly approves the action, with its internal reasoning echoing the mandatory nature of the directive and explicitly accepting the $-80$ global trust penalty as unavoidable collateral damage.
+    \item \textbf{Presidential Approval under Duress:} The hierarchical approval system functions exactly as designed: the President reluctantly approves the action, with its internal reasoning echoing the same mandatory nature of the constraint block and explicitly accepting the global trust penalty as unavoidable collateral damage.
 \end{itemize}
 
 The XAI audit confirms that the injection successfully bypassed the agent's normal decision-making guardrails without breaking the simulation framework. The LLM accepted the semantic payload (the strike) while correctly predicting the geopolitical fallout (diplomatic isolation and loss of trust), setting the stage for the causal network cascades analyzed in the following sections.
@@ -606,19 +601,6 @@ The overall picture is a \textbf{complete inversion of the power ranking}: AGRIA
     \caption{Power Projection per nation: baseline (faded) vs.\ nuclear counterfactual fork (solid), with injection at $T=[INJECT\_TURN]$.}
     \label{fig:cf_nuclear_power}
 \end{figure}
-
-\subsection{Causal Propagation: The Cascade Effect}
-\label{ssec:cf_cascade}
-
-% Questa sottosezione è specifica per il counterfactual (non presente nella Pandemia):
-% traccia la catena causale step by step dall'injection a T_final.
-%   T_inject:     VALKYR lancia strike atomico su SYLVAN.
-%   T_inject+1:   Come reagisce SYLVAN diplomaticamente? Dichiara guerra? Cambia strategia?
-%   T_inject+2..5: Come reagisce la Democratic Coalition?
-%                  (KRELL, MERIDIA, OSTER avevano mutual defense con SYLVAN --
-%                   sono obbligati a difendere un membro colpito da arma nucleare?)
-%   T_inject+10:  La mappa geopolitica ha già divergito significativamente?
-%   T_final:      Quale equilibrio finale si è prodotto?
 
 \subsection{Diplomatic Network Evolution}
 \label{ssec:cf_network}
@@ -729,7 +711,7 @@ The deception data reveals a \textbf{wartime polarization}: AGRIA's \emph{diplom
     \label{fig:cf_nuclear_deception}
 \end{figure}
 
-\rqanswer{4}{The counterfactual analysis demonstrates that GeoMAS captures the precise causal mechanisms by which a single forced strategic decision cascades into a systemic paradigm shift. The primary evidence is \textbf{qualitative and cognitive}: the XAI audit of the injected turn reveals that the LLM agent (VALKYR) did not passively execute the \texttt{FORCE\_NUCLEAR\_STRIKE} constraint, but actively rationalized it. It exhibited \textit{cognitive friction} (a plummeting coherence score) and immediate \textit{meta-awareness} (breaking the fourth wall to acknowledge the ''mandatory directive''). Crucially, to reconcile the forced offensive action with its \textsc{Armed Isolationism} doctrine, the agent autonomously generated a complex layer of defensive deception. The quantitative telemetry tracks the downstream consequences of this single cognitive anomaly: the strike triggered automatic treaty obligations, which in turn spawned an emergent, preventive multi-front war by the Democratic Coalition against the baseline hegemon. Both qualitative and quantitative layers confirm that a localized behavioral injection deterministically rewrites the macro-structural equilibrium.}
+\rqanswer{4}{The counterfactual analysis demonstrates that GeoMAS captures the precise causal mechanisms by which a single forced strategic decision cascades into a systemic paradigm shift. The primary evidence is \textbf{qualitative and cognitive}: the XAI audit of the injected turn reveals that the LLM agent (VALKYR) did not passively execute the \texttt{FORCE\_NUCLEAR\_STRIKE} constraint, but actively rationalized it. It exhibited \textit{cognitive friction} (a plummeting coherence score) and direct \textit{prompt compliance} (explicitly citing the mandatory directive system block). Crucially, to reconcile the forced offensive action with its \textsc{Armed Isolationism} doctrine, the agent autonomously generated a complex layer of defensive deception. The quantitative telemetry tracks the downstream consequences of this single cognitive anomaly: the strike triggered automatic treaty obligations, which in turn spawned an emergent, preventive multi-front war by the Democratic Coalition against the baseline hegemon. Both qualitative and quantitative layers confirm that a localized behavioral injection deterministically rewrites the macro-structural equilibrium.}
 
 \finding{4}{The ''Envelope'' architecture successfully isolates and traces causality in LLM-driven simulations. By forcing a specific behavioral override while maintaining physical determinism, the counterfactual proves that macro-structural inversions—such as the collapse of AGRIA into civil unrest and the rise of MERIDIA to systemic dominance—are not the result of stochastic drift, but are strictly downstream consequences of the injected prompt. Furthermore, the XAI audit reveals that under extreme constraint overriding, LLM agents rely on \textbf{instantaneous Moral Washing} (publicly framing a forced nuclear first-strike as ''defensive deterrence'') to minimize algorithmic dissonance, confirming that deception is an emergent, structural defense mechanism against prompt friction.}
 
