@@ -1,3 +1,16 @@
 numpy
 matplotlib
 scipy
+pydantic
+scipy-stubs==1.17.0.0
+streamlit
+networkx
+pytest
+shapely
+instructor
+litellm
+duckdb
+seaborn
+pandas
+ipykernel
+watchdog

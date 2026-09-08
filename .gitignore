@@ -64,4 +64,8 @@ __pycache__/
 # Vim
 *.swp
 *.swo
-*~
+*~.env
+.env
+
+
+logs/

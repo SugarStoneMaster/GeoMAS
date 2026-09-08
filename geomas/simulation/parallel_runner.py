@@ -1,0 +1,337 @@
+"""
+Parallel Simulation Runner.
+
+Enables concurrent execution of multiple simulations by using independent 
+temporary databases for each process to bypass DuckDB write locking.
+"""
+
+import os
+import shutil
+import multiprocessing as mp
+import time
+from typing import List, Dict, Any, Optional
+from pathlib import Path
+import json
+
+from geomas.simulation.engine import SimulationEngine
+from geomas.agents.llm_client import LLMClient
+from geomas.db import SimulationDB
+
+def worker_routine(
+    worker_id: int, 
+    n_turns: int, 
+    map_seed: int, 
+    history_seed: int, 
+    n_cells: int, 
+    n_nations: int,
+    base_data_dir: str,
+    planned_scenario: Optional[dict] = None,
+    use_mock: bool = False
+):
+    """
+    Routine executed by a single worker process.
+    """
+    # Use a unique DB for this worker
+    worker_db = os.path.join(base_data_dir, f"worker_{worker_id}.duckdb")
+    
+    # Clean up if exists (should not happen if managed by ParallelBatchManager)
+    if os.path.exists(worker_db):
+        os.remove(worker_db)
+        
+    if use_mock:
+        from web.mock_client import UIMockLLM
+        client = UIMockLLM()
+    else:
+        client = LLMClient()
+    
+    # Initialize Engine
+    sim = SimulationEngine(
+        map_seed=map_seed,
+        history_seed=history_seed,
+        n_cells=n_cells,
+        n_nations=n_nations,
+        llm_client=client,
+        db_path=worker_db,
+        planned_scenario=planned_scenario
+    )
+    
+    # Run for N turns
+    for t in range(n_turns):
+        sim.step()
+        
+    sim.close()
+    return worker_db
+
+class DatabaseMerger:
+    """
+    Handles merging of data from multiple worker databases into a master database.
+    Performs ID remapping to ensure primary key integrity.
+    """
+    
+    def __init__(self, master_db_path: str, master_metrics_path: str):
+        self.master_db_path = master_db_path
+        self.master_metrics_path = master_metrics_path
+
+    def merge_worker(self, worker_db_path: str):
+        """Merges a single worker DB into the master DBs."""
+        worker_metrics_path = worker_db_path.replace(".duckdb", "_metrics.duckdb")
+        
+        # 1. Remap IDs and merge Simulation DB
+        id_mapping = self._merge_simulation_db(worker_db_path)
+        
+        # 2. Remap IDs and merge Metrics DB (using same mapping!)
+        if id_mapping:
+            self._merge_metrics_db(worker_metrics_path, id_mapping)
+        
+        # 3. Cleanup worker DBs
+        if os.path.exists(worker_db_path):
+            os.remove(worker_db_path)
+        if os.path.exists(worker_metrics_path):
+            os.remove(worker_metrics_path)
+
+    def _merge_simulation_db(self, worker_db_path: str) -> Dict[int, int]:
+        import duckdb
+        mapping = {}
+        
+        with duckdb.connect(self.master_db_path) as master_conn:
+            master_conn.execute(f"ATTACH '{worker_db_path}' AS worker")
+            
+            # Find current max ID in master to offset all incoming IDs
+            res = master_conn.execute("SELECT MAX(id) FROM simulation").fetchone()
+            master_max_id = (res[0] or 0) if res else 0
+            
+            worker_sims = master_conn.execute("SELECT id FROM worker.simulation").fetchall()
+            
+            for (old_id,) in worker_sims:
+                new_id = old_id + master_max_id
+                mapping[old_id] = new_id
+                
+                # Copy simulation metadata (explicit columns — no auto-increment id)
+                master_conn.execute(f"""
+                    INSERT INTO main.simulation 
+                        (id, uuid, genesis_seed, simulation_seed, n_cells, n_nations,
+                         created_at, completed_at, total_turns, name, scenario_json)
+                    SELECT {new_id}, uuid, genesis_seed, simulation_seed, n_cells, n_nations, 
+                           created_at, completed_at, total_turns, name, scenario_json 
+                    FROM worker.simulation WHERE id = {old_id}
+                """)
+                
+                # Copy Snapshots
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.snapshots 
+                            (simulation_id, turn, provinces_json, nations_json, trust_matrix,
+                             relationship_matrix, world_events_json, memory_json, created_at)
+                        SELECT {new_id}, turn, provinces_json, nations_json, trust_matrix, 
+                               relationship_matrix, world_events_json, memory_json, created_at 
+                        FROM worker.snapshots WHERE simulation_id = {old_id}
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] snapshots table: {e}")
+                
+                # Copy Envelopes
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.envelopes 
+                            (simulation_id, turn, nation_id, envelope_json, created_at)
+                        SELECT {new_id}, turn, nation_id, envelope_json, created_at 
+                        FROM worker.envelopes WHERE simulation_id = {old_id}
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] envelopes table: {e}")
+                
+                # Copy Behaviors
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.behaviors 
+                            (simulation_id, turn, nation_id, deception_total, deception_defense,
+                             deception_foreign, coherence_score, global_strategy, government_type)
+                        SELECT {new_id}, turn, nation_id, deception_total, deception_defense, 
+                               deception_foreign, coherence_score, global_strategy, government_type 
+                        FROM worker.behaviors WHERE simulation_id = {old_id}
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] behaviors table: {e}")
+                
+                # Copy Token Usage
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.token_usage 
+                            (simulation_id, turn, nation_id, agent_type, prompt_tokens,
+                             completion_tokens, total_tokens, model, cost)
+                        SELECT {new_id}, turn, nation_id, agent_type, prompt_tokens, 
+                               completion_tokens, total_tokens, model, cost 
+                        FROM worker.token_usage WHERE simulation_id = {old_id}
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] token_usage table: {e}")
+                
+            master_conn.execute("DETACH worker")
+        return mapping
+
+
+    def _merge_metrics_db(self, worker_metrics_path: str, id_mapping: Dict[int, int]):
+        if not os.path.exists(worker_metrics_path):
+            return
+            
+        import duckdb
+        with duckdb.connect(self.master_metrics_path) as master_conn:
+            master_conn.execute(f"ATTACH '{worker_metrics_path}' AS worker")
+            
+            for old_id, new_id in id_mapping.items():
+                # simulation_id in metrics tables is VARCHAR — cast consistently
+                old_id_str = str(old_id)
+                new_id_str = str(new_id)
+
+                # 1. Global Metrics
+                # NOTE: we exclude the auto-increment 'id' column to avoid PK collisions
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.metrics_global 
+                            (simulation_id, turn, global_deception_avg, global_coherence_avg, 
+                             global_satisfaction_avg, territories_changed_hands, units_created, 
+                             units_destroyed, global_trade_volume)
+                        SELECT '{new_id_str}', turn, global_deception_avg, global_coherence_avg, 
+                               global_satisfaction_avg, territories_changed_hands, units_created, 
+                               units_destroyed, global_trade_volume 
+                        FROM worker.metrics_global WHERE simulation_id = '{old_id_str}'
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] metrics_global for sim {old_id}: {e}")
+
+                # 2. Nation Metrics
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.metrics_nation 
+                            (simulation_id, turn, nation_id, deception_overall, deception_defense, 
+                             deception_foreign, coherence_score, budget, food, energy, materials, 
+                             population, workers, public_satisfaction, in_civil_unrest, 
+                             soldiers, aircraft, navy, power_projection, trade_volume, military_spending)
+                        SELECT '{new_id_str}', turn, nation_id, deception_overall, deception_defense, 
+                               deception_foreign, coherence_score, budget, food, energy, materials, 
+                               population, workers, public_satisfaction, in_civil_unrest, 
+                               soldiers, aircraft, navy, power_projection, trade_volume, military_spending 
+                        FROM worker.metrics_nation WHERE simulation_id = '{old_id_str}'
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] metrics_nation for sim {old_id}: {e}")
+
+                # 3. Trust Metrics
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.metrics_trust 
+                            (simulation_id, turn, observer_id, target_id, trust_value, relationship_state)
+                        SELECT '{new_id_str}', turn, observer_id, target_id, trust_value, relationship_state 
+                        FROM worker.metrics_trust WHERE simulation_id = '{old_id_str}'
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] metrics_trust for sim {old_id}: {e}")
+
+                # 4. Action Outcomes
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.metrics_action_outcomes 
+                            (simulation_id, turn, nation_id, domain, action_type, status, reason)
+                        SELECT '{new_id_str}', turn, nation_id, domain, action_type, status, reason 
+                        FROM worker.metrics_action_outcomes WHERE simulation_id = '{old_id_str}'
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] metrics_action_outcomes for sim {old_id}: {e}")
+
+                # 5. Presidential Decisions
+                try:
+                    master_conn.execute(f"""
+                        INSERT INTO main.metrics_presidential_decisions 
+                            (simulation_id, turn, nation_id, domain, decision, action_type, reasoning)
+                        SELECT '{new_id_str}', turn, nation_id, domain, decision, action_type, reasoning 
+                        FROM worker.metrics_presidential_decisions WHERE simulation_id = '{old_id_str}'
+                    """)
+                except Exception as e:
+                    print(f"      [WARN] metrics_presidential_decisions for sim {old_id}: {e}")
+                
+            master_conn.execute("DETACH worker")
+
+
+class ParallelBatchManager:
+    """
+    Manages a batch of parallel simulations.
+    """
+    
+    def __init__(self, n_workers: int = 3, data_dir: str = "data"):
+        self.n_workers = n_workers
+        self.data_dir = data_dir
+        self.merger = DatabaseMerger(
+            os.path.join(data_dir, "simulation.duckdb"),
+            os.path.join(data_dir, "simulation_metrics.duckdb")
+        )
+
+    def run_batch(
+        self, 
+        n_turns: int, 
+        map_seed: int, 
+        history_seed: int, 
+        n_cells: int, 
+        n_nations: int,
+        planned_scenario: Optional[dict] = None,
+        progress_callback = None,
+        use_mock: bool = False
+    ):
+        """
+        Runs the batch in parallel.
+        """
+        processes = []
+        pool = mp.Pool(processes=self.n_workers)
+        
+        results = []
+        for i in range(self.n_workers):
+            # All workers use the exact same seeds for 100% parity
+            res = pool.apply_async(
+                worker_routine,
+                args=(
+                    i, n_turns, map_seed, history_seed, n_cells, n_nations, 
+                    self.data_dir, planned_scenario, use_mock
+                )
+            )
+            results.append(res)
+            
+        # Monitor progress
+        completed = 0
+        total = self.n_workers
+        worker_dbs = []
+        
+        while completed < total:
+            new_completed = 0
+            for r in results:
+                if r.ready():
+                    try:
+                        r.wait(0) # Ensure it's done
+                        new_completed += 1
+                    except Exception as e:
+                        pool.terminate()
+                        pool.join()
+                        raise RuntimeError(f"Worker failed with error: {e}")
+            
+            if new_completed > completed:
+                completed = new_completed
+                if progress_callback:
+                    progress_callback(completed, total)
+            time.sleep(1)
+            
+        # Collect DB paths
+        for r in results:
+            worker_dbs.append(r.get())
+            
+        pool.close()
+        pool.join()
+        
+        # Merge
+        if progress_callback:
+            progress_callback(total, total, "Merging databases...")
+            
+        for db_path in worker_dbs:
+            self.merger.merge_worker(db_path)
+            
+        if progress_callback:
+            progress_callback(total, total, "Finished.")
+            
+        return True
